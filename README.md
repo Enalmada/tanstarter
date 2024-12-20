@@ -1,4 +1,4 @@
-# [TanStarter](https://github.com/dotnize/tanstarter)
+# [TanStarter](https://github.com/enalmada/tanstarter)
 
 A minimal starter template for 🏝️ TanStack Start.
 

@@ -1,0 +1,93 @@
+# https://gist.github.com/dbist/ebb1f39f580ad9d07c04c3a3377e2bff
+# admin-ui with `bun crdb:admin` or http://127.0.0.1:8080
+
+services:
+  crdbTanStarter:
+    image: cockroachdb/cockroach:v24.3.0
+    container_name: crdbTanStarter
+    ports:
+      - '26257:26257'
+      - '8080:8080'
+    command: start-single-node --insecure
+    volumes:
+      - 'crdb-data-tanstarter:/cockroach/cockroach-data'
+    networks:
+      - tanstarter_network
+
+  crdbTanStarterTest:
+    image: cockroachdb/cockroach:v24.3.0
+    container_name: crdbTanStarterTest
+    ports:
+      - '26258:26257'
+      - '8081:8080'
+    command: start-single-node --insecure
+    volumes:
+      - 'crdb-data-tanstarter-test:/cockroach/cockroach-data-test'
+    networks:
+      - tanstarter_network
+
+volumes:
+  crdb-data-tanstarter:
+  crdb-data-tanstarter-test:
+
+networks:
+  tanstarter_network:
+    driver: bridge
+
+
+
+# If you want to use postgres (neon, supabase, etc)
+# potentially helpful scripts
+# "pgadmin": "cmd.exe /C start http://127.0.0.1:5050",
+# "pgadmin:win": "start http://127.0.0.1:5050",
+
+#version: '3.9'
+#
+#services:
+#  db:
+#    image: 'postgres:16'
+#    environment:
+#      POSTGRES_PASSWORD: asdfasdf
+#      POSTGRES_USER: postgres
+#    ports:
+#      - '5432:5432'
+#    volumes:
+#      - 'db-data:/var/lib/postgresql/data'
+#    networks:
+#      - my_network
+#    command: -p 5432
+#
+#  dbTest:
+#    image: 'postgres:16'
+#    environment:
+#      POSTGRES_PASSWORD: asdfasdf
+#      POSTGRES_USER: postgres
+#    ports:
+#      - '5433:5433'
+#    volumes:
+#      - 'db-data-test:/var/lib/postgresql/data'
+#    networks:
+#      - my_network
+#    command: -p 5433
+#
+#  pgadmin:
+#    image: dpage/pgadmin4:latest
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: admin@example.com
+#      PGADMIN_DEFAULT_PASSWORD: admin
+#    ports:
+#      - '5050:80'
+#    volumes:
+#      - 'pgadmin-data:/var/lib/pgadmin'
+#    networks:
+#      - my_network
+#
+#volumes:
+#  db-data:
+#  db-data-test:
+#  pgadmin-data:
+#
+#networks:
+#  my_network:
+#    driver: bridge
+#

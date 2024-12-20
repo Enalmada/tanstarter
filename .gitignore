@@ -16,3 +16,6 @@ dist
 /api/
 /server/build
 /public/build
+
+.codebuddy
+.turbo
