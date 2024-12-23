@@ -8,7 +8,7 @@ import {
 	generateSessionToken,
 	setSessionTokenCookie,
 } from "~/server/auth";
-import { db } from "~/server/db";
+import { db, withTransaction } from "~/server/db";
 import { oauthAccount, user } from "~/server/db/schema";
 
 interface DiscordUser {
@@ -87,23 +87,27 @@ export const APIRoute = createAPIFileRoute("/api/auth/callback/discord")({
 				});
 			}
 
-			const userId = await db.transaction(async (tx) => {
-				const [{ newId }] = await tx
-					.insert(user)
-					.values({
-						email: providerUser.email,
-						name: providerUser.global_name || providerUser.username,
-						avatar_url: providerUser.avatar
-							? `https://cdn.discordapp.com/avatars/${providerUser.id}/${providerUser.avatar}.png`
-							: null,
-					})
-					.returning({ newId: user.id });
-				await tx.insert(oauthAccount).values({
-					provider_id: PROVIDER_ID,
-					provider_user_id: providerUser.id,
-					user_id: newId,
+			const userId = await withTransaction(async (db) => {
+				return await db.transaction(async (tx) => {
+					const [{ newId }] = await tx
+						.insert(user)
+						.values({
+							email: providerUser.email,
+							name: providerUser.global_name || providerUser.username,
+							avatar_url: providerUser.avatar
+								? `https://cdn.discordapp.com/avatars/${providerUser.id}/${providerUser.avatar}.png`
+								: null,
+						})
+						.returning({ newId: user.id });
+
+					await tx.insert(oauthAccount).values({
+						provider_id: PROVIDER_ID,
+						provider_user_id: providerUser.id,
+						user_id: newId,
+					});
+
+					return newId;
 				});
-				return newId;
 			});
 
 			const token = generateSessionToken();

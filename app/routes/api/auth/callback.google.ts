@@ -8,7 +8,7 @@ import {
 	google,
 	setSessionTokenCookie,
 } from "~/server/auth";
-import { db } from "~/server/db";
+import { db, withTransaction } from "~/server/db";
 import { oauthAccount, user } from "~/server/db/schema";
 
 interface GoogleUser {
@@ -99,23 +99,25 @@ export const APIRoute = createAPIFileRoute("/api/auth/callback/google")({
 				});
 			}
 
-			const userId = await db.transaction(async (tx) => {
-				const [{ newId }] = await tx
-					.insert(user)
-					.values({
-						email: providerUser.email,
-						name: providerUser.name,
-						// first_name: providerUser.given_name,
-						// last_name: providerUser.family_name,
-						avatar_url: providerUser.picture,
-					})
-					.returning({ newId: user.id });
-				await tx.insert(oauthAccount).values({
-					provider_id: PROVIDER_ID,
-					provider_user_id: providerUser.sub,
-					user_id: newId,
+			const userId = await withTransaction(async (db) => {
+				return await db.transaction(async (tx) => {
+					const [{ newId }] = await tx
+						.insert(user)
+						.values({
+							email: providerUser.email,
+							name: providerUser.name,
+							avatar_url: providerUser.picture,
+						})
+						.returning({ newId: user.id });
+
+					await tx.insert(oauthAccount).values({
+						provider_id: PROVIDER_ID,
+						provider_user_id: providerUser.sub,
+						user_id: newId,
+					});
+
+					return newId;
 				});
-				return newId;
 			});
 
 			const token = generateSessionToken();

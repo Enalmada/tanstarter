@@ -1,93 +1,101 @@
 # https://gist.github.com/dbist/ebb1f39f580ad9d07c04c3a3377e2bff
 # admin-ui with `bun crdb:admin` or http://127.0.0.1:8080
-
-services:
-  crdbTanStarter:
-    image: cockroachdb/cockroach:v24.3.0
-    container_name: crdbTanStarter
-    ports:
-      - '26257:26257'
-      - '8080:8080'
-    command: start-single-node --insecure
-    volumes:
-      - 'crdb-data-tanstarter:/cockroach/cockroach-data'
-    networks:
-      - tanstarter_network
-
-  crdbTanStarterTest:
-    image: cockroachdb/cockroach:v24.3.0
-    container_name: crdbTanStarterTest
-    ports:
-      - '26258:26257'
-      - '8081:8080'
-    command: start-single-node --insecure
-    volumes:
-      - 'crdb-data-tanstarter-test:/cockroach/cockroach-data-test'
-    networks:
-      - tanstarter_network
-
-volumes:
-  crdb-data-tanstarter:
-  crdb-data-tanstarter-test:
-
-networks:
-  tanstarter_network:
-    driver: bridge
-
-
-
 # If you want to use postgres (neon, supabase, etc)
 # potentially helpful scripts
 # "pgadmin": "cmd.exe /C start http://127.0.0.1:5050",
 # "pgadmin:win": "start http://127.0.0.1:5050",
 
-#version: '3.9'
-#
-#services:
-#  db:
-#    image: 'postgres:16'
-#    environment:
-#      POSTGRES_PASSWORD: asdfasdf
-#      POSTGRES_USER: postgres
-#    ports:
-#      - '5432:5432'
-#    volumes:
-#      - 'db-data:/var/lib/postgresql/data'
-#    networks:
-#      - my_network
-#    command: -p 5432
-#
-#  dbTest:
-#    image: 'postgres:16'
-#    environment:
-#      POSTGRES_PASSWORD: asdfasdf
-#      POSTGRES_USER: postgres
-#    ports:
-#      - '5433:5433'
-#    volumes:
-#      - 'db-data-test:/var/lib/postgresql/data'
-#    networks:
-#      - my_network
-#    command: -p 5433
-#
-#  pgadmin:
-#    image: dpage/pgadmin4:latest
-#    environment:
-#      PGADMIN_DEFAULT_EMAIL: admin@example.com
-#      PGADMIN_DEFAULT_PASSWORD: admin
-#    ports:
-#      - '5050:80'
-#    volumes:
-#      - 'pgadmin-data:/var/lib/pgadmin'
-#    networks:
-#      - my_network
-#
-#volumes:
-#  db-data:
-#  db-data-test:
-#  pgadmin-data:
-#
-#networks:
-#  my_network:
-#    driver: bridge
-#
+services:
+  postgres_tanstarter:
+    image: postgres:17
+    container_name: postgres_tanstarter
+    command: '-d 1'
+    volumes:
+      - postgres_data_tanstarter:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=tanstarter
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tanstarter_network
+
+  postgres_tanstarter_test:
+    image: postgres:17
+    container_name: postgres_tanstarter_test
+    command: '-d 1'
+    volumes:
+      - postgres_data_tanstarter_test:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=tanstarter_test
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tanstarter_network
+
+  neon_proxy_tanstarter:
+    image: ghcr.io/timowilhelm/local-neon-http-proxy:main
+    container_name: neon_proxy_tanstarter
+    environment:
+      - PG_CONNECTION_STRING=postgres://postgres:postgres@postgres_tanstarter:5432/tanstarter
+    ports:
+      - '4444:4444'
+    depends_on:
+      postgres_tanstarter:
+        condition: service_healthy
+    networks:
+      - tanstarter_network
+
+  neon_proxy_tanstarter_test:
+    image: ghcr.io/timowilhelm/local-neon-http-proxy:main
+    container_name: neon_proxy_tanstarter_test
+    environment:
+      - PG_CONNECTION_STRING=postgres://postgres:postgres@postgres_tanstarter_test:5432/tanstarter_test
+    ports:
+      - '4445:4444'
+    depends_on:
+      postgres_tanstarter_test:
+        condition: service_healthy
+    networks:
+      - tanstarter_network
+
+  pgadmin_tanstarter:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin_tanstarter
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@tanstarter.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-pgadmin_password}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - '5050:80'
+    volumes:
+      - pgadmin_data_tanstarter:/var/lib/pgadmin
+    networks:
+      - tanstarter_network
+    depends_on:
+      - postgres_tanstarter
+      - postgres_tanstarter_test
+    restart: unless-stopped
+
+volumes:
+  postgres_data_tanstarter:
+  postgres_data_tanstarter_test:
+  pgadmin_data_tanstarter:
+
+networks:
+  tanstarter_network:
+    driver: bridge
