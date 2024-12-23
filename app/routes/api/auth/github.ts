@@ -2,6 +2,7 @@ import { createAPIFileRoute } from "@tanstack/start/api";
 import { generateState } from "arctic";
 import { setCookie, setHeader } from "vinxi/http";
 
+import { envHelpers } from "~/env";
 import { github } from "~/server/auth";
 
 export const APIRoute = createAPIFileRoute("/api/auth/github")({
@@ -12,7 +13,7 @@ export const APIRoute = createAPIFileRoute("/api/auth/github")({
 
 		setCookie("github_oauth_state", state, {
 			path: "/",
-			secure: process.env.NODE_ENV === "production",
+			secure: envHelpers.isProduction(),
 			httpOnly: true,
 			maxAge: 60 * 10,
 			sameSite: "lax",

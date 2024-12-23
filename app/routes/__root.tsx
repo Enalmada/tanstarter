@@ -9,18 +9,18 @@ import {
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import { Suspense, lazy } from "react";
 
+import { envHelpers } from "~/env";
 import { getAuthSession } from "~/server/auth";
 import appCss from "~/styles/app.css?url";
 
-const TanStackRouterDevtools =
-	process.env.NODE_ENV === "production"
-		? () => null // Render nothing in production
-		: lazy(() =>
-				// Lazy load in development
-				import("@tanstack/router-devtools").then((res) => ({
-					default: res.TanStackRouterDevtools,
-				})),
-			);
+const TanStackRouterDevtools = envHelpers.isProduction()
+	? () => null // Render nothing in production
+	: lazy(() =>
+			// Lazy load in development
+			import("@tanstack/router-devtools").then((res) => ({
+				default: res.TanStackRouterDevtools,
+			})),
+		);
 
 const getUser = createServerFn({ method: "GET" }).handler(async () => {
 	const { user } = await getAuthSession();

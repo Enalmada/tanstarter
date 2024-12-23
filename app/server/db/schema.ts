@@ -5,7 +5,7 @@ import {
 	timestamp,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { nanoid } from "nanoid";
+import { nanoid } from "nanoid/non-secure";
 
 // Parameterized insert don't seem to respect defaultFn
 export const nanoString = (prefix: string) => `${prefix}_${nanoid()}`;

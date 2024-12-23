@@ -7,6 +7,7 @@ import { Discord, GitHub, Google } from "arctic";
 import { eq } from "drizzle-orm";
 import { deleteCookie, getCookie, setCookie } from "vinxi/http";
 
+import { authHelpers, envHelpers } from "~/env";
 import { db } from "~/server/db";
 import {
 	type Session,
@@ -88,7 +89,7 @@ export function setSessionTokenCookie(token: string, expiresAt: Date) {
 	setCookie(SESSION_COOKIE_NAME, token, {
 		httpOnly: true,
 		sameSite: "lax",
-		secure: process.env.NODE_ENV === "production",
+		secure: envHelpers.isProduction(),
 		expires: expiresAt,
 		path: "/",
 	});
@@ -96,19 +97,21 @@ export function setSessionTokenCookie(token: string, expiresAt: Date) {
 
 // OAuth2 Providers
 export const discord = new Discord(
-	process.env.DISCORD_CLIENT_ID as string,
-	process.env.DISCORD_CLIENT_SECRET as string,
-	process.env.DISCORD_REDIRECT_URI as string,
+	authHelpers.discord.getClientId(),
+	authHelpers.discord.getClientSecret(),
+	authHelpers.discord.getRedirectUri(),
 );
+
 export const github = new GitHub(
-	process.env.GITHUB_CLIENT_ID as string,
-	process.env.GITHUB_CLIENT_SECRET as string,
-	process.env.GITHUB_REDIRECT_URI || null,
+	authHelpers.github.getClientId(),
+	authHelpers.github.getClientSecret(),
+	authHelpers.github.getRedirectUri(),
 );
+
 export const google = new Google(
-	process.env.GOOGLE_CLIENT_ID as string,
-	process.env.GOOGLE_CLIENT_SECRET as string,
-	process.env.GOOGLE_REDIRECT_URI as string,
+	authHelpers.google.getClientId(),
+	authHelpers.google.getClientSecret(),
+	authHelpers.google.getRedirectUri(),
 );
 
 /**

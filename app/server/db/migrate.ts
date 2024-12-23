@@ -2,18 +2,19 @@ import { neon, neonConfig } from "@neondatabase/serverless";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 import { migrate } from "drizzle-orm/neon-http/migrator";
+import { dbHelpers, envHelpers } from "~/env";
 
 export const databaseConfig = {
-	RETRY_INTERVAL: process.env.DB_RETRY_INTERVAL
-		? Number.parseInt(process.env.DB_RETRY_INTERVAL)
+	RETRY_INTERVAL: dbHelpers.getRetryInterval()
+		? Number.parseInt(dbHelpers.getRetryInterval())
 		: 1000,
-	MAX_RETRIES: process.env.DB_MAX_RETRIES
-		? Number.parseInt(process.env.DB_MAX_RETRIES)
+	MAX_RETRIES: dbHelpers.getMaxRetries()
+		? Number.parseInt(dbHelpers.getMaxRetries())
 		: 10,
 };
 
 // Configure for local development with Neon HTTP proxy
-if (process.env.NODE_ENV === "development") {
+if (envHelpers.isDevelopment()) {
 	neonConfig.fetchEndpoint = (host) => {
 		const [protocol, port] =
 			host === "db.localtest.me" ? ["http", 4444] : ["https", 443];
@@ -46,11 +47,11 @@ const waitUntilDatabaseIsReady = async (
 export const runMigrate = async (
 	migrationsFolder = "app/server/db/migrations",
 ): Promise<void> => {
-	if (!process.env.DATABASE_URL) {
+	if (!dbHelpers.getDatabaseUrl()) {
 		throw new Error("DATABASE_URL is not defined");
 	}
 
-	const sql = neon(process.env.DATABASE_URL);
+	const sql = neon(dbHelpers.getDatabaseUrl());
 	const db = drizzle(sql);
 
 	try {
