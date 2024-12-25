@@ -1,11 +1,8 @@
+// env.ts
 "use server";
 
 declare global {
-	var context:
-		| {
-				env: Record<string, any>;
-		  }
-		| undefined;
+	var __env__: Record<string, string> | undefined;
 }
 
 export const required = [
@@ -38,22 +35,42 @@ export const buildEnv = {
 	mode: import.meta.env.MODE,
 } as const;
 
-// For runtime environment variables (only use within server functions/handlers)
+// For runtime environment variables
 export const env = new Proxy(
 	{} as Record<RequiredEnvKeys, string> &
 		Partial<Record<OptionalEnvKeys, string | undefined>>,
 	{
 		get: (_target, prop: string) => {
-			// Simple process.env access is fine within server functions
+			// In development, use process.env
+			if (process.env.NODE_ENV === "development") {
+				return process.env[prop] || "";
+			}
+
+			// In production (Cloudflare Pages), try __env__ first, then process.env
+			if (typeof globalThis.__env__ !== "undefined") {
+				return globalThis.__env__[prop] || process.env[prop] || "";
+			}
+
+			// Fallback to process.env if nothing else works
 			return process.env[prop] || "";
 		},
 	},
 );
 
+// Add debug function to help troubleshoot env access
+export function debugEnv(key: EnvKeys) {
+	return {
+		environment: process.env.NODE_ENV,
+		processEnv: process.env[key],
+		cloudflareEnv: globalThis.__env__?.[key],
+		finalValue: env[key],
+	};
+}
+
 export const dbHelpers = {
-	getDatabaseUrl: () => process.env.DATABASE_URL!,
-	getMaxRetries: () => process.env.DB_MAX_RETRIES,
-	getRetryInterval: () => process.env.DB_RETRY_INTERVAL,
+	getDatabaseUrl: () => env.DATABASE_URL,
+	getMaxRetries: () => env.DB_MAX_RETRIES,
+	getRetryInterval: () => env.DB_RETRY_INTERVAL,
 } as const;
 
 // Validation function for development only
@@ -63,7 +80,7 @@ export function validateEnv() {
 	const missing: string[] = [];
 
 	for (const key of required) {
-		const value = process.env[key];
+		const value = env[key];
 		if (!value || value.trim() === "") {
 			missing.push(key);
 		}

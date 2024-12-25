@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"scripts": {
 		"build": "vinxi build",
+		"build:prod": "bun run build && bun run drizzle:migrate",
 		"check-types": "tsc --noEmit",
 		"db": "drizzle-kit",
 		"dev": "turbo dev:vinxi --log-prefix=none",

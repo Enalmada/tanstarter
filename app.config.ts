@@ -12,9 +12,9 @@ export default defineConfig({
 		],
 		// Define which env vars are available at build time
 		// define: {
-		//		"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
+		//			"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
 		//		},
-		//	envPrefix: ["PUBLIC_"],
+		envPrefix: ["PUBLIC_"],
 	},
 
 	server: {

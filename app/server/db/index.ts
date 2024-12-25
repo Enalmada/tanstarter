@@ -5,7 +5,7 @@ import { Pool } from "@neondatabase/serverless";
 import { neon, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { drizzle as drizzleServerless } from "drizzle-orm/neon-serverless";
-import { buildEnv, dbHelpers } from "~/env";
+import { buildEnv, env } from "~/env";
 import * as schema from "./schema";
 
 // More specific type that includes your schema
@@ -24,7 +24,8 @@ let _db: DB | undefined;
 
 function getDb(): DB {
 	if (!_db) {
-		const dbUrl = dbHelpers.getDatabaseUrl();
+		// Use env helper for DATABASE_URL
+		const dbUrl = env.DATABASE_URL;
 		if (!dbUrl) {
 			throw new Error("DATABASE_URL not available");
 		}
@@ -50,7 +51,8 @@ export async function withTransaction<T>(
 		db: ReturnType<typeof drizzleServerless<typeof schema>>,
 	) => Promise<T>,
 ): Promise<T> {
-	const pool = new Pool({ connectionString: dbHelpers.getDatabaseUrl() });
+	// Use env helper for DATABASE_URL
+	const pool = new Pool({ connectionString: env.DATABASE_URL });
 	const dbWithTx = drizzleServerless(pool, { schema });
 
 	try {
@@ -58,6 +60,17 @@ export async function withTransaction<T>(
 	} finally {
 		await pool.end();
 	}
+}
+
+// Add debug function to help troubleshoot database connections
+export async function debugDb() {
+	return {
+		environment: process.env.NODE_ENV,
+		hasDbUrl: !!env.DATABASE_URL,
+		dbUrlLength: env.DATABASE_URL?.length || 0,
+		isDev: buildEnv.isDev,
+		isProd: buildEnv.isProd,
+	};
 }
 
 // Export types

@@ -4,7 +4,7 @@ import {
 	SESSION_COOKIE_NAME,
 	getAuthSession,
 	invalidateSession,
-} from "~/server/auth";
+} from "~/server/auth/auth";
 
 export const APIRoute = createAPIFileRoute("/api/auth/logout")({
 	POST: async () => {

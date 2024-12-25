@@ -9,7 +9,7 @@ import {
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import { Suspense, lazy } from "react";
 
-import { getAuthSession } from "~/server/auth";
+import { getAuthSession } from "~/server/auth/auth";
 import appCss from "~/styles/app.css?url";
 
 const TanStackRouterDevtools = import.meta.env.PROD
