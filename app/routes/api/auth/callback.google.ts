@@ -8,7 +8,7 @@ import {
 	google,
 	setSessionTokenCookie,
 } from "~/server/auth";
-import { db, withTransaction } from "~/server/db";
+import db, { withTransaction } from "~/server/db";
 import { oauthAccount, user } from "~/server/db/schema";
 
 interface GoogleUser {

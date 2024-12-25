@@ -9,11 +9,10 @@ import {
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import { Suspense, lazy } from "react";
 
-import { envHelpers } from "~/env";
 import { getAuthSession } from "~/server/auth";
 import appCss from "~/styles/app.css?url";
 
-const TanStackRouterDevtools = envHelpers.isProduction()
+const TanStackRouterDevtools = import.meta.env.PROD
 	? () => null // Render nothing in production
 	: lazy(() =>
 			// Lazy load in development

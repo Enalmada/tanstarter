@@ -4,17 +4,21 @@ import tsConfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
 	vite: {
+		// ssr: { external: ["drizzle-orm"] },
 		plugins: [
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
 			}),
 		],
+		// Define which env vars are available at build time
+		// define: {
+		//		"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
+		//		},
+		//	envPrefix: ["PUBLIC_"],
 	},
 
 	server: {
 		preset: "cloudflare-pages",
 		unenv: cloudflare,
-		// https://tanstack.com/router/latest/docs/framework/react/start/hosting#deployment
-		// preset: "vercel",
 	},
 });

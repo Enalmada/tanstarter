@@ -17,7 +17,8 @@
 			"cache": false
 		},
 		"drizzle:migrate": {
-			"inputs": ["app/server/db/migrations/**"],
+			"inputs": ["drizzle.config.ts", "app/server/db/migrations/**"],
+			"outputs": ["app/server/db/migrations/meta/_journal.json"],
 			"dependsOn": ["dev:install", "docker:up"],
 			"outputLogs": "new-only"
 		},

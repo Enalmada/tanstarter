@@ -1,8 +1,6 @@
 import { createAPIFileRoute } from "@tanstack/start/api";
 import { generateCodeVerifier, generateState } from "arctic";
 import { setCookie, setHeader } from "vinxi/http";
-
-import { envHelpers } from "~/env";
 import { google } from "~/server/auth";
 
 export const APIRoute = createAPIFileRoute("/api/auth/google")({
@@ -18,14 +16,14 @@ export const APIRoute = createAPIFileRoute("/api/auth/google")({
 
 		setCookie("google_oauth_state", state, {
 			path: "/",
-			secure: envHelpers.isProduction(),
+			secure: process.env.NODE_ENV === "production",
 			httpOnly: true,
 			maxAge: 60 * 10,
 			sameSite: "lax",
 		});
 		setCookie("google_code_verifier", codeVerifier, {
 			path: "/",
-			secure: envHelpers.isProduction(),
+			secure: process.env.NODE_ENV === "production",
 			httpOnly: true,
 			maxAge: 60 * 10,
 			sameSite: "lax",

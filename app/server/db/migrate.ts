@@ -2,19 +2,19 @@ import { neon, neonConfig } from "@neondatabase/serverless";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 import { migrate } from "drizzle-orm/neon-http/migrator";
-import { dbHelpers, envHelpers } from "~/env";
+import { dbHelpers } from "~/env";
 
 export const databaseConfig = {
 	RETRY_INTERVAL: dbHelpers.getRetryInterval()
-		? Number.parseInt(dbHelpers.getRetryInterval())
+		? Number.parseInt(dbHelpers.getRetryInterval()!)
 		: 1000,
 	MAX_RETRIES: dbHelpers.getMaxRetries()
-		? Number.parseInt(dbHelpers.getMaxRetries())
+		? Number.parseInt(dbHelpers.getMaxRetries()!)
 		: 10,
 };
 
 // Configure for local development with Neon HTTP proxy
-if (envHelpers.isDevelopment()) {
+if (process.env.NODE_ENV === "development") {
 	neonConfig.fetchEndpoint = (host) => {
 		const [protocol, port] =
 			host === "db.localtest.me" ? ["http", 4444] : ["https", 443];

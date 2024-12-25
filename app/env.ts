@@ -31,169 +31,34 @@ type RequiredEnvKeys = (typeof required)[number];
 type OptionalEnvKeys = (typeof optional)[number];
 type EnvKeys = RequiredEnvKeys | OptionalEnvKeys;
 
-function getEnvVariable(key: EnvKeys): string | undefined {
-	// Try all possible ways to get the variable
-	return (
-		globalThis.context?.env?.[key] || // Cloudflare Pages
-		process?.env?.[key] || // Node.js
-		""
-	); // Fallback empty string
-}
+// For build-time environment checks (safe to use in global context)
+export const buildEnv = {
+	isDev: import.meta.env.DEV,
+	isProd: import.meta.env.PROD,
+	mode: import.meta.env.MODE,
+} as const;
 
-// Create a proxy that handles both environments
+// For runtime environment variables (only use within server functions/handlers)
 export const env = new Proxy(
 	{} as Record<RequiredEnvKeys, string> &
 		Partial<Record<OptionalEnvKeys, string | undefined>>,
 	{
 		get: (_target, prop: string) => {
-			return getEnvVariable(prop as EnvKeys);
+			// Simple process.env access is fine within server functions
+			return process.env[prop] || "";
 		},
 	},
 );
 
-// Environment helpers
-export const envHelpers = {
-	isProduction: () => {
-		try {
-			// @ts-ignore
-			return context.env.NODE_ENV === "production";
-		} catch {
-			return process.env.NODE_ENV === "production";
-		}
-	},
-	isDevelopment: () => {
-		try {
-			// @ts-ignore
-			return context.env.NODE_ENV === "development";
-		} catch {
-			return process.env.NODE_ENV === "development";
-		}
-	},
-	isTest: () => {
-		try {
-			// @ts-ignore
-			return context.env.NODE_ENV === "test";
-		} catch {
-			return process.env.NODE_ENV === "test";
-		}
-	},
-} as const;
-
-export const authHelpers = {
-	discord: {
-		getClientId: () => {
-			try {
-				// @ts-ignore
-				return context.env.DISCORD_CLIENT_ID as string;
-			} catch {
-				return process.env.DISCORD_CLIENT_ID as string;
-			}
-		},
-		getClientSecret: () => {
-			try {
-				// @ts-ignore
-				return context.env.DISCORD_CLIENT_SECRET as string;
-			} catch {
-				return process.env.DISCORD_CLIENT_SECRET as string;
-			}
-		},
-		getRedirectUri: () => {
-			try {
-				// @ts-ignore
-				return context.env.DISCORD_REDIRECT_URI as string;
-			} catch {
-				return process.env.DISCORD_REDIRECT_URI as string;
-			}
-		},
-	},
-	github: {
-		getClientId: () => {
-			try {
-				// @ts-ignore
-				return context.env.GITHUB_CLIENT_ID as string;
-			} catch {
-				return process.env.GITHUB_CLIENT_ID as string;
-			}
-		},
-		getClientSecret: () => {
-			try {
-				// @ts-ignore
-				return context.env.GITHUB_CLIENT_SECRET as string;
-			} catch {
-				return process.env.GITHUB_CLIENT_SECRET as string;
-			}
-		},
-		getRedirectUri: () => {
-			try {
-				// @ts-ignore
-				return context.env.GITHUB_REDIRECT_URI as string;
-			} catch {
-				return process.env.GITHUB_REDIRECT_URI as string;
-			}
-		},
-	},
-	google: {
-		getClientId: () => {
-			try {
-				// @ts-ignore
-				return context.env.GOOGLE_CLIENT_ID as string;
-			} catch {
-				return process.env.GOOGLE_CLIENT_ID as string;
-			}
-		},
-		getClientSecret: () => {
-			try {
-				// @ts-ignore
-				return context.env.GOOGLE_CLIENT_SECRET as string;
-			} catch {
-				return process.env.GOOGLE_CLIENT_SECRET as string;
-			}
-		},
-		getRedirectUri: () => {
-			try {
-				// @ts-ignore
-				return context.env.GOOGLE_REDIRECT_URI as string;
-			} catch {
-				return process.env.GOOGLE_REDIRECT_URI as string;
-			}
-		},
-	},
-} as const;
-
 export const dbHelpers = {
-	getDatabaseUrl: () => {
-		try {
-			// @ts-ignore
-			return context.env.DATABASE_URL;
-		} catch {
-			return process.env.DATABASE_URL;
-		}
-	},
-	getMaxRetries: () => {
-		try {
-			// @ts-ignore
-			return context.env.DB_MAX_RETRIES;
-		} catch {
-			return process.env.DB_MAX_RETRIES;
-		}
-	},
-	getRetryInterval: () => {
-		try {
-			// @ts-ignore
-			return context.env.DB_RETRY_INTERVAL;
-		} catch {
-			return process.env.DB_RETRY_INTERVAL;
-		}
-	},
+	getDatabaseUrl: () => process.env.DATABASE_URL!,
+	getMaxRetries: () => process.env.DB_MAX_RETRIES,
+	getRetryInterval: () => process.env.DB_RETRY_INTERVAL,
 } as const;
 
-// Only validate in local development
+// Validation function for development only
 export function validateEnv() {
-	// Skip validation if we're not in Node.js environment
-	if (typeof process === "undefined") return;
-
-	// Skip validation in production
-	if (envHelpers.isProduction()) return;
+	if (buildEnv.isProd) return;
 
 	const missing: string[] = [];
 
