@@ -1,4 +1,3 @@
-// env.ts
 "use server";
 
 declare global {
@@ -30,9 +29,18 @@ type EnvKeys = RequiredEnvKeys | OptionalEnvKeys;
 
 // For build-time environment checks (safe to use in global context)
 export const buildEnv = {
-	isDev: import.meta.env.DEV,
-	isProd: import.meta.env.PROD,
-	mode: import.meta.env.MODE,
+	isDev:
+		process.env.NODE_ENV === "development" ||
+		(typeof import.meta !== "undefined" && import.meta.env?.DEV) ||
+		false,
+	isProd:
+		process.env.NODE_ENV === "production" ||
+		(typeof import.meta !== "undefined" && import.meta.env?.PROD) ||
+		false,
+	mode:
+		(typeof import.meta !== "undefined" && import.meta.env?.MODE) ||
+		process.env.NODE_ENV ||
+		"development",
 } as const;
 
 // For runtime environment variables
@@ -67,12 +75,6 @@ export function debugEnv(key: EnvKeys) {
 	};
 }
 
-export const dbHelpers = {
-	getDatabaseUrl: () => env.DATABASE_URL,
-	getMaxRetries: () => env.DB_MAX_RETRIES,
-	getRetryInterval: () => env.DB_RETRY_INTERVAL,
-} as const;
-
 // Validation function for development only
 export function validateEnv() {
 	if (buildEnv.isProd) return;
@@ -92,3 +94,9 @@ export function validateEnv() {
 		);
 	}
 }
+
+export const dbHelpers = {
+	getDatabaseUrl: () => env.DATABASE_URL,
+	getMaxRetries: () => env.DB_MAX_RETRIES,
+	getRetryInterval: () => env.DB_RETRY_INTERVAL,
+} as const;

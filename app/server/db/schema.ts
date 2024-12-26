@@ -59,3 +59,8 @@ export const session = pgTable("session", {
 
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
+
+export type ClientUser = Pick<
+	typeof user.$inferSelect,
+	"id" | "name" | "avatar_url" | "email" | "setup_at"
+>;

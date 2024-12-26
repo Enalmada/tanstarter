@@ -1,7 +1,6 @@
 "use server";
 
 import type { Config } from "drizzle-kit";
-import { dbHelpers } from "~/env";
 
 export default {
 	out: "./app/server/db/migrations",
@@ -9,6 +8,6 @@ export default {
 	breakpoints: true,
 	dialect: "postgresql",
 	dbCredentials: {
-		url: dbHelpers.getDatabaseUrl(),
+		url: process.env.DATABASE_URL || "",
 	},
 } satisfies Config;
