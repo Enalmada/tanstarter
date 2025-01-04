@@ -49,6 +49,8 @@
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@enalmada/clone-code": "0.1.1",
+		"@serwist/vite": "^9.0.11",
+		"@serwist/window": "^9.0.11",
 		"@types/react": "^19.0.2",
 		"@types/react-dom": "^19.0.2",
 		"autoprefixer": "^10.4.20",
@@ -58,6 +60,7 @@
 		"husky": "9.1.7",
 		"lint-staged": "15.3.0",
 		"postcss": "^8.4.49",
+		"serwist": "^9.0.11",
 		"tailwindcss": "^3.4.17",
 		"turbo": "^2.3.3",
 		"typescript": "^5.7.2",

@@ -19,3 +19,7 @@ dist
 
 .codebuddy
 .turbo
+
+# Serwist
+public/sw*
+public/swe-worker*

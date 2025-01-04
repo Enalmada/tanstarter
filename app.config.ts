@@ -1,3 +1,4 @@
+import { serwist } from "@serwist/vite";
 import { defineConfig } from "@tanstack/start/config";
 import { cloudflare } from "unenv";
 import tsConfigPaths from "vite-tsconfig-paths";
@@ -6,10 +7,20 @@ import { generateSecurityHeaders } from "./app/lib/security/generate";
 
 export default defineConfig({
 	vite: {
-		// ssr: { external: ["drizzle-orm"] },
 		plugins: [
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
+			}),
+			serwist({
+				// Only disable in local development, not in preview or production
+				// disable: process.env.NODE_ENV === "development",
+				base: "/",
+				scope: "/",
+				swUrl: "/_build/assets/sw.js",
+				swSrc: "./app/sw.ts",
+				swDest: "assets/sw.js",
+				globDirectory: "dist",
+				rollupFormat: "iife",
 			}),
 		],
 		envPrefix: ["PUBLIC_"],
@@ -21,6 +32,7 @@ export default defineConfig({
 			"/**": {
 				headers: {
 					...generateSecurityHeaders(cspRules),
+					"Service-Worker-Allowed": "/",
 				},
 			},
 		},
