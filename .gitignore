@@ -23,3 +23,5 @@ dist
 # Serwist
 public/sw*
 public/swe-worker*
+
+.swc

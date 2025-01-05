@@ -5,6 +5,7 @@
 		"build": "vinxi build",
 		"build:prod": "bun run build && bun run drizzle:migrate",
 		"check-types": "tsc --noEmit",
+		"compile": "lingui compile",
 		"db": "drizzle-kit",
 		"dev": "turbo dev:vinxi --log-prefix=none",
 		"dev:install": "bun install",
@@ -12,6 +13,7 @@
 		"docker:up": "docker-compose --env-file .env up -d --remove-orphans",
 		"drizzle:generate": "dotenv -e ./.env drizzle-kit generate",
 		"drizzle:migrate": "bun ./app/server/db/migrate.ts",
+		"extract": "lingui extract",
 		"lint": "biome check --fix --unsafe",
 		"pre-commit": "bun lint-staged",
 		"prepare": "husky",
@@ -20,6 +22,10 @@
 	},
 	"dependencies": {
 		"@enalmada/drizzle-helpers": "0.0.18",
+		"@lingui/babel-plugin-lingui-macro": "^5.1.2",
+		"@lingui/cli": "^5.1.2",
+		"@lingui/macro": "^5.1.2",
+		"@lingui/react": "^5.1.2",
 		"@neondatabase/serverless": "^0.10.4",
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
@@ -49,6 +55,8 @@
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@enalmada/clone-code": "0.1.1",
+		"@lingui/loader": "^5.1.2",
+		"@lingui/vite-plugin": "^5.1.2",
 		"@serwist/vite": "^9.0.11",
 		"@serwist/window": "^9.0.11",
 		"@types/react": "^19.0.2",
@@ -76,5 +84,8 @@
 		"bufferutil",
 		"esbuild"
 	],
-	"type": "module"
+	"type": "module",
+	"patchedDependencies": {
+		"@tanstack/start@1.95.1": "patches/@tanstack%2Fstart@1.95.1.patch"
+	}
 }

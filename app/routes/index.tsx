@@ -1,6 +1,6 @@
+import { Trans } from "@lingui/react/macro";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Button } from "~/components/ui/button";
-
 export const Route = createFileRoute("/")({
 	component: Home,
 });
@@ -22,7 +22,9 @@ function Home() {
 				<div className="flex flex-col gap-2">
 					<p>Welcome back, {user.name}!</p>
 					<Button type="button" asChild className="w-fit" size="lg">
-						<Link to="/dashboard">Go to Dashboard</Link>
+						<Link to="/dashboard">
+							<Trans>Go to Dashboard</Trans>
+						</Link>
 					</Button>
 					<div>
 						More data:

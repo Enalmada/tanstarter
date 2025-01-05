@@ -1,4 +1,6 @@
 import { getSerwist } from "virtual:serwist";
+import { i18n } from "@lingui/core";
+import { I18nProvider } from "@lingui/react";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
@@ -10,6 +12,7 @@ import {
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import { Suspense, lazy, useLayoutEffect } from "react";
 
+import { DEFAULT_LANGUAGE, activateLanguage } from "~/locales/locale";
 import { getAuthSession } from "~/server/auth/auth";
 import appCss from "~/styles/app.css?url";
 
@@ -31,6 +34,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
 		beforeLoad: async () => {
 			const user = await getUser();
+			await activateLanguage(DEFAULT_LANGUAGE);
 			return { user };
 		},
 		head: () => ({
@@ -129,9 +133,11 @@ function RootComponent() {
 	}, []);
 
 	return (
-		<RootDocument>
-			<Outlet />
-		</RootDocument>
+		<I18nProvider i18n={i18n}>
+			<RootDocument>
+				<Outlet />
+			</RootDocument>
+		</I18nProvider>
 	);
 }
 
