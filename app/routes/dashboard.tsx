@@ -1,10 +1,10 @@
+import { Button, Card, CardBody } from "@nextui-org/react";
 import {
 	Link,
 	Outlet,
 	createFileRoute,
 	redirect,
 } from "@tanstack/react-router";
-import { Button } from "~/components/ui/button";
 
 export const Route = createFileRoute("/dashboard")({
 	component: DashboardLayout,
@@ -17,20 +17,28 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardLayout() {
 	return (
-		<div className="flex flex-col gap-4 p-4">
-			<h1 className="text-4xl font-bold">Dashboard Layout</h1>
-			<div className="flex items-center gap-2">
-				This is a protected layout:
-				<pre className="rounded-md border bg-card p-1 text-card-foreground">
-					routes/dashboard.tsx
-				</pre>
-			</div>
+		<div className="container mx-auto flex flex-col gap-4 p-6">
+			<Card>
+				<CardBody>
+					<h1 className="text-4xl font-bold">Dashboard</h1>
+					<div className="mt-4 flex items-center gap-2">
+						<span className="text-default-600">Current location:</span>
+						<code className="rounded-md bg-default-100 px-2 py-1">
+							routes/dashboard.tsx
+						</code>
+					</div>
 
-			<Button type="button" asChild className="w-fit" size="lg">
-				<Link to="/">Back to Home</Link>
-			</Button>
+					<Button as={Link} to="/" color="primary" className="mt-4" size="lg">
+						Back to Home
+					</Button>
+				</CardBody>
+			</Card>
 
-			<Outlet />
+			<Card>
+				<CardBody>
+					<Outlet />
+				</CardBody>
+			</Card>
 		</div>
 	);
 }

@@ -1,9 +1,13 @@
+import { nextui } from "@nextui-org/react";
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
 	darkMode: ["class"],
-	content: ["./app/**/*.tsx"],
+	content: [
+		"./app/**/*.tsx",
+		"./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
+	],
 	theme: {
 		extend: {
 			borderRadius: {
@@ -87,5 +91,5 @@ export default {
 			},
 		},
 	},
-	plugins: [tailwindcssAnimate],
+	plugins: [tailwindcssAnimate, nextui()],
 } satisfies Config;

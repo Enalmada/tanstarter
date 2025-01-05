@@ -13,17 +13,14 @@
 			"inputs": ["package.json", "bun.lockb"],
 			"outputLogs": "new-only"
 		},
-		"docker:up": {
-			"cache": false
-		},
 		"drizzle:migrate": {
 			"inputs": ["drizzle.config.ts", "app/server/db/migrations/**"],
 			"outputs": ["app/server/db/migrations/meta/_journal.json"],
-			"dependsOn": ["dev:install", "docker:up"],
+			"dependsOn": ["dev:install"],
 			"outputLogs": "new-only"
 		},
 		"dev:vinxi": {
-			"dependsOn": ["dev:install", "docker:up", "drizzle:migrate"],
+			"dependsOn": ["dev:install", "drizzle:migrate"],
 			"persistent": true,
 			"cache": false
 		},

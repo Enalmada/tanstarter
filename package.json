@@ -7,13 +7,14 @@
 		"check-types": "tsc --noEmit",
 		"compile": "lingui compile",
 		"db": "drizzle-kit",
-		"dev": "turbo dev:vinxi --log-prefix=none",
+		"dev": "bun run docker:up && turbo dev:vinxi --log-prefix=none",
 		"dev:install": "bun install",
 		"dev:vinxi": "bun app/validate-env.ts && vinxi dev",
 		"docker:up": "docker-compose --env-file .env up -d --remove-orphans",
 		"drizzle:generate": "dotenv -e ./.env drizzle-kit generate",
 		"drizzle:migrate": "bun ./app/server/db/migrate.ts",
 		"extract": "lingui extract",
+		"fix": "fixpack",
 		"lint": "biome check --fix --unsafe",
 		"pre-commit": "bun lint-staged",
 		"prepare": "husky",
@@ -27,6 +28,7 @@
 		"@lingui/macro": "^5.1.2",
 		"@lingui/react": "^5.1.2",
 		"@neondatabase/serverless": "^0.10.4",
+		"@nextui-org/react": "^2.6.11",
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
 		"@radix-ui/react-slot": "^1.1.1",
@@ -42,6 +44,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"drizzle-orm": "^0.38.3",
+		"framer-motion": "^11.15.0",
 		"lucide-react": "^0.469.0",
 		"nanoid": "^5.0.9",
 		"postgres": "^3.4.5",
@@ -63,7 +66,6 @@
 		"@types/react-dom": "^19.0.2",
 		"autoprefixer": "^10.4.20",
 		"drizzle-kit": "^0.30.1",
-		"fixpack": "^4.0.0",
 		"globals": "^15.14.0",
 		"husky": "9.1.7",
 		"lint-staged": "15.3.0",
@@ -78,14 +80,14 @@
 	"private": true,
 	"main": "",
 	"packageManager": "bun@1.1.42",
+	"patchedDependencies": {
+		"@tanstack/start@1.95.1": "patches/@tanstack%2Fstart@1.95.1.patch"
+	},
 	"trustedDependencies": [
 		"@biomejs/biome",
 		"@parcel/watcher",
 		"bufferutil",
 		"esbuild"
 	],
-	"type": "module",
-	"patchedDependencies": {
-		"@tanstack/start@1.95.1": "patches/@tanstack%2Fstart@1.95.1.patch"
-	}
+	"type": "module"
 }

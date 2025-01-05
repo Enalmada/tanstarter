@@ -12,6 +12,7 @@ import {
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import { Suspense, lazy, useLayoutEffect } from "react";
 
+import { NextUIAppProvider } from "~/components/providers/next-ui-provider";
 import { DEFAULT_LANGUAGE, activateLanguage } from "~/locales/locale";
 import { getAuthSession } from "~/server/auth/auth";
 import appCss from "~/styles/app.css?url";
@@ -134,9 +135,13 @@ function RootComponent() {
 
 	return (
 		<I18nProvider i18n={i18n}>
-			<RootDocument>
-				<Outlet />
-			</RootDocument>
+			<NextUIAppProvider>
+				<RootDocument>
+					<main className="min-h-screen">
+						<Outlet />
+					</main>
+				</RootDocument>
+			</NextUIAppProvider>
 		</I18nProvider>
 	);
 }

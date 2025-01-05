@@ -1,6 +1,8 @@
 {
 	"include": ["**/*.ts", "**/*.tsx"],
 	"compilerOptions": {
+		"incremental": true,
+		"tsBuildInfoFile": "./node_modules/.cache/.tsbuildinfo",
 		"strict": true,
 		"esModuleInterop": true,
 		"jsx": "react-jsx",
