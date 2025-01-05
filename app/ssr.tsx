@@ -15,13 +15,19 @@ import { createRouter } from "./router";
 
 // Create a custom stream handler that initializes i18n
 const i18nStreamHandler = async (ctx: any) => {
-	// Get locale from request and initialize i18n
-	const locale = (getLocale(ctx.request) ||
-		DEFAULT_LANGUAGE) as SupportedLanguage;
-	await activateLanguage(locale);
+	try {
+		// Get locale from request and initialize i18n
+		const locale = (getLocale(ctx.request) ||
+			DEFAULT_LANGUAGE) as SupportedLanguage;
+		await activateLanguage(locale);
 
-	// Call the default stream handler
-	return defaultStreamHandler(ctx);
+		return defaultStreamHandler(ctx);
+	} catch (error) {
+		// If i18n initialization fails, fallback to default language
+		console.error("Failed to initialize i18n:", error);
+		await activateLanguage(DEFAULT_LANGUAGE);
+		return defaultStreamHandler(ctx);
+	}
 };
 
 export default createStartHandler({

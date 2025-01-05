@@ -1,3 +1,5 @@
+import { i18n } from "@lingui/core";
+import { I18nProvider } from "@lingui/react";
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { routerWithQueryClient } from "@tanstack/react-router-with-query";
@@ -16,6 +18,9 @@ export function createRouter() {
 			defaultPreload: "intent",
 			defaultErrorComponent: DefaultCatchBoundary,
 			defaultNotFoundComponent: NotFound,
+			Wrap: ({ children }) => (
+				<I18nProvider i18n={i18n}>{children}</I18nProvider>
+			),
 		}),
 		queryClient,
 	);

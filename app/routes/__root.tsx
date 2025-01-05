@@ -10,17 +10,19 @@ import {
 	createRootRouteWithContext,
 } from "@tanstack/react-router";
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
+import type { ReactNode } from "react";
 import { Suspense, lazy, useLayoutEffect } from "react";
 
+import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
+import { NotFound } from "~/components/NotFound";
 import { NextUIAppProvider } from "~/components/providers/next-ui-provider";
 import { DEFAULT_LANGUAGE, activateLanguage } from "~/locales/locale";
 import { getAuthSession } from "~/server/auth/auth";
 import appCss from "~/styles/app.css?url";
 
 const TanStackRouterDevtools = import.meta.env.PROD
-	? () => null // Render nothing in production
+	? () => null
 	: lazy(() =>
-			// Lazy load in development
 			import("@tanstack/router-devtools").then((res) => ({
 				default: res.TanStackRouterDevtools,
 			})),
@@ -35,21 +37,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
 		beforeLoad: async () => {
 			const user = await getUser();
-			await activateLanguage(DEFAULT_LANGUAGE);
 			return { user };
 		},
 		head: () => ({
 			meta: [
-				{
-					charSet: "utf-8",
-				},
+				{ charSet: "utf-8" },
 				{
 					name: "viewport",
 					content: "width=device-width, initial-scale=1",
 				},
-				{
-					title: "TanStarter",
-				},
+				{ title: "TanStarter" },
 				{
 					name: "description",
 					content: "A modern starter template using TanStack Start",
@@ -111,6 +108,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			],
 		}),
 		component: RootComponent,
+		errorComponent: (props) => (
+			<RootDocument>
+				<DefaultCatchBoundary {...props} />
+			</RootDocument>
+		),
+		notFoundComponent: () => <NotFound />,
 	},
 );
 
@@ -121,7 +124,7 @@ function RootComponent() {
 				try {
 					const serwist = await getSerwist();
 					serwist?.addEventListener("installed", () => {
-						console.info("Service worker registration succesful");
+						console.info("Service worker registration successful");
 					});
 					await serwist?.register();
 				} catch (error) {
@@ -134,39 +137,47 @@ function RootComponent() {
 	}, []);
 
 	return (
-		<I18nProvider i18n={i18n}>
-			<NextUIAppProvider>
-				<RootDocument>
-					<main className="min-h-screen">
-						<Outlet />
-					</main>
-				</RootDocument>
-			</NextUIAppProvider>
-		</I18nProvider>
+		<RootDocument>
+			<Outlet />
+		</RootDocument>
 	);
 }
 
-function RootDocument({ children }: { readonly children: React.ReactNode }) {
+function RootDocument({ children }: { readonly children: ReactNode }) {
 	return (
-		<html>
+		<html suppressHydrationWarning>
 			<head>
 				<Meta />
+				<ScriptOnce>
+					{`
+					// Only run on client side
+					if (typeof window !== 'undefined') {
+						// Initialize dark mode before React hydration
+						(function() {
+							const isDarkMode = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+							document.documentElement.classList.toggle('dark', isDarkMode);
+							
+							// Listen for system theme changes
+							const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+							mediaQuery.addEventListener('change', function(e) {
+								const newIsDark = e.matches;
+								localStorage.theme = newIsDark ? 'dark' : 'light';
+								document.documentElement.classList.toggle('dark', newIsDark);
+							});
+						})();
+					}
+					`}
+				</ScriptOnce>
 			</head>
 			<body>
-				{children}
+				<NextUIAppProvider>
+					<main className="min-h-screen">{children}</main>
+				</NextUIAppProvider>
 				<ScrollRestoration />
 				<ReactQueryDevtools buttonPosition="bottom-left" />
 				<Suspense>
 					<TanStackRouterDevtools position="bottom-right" />
 				</Suspense>
-
-				<ScriptOnce>
-					{`document.documentElement.classList.toggle(
-            'dark',
-            localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
-            )`}
-				</ScriptOnce>
-
 				<Scripts />
 			</body>
 		</html>
