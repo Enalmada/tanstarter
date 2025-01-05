@@ -45,30 +45,38 @@ export function generateSecurityHeaders(
 		"worker-src": ["'self'", "blob:"],
 	};
 
-	const mergedDirectives = { ...defaultCspDirectives };
+	const mergedDirectives: Record<string, Set<string>> = {};
 
-	// Merge all rules into directives
+	// Initialize sets with default directives
+	Object.entries(defaultCspDirectives).forEach(([key, values]) => {
+		mergedDirectives[key] = new Set(values);
+	});
+
+	// Merge all rules into directives using Sets for automatic deduplication
 	rules.forEach((rule) => {
 		Object.entries(rule).forEach(([key, value]) => {
 			if (key !== "description" && key !== "source" && value !== undefined) {
-				const directiveKey = key as keyof typeof mergedDirectives;
+				const directiveKey = key as keyof typeof defaultCspDirectives;
+				// If the directive doesn't exist yet, initialize it with default values if any
 				if (!mergedDirectives[directiveKey]) {
-					mergedDirectives[directiveKey] = [];
+					mergedDirectives[directiveKey] = new Set(
+						defaultCspDirectives[directiveKey] || ["'self'"],
+					);
 				}
-				// Split value by spaces and add each part
-				const values = value.split(" ");
-				values.forEach((val: string) => {
-					if (!mergedDirectives[directiveKey]!.includes(val)) {
-						mergedDirectives[directiveKey]!.push(val);
-					}
-				});
+				// Handle both array and string values
+				const values = Array.isArray(value)
+					? value
+					: value.split(" ").filter(Boolean);
+				values.forEach((val: string) =>
+					mergedDirectives[directiveKey].add(val),
+				);
 			}
 		});
 	});
 
-	// Generate CSP header value
+	// Generate CSP header value from Sets
 	const cspValue = Object.entries(mergedDirectives)
-		.map(([key, values]) => `${key} ${values.join(" ")}`)
+		.map(([key, valueSet]) => `${key} ${Array.from(valueSet).join(" ")}`)
 		.join("; ");
 
 	return createSecurityHeaders(cspValue, {

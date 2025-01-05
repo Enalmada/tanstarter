@@ -28,9 +28,17 @@ export const cspRules: CspRule[] = [
 		description: "sampleimage",
 		"img-src":
 			"https://picsum.photos/200/300 https://fastly.picsum.photos/ https://i.pravatar.cc/",
+		source: "/:path*",
 	},
 	{
 		description: "gravatar",
 		"img-src": "https://gravatar.com/avatar/",
+		source: "/:path*",
+	},
+	{
+		description: "jsdelivr-cdn",
+		"style-src": "'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+		"connect-src": "https://cdn.jsdelivr.net",
+		source: "/:path*",
 	},
 ];
