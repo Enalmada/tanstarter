@@ -1,3 +1,4 @@
+import { Button } from "@nextui-org/react";
 import {
 	ErrorComponent,
 	type ErrorComponentProps,
@@ -6,7 +7,6 @@ import {
 	useMatch,
 	useRouter,
 } from "@tanstack/react-router";
-import { Button } from "./ui/button";
 
 export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 	const router = useRouter();
@@ -22,7 +22,6 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 			<ErrorComponent error={error} />
 			<div className="flex flex-wrap items-center gap-2">
 				<Button
-					type="button"
 					onClick={() => {
 						router.invalidate();
 					}}
@@ -30,20 +29,17 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 					Try Again
 				</Button>
 				{isRoot ? (
-					<Button asChild variant="secondary">
-						<Link to="/">Home</Link>
+					<Button as={Link} to="/" variant="bordered">
+						Home
 					</Button>
 				) : (
-					<Button asChild variant="secondary">
-						<Link
-							to="/"
-							onClick={(e) => {
-								e.preventDefault();
-								window.history.back();
-							}}
-						>
-							Go Back
-						</Link>
+					<Button
+						variant="bordered"
+						onClick={() => {
+							window.history.back();
+						}}
+					>
+						Go Back
 					</Button>
 				)}
 			</div>
