@@ -5,10 +5,17 @@
  */
 
 import { Button, Card, CardBody, Checkbox } from "@nextui-org/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	QueryClient,
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Suspense, useState, useTransition } from "react";
+import { ErrorBoundary, type FallbackProps } from "react-error-boundary";
+import { Spinner } from "~/components/Spinner";
 import { type Task, TaskStatus } from "~/server/db/schema";
 import {
 	deleteTask,
@@ -18,7 +25,7 @@ import {
 } from "~/server/services/task-service";
 
 export const Route = createFileRoute("/tasks/")({
-	component: TaskList,
+	component: TaskListPage,
 	loader: async ({ context }) => {
 		if (!context.user) {
 			throw new Error("Not authenticated");
@@ -27,37 +34,107 @@ export const Route = createFileRoute("/tasks/")({
 	},
 });
 
+// Loading component for the task list
+function TaskListSkeleton() {
+	return (
+		<div className="container mx-auto p-6">
+			<div className="flex items-center justify-between mb-4">
+				<h1 className="text-2xl font-bold">Tasks</h1>
+				<Button
+					as={Link}
+					to="/tasks/new"
+					color="primary"
+					variant="solid"
+					size="lg"
+				>
+					New Task
+				</Button>
+			</div>
+			<div className="flex justify-center">
+				<Spinner />
+			</div>
+		</div>
+	);
+}
+
+// Error component for the task list
+function TaskListError({ error, resetErrorBoundary }: FallbackProps) {
+	return (
+		<div className="container mx-auto p-6">
+			<Card>
+				<CardBody className="text-center">
+					<h3 className="text-lg font-medium text-danger mb-2">
+						Error Loading Tasks
+					</h3>
+					<p className="text-small text-default-500 mb-4">{error.message}</p>
+					<Button color="primary" onPress={() => resetErrorBoundary()}>
+						Try Again
+					</Button>
+				</CardBody>
+			</Card>
+		</div>
+	);
+}
+
+function TaskListPage() {
+	return (
+		<ErrorBoundary FallbackComponent={TaskListError}>
+			<Suspense fallback={<TaskListSkeleton />}>
+				<TaskList />
+			</Suspense>
+		</ErrorBoundary>
+	);
+}
+
 function TaskList() {
 	const { userId } = Route.useLoaderData();
 	const queryClient = useQueryClient();
 	const [errorMessage, setErrorMessage] = useState("");
+	const [isPending, startTransition] = useTransition();
 
-	// Add prefetch function
-	const prefetchTask = async (taskId: string) => {
-		await queryClient.prefetchQuery({
-			queryKey: ["task", taskId],
-			queryFn: async () => {
-				const result = await fetchTask({ data: taskId });
+	const { data: tasks = [], isFetching } = useSuspenseQuery({
+		queryKey: ["tasks", userId],
+		queryFn: async () => {
+			try {
+				const result = await fetchTasks({});
 				return result;
-			},
+			} catch (error) {
+				throw new Error("Failed to load tasks. Please try again.");
+			}
+		},
+		staleTime: 30 * 1000, // Consider data fresh for 30 seconds
+		retry: 2, // Retry failed requests twice
+	});
+
+	// Add prefetch function with error handling
+	const prefetchTask = (taskId: string) => {
+		startTransition(() => {
+			queryClient.prefetchQuery({
+				queryKey: ["task", taskId],
+				queryFn: async () => {
+					try {
+						const result = await fetchTask({ data: taskId });
+						return result;
+					} catch (error) {
+						console.error("Prefetch failed:", error);
+						return null;
+					}
+				},
+				staleTime: 30 * 1000,
+			});
 		});
 	};
 
-	const { data: tasks = [], isLoading } = useQuery({
-		queryKey: ["tasks", userId],
-		queryFn: async () => {
-			const result = await fetchTasks({});
-			return result;
-		},
-	});
-
-	const updateTaskMutation = useMutation<
-		Task,
-		Error,
-		{ taskId: string; data: Partial<Task>; currentTask: Task },
-		{ previousTasks: Task[] | undefined }
-	>({
-		mutationFn: async ({ taskId, data, currentTask }) => {
+	const updateTaskMutation = useMutation({
+		mutationFn: async ({
+			taskId,
+			data,
+			currentTask,
+		}: {
+			taskId: string;
+			data: Partial<Task>;
+			currentTask: Task;
+		}) => {
 			const result = await updateTask({
 				data: {
 					taskId,
@@ -65,51 +142,41 @@ function TaskList() {
 						title: currentTask.title,
 						description: currentTask.description,
 						due_date: currentTask.due_date,
-						status: data.status,
+						...data,
 					},
 				},
 			});
 			return result;
 		},
-		onMutate: async ({ taskId, data, currentTask }) => {
-			// Cancel outgoing refetches
+		onMutate: async ({ taskId, data }) => {
+			setErrorMessage("");
 			await queryClient.cancelQueries({ queryKey: ["tasks", userId] });
 
-			// Snapshot the previous value
 			const previousTasks = queryClient.getQueryData<Task[]>(["tasks", userId]);
 
-			// Optimistically update tasks
 			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
 				return old.map((task) =>
 					task.id === taskId ? { ...task, ...data } : task,
 				);
 			});
 
-			// Return context with the snapshotted value
 			return { previousTasks };
 		},
 		onError: (err, variables, context) => {
-			// If the mutation fails, use the context we returned above
 			if (context?.previousTasks) {
 				queryClient.setQueryData(["tasks", userId], context.previousTasks);
 			}
 			setErrorMessage(err.message);
 		},
 		onSuccess: (updatedTask, { taskId }) => {
-			// Update the tasks list with the returned data
 			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
 				return old.map((task) => (task.id === taskId ? updatedTask : task));
 			});
 		},
 	});
 
-	const deleteTaskMutation = useMutation<
-		void,
-		Error,
-		{ taskId: string },
-		{ previousTasks: Task[] | undefined }
-	>({
-		mutationFn: async ({ taskId }) => {
+	const deleteTaskMutation = useMutation({
+		mutationFn: async ({ taskId }: { taskId: string }) => {
 			await deleteTask({ data: taskId });
 		},
 		onMutate: async ({ taskId }) => {
@@ -132,10 +199,6 @@ function TaskList() {
 		},
 	});
 
-	if (isLoading) {
-		return <div>Loading...</div>;
-	}
-
 	return (
 		<div className="container mx-auto flex flex-col gap-4 p-6">
 			{errorMessage && (
@@ -144,7 +207,10 @@ function TaskList() {
 				</div>
 			)}
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-bold">Tasks</h1>
+				<div className="flex items-center gap-2">
+					<h1 className="text-2xl font-bold">Tasks</h1>
+					{isFetching && <Spinner />}
+				</div>
 				<Button
 					as={Link}
 					to="/tasks/new"
@@ -208,7 +274,9 @@ function TaskList() {
 								isIconOnly
 								variant="light"
 								onPress={() => deleteTaskMutation.mutate({ taskId: task.id })}
-								isDisabled={task.id.startsWith("-")}
+								isDisabled={
+									task.id.startsWith("-") || updateTaskMutation.isPending
+								}
 								className="text-danger"
 							>
 								<Trash2 size={20} />

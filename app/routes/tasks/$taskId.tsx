@@ -5,14 +5,16 @@
  */
 
 import { Button, Card, CardBody } from "@nextui-org/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-	createFileRoute,
-	useNavigate,
-	useRouter,
-} from "@tanstack/react-router";
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { ErrorBoundary, type FallbackProps } from "react-error-boundary";
+import { Spinner } from "~/components/Spinner";
 import { TaskForm } from "~/components/TaskForm";
 import type { Task } from "~/server/db/schema";
 import {
@@ -22,7 +24,7 @@ import {
 } from "~/server/services/task-service";
 
 export const Route = createFileRoute("/tasks/$taskId")({
-	component: EditTask,
+	component: TaskDetailPage,
 	loader: async ({ context, params }) => {
 		if (!context.user) {
 			throw new Error("Not authenticated");
@@ -31,46 +33,101 @@ export const Route = createFileRoute("/tasks/$taskId")({
 	},
 });
 
+// Loading component for the task detail
+function TaskDetailSkeleton() {
+	return (
+		<div className="container mx-auto p-6">
+			<Card className="max-w-2xl mx-auto">
+				<CardBody className="flex flex-col gap-4">
+					<div className="flex items-center justify-between">
+						<h1 className="text-2xl font-bold">Edit Task</h1>
+					</div>
+					<div className="flex justify-center">
+						<Spinner />
+					</div>
+				</CardBody>
+			</Card>
+		</div>
+	);
+}
+
+// Error component for the task detail
+function TaskDetailError({ error, resetErrorBoundary }: FallbackProps) {
+	return (
+		<div className="container mx-auto p-6">
+			<Card>
+				<CardBody className="text-center">
+					<h3 className="text-lg font-medium text-danger mb-2">
+						Error Loading Task
+					</h3>
+					<p className="text-small text-default-500 mb-4">{error.message}</p>
+					<Button color="primary" onPress={() => resetErrorBoundary()}>
+						Try Again
+					</Button>
+				</CardBody>
+			</Card>
+		</div>
+	);
+}
+
+function TaskDetailPage() {
+	return (
+		<ErrorBoundary FallbackComponent={TaskDetailError}>
+			<Suspense fallback={<TaskDetailSkeleton />}>
+				<EditTask />
+			</Suspense>
+		</ErrorBoundary>
+	);
+}
+
 function EditTask() {
 	const { taskId, userId } = Route.useLoaderData();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const router = useRouter();
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-	const { data: task, isLoading } = useQuery({
+	const { data: task, isFetching } = useSuspenseQuery({
 		queryKey: ["task", taskId],
 		queryFn: async () => {
-			const result = await fetchTask({ data: taskId });
-			return result;
+			try {
+				const result = await fetchTask({ data: taskId });
+				return result;
+			} catch (error) {
+				throw new Error("Failed to load task. Please try again.");
+			}
 		},
+		staleTime: 30 * 1000, // Consider data fresh for 30 seconds
+		retry: 2, // Retry failed requests twice
 	});
 
-	const updateTaskMutation = useMutation<
-		Task,
-		Error,
-		{ data: Partial<Task> },
-		{ previousTask: Task | undefined; optimisticId: string }
-	>({
-		mutationFn: async (data) => {
-			const result = await updateTask({ data: { taskId, ...data } });
-			return result;
+	const updateTaskMutation = useMutation({
+		mutationFn: async ({ data }: { data: Partial<Task> }) => {
+			try {
+				const result = await updateTask({
+					data: {
+						taskId,
+						data,
+					},
+				});
+				return result;
+			} catch (error) {
+				throw new Error("Failed to update task. Please try again.");
+			}
 		},
 		onMutate: async ({ data }) => {
+			setErrorMessage(null);
 			await queryClient.cancelQueries({ queryKey: ["tasks", userId] });
 			await queryClient.cancelQueries({ queryKey: ["task", taskId] });
 
-			// Snapshot previous values
 			const previousTask = queryClient.getQueryData<Task>(["task", taskId]);
 			const optimisticId = `-${Date.now()}`;
 
-			// Create optimistic task
 			const optimisticTask: Task = {
 				...(previousTask as Task),
 				...data,
 				id: optimisticId,
 			};
 
-			// Update both the list and individual task queries
 			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
 				return old.filter((t) => t.id !== taskId).concat(optimisticTask);
 			});
@@ -87,12 +144,11 @@ function EditTask() {
 						.concat(context.previousTask!);
 				});
 			}
+			setErrorMessage(err.message);
 		},
 		onSuccess: (updatedTask, _, context) => {
-			// First navigate
 			navigate({ to: "/tasks" });
 
-			// Then update the cache
 			queryClient.setQueryData(["task", taskId], updatedTask);
 			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
 				return old
@@ -102,16 +158,13 @@ function EditTask() {
 		},
 	});
 
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-	const deleteTaskMutation = useMutation<
-		void,
-		Error,
-		void,
-		{ previousTasks: Task[] | undefined }
-	>({
+	const deleteTaskMutation = useMutation({
 		mutationFn: async () => {
-			await deleteTask({ data: taskId });
+			try {
+				await deleteTask({ data: taskId });
+			} catch (error) {
+				throw new Error("Failed to delete task. Please try again.");
+			}
 		},
 		onMutate: async () => {
 			setErrorMessage(null);
@@ -120,7 +173,6 @@ function EditTask() {
 
 			const previousTasks = queryClient.getQueryData<Task[]>(["tasks", userId]);
 
-			// Remove from both caches
 			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
 				return old.filter((t) => t.id !== taskId);
 			});
@@ -139,16 +191,20 @@ function EditTask() {
 		},
 	});
 
-	if (isLoading || !task) {
-		return <div>Loading...</div>;
-	}
-
 	return (
 		<div className="container mx-auto p-6">
+			{errorMessage && (
+				<div className="rounded-medium bg-danger-50 p-3 text-danger text-sm mb-4">
+					{errorMessage}
+				</div>
+			)}
 			<Card className="max-w-2xl mx-auto">
 				<CardBody className="flex flex-col gap-4">
 					<div className="flex items-center justify-between">
-						<h1 className="text-2xl font-bold">Edit Task</h1>
+						<div className="flex items-center gap-2">
+							<h1 className="text-2xl font-bold">Edit Task</h1>
+							{isFetching && <Spinner />}
+						</div>
 						<Button
 							color="primary"
 							variant="light"

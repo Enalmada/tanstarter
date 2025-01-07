@@ -1,6 +1,4 @@
 import { getSerwist } from "virtual:serwist";
-import { i18n } from "@lingui/core";
-import { I18nProvider } from "@lingui/react";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
@@ -12,12 +10,10 @@ import {
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import type { ReactNode } from "react";
 import { Suspense, lazy, useLayoutEffect } from "react";
-
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { Navbar } from "~/components/Navbar";
 import { NotFound } from "~/components/NotFound";
 import { NextUIAppProvider } from "~/components/providers/next-ui-provider";
-import { DEFAULT_LANGUAGE, activateLanguage } from "~/locales/locale";
 import { getAuthSession } from "~/server/auth/auth";
 import type { ClientUser } from "~/server/db/schema";
 import appCss from "~/styles/app.css?url";
