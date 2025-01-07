@@ -11,9 +11,15 @@ import {
 	useNavigate,
 	useRouter,
 } from "@tanstack/react-router";
+import { Trash2 } from "lucide-react";
+import { useState } from "react";
 import { TaskForm } from "~/components/TaskForm";
 import type { Task } from "~/server/db/schema";
-import { fetchTask, updateTask } from "~/server/services/task-service";
+import {
+	deleteTask,
+	fetchTask,
+	updateTask,
+} from "~/server/services/task-service";
 
 export const Route = createFileRoute("/tasks/$taskId")({
 	component: EditTask,
@@ -43,7 +49,7 @@ function EditTask() {
 		Task,
 		Error,
 		{ data: Partial<Task> },
-		{ previousTask: Task | undefined }
+		{ previousTask: Task | undefined; optimisticId: string }
 	>({
 		mutationFn: async (data) => {
 			const result = await updateTask({ data: { taskId, ...data } });
@@ -55,35 +61,80 @@ function EditTask() {
 
 			// Snapshot previous values
 			const previousTask = queryClient.getQueryData<Task>(["task", taskId]);
+			const optimisticId = `-${Date.now()}`;
 
 			// Create optimistic task
 			const optimisticTask: Task = {
 				...(previousTask as Task),
 				...data,
-				id: `-${Date.now()}`,
+				id: optimisticId,
 			};
 
 			// Update both the list and individual task queries
 			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
-				return old.map((t) => (t.id === taskId ? optimisticTask : t));
+				return old.filter((t) => t.id !== taskId).concat(optimisticTask);
 			});
 			queryClient.setQueryData(["task", taskId], optimisticTask);
 
-			return { previousTask };
+			return { previousTask, optimisticId };
 		},
 		onError: (err, variables, context) => {
 			if (context?.previousTask) {
 				queryClient.setQueryData(["task", taskId], context.previousTask);
 				queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
-					return old.map((t) => (t.id === taskId ? context.previousTask! : t));
+					return old
+						.filter((t) => t.id !== context.optimisticId)
+						.concat(context.previousTask!);
 				});
 			}
 		},
-		onSuccess: (updatedTask) => {
+		onSuccess: (updatedTask, _, context) => {
+			// First navigate
+			navigate({ to: "/tasks" });
+
+			// Then update the cache
 			queryClient.setQueryData(["task", taskId], updatedTask);
 			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
-				return old.map((t) => (t.id === taskId ? updatedTask : t));
+				return old
+					.filter((t) => t.id !== context?.optimisticId && t.id !== taskId)
+					.concat(updatedTask);
 			});
+		},
+	});
+
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+	const deleteTaskMutation = useMutation<
+		void,
+		Error,
+		void,
+		{ previousTasks: Task[] | undefined }
+	>({
+		mutationFn: async () => {
+			await deleteTask({ data: taskId });
+		},
+		onMutate: async () => {
+			setErrorMessage(null);
+			await queryClient.cancelQueries({ queryKey: ["tasks", userId] });
+			await queryClient.cancelQueries({ queryKey: ["task", taskId] });
+
+			const previousTasks = queryClient.getQueryData<Task[]>(["tasks", userId]);
+
+			// Remove from both caches
+			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
+				return old.filter((t) => t.id !== taskId);
+			});
+			queryClient.removeQueries({ queryKey: ["task", taskId] });
+
+			return { previousTasks };
+		},
+		onError: (err, variables, context) => {
+			if (context?.previousTasks) {
+				queryClient.setQueryData(["tasks", userId], context.previousTasks);
+			}
+			setErrorMessage(err.message);
+		},
+		onSuccess: () => {
 			navigate({ to: "/tasks" });
 		},
 	});
@@ -121,6 +172,19 @@ function EditTask() {
 						}
 						isSubmitting={updateTaskMutation.isPending}
 					/>
+
+					{!task.id.startsWith("-") && (
+						<Button
+							color="danger"
+							variant="flat"
+							onPress={() => deleteTaskMutation.mutate()}
+							isDisabled={deleteTaskMutation.isPending}
+							className="self-start"
+							startContent={<Trash2 size={20} />}
+						>
+							Delete Task
+						</Button>
+					)}
 				</CardBody>
 			</Card>
 		</div>

@@ -4,18 +4,18 @@
  * Includes task creation link and handles task status updates
  */
 
-import {
-	Button,
-	Card,
-	CardBody,
-	Checkbox,
-	useDisclosure,
-} from "@nextui-org/react";
+import { Button, Card, CardBody, Checkbox } from "@nextui-org/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { type Task, TaskStatus } from "~/server/db/schema";
-import { fetchTasks, updateTask } from "~/server/services/task-service";
+import {
+	deleteTask,
+	fetchTask,
+	fetchTasks,
+	updateTask,
+} from "~/server/services/task-service";
 
 export const Route = createFileRoute("/tasks/")({
 	component: TaskList,
@@ -31,6 +31,17 @@ function TaskList() {
 	const { userId } = Route.useLoaderData();
 	const queryClient = useQueryClient();
 	const [errorMessage, setErrorMessage] = useState("");
+
+	// Add prefetch function
+	const prefetchTask = async (taskId: string) => {
+		await queryClient.prefetchQuery({
+			queryKey: ["task", taskId],
+			queryFn: async () => {
+				const result = await fetchTask({ data: taskId });
+				return result;
+			},
+		});
+	};
 
 	const { data: tasks = [], isLoading } = useQuery({
 		queryKey: ["tasks", userId],
@@ -92,6 +103,35 @@ function TaskList() {
 		},
 	});
 
+	const deleteTaskMutation = useMutation<
+		void,
+		Error,
+		{ taskId: string },
+		{ previousTasks: Task[] | undefined }
+	>({
+		mutationFn: async ({ taskId }) => {
+			await deleteTask({ data: taskId });
+		},
+		onMutate: async ({ taskId }) => {
+			setErrorMessage("");
+			await queryClient.cancelQueries({ queryKey: ["tasks", userId] });
+
+			const previousTasks = queryClient.getQueryData<Task[]>(["tasks", userId]);
+
+			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
+				return old.filter((t) => t.id !== taskId);
+			});
+
+			return { previousTasks };
+		},
+		onError: (err, variables, context) => {
+			if (context?.previousTasks) {
+				queryClient.setQueryData(["tasks", userId], context.previousTasks);
+			}
+			setErrorMessage(err.message);
+		},
+	});
+
 	if (isLoading) {
 		return <div>Loading...</div>;
 	}
@@ -145,6 +185,11 @@ function TaskList() {
 											? "text-default-400 line-through"
 											: ""
 									} ${task.id.startsWith("-") ? "pointer-events-none opacity-50" : ""}`}
+									onMouseEnter={() => {
+										if (!task.id.startsWith("-")) {
+											prefetchTask(task.id);
+										}
+									}}
 								>
 									<h3 className="text-lg font-medium">{task.title}</h3>
 								</Link>
@@ -159,6 +204,15 @@ function TaskList() {
 									</p>
 								)}
 							</div>
+							<Button
+								isIconOnly
+								variant="light"
+								onPress={() => deleteTaskMutation.mutate({ taskId: task.id })}
+								isDisabled={task.id.startsWith("-")}
+								className="text-danger"
+							>
+								<Trash2 size={20} />
+							</Button>
 						</CardBody>
 					</Card>
 				))}

@@ -48,3 +48,8 @@ Auth providers:
    ```bash
    pnpm start # or npm start
    ```
+
+
+Notes
+
+Icon set

@@ -35,7 +35,7 @@ function NewTask() {
 		Task,
 		Error,
 		Omit<Task, "id" | "created_at" | "updated_at" | "user_id">,
-		{ previousTasks: Task[] | undefined }
+		{ previousTasks: Task[] | undefined; optimisticId: string }
 	>({
 		mutationFn: async (data) => {
 			const result = await createTask({ data });
@@ -45,10 +45,11 @@ function NewTask() {
 			await queryClient.cancelQueries({ queryKey: ["tasks", userId] });
 
 			const previousTasks = queryClient.getQueryData<Task[]>(["tasks", userId]);
+			const optimisticId = `-${Date.now()}`;
 
 			const optimisticTask: Task = {
 				...newTask,
-				id: `-${Date.now()}`,
+				id: optimisticId,
 				user_id: userId,
 				created_at: new Date(),
 				updated_at: new Date(),
@@ -58,18 +59,21 @@ function NewTask() {
 				return [...old, optimisticTask];
 			});
 
-			return { previousTasks };
+			return { previousTasks, optimisticId };
 		},
 		onError: (err, variables, context) => {
 			if (context?.previousTasks) {
 				queryClient.setQueryData(["tasks", userId], context.previousTasks);
 			}
 		},
-		onSuccess: (newTask) => {
-			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
-				return old.map((task) => (task.id.startsWith("-") ? newTask : task));
-			});
+		onSuccess: (newTask, _, context) => {
 			navigate({ to: "/tasks" });
+
+			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
+				return old
+					.filter((t) => t.id !== context?.optimisticId)
+					.concat(newTask);
+			});
 		},
 	});
 

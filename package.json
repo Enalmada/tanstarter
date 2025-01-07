@@ -23,6 +23,8 @@
 	},
 	"dependencies": {
 		"@enalmada/drizzle-helpers": "0.0.18",
+		"@iconify-json/solar": "^1.2.2",
+		"@iconify/react": "^5.2.0",
 		"@lingui/babel-plugin-lingui-macro": "^5.1.2",
 		"@lingui/cli": "^5.1.2",
 		"@lingui/macro": "^5.1.2",
