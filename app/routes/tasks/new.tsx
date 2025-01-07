@@ -34,17 +34,41 @@ function NewTask() {
 	const createTaskMutation = useMutation<
 		Task,
 		Error,
-		Omit<Task, "id" | "created_at" | "updated_at" | "user_id">
+		Omit<Task, "id" | "created_at" | "updated_at" | "user_id">,
+		{ previousTasks: Task[] | undefined }
 	>({
 		mutationFn: async (data) => {
 			const result = await createTask({ data });
 			return result;
 		},
-		onSuccess: async (newTask) => {
-			// Invalidate both React Query and Router caches
-			queryClient.invalidateQueries({ queryKey: ["tasks"] });
-			queryClient.setQueryData(["task", newTask.id], newTask);
-			await router.invalidate();
+		onMutate: async (newTask) => {
+			await queryClient.cancelQueries({ queryKey: ["tasks", userId] });
+
+			const previousTasks = queryClient.getQueryData<Task[]>(["tasks", userId]);
+
+			const optimisticTask: Task = {
+				...newTask,
+				id: `-${Date.now()}`,
+				user_id: userId,
+				created_at: new Date(),
+				updated_at: new Date(),
+			};
+
+			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
+				return [...old, optimisticTask];
+			});
+
+			return { previousTasks };
+		},
+		onError: (err, variables, context) => {
+			if (context?.previousTasks) {
+				queryClient.setQueryData(["tasks", userId], context.previousTasks);
+			}
+		},
+		onSuccess: (newTask) => {
+			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
+				return old.map((task) => (task.id.startsWith("-") ? newTask : task));
+			});
 			navigate({ to: "/tasks" });
 		},
 	});

@@ -134,16 +134,17 @@ function TaskList() {
 										},
 									})
 								}
+								isDisabled={task.id.startsWith("-")}
 							/>
-							<div className="flex flex-col gap-1">
+							<div className="flex flex-col gap-1 flex-1">
 								<Link
 									to="/tasks/$taskId"
 									params={{ taskId: task.id }}
-									className={
+									className={`${
 										task.status === TaskStatus.COMPLETED
 											? "text-default-400 line-through"
 											: ""
-									}
+									} ${task.id.startsWith("-") ? "pointer-events-none opacity-50" : ""}`}
 								>
 									<h3 className="text-lg font-medium">{task.title}</h3>
 								</Link>

@@ -26,7 +26,7 @@ export const Route = createFileRoute("/tasks/$taskId")({
 });
 
 function EditTask() {
-	const { taskId } = Route.useLoaderData();
+	const { taskId, userId } = Route.useLoaderData();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const router = useRouter();
@@ -42,18 +42,48 @@ function EditTask() {
 	const updateTaskMutation = useMutation<
 		Task,
 		Error,
-		{ taskId: string; data: Partial<Task> }
+		{ data: Partial<Task> },
+		{ previousTask: Task | undefined }
 	>({
 		mutationFn: async (data) => {
-			const result = await updateTask({ data });
+			const result = await updateTask({ data: { taskId, ...data } });
 			return result;
 		},
-		onSuccess: async (updatedTask) => {
-			// Invalidate both React Query and Router caches
-			queryClient.invalidateQueries({ queryKey: ["tasks"] });
-			queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+		onMutate: async ({ data }) => {
+			await queryClient.cancelQueries({ queryKey: ["tasks", userId] });
+			await queryClient.cancelQueries({ queryKey: ["task", taskId] });
+
+			// Snapshot previous values
+			const previousTask = queryClient.getQueryData<Task>(["task", taskId]);
+
+			// Create optimistic task
+			const optimisticTask: Task = {
+				...(previousTask as Task),
+				...data,
+				id: `-${Date.now()}`,
+			};
+
+			// Update both the list and individual task queries
+			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
+				return old.map((t) => (t.id === taskId ? optimisticTask : t));
+			});
+			queryClient.setQueryData(["task", taskId], optimisticTask);
+
+			return { previousTask };
+		},
+		onError: (err, variables, context) => {
+			if (context?.previousTask) {
+				queryClient.setQueryData(["task", taskId], context.previousTask);
+				queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
+					return old.map((t) => (t.id === taskId ? context.previousTask! : t));
+				});
+			}
+		},
+		onSuccess: (updatedTask) => {
 			queryClient.setQueryData(["task", taskId], updatedTask);
-			await router.invalidate();
+			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
+				return old.map((t) => (t.id === taskId ? updatedTask : t));
+			});
 			navigate({ to: "/tasks" });
 		},
 	});
@@ -81,7 +111,6 @@ function EditTask() {
 						defaultValues={task}
 						onSubmit={(values) =>
 							updateTaskMutation.mutate({
-								taskId,
 								data: {
 									title: values.title,
 									description: values.description,
