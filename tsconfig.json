@@ -21,6 +21,7 @@
 			"~/*": ["./app/*"]
 		},
 		"noEmit": true,
-		"strictNullChecks": true
+		"strictNullChecks": true,
+		"exactOptionalPropertyTypes": true
 	}
 }

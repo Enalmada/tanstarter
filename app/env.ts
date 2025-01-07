@@ -1,3 +1,9 @@
+/**
+ * Environment variable configuration and validation
+ * Uses Valibot for runtime type checking of env vars
+ * Exports typed env object for use throughout the app
+ */
+
 "use server";
 
 declare global {

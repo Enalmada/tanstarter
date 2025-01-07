@@ -1,3 +1,9 @@
+/**
+ * Service Worker implementation
+ * Handles offline functionality and caching
+ * Manages PWA features and background sync
+ */
+
 import { defaultCache } from "@serwist/vite/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
 import { Serwist } from "serwist";
@@ -15,7 +21,7 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 
 const serwist = new Serwist({
-	precacheEntries: self.__SW_MANIFEST,
+	precacheEntries: self.__SW_MANIFEST ?? [],
 	skipWaiting: true,
 	clientsClaim: true,
 	navigationPreload: true,

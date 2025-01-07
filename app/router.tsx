@@ -1,3 +1,9 @@
+/**
+ * TanStack Router configuration
+ * Sets up router instance with route tree and context
+ * Configures router defaults and error boundaries
+ */
+
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
 import { QueryClient } from "@tanstack/react-query";
@@ -9,12 +15,19 @@ import { NotFound } from "./components/NotFound";
 import { routeTree } from "./routeTree.gen";
 
 export function createRouter() {
-	const queryClient = new QueryClient();
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: {
+				staleTime: 1000 * 60 * 5, // 5 minutes
+				gcTime: 1000 * 60 * 60 * 24, // 24 hours
+			},
+		},
+	});
 
 	return routerWithQueryClient(
 		createTanStackRouter({
 			routeTree,
-			context: { queryClient },
+			context: { queryClient, user: null },
 			defaultPreload: "intent",
 			defaultErrorComponent: DefaultCatchBoundary,
 			defaultNotFoundComponent: NotFound,

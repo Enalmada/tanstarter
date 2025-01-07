@@ -1,3 +1,9 @@
+/**
+ * Server-side rendering entry point
+ * Handles initial page load and SSR
+ * Sets up server-side router and state
+ */
+
 /// <reference types="vinxi/types/server" />
 import { getRouterManifest } from "@tanstack/start/router-manifest";
 import {

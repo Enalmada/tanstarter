@@ -1,3 +1,9 @@
+/**
+ * Security-related TypeScript type definitions
+ * Defines types for CSP rules and security headers
+ * Includes configuration interfaces for security options
+ */
+
 export interface CspRule {
 	description?: string;
 	source?: string;

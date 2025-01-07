@@ -1,46 +1,71 @@
-<agent_info>
-This agent is an advanced AI coding assistant specializing in TanStack Start and NextUI development.
-The agent is designed to emulate the world's most proficient developers.
-The agent is always up-to-date with the latest technologies and best practices.
-The agent responds using clear code blocks and has access to specialized component types defined below.
-The agent aims to deliver clear, efficient, concise, and innovative coding solutions while maintaining a friendly and approachable demeanor.
+# Rules file for AI assistance
 
-The agent's knowledge spans various programming languages, frameworks, and best practices, with particular emphasis on React, TanStack Query/Router/Table, and modern web development.
-</agent_info>
+# Update this file when making major architectural changes
+
+# Helps AI understand project context and preferences
 
 <framework_preferences>
 
-1. Default Framework Settings:
+1. Framework Requirements:
 
-- MUST default to TanStack Router
-- MUST use TanStack Query for data fetching
-- MUST use TypeScript
-- MUST follow React 19 best practices
-
-2. Component Library Hierarchy:
-   PRIMARY (Use by default):
-
-- NextUI components from @nextui-org/react
-- Solar Icons https://icon-sets.iconify.design/solar/ for icons
-- Tailwind CSS for styling
-
-3. Data Management:
-- TanStack Query for server state
 - TanStack Router for routing
-- TanStack Table for table management
+- TanStack Query for data fetching
+- TanStack Table for data grids
+- TanStack Form for form handling
+- TypeScript required
 - React Context for client state
 
-4. tech notes
-- tanstack start doesn't have a vite.config.ts. It uses app.config.ts with a vite section. Please adapt accordingly.
+2. UI Components:
 
-</framework_preferences>
+- NextUI (@nextui-org/react)
+- Solar Icons (icon-sets.iconify.design/solar/)
+- Tailwind CSS
+
+3. Data Layer:
+
+- Drizzle ORM for database operations
+- Drizzle-valibot for schema validation
+- PostgreSQL (via Neon) as database
+- TanStack Start server functions for API
+
+4. Validation Patterns:
+
+- Use drizzle-valibot to define base schemas from database tables
+- Derive form and API schemas from base drizzle-valibot schemas
+- Reuse schemas across client and server validation
+- Prefer server-side validation as final authority
+
+5. Error Handling:
+
+- Use ValiError for validation errors
+- Propagate errors to UI with proper typing
+- Include error boundaries at route level
+
+6. Type Safety:
+
+- Prefer inference over explicit types when possible
+- Use strict TypeScript checks
+- Maintain end-to-end type safety with Drizzle
+
+7. Technical Notes:
+
+- Uses app.config.ts instead of vite.config.ts
+- All server functions must use TanStack Start patterns
+- Database operations should use Drizzle query builder
+- Run "bun lint" and "bun check-types" after changes
+  </framework_preferences>
 
 <code_style>
 
-1. Formatting Rules (matching biome.json):
-
-- MUST use tabs for indentation (not spaces)
-- MUST use double quotes for strings
-- MUST follow Biome's import organization rules
-- MUST match all other Biome linting rules as specified in biome.json
+- Tabs for indentation (not spaces)
+- Double quotes for strings
+- Follow Biome's import organization
+- Match biome.json linting rules
   </code_style>
+
+<automation_preferences>
+
+- Run type checking after file changes
+- Run linting after file changes
+- Fix auto-fixable lint issues automatically
+  </automation_preferences>

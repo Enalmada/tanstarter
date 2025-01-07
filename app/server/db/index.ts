@@ -1,3 +1,9 @@
+/**
+ * Database connection configuration
+ * Sets up and exports database client instance
+ * Configures connection pooling and SSL settings
+ */
+
 // db/index.ts
 "use server";
 

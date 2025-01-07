@@ -8,6 +8,13 @@
       "when": 1734899112015,
       "tag": "0000_jazzy_screwball",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1736130396013,
+      "tag": "0001_slippery_maginty",
+      "breakpoints": true
     }
   ]
 }

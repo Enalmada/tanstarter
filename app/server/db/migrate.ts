@@ -1,3 +1,9 @@
+/**
+ * Database migration script
+ * Handles schema migrations and seeding
+ * Includes development environment setup
+ */
+
 import { neon, neonConfig } from "@neondatabase/serverless";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";

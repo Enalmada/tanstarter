@@ -1,3 +1,9 @@
+/**
+ * Internationalization configuration
+ * Manages language loading and switching
+ * Handles locale detection and activation
+ */
+
 import { i18n } from "@lingui/core";
 
 export const AVAILABLE_LANGUAGES = {

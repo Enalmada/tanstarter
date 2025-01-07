@@ -1,3 +1,9 @@
+/**
+ * Content Security Policy (CSP) rules configuration
+ * Defines security policies for content loading and execution
+ * Includes rules for scripts, styles, and external resources
+ */
+
 import type { CspRule } from "./types";
 
 export const cspRules: CspRule[] = [
@@ -16,6 +22,8 @@ export const cspRules: CspRule[] = [
 	{
 		description: "google-auth",
 		"form-action": "'self' https://accounts.google.com",
+		"img-src": "https://*.googleusercontent.com",
+		"connect-src": "https://*.googleusercontent.com",
 		source: "/:path*",
 	},
 	{
@@ -27,7 +35,7 @@ export const cspRules: CspRule[] = [
 	{
 		description: "sampleimage",
 		"img-src":
-			"https://picsum.photos/200/300 https://fastly.picsum.photos/ https://i.pravatar.cc/",
+			"'self' blob: data: https://picsum.photos/200/300 https://fastly.picsum.photos/ https://i.pravatar.cc/ https://*.googleusercontent.com",
 		source: "/:path*",
 	},
 	{

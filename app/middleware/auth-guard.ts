@@ -3,6 +3,12 @@ import { setResponseStatus } from "vinxi/http";
 import { getAuthSession } from "~/server/auth/auth";
 
 /**
+ * Authentication middleware
+ * Protects routes requiring authentication
+ * Handles user session validation
+ */
+
+/**
  * Middleware to force authentication on a server function, and add the user to the context.
  */
 export const authMiddleware = createMiddleware().server(async ({ next }) => {

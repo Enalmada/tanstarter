@@ -7,11 +7,11 @@ import {
 } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard")({
-	component: DashboardLayout,
-	beforeLoad: async ({ context }) => {
+	beforeLoad: ({ context }) => {
 		if (!context.user) {
 			throw redirect({ to: "/signin" });
 		}
+		throw redirect({ to: "/tasks" });
 	},
 });
 

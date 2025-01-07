@@ -1,3 +1,9 @@
+/**
+ * Default error boundary component
+ * Handles and displays runtime errors in the application
+ * Provides user-friendly error messages and retry options
+ */
+
 import { Button } from "@nextui-org/react";
 import {
 	ErrorComponent,

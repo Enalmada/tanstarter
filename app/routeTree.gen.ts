@@ -14,7 +14,10 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as SigninImport } from './routes/signin'
 import { Route as DashboardImport } from './routes/dashboard'
 import { Route as IndexImport } from './routes/index'
+import { Route as TasksIndexImport } from './routes/tasks/index'
 import { Route as DashboardIndexImport } from './routes/dashboard/index'
+import { Route as TasksNewImport } from './routes/tasks/new'
+import { Route as TasksTaskIdImport } from './routes/tasks/$taskId'
 
 // Create/Update Routes
 
@@ -36,10 +39,28 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const TasksIndexRoute = TasksIndexImport.update({
+  id: '/tasks/',
+  path: '/tasks/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const DashboardIndexRoute = DashboardIndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
+} as any)
+
+const TasksNewRoute = TasksNewImport.update({
+  id: '/tasks/new',
+  path: '/tasks/new',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const TasksTaskIdRoute = TasksTaskIdImport.update({
+  id: '/tasks/$taskId',
+  path: '/tasks/$taskId',
+  getParentRoute: () => rootRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -67,12 +88,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SigninImport
       parentRoute: typeof rootRoute
     }
+    '/tasks/$taskId': {
+      id: '/tasks/$taskId'
+      path: '/tasks/$taskId'
+      fullPath: '/tasks/$taskId'
+      preLoaderRoute: typeof TasksTaskIdImport
+      parentRoute: typeof rootRoute
+    }
+    '/tasks/new': {
+      id: '/tasks/new'
+      path: '/tasks/new'
+      fullPath: '/tasks/new'
+      preLoaderRoute: typeof TasksNewImport
+      parentRoute: typeof rootRoute
+    }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexImport
       parentRoute: typeof DashboardImport
+    }
+    '/tasks/': {
+      id: '/tasks/'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof TasksIndexImport
+      parentRoute: typeof rootRoute
     }
   }
 }
@@ -95,13 +137,19 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/signin': typeof SigninRoute
+  '/tasks/$taskId': typeof TasksTaskIdRoute
+  '/tasks/new': typeof TasksNewRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/tasks': typeof TasksIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
+  '/tasks/$taskId': typeof TasksTaskIdRoute
+  '/tasks/new': typeof TasksNewRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/tasks': typeof TasksIndexRoute
 }
 
 export interface FileRoutesById {
@@ -109,15 +157,39 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/signin': typeof SigninRoute
+  '/tasks/$taskId': typeof TasksTaskIdRoute
+  '/tasks/new': typeof TasksNewRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/tasks/': typeof TasksIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/signin' | '/dashboard/'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/signin'
+    | '/tasks/$taskId'
+    | '/tasks/new'
+    | '/dashboard/'
+    | '/tasks'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/signin' | '/dashboard'
-  id: '__root__' | '/' | '/dashboard' | '/signin' | '/dashboard/'
+  to:
+    | '/'
+    | '/signin'
+    | '/tasks/$taskId'
+    | '/tasks/new'
+    | '/dashboard'
+    | '/tasks'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/signin'
+    | '/tasks/$taskId'
+    | '/tasks/new'
+    | '/dashboard/'
+    | '/tasks/'
   fileRoutesById: FileRoutesById
 }
 
@@ -125,12 +197,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   SigninRoute: typeof SigninRoute
+  TasksTaskIdRoute: typeof TasksTaskIdRoute
+  TasksNewRoute: typeof TasksNewRoute
+  TasksIndexRoute: typeof TasksIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
   SigninRoute: SigninRoute,
+  TasksTaskIdRoute: TasksTaskIdRoute,
+  TasksNewRoute: TasksNewRoute,
+  TasksIndexRoute: TasksIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -145,7 +223,10 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/dashboard",
-        "/signin"
+        "/signin",
+        "/tasks/$taskId",
+        "/tasks/new",
+        "/tasks/"
       ]
     },
     "/": {
@@ -160,9 +241,18 @@ export const routeTree = rootRoute
     "/signin": {
       "filePath": "signin.tsx"
     },
+    "/tasks/$taskId": {
+      "filePath": "tasks/$taskId.tsx"
+    },
+    "/tasks/new": {
+      "filePath": "tasks/new.tsx"
+    },
     "/dashboard/": {
       "filePath": "dashboard/index.tsx",
       "parent": "/dashboard"
+    },
+    "/tasks/": {
+      "filePath": "tasks/index.tsx"
     }
   }
 }

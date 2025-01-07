@@ -7,15 +7,19 @@ import {
 	Divider,
 	Link as NextUILink,
 } from "@nextui-org/react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
 	component: Home,
+	beforeLoad: ({ context }) => {
+		if (context.user) {
+			throw redirect({ to: "/tasks" });
+		}
+		return { user: context.user };
+	},
 });
 
 function Home() {
-	const { user } = Route.useRouteContext();
-
 	return (
 		<div className="container mx-auto flex flex-col gap-6 p-6">
 			<Card>
@@ -31,46 +35,20 @@ function Home() {
 						</code>
 					</div>
 
-					{user ? (
-						<div className="mt-6 flex flex-col gap-4">
-							<p className="text-xl">Welcome back, {user.name}!</p>
-							<div className="flex gap-2">
-								<Button as={Link} to="/dashboard" color="primary" size="lg">
-									<Trans>Go to Dashboard</Trans>
-								</Button>
-
-								<form
-									method="POST"
-									action="/api/auth/logout"
-									className="inline-block"
-								>
-									<Button type="submit" color="danger" variant="flat" size="lg">
-										Sign out
-									</Button>
-								</form>
-							</div>
-
-							<div className="mt-4">
-								<p className="text-default-600">User data:</p>
-								<pre className="mt-2 rounded-lg bg-default-100 p-4">
-									{JSON.stringify(user, null, 2)}
-								</pre>
-							</div>
-						</div>
-					) : (
-						<div className="mt-6 flex flex-col gap-4">
-							<p className="text-xl text-default-600">You are not signed in.</p>
-							<Button
-								as={Link}
-								to="/signin"
-								color="primary"
-								size="lg"
-								className="w-fit"
-							>
-								Sign in
-							</Button>
-						</div>
-					)}
+					<div className="mt-6 flex flex-col gap-4">
+						<p className="text-xl text-default-600">
+							Welcome to TanStarter Todo!
+						</p>
+						<Button
+							as={Link}
+							to="/signin"
+							color="primary"
+							size="lg"
+							className="w-fit"
+						>
+							Sign in to get started
+						</Button>
+					</div>
 				</CardBody>
 			</Card>
 

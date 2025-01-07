@@ -1,3 +1,9 @@
+/**
+ * Security header generation utilities
+ * Generates CSP and other security headers
+ * Handles nonce generation and policy compilation
+ */
+
 import {
 	type CspRule,
 	type SecurityHeaders,
@@ -80,7 +86,7 @@ export function generateSecurityHeaders(
 		.join("; ");
 
 	return createSecurityHeaders(cspValue, {
-		config: headerConfig,
-		nonce,
+		...(headerConfig && { config: headerConfig }),
+		...(nonce && { nonce }),
 	});
 }

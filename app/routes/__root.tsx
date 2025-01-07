@@ -14,10 +14,12 @@ import type { ReactNode } from "react";
 import { Suspense, lazy, useLayoutEffect } from "react";
 
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
+import { Navbar } from "~/components/Navbar";
 import { NotFound } from "~/components/NotFound";
 import { NextUIAppProvider } from "~/components/providers/next-ui-provider";
 import { DEFAULT_LANGUAGE, activateLanguage } from "~/locales/locale";
 import { getAuthSession } from "~/server/auth/auth";
+import type { ClientUser } from "~/server/db/schema";
 import appCss from "~/styles/app.css?url";
 
 const TanStackRouterDevtools = import.meta.env.PROD
@@ -33,91 +35,99 @@ const getUser = createServerFn({ method: "GET" }).handler(async () => {
 	return user;
 });
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
-	{
-		beforeLoad: async () => {
-			const user = await getUser();
-			return { user };
-		},
-		head: () => ({
-			meta: [
-				{ charSet: "utf-8" },
-				{
-					name: "viewport",
-					content: "width=device-width, initial-scale=1",
-				},
-				{ title: "TanStarter" },
-				{
-					name: "description",
-					content: "A modern starter template using TanStack Start",
-				},
-				{
-					name: "theme-color",
-					content: "#8936FF",
-				},
-				{
-					name: "apple-mobile-web-app-status-bar-style",
-					content: "default",
-				},
-				{
-					name: "mobile-web-app-capable",
-					content: "yes",
-				},
-				{
-					name: "apple-mobile-web-app-capable",
-					content: "yes",
-				},
-				{
-					property: "og:type",
-					content: "website",
-				},
-				{
-					property: "og:title",
-					content: "TanStarter",
-				},
-				{
-					property: "og:description",
-					content: "A modern starter template using TanStack and Vite",
-				},
-				{
-					name: "twitter:card",
-					content: "summary",
-				},
-				{
-					name: "twitter:title",
-					content: "TanStarter",
-				},
-				{
-					name: "twitter:description",
-					content: "A modern starter template using TanStack and Vite",
-				},
-			],
-			links: [
-				{ rel: "stylesheet", href: appCss },
-				{ rel: "manifest", href: "/manifest.json" },
-				{ rel: "shortcut icon", href: "/favicon.ico" },
-				{
-					rel: "apple-touch-icon",
-					href: "/icon512_rounded.png",
-				},
-				{
-					rel: "apple-touch-icon",
-					href: "/icon512_maskable.png",
-					sizes: "512x512",
-				},
-			],
-		}),
-		component: RootComponent,
-		errorComponent: (props) => (
-			<RootDocument>
-				<DefaultCatchBoundary {...props} />
-			</RootDocument>
-		),
-		notFoundComponent: () => <NotFound />,
+export const Route = createRootRouteWithContext<{
+	queryClient: QueryClient;
+	user: ClientUser | null;
+}>()({
+	beforeLoad: async () => {
+		const user = await getUser();
+		return { user };
 	},
-);
+	loader: ({ context }) => {
+		return {
+			user: context.user,
+		};
+	},
+	head: () => ({
+		meta: [
+			{ charSet: "utf-8" },
+			{
+				name: "viewport",
+				content: "width=device-width, initial-scale=1",
+			},
+			{ title: "TanStarter" },
+			{
+				name: "description",
+				content: "A modern starter template using TanStack Start",
+			},
+			{
+				name: "theme-color",
+				content: "#8936FF",
+			},
+			{
+				name: "apple-mobile-web-app-status-bar-style",
+				content: "default",
+			},
+			{
+				name: "mobile-web-app-capable",
+				content: "yes",
+			},
+			{
+				name: "apple-mobile-web-app-capable",
+				content: "yes",
+			},
+			{
+				property: "og:type",
+				content: "website",
+			},
+			{
+				property: "og:title",
+				content: "TanStarter",
+			},
+			{
+				property: "og:description",
+				content: "A modern starter template using TanStack and Vite",
+			},
+			{
+				name: "twitter:card",
+				content: "summary",
+			},
+			{
+				name: "twitter:title",
+				content: "TanStarter",
+			},
+			{
+				name: "twitter:description",
+				content: "A modern starter template using TanStack and Vite",
+			},
+		],
+		links: [
+			{ rel: "stylesheet", href: appCss },
+			{ rel: "manifest", href: "/manifest.json" },
+			{ rel: "shortcut icon", href: "/favicon.ico" },
+			{
+				rel: "apple-touch-icon",
+				href: "/icon512_rounded.png",
+			},
+			{
+				rel: "apple-touch-icon",
+				href: "/icon512_maskable.png",
+				sizes: "512x512",
+			},
+		],
+	}),
+	component: RootComponent,
+	errorComponent: (props) => (
+		<RootDocument>
+			<DefaultCatchBoundary {...props} />
+		</RootDocument>
+	),
+	notFoundComponent: () => <NotFound />,
+});
 
 function RootComponent() {
+	const { user } = Route.useLoaderData();
+
 	useLayoutEffect(() => {
 		const loadSerwist = async () => {
 			if ("serviceWorker" in navigator) {
@@ -138,7 +148,12 @@ function RootComponent() {
 
 	return (
 		<RootDocument>
-			<Outlet />
+			<div className="flex min-h-screen flex-col">
+				<Navbar user={user} />
+				<div className="flex-1">
+					<Outlet />
+				</div>
+			</div>
 		</RootDocument>
 	);
 }

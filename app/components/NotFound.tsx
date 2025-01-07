@@ -1,3 +1,9 @@
+/**
+ * 404 Not Found page component
+ * Displays when routes don't match any defined paths
+ * Includes navigation back to home
+ */
+
 import { Button } from "@nextui-org/react";
 import { Link } from "@tanstack/react-router";
 

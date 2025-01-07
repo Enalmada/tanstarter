@@ -1,3 +1,9 @@
+/**
+ * Client-side application entry point
+ * Sets up router and renders the app
+ * Handles client-side hydration
+ */
+
 /// <reference types="vinxi/types/client" />
 import { StartClient } from "@tanstack/start";
 import { hydrateRoot } from "react-dom/client";
