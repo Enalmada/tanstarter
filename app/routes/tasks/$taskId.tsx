@@ -12,8 +12,8 @@ import {
 } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
-import { Suspense, useState } from "react";
-import { ErrorBoundary, type FallbackProps } from "react-error-boundary";
+import { useState } from "react";
+import type { FallbackProps } from "react-error-boundary";
 import { Spinner } from "~/components/Spinner";
 import { TaskForm } from "~/components/TaskForm";
 import type { Task } from "~/server/db/schema";
@@ -22,15 +22,17 @@ import {
 	fetchTask,
 	updateTask,
 } from "~/server/services/task-service";
+import { taskQueryOptions } from "~/utils/tasks";
 
 export const Route = createFileRoute("/tasks/$taskId")({
-	component: TaskDetailPage,
-	loader: async ({ context, params }) => {
-		if (!context.user) {
-			throw new Error("Not authenticated");
-		}
-		return { userId: context.user.id, taskId: params.taskId };
+	loader: async ({ context, params: { taskId } }) => {
+		await context.queryClient.ensureQueryData(taskQueryOptions(taskId));
 	},
+	component: TaskDetailPage,
+	pendingComponent: TaskDetailSkeleton,
+	errorComponent: ({ error }) => (
+		<TaskDetailError error={error} resetErrorBoundary={() => {}} />
+	),
 });
 
 // Loading component for the task detail
@@ -71,118 +73,98 @@ function TaskDetailError({ error, resetErrorBoundary }: FallbackProps) {
 }
 
 function TaskDetailPage() {
-	return (
-		<ErrorBoundary FallbackComponent={TaskDetailError}>
-			<Suspense fallback={<TaskDetailSkeleton />}>
-				<EditTask />
-			</Suspense>
-		</ErrorBoundary>
-	);
+	const { taskId } = Route.useParams();
+	const { data: task } = useSuspenseQuery(taskQueryOptions(taskId));
+	return <EditTask task={task} taskId={taskId} />;
 }
 
-function EditTask() {
-	const { taskId, userId } = Route.useLoaderData();
+function EditTask({ task, taskId }: { task: Task; taskId: string }) {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-	const { data: task, isFetching } = useSuspenseQuery({
-		queryKey: ["task", taskId],
-		queryFn: async () => {
-			try {
-				const result = await fetchTask({ data: taskId });
-				return result;
-			} catch (error) {
-				throw new Error("Failed to load task. Please try again.");
-			}
-		},
-		staleTime: 30 * 1000, // Consider data fresh for 30 seconds
-		retry: 2, // Retry failed requests twice
-	});
-
 	const updateTaskMutation = useMutation({
 		mutationFn: async ({ data }: { data: Partial<Task> }) => {
-			try {
-				const result = await updateTask({
-					data: {
-						taskId,
-						data,
-					},
-				});
-				return result;
-			} catch (error) {
-				throw new Error("Failed to update task. Please try again.");
-			}
+			const result = await updateTask({
+				data: {
+					taskId,
+					data,
+				},
+			});
+			return result;
 		},
 		onMutate: async ({ data }) => {
-			setErrorMessage(null);
-			await queryClient.cancelQueries({ queryKey: ["tasks", userId] });
-			await queryClient.cancelQueries({ queryKey: ["task", taskId] });
+			// Cancel any outgoing refetches
+			await queryClient.cancelQueries({ queryKey: ["tasks"] });
+			await queryClient.cancelQueries({ queryKey: ["tasks", taskId] });
 
-			const previousTask = queryClient.getQueryData<Task>(["task", taskId]);
-			const optimisticId = `-${Date.now()}`;
+			// Snapshot current state
+			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
+			const previousTask = queryClient.getQueryData<Task>(["tasks", taskId]);
 
+			// Create optimistic task
 			const optimisticTask: Task = {
-				...(previousTask as Task),
+				...task,
 				...data,
-				id: optimisticId,
 			};
 
-			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
-				return old.filter((t) => t.id !== taskId).concat(optimisticTask);
+			// Update both caches optimistically
+			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
+				return old.map((t) => (t.id === taskId ? optimisticTask : t));
 			});
-			queryClient.setQueryData(["task", taskId], optimisticTask);
+			queryClient.setQueryData(["tasks", taskId], optimisticTask);
 
-			return { previousTask, optimisticId };
+			return { previousTasks, previousTask };
 		},
 		onError: (err, variables, context) => {
+			// Revert both caches on error
 			if (context?.previousTask) {
-				queryClient.setQueryData(["task", taskId], context.previousTask);
-				queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
-					return old
-						.filter((t) => t.id !== context.optimisticId)
-						.concat(context.previousTask!);
-				});
+				queryClient.setQueryData(["tasks", taskId], context.previousTask);
+			}
+			if (context?.previousTasks) {
+				queryClient.setQueryData(["tasks"], context.previousTasks);
 			}
 			setErrorMessage(err.message);
 		},
-		onSuccess: (updatedTask, _, context) => {
-			navigate({ to: "/tasks" });
-
-			queryClient.setQueryData(["task", taskId], updatedTask);
-			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
-				return old
-					.filter((t) => t.id !== context?.optimisticId && t.id !== taskId)
-					.concat(updatedTask);
+		onSuccess: (updatedTask) => {
+			// Update both caches with server data
+			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
+				return old.map((t) => (t.id === taskId ? updatedTask : t));
 			});
+			queryClient.setQueryData(["tasks", taskId], updatedTask);
+			navigate({ to: "/tasks" });
 		},
 	});
 
 	const deleteTaskMutation = useMutation({
 		mutationFn: async () => {
-			try {
-				await deleteTask({ data: taskId });
-			} catch (error) {
-				throw new Error("Failed to delete task. Please try again.");
-			}
+			await deleteTask({ data: taskId });
+			return taskId;
 		},
 		onMutate: async () => {
-			setErrorMessage(null);
-			await queryClient.cancelQueries({ queryKey: ["tasks", userId] });
-			await queryClient.cancelQueries({ queryKey: ["task", taskId] });
+			// Cancel any outgoing refetches
+			await queryClient.cancelQueries({ queryKey: ["tasks"] });
+			await queryClient.cancelQueries({ queryKey: ["tasks", taskId] });
 
-			const previousTasks = queryClient.getQueryData<Task[]>(["tasks", userId]);
+			// Snapshot current state
+			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
+			const previousTask = queryClient.getQueryData<Task>(["tasks", taskId]);
 
-			queryClient.setQueryData<Task[]>(["tasks", userId], (old = []) => {
+			// Remove from both caches optimistically
+			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
 				return old.filter((t) => t.id !== taskId);
 			});
-			queryClient.removeQueries({ queryKey: ["task", taskId] });
+			queryClient.removeQueries({ queryKey: ["tasks", taskId] });
 
-			return { previousTasks };
+			return { previousTasks, previousTask };
 		},
 		onError: (err, variables, context) => {
+			// Revert both caches on error
+			if (context?.previousTask) {
+				queryClient.setQueryData(["tasks", taskId], context.previousTask);
+			}
 			if (context?.previousTasks) {
-				queryClient.setQueryData(["tasks", userId], context.previousTasks);
+				queryClient.setQueryData(["tasks"], context.previousTasks);
 			}
 			setErrorMessage(err.message);
 		},
@@ -203,7 +185,6 @@ function EditTask() {
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2">
 							<h1 className="text-2xl font-bold">Edit Task</h1>
-							{isFetching && <Spinner />}
 						</div>
 						<Button
 							color="primary"
