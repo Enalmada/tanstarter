@@ -1,4 +1,12 @@
-import { Button, Card, CardBody, Checkbox } from "@nextui-org/react";
+import {
+	Alert,
+	Button,
+	Card,
+	Checkbox,
+	Group,
+	Stack,
+	Text,
+} from "@mantine/core";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
@@ -11,6 +19,8 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 	const queryClient = useQueryClient();
 	const [errorMessage, setErrorMessage] = useState("");
 	const [isPending, startTransition] = useTransition();
+	const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
+	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
 	// Add prefetch function with error handling
 	const prefetchTask = (taskId: string) => {
@@ -39,6 +49,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 		},
 		onMutate: async ({ taskId, data, currentTask }) => {
 			setErrorMessage("");
+			setPendingTaskId(taskId);
 
 			// Cancel any outgoing refetches so they don't overwrite our optimistic update
 			await queryClient.cancelQueries({ queryKey: ["tasks"] });
@@ -71,6 +82,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 				queryClient.setQueryData(["tasks"], context.previousTasks);
 			}
 			setErrorMessage(err.message);
+			setPendingTaskId(null);
 		},
 		onSuccess: (updatedTask, { taskId }) => {
 			// Update both caches with server data
@@ -78,16 +90,18 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 				return old.map((t) => (t.id === taskId ? updatedTask : t));
 			});
 			queryClient.setQueryData(["tasks", taskId], updatedTask);
+			setPendingTaskId(null);
 		},
 	});
 
 	const deleteTaskMutation = useMutation({
 		mutationFn: async ({ taskId }: { taskId: string }) => {
-			await deleteTask({ data: taskId });
+			const result = await deleteTask({ data: taskId });
 			return taskId;
 		},
 		onMutate: async ({ taskId }) => {
 			setErrorMessage("");
+			setPendingDeleteId(taskId);
 
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({ queryKey: ["tasks"] });
@@ -114,42 +128,38 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 				queryClient.setQueryData(["tasks"], context.previousTasks);
 			}
 			setErrorMessage(err.message);
+			setPendingDeleteId(null);
 		},
 		onSuccess: (taskId) => {
 			// Remove from cache on success (already done optimistically)
 			queryClient.removeQueries({ queryKey: ["tasks", taskId] });
+			setPendingDeleteId(null);
 		},
 	});
 
 	return (
 		<div className="container mx-auto flex flex-col gap-4 p-6">
 			{errorMessage && (
-				<div className="rounded-medium bg-danger-50 p-3 text-danger text-sm">
+				<Alert color="red" title="Error">
 					{errorMessage}
-				</div>
+				</Alert>
 			)}
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-2">
-					<h1 className="text-2xl font-bold">Tasks</h1>
-				</div>
-				<Button
-					as={Link}
-					to="/tasks/new"
-					color="primary"
-					variant="solid"
-					size="lg"
-				>
+			<Group justify="space-between">
+				<Text size="xl" fw={700}>
+					Tasks
+				</Text>
+				<Button component={Link} to="/tasks/new" size="lg">
 					New Task
 				</Button>
-			</div>
+			</Group>
 
-			<div className="grid gap-4">
+			<Stack gap="md">
 				{tasks.map((task: Task) => (
-					<Card key={task.id} className="w-full">
-						<CardBody className="flex flex-row items-center gap-4">
+					<Card key={task.id} withBorder>
+						<Group>
 							<Checkbox
-								isSelected={task.status === TaskStatus.COMPLETED}
-								onValueChange={() =>
+								checked={task.status === TaskStatus.COMPLETED}
+								onChange={() =>
 									updateTaskMutation.mutate({
 										taskId: task.id,
 										currentTask: task,
@@ -164,9 +174,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 										},
 									})
 								}
-								isDisabled={
-									task.id.startsWith("-") || updateTaskMutation.isPending
-								}
+								disabled={task.id.startsWith("-")}
 							/>
 							<div className="flex flex-col gap-1 flex-1">
 								<Link
@@ -174,7 +182,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 									params={{ taskId: task.id }}
 									className={`${
 										task.status === TaskStatus.COMPLETED
-											? "text-default-400 line-through"
+											? "text-gray-400 line-through"
 											: ""
 									} ${task.id.startsWith("-") ? "pointer-events-none opacity-50" : ""}`}
 									onMouseEnter={() => {
@@ -183,44 +191,43 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 										}
 									}}
 								>
-									<h3 className="text-lg font-medium">{task.title}</h3>
+									<Text size="lg" fw={500}>
+										{task.title}
+									</Text>
 								</Link>
 								{task.description && (
-									<p className="text-small text-default-500">
+									<Text size="sm" c="dimmed">
 										{task.description}
-									</p>
+									</Text>
 								)}
 								{task.due_date && (
-									<p className="text-tiny text-default-400">
+									<Text size="xs" c="dimmed">
 										Due: {new Date(task.due_date).toLocaleDateString()}
-									</p>
+									</Text>
 								)}
 							</div>
 							<Button
-								isIconOnly
-								variant="light"
-								onPress={() => deleteTaskMutation.mutate({ taskId: task.id })}
-								isDisabled={
-									task.id.startsWith("-") ||
-									updateTaskMutation.isPending ||
-									deleteTaskMutation.isPending
+								variant="subtle"
+								color="red"
+								onClick={() => deleteTaskMutation.mutate({ taskId: task.id })}
+								disabled={
+									task.id.startsWith("-") || pendingDeleteId === task.id
 								}
-								className="text-danger"
 							>
 								<Trash2 size={20} />
 							</Button>
-						</CardBody>
+						</Group>
 					</Card>
 				))}
 
 				{tasks.length === 0 && (
-					<Card>
-						<CardBody className="text-center text-default-500">
+					<Card withBorder>
+						<Text ta="center" c="dimmed">
 							No tasks yet. Create one to get started!
-						</CardBody>
+						</Text>
 					</Card>
 				)}
-			</div>
+			</Stack>
 		</div>
 	);
 }

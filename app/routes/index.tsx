@@ -1,12 +1,13 @@
 import { Trans } from "@lingui/react/macro";
 import {
+	Anchor,
 	Button,
 	Card,
-	CardBody,
-	CardHeader,
 	Divider,
-	Link as NextUILink,
-} from "@nextui-org/react";
+	Group,
+	Stack,
+	Text,
+} from "@mantine/core";
 import { Link, createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
@@ -22,45 +23,37 @@ export const Route = createFileRoute("/")({
 function Home() {
 	return (
 		<div className="container mx-auto flex flex-col gap-6 p-6">
-			<Card>
-				<CardHeader>
-					<h1 className="text-4xl font-bold">TanStarter</h1>
-				</CardHeader>
-				<Divider />
-				<CardBody>
-					<div className="flex items-center gap-2">
-						<span className="text-default-600">Current location:</span>
+			<Card withBorder>
+				<Stack gap="md" p="md">
+					<Text size="xl" fw={700}>
+						TanStarter
+					</Text>
+					<Divider />
+					<Group>
+						<Text c="dimmed">Current location:</Text>
 						<code className="rounded-md bg-default-100 px-2 py-1">
 							routes/index.tsx
 						</code>
-					</div>
+					</Group>
 
-					<div className="mt-6 flex flex-col gap-4">
-						<p className="text-xl text-default-600">
+					<Stack gap="md" mt="md">
+						<Text size="lg" c="dimmed">
 							Welcome to TanStarter Todo!
-						</p>
-						<Button
-							as={Link}
-							to="/signin"
-							color="primary"
-							size="lg"
-							className="w-fit"
-						>
+						</Text>
+						<Button component={Link} to="/signin" size="lg" className="w-fit">
 							Sign in to get started
 						</Button>
-					</div>
-				</CardBody>
+					</Stack>
+				</Stack>
 			</Card>
 
-			<NextUILink
-				isExternal
-				showAnchorIcon
+			<Anchor
 				href="https://github.com/dotnize/tanstarter"
-				color="foreground"
+				target="_blank"
 				className="w-fit"
 			>
 				dotnize/tanstarter
-			</NextUILink>
+			</Anchor>
 		</div>
 	);
 }

@@ -4,7 +4,7 @@
  * Provides user-friendly error messages and retry options
  */
 
-import { Button } from "@nextui-org/react";
+import { Button, Group, Stack } from "@mantine/core";
 import {
 	ErrorComponent,
 	type ErrorComponentProps,
@@ -24,9 +24,9 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 	console.error(error);
 
 	return (
-		<div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-6 p-4">
+		<Stack className="min-w-0 flex-1 items-center justify-center gap-6 p-4">
 			<ErrorComponent error={error} />
-			<div className="flex flex-wrap items-center gap-2">
+			<Group>
 				<Button
 					onClick={() => {
 						router.invalidate();
@@ -35,12 +35,12 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 					Try Again
 				</Button>
 				{isRoot ? (
-					<Button as={Link} to="/" variant="bordered">
+					<Button component={Link} to="/" variant="outline">
 						Home
 					</Button>
 				) : (
 					<Button
-						variant="bordered"
+						variant="outline"
 						onClick={() => {
 							window.history.back();
 						}}
@@ -48,7 +48,7 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 						Go Back
 					</Button>
 				)}
-			</div>
-		</div>
+			</Group>
+		</Stack>
 	);
 }

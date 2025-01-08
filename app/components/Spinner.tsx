@@ -1,12 +1,5 @@
-import { Spinner as NextUISpinner } from "@nextui-org/react";
+import { Loader } from "@mantine/core";
 
 export function Spinner() {
-	return (
-		<NextUISpinner
-			size="sm"
-			classNames={{
-				wrapper: "w-4 h-4",
-			}}
-		/>
-	);
+	return <Loader size="sm" type="dots" />;
 }

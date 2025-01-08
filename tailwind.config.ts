@@ -1,15 +1,15 @@
-import { nextui } from "@nextui-org/react";
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
 	darkMode: ["class"],
-	content: [
-		"./app/**/*.tsx",
-		"./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
-	],
+	content: ["./app/**/*.tsx"],
 	theme: {
 		extend: {
+			colors: {
+				background: "white",
+				foreground: "black",
+			},
 			keyframes: {
 				"accordion-down": {
 					from: { height: "0" },
@@ -26,19 +26,5 @@ export default {
 			},
 		},
 	},
-	plugins: [
-		nextui({
-			defaultTheme: "light",
-			layout: {},
-			themes: {
-				light: {
-					colors: {},
-				},
-				dark: {
-					colors: {},
-				},
-			},
-		}),
-		tailwindcssAnimate,
-	],
+	plugins: [tailwindcssAnimate],
 } satisfies Config;

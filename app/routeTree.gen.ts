@@ -12,10 +12,8 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as SigninImport } from './routes/signin'
-import { Route as DashboardImport } from './routes/dashboard'
 import { Route as IndexImport } from './routes/index'
 import { Route as TasksIndexImport } from './routes/tasks/index'
-import { Route as DashboardIndexImport } from './routes/dashboard/index'
 import { Route as TasksNewImport } from './routes/tasks/new'
 import { Route as TasksTaskIdImport } from './routes/tasks/$taskId'
 
@@ -24,12 +22,6 @@ import { Route as TasksTaskIdImport } from './routes/tasks/$taskId'
 const SigninRoute = SigninImport.update({
   id: '/signin',
   path: '/signin',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const DashboardRoute = DashboardImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -43,12 +35,6 @@ const TasksIndexRoute = TasksIndexImport.update({
   id: '/tasks/',
   path: '/tasks/',
   getParentRoute: () => rootRoute,
-} as any)
-
-const DashboardIndexRoute = DashboardIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DashboardRoute,
 } as any)
 
 const TasksNewRoute = TasksNewImport.update({
@@ -74,13 +60,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardImport
-      parentRoute: typeof rootRoute
-    }
     '/signin': {
       id: '/signin'
       path: '/signin'
@@ -102,13 +81,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TasksNewImport
       parentRoute: typeof rootRoute
     }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexImport
-      parentRoute: typeof DashboardImport
-    }
     '/tasks/': {
       id: '/tasks/'
       path: '/tasks'
@@ -121,25 +93,11 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-interface DashboardRouteChildren {
-  DashboardIndexRoute: typeof DashboardIndexRoute
-}
-
-const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardIndexRoute: DashboardIndexRoute,
-}
-
-const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
-  DashboardRouteChildren,
-)
-
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/signin': typeof SigninRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
-  '/dashboard/': typeof DashboardIndexRoute
   '/tasks': typeof TasksIndexRoute
 }
 
@@ -148,54 +106,29 @@ export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
-  '/dashboard': typeof DashboardIndexRoute
   '/tasks': typeof TasksIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/signin': typeof SigninRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
-  '/dashboard/': typeof DashboardIndexRoute
   '/tasks/': typeof TasksIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/dashboard'
-    | '/signin'
-    | '/tasks/$taskId'
-    | '/tasks/new'
-    | '/dashboard/'
-    | '/tasks'
+  fullPaths: '/' | '/signin' | '/tasks/$taskId' | '/tasks/new' | '/tasks'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/signin'
-    | '/tasks/$taskId'
-    | '/tasks/new'
-    | '/dashboard'
-    | '/tasks'
-  id:
-    | '__root__'
-    | '/'
-    | '/dashboard'
-    | '/signin'
-    | '/tasks/$taskId'
-    | '/tasks/new'
-    | '/dashboard/'
-    | '/tasks/'
+  to: '/' | '/signin' | '/tasks/$taskId' | '/tasks/new' | '/tasks'
+  id: '__root__' | '/' | '/signin' | '/tasks/$taskId' | '/tasks/new' | '/tasks/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRouteWithChildren
   SigninRoute: typeof SigninRoute
   TasksTaskIdRoute: typeof TasksTaskIdRoute
   TasksNewRoute: typeof TasksNewRoute
@@ -204,7 +137,6 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRouteWithChildren,
   SigninRoute: SigninRoute,
   TasksTaskIdRoute: TasksTaskIdRoute,
   TasksNewRoute: TasksNewRoute,
@@ -222,7 +154,6 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/dashboard",
         "/signin",
         "/tasks/$taskId",
         "/tasks/new",
@@ -232,12 +163,6 @@ export const routeTree = rootRoute
     "/": {
       "filePath": "index.tsx"
     },
-    "/dashboard": {
-      "filePath": "dashboard.tsx",
-      "children": [
-        "/dashboard/"
-      ]
-    },
     "/signin": {
       "filePath": "signin.tsx"
     },
@@ -246,10 +171,6 @@ export const routeTree = rootRoute
     },
     "/tasks/new": {
       "filePath": "tasks/new.tsx"
-    },
-    "/dashboard/": {
-      "filePath": "dashboard/index.tsx",
-      "parent": "/dashboard"
     },
     "/tasks/": {
       "filePath": "tasks/index.tsx"

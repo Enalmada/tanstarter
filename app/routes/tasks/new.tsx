@@ -4,13 +4,20 @@
  * Protected route requiring authentication
  */
 
-import { Card, CardBody } from "@nextui-org/react";
+import { Card, Stack } from "@mantine/core";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
-import type { Task } from "~/server/db/schema";
+import { showToast } from "~/components/Toast";
+import type { Task, TaskStatusType } from "~/server/db/schema";
 import { createTask } from "~/server/services/task-service";
+
+type TaskFormData = {
+	title: string;
+	description: string | null;
+	due_date: Date | null;
+	status: TaskStatusType;
+};
 
 export const Route = createFileRoute("/tasks/new")({
 	component: NewTask,
@@ -23,15 +30,12 @@ export const Route = createFileRoute("/tasks/new")({
 });
 
 function NewTask() {
-	const { userId } = Route.useLoaderData();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const { userId } = Route.useLoaderData();
 
 	const createTaskMutation = useMutation({
-		mutationFn: async (
-			data: Omit<Task, "id" | "created_at" | "updated_at" | "user_id">,
-		) => {
+		mutationFn: async (data: TaskFormData) => {
 			const result = await createTask({ data });
 			return result;
 		},
@@ -39,67 +43,58 @@ function NewTask() {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({ queryKey: ["tasks"] });
 
-			// Snapshot current state
+			// Snapshot the previous value
 			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
 
-			// Create optimistic task
-			const optimisticId = `-${Date.now()}`;
-			const optimisticTask: Task = {
-				...newTask,
-				id: optimisticId,
-				user_id: userId,
-				created_at: new Date(),
-				updated_at: new Date(),
-			};
+			// Optimistically update to the new value
+			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => [
+				...old,
+				{
+					id: `temp-${Date.now()}`,
+					user_id: userId,
+					created_at: new Date(),
+					updated_at: new Date(),
+					...newTask,
+				},
+			]);
 
-			// Add to cache optimistically
-			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
-				return [...old, optimisticTask];
-			});
-
-			return { previousTasks, optimisticId };
+			// Return a context object with the snapshotted value
+			return { previousTasks };
 		},
-		onError: (err, variables, context) => {
-			// Revert cache on error
+		onSuccess: () => {
+			showToast({
+				title: "Success",
+				description: "Task created successfully",
+				type: "success",
+			});
+			navigate({ to: "/tasks" });
+		},
+		onError: (error, _variables, context) => {
+			// If the mutation fails, use the context returned from onMutate to roll back
 			if (context?.previousTasks) {
 				queryClient.setQueryData(["tasks"], context.previousTasks);
 			}
-			setErrorMessage(err.message);
-		},
-		onSuccess: (newTask, _, context) => {
-			// Update cache with real task, removing optimistic one
-			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
-				return old
-					.filter((t) => t.id !== context?.optimisticId)
-					.concat(newTask);
+			showToast({
+				title: "Error",
+				description: error.message,
+				type: "error",
 			});
-			navigate({ to: "/tasks" });
+		},
+		onSettled: () => {
+			// Always refetch after error or success to ensure cache is in sync with server
+			queryClient.invalidateQueries({ queryKey: ["tasks"] });
 		},
 	});
 
 	return (
-		<div className="container mx-auto p-6">
-			{errorMessage && (
-				<div className="rounded-medium bg-danger-50 p-3 text-danger text-sm mb-4">
-					{errorMessage}
-				</div>
-			)}
-			<Card className="max-w-2xl mx-auto">
-				<CardBody className="flex flex-col gap-4">
-					<h1 className="text-2xl font-bold">New Task</h1>
-
+		<div className="container mx-auto flex flex-col gap-4 p-6">
+			<Card withBorder>
+				<Stack gap="md" p="md">
 					<TaskForm
-						onSubmit={(values) =>
-							createTaskMutation.mutate({
-								title: values.title,
-								description: values.description,
-								due_date: values.due_date,
-								status: values.status,
-							})
-						}
+						onSubmit={(values) => createTaskMutation.mutate(values)}
 						isSubmitting={createTaskMutation.isPending}
 					/>
-				</CardBody>
+				</Stack>
 			</Card>
 		</div>
 	);

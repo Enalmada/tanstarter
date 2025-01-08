@@ -1,9 +1,9 @@
 import { getSerwist } from "virtual:serwist";
+import { AppShell } from "@mantine/core";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
 	Outlet,
-	ScriptOnce,
 	ScrollRestoration,
 	createRootRouteWithContext,
 } from "@tanstack/react-router";
@@ -13,9 +13,16 @@ import { Suspense, lazy, useLayoutEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { Navbar } from "~/components/Navbar";
 import { NotFound } from "~/components/NotFound";
-import { NextUIAppProvider } from "~/components/providers/next-ui-provider";
+import {
+	ColorSchemeScript,
+	MantineProvider,
+} from "~/components/providers/mantine-provider";
 import { getAuthSession } from "~/server/auth/auth";
 import type { ClientUser } from "~/server/db/schema";
+
+import mantineCoreCss from "@mantine/core/styles.css?url";
+import mantineDatesCss from "@mantine/dates/styles.css?url";
+import mantineNotificationsCss from "@mantine/notifications/styles.css?url";
 import appCss from "~/styles/app.css?url";
 
 const TanStackRouterDevtools = import.meta.env.PROD
@@ -98,6 +105,9 @@ export const Route = createRootRouteWithContext<{
 			},
 		],
 		links: [
+			{ rel: "stylesheet", href: mantineCoreCss },
+			{ rel: "stylesheet", href: mantineNotificationsCss },
+			{ rel: "stylesheet", href: mantineDatesCss },
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "manifest", href: "/manifest.json" },
 			{ rel: "shortcut icon", href: "/favicon.ico" },
@@ -144,12 +154,14 @@ function RootComponent() {
 
 	return (
 		<RootDocument>
-			<div className="flex min-h-screen flex-col">
-				<Navbar user={user} />
-				<div className="flex-1">
+			<AppShell header={{ height: 60 }}>
+				<AppShell.Header>
+					<Navbar user={user} />
+				</AppShell.Header>
+				<AppShell.Main>
 					<Outlet />
-				</div>
-			</div>
+				</AppShell.Main>
+			</AppShell>
 		</RootDocument>
 	);
 }
@@ -159,31 +171,10 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 		<html suppressHydrationWarning>
 			<head>
 				<Meta />
-				<ScriptOnce>
-					{`
-					// Only run on client side
-					if (typeof window !== 'undefined') {
-						// Initialize dark mode before React hydration
-						(function() {
-							const isDarkMode = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-							document.documentElement.classList.toggle('dark', isDarkMode);
-							
-							// Listen for system theme changes
-							const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-							mediaQuery.addEventListener('change', function(e) {
-								const newIsDark = e.matches;
-								localStorage.theme = newIsDark ? 'dark' : 'light';
-								document.documentElement.classList.toggle('dark', newIsDark);
-							});
-						})();
-					}
-					`}
-				</ScriptOnce>
+				<ColorSchemeScript />
 			</head>
 			<body>
-				<NextUIAppProvider>
-					<main className="min-h-screen">{children}</main>
-				</NextUIAppProvider>
+				<MantineProvider>{children}</MantineProvider>
 				<ScrollRestoration />
 				<ReactQueryDevtools buttonPosition="bottom-left" />
 				<Suspense>

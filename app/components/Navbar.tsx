@@ -4,81 +4,70 @@
  * Includes responsive design with mobile menu
  */
 
-import {
-	Avatar,
-	Button,
-	Dropdown,
-	DropdownItem,
-	DropdownMenu,
-	DropdownTrigger,
-	NavbarBrand,
-	NavbarContent,
-	Link as NextUILink,
-	Navbar as NextUINavbar,
-} from "@nextui-org/react";
-import { Link } from "@tanstack/react-router";
+import { Avatar, Button, Group, Menu, Text } from "@mantine/core";
+import { Link, useNavigate } from "@tanstack/react-router";
 import type { ClientUser } from "~/server/db/schema";
 
 interface NavbarProps {
-	user?: ClientUser | null;
+	user: ClientUser | null;
 }
 
 export function Navbar({ user }: NavbarProps) {
-	return (
-		<NextUINavbar>
-			<NavbarBrand>
-				<NextUILink
-					as={Link}
-					to="/"
-					color="foreground"
-					className="font-bold text-inherit"
-				>
-					TanStarter
-				</NextUILink>
-			</NavbarBrand>
+	const navigate = useNavigate();
 
-			<NavbarContent justify="end">
+	return (
+		<Group h="100%" px="md" justify="space-between">
+			<Link to="/" className="text-2xl font-bold">
+				TanStarter
+			</Link>
+
+			<Group>
 				{user ? (
-					<Dropdown placement="bottom-end">
-						<DropdownTrigger>
-							<Avatar
-								as="button"
-								className="transition-transform"
-								color="primary"
-								size="sm"
-								{...(user.name && { name: user.name })}
-								{...(user.avatar_url && { src: user.avatar_url })}
-							/>
-						</DropdownTrigger>
-						<DropdownMenu aria-label="Profile Actions" variant="flat">
-							<DropdownItem key="profile" className="h-14 gap-2">
-								<p className="font-semibold">Signed in as</p>
-								<p className="font-semibold">{user.email}</p>
-							</DropdownItem>
-							<DropdownItem key="logout">
-								<form
-									method="POST"
-									action="/api/auth/logout"
-									className="w-full"
-								>
-									<Button
-										type="submit"
-										color="danger"
-										variant="light"
-										className="w-full"
-									>
-										Sign out
-									</Button>
-								</form>
-							</DropdownItem>
-						</DropdownMenu>
-					</Dropdown>
+					<>
+						<Menu shadow="md" width={200}>
+							<Menu.Target>
+								<Avatar
+									src={user.avatar_url}
+									alt={user.name ?? ""}
+									className="cursor-pointer"
+								/>
+							</Menu.Target>
+
+							<Menu.Dropdown>
+								<Menu.Label>Account</Menu.Label>
+								<Menu.Item>
+									<Text size="sm" fw={500}>
+										{user.name}
+									</Text>
+									<Text size="xs" c="dimmed">
+										{user.email}
+									</Text>
+								</Menu.Item>
+								<Menu.Divider />
+								<Menu.Item component="a" href="/api/auth/signout" color="red">
+									Sign out
+								</Menu.Item>
+							</Menu.Dropdown>
+						</Menu>
+
+						<Button
+							onClick={() => {
+								navigate({ to: "/tasks/new" });
+							}}
+						>
+							New Task
+						</Button>
+					</>
 				) : (
-					<Button as={Link} color="primary" to="/signin" variant="flat">
+					<Button
+						onClick={() => {
+							navigate({ to: "/signin" });
+						}}
+					>
 						Sign in
 					</Button>
 				)}
-			</NavbarContent>
-		</NextUINavbar>
+			</Group>
+		</Group>
 	);
 }
