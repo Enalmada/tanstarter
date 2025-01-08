@@ -26,6 +26,8 @@ import mantineNotificationsCss from "@mantine/notifications/styles.css?inline";
 // Import CSS with ?inline to ensure proper SSR handling
 import appCss from "~/styles/app.css?inline";
 
+const ENABLE_SERVICE_WORKER = false;
+
 const TanStackRouterDevtools = import.meta.env.PROD
 	? () => null
 	: lazy(() =>
@@ -34,6 +36,8 @@ const TanStackRouterDevtools = import.meta.env.PROD
 			})),
 		);
 
+const USER_QUERY_KEY = ["auth", "user"] as const;
+
 const getUser = createServerFn({ method: "GET" }).handler(async () => {
 	const { user } = await getAuthSession();
 	return user;
@@ -41,15 +45,26 @@ const getUser = createServerFn({ method: "GET" }).handler(async () => {
 
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
-	user: ClientUser | null;
+	user: ClientUser | null | undefined;
 }>()({
-	beforeLoad: async () => {
+	beforeLoad: async ({ context }) => {
+		const queryClient = context.queryClient;
+		// Try to get user from query cache first
+		const cachedUser = queryClient.getQueryData<ClientUser | null>(
+			USER_QUERY_KEY,
+		);
+		if (cachedUser !== undefined) {
+			return { user: cachedUser };
+		}
+
+		// If not in cache, fetch and cache it
 		const user = await getUser();
+		queryClient.setQueryData<ClientUser | null>(USER_QUERY_KEY, user);
 		return { user };
 	},
 	loader: ({ context }) => {
 		return {
-			user: context.user,
+			user: context.user ?? null,
 		};
 	},
 	head: () => ({
@@ -131,10 +146,9 @@ export const Route = createRootRouteWithContext<{
 function RootComponent() {
 	const { user } = Route.useLoaderData();
 
-	/*
 	useLayoutEffect(() => {
 		const loadSerwist = async () => {
-			if ("serviceWorker" in navigator) {
+			if (ENABLE_SERVICE_WORKER && "serviceWorker" in navigator) {
 				try {
 					const serwist = await getSerwist();
 					serwist?.addEventListener("installed", () => {
@@ -149,7 +163,6 @@ function RootComponent() {
 
 		loadSerwist();
 	}, []);
-	*/
 
 	return (
 		<RootDocument>

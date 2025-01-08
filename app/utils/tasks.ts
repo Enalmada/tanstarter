@@ -47,14 +47,19 @@
 import { queryOptions } from "@tanstack/react-query";
 import { fetchTask, fetchTasks } from "~/server/services/task-service";
 
+// 5 minutes stale time to match QueryClient defaults
+const STALE_TIME = 1000 * 60 * 5;
+
 export const tasksQueryOptions = () =>
 	queryOptions({
 		queryKey: ["tasks"],
 		queryFn: () => fetchTasks({}),
+		staleTime: STALE_TIME,
 	});
 
 export const taskQueryOptions = (taskId: string) =>
 	queryOptions({
 		queryKey: ["tasks", taskId],
 		queryFn: () => fetchTask({ data: taskId }),
+		staleTime: STALE_TIME,
 	});

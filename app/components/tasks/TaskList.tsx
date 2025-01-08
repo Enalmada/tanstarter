@@ -10,24 +10,15 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { type Task, TaskStatus } from "~/server/db/schema";
 import { deleteTask, updateTask } from "~/server/services/task-service";
-import { taskQueryOptions } from "~/utils/tasks";
 
 export function TaskList({ tasks }: { tasks: Task[] }) {
 	const queryClient = useQueryClient();
 	const [errorMessage, setErrorMessage] = useState("");
-	const [isPending, startTransition] = useTransition();
 	const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
 	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-
-	// Add prefetch function with error handling
-	const prefetchTask = (taskId: string) => {
-		startTransition(() => {
-			queryClient.prefetchQuery(taskQueryOptions(taskId));
-		});
-	};
 
 	const updateTaskMutation = useMutation({
 		mutationFn: async ({
@@ -185,11 +176,6 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 											? "text-gray-400 line-through"
 											: ""
 									} ${task.id.startsWith("-") ? "pointer-events-none opacity-50" : ""}`}
-									onMouseEnter={() => {
-										if (!task.id.startsWith("-")) {
-											prefetchTask(task.id);
-										}
-									}}
 								>
 									<Text size="lg" fw={500}>
 										{task.title}

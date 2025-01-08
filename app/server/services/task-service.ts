@@ -7,7 +7,7 @@
 import { createServerFn } from "@tanstack/start";
 import { and, eq } from "drizzle-orm";
 import { object, safeParse, string } from "valibot";
-import { authMiddleware } from "~/middleware/auth-guard";
+import { getAuthSession } from "~/server/auth/auth";
 import db from "../db";
 import {
 	type NewTask,
@@ -77,151 +77,130 @@ function validateUpdateTask(input: unknown): {
 	};
 }
 
+// Helper function to get authenticated user
+async function getAuthenticatedUser() {
+	const { user } = await getAuthSession();
+	if (!user) {
+		throw new Error("Unauthorized");
+	}
+	return user;
+}
+
 /**
  * Fetches all tasks for the current user
  */
-export const fetchTasks = createServerFn({ method: "GET" })
-	.middleware([authMiddleware])
-	.handler(async ({ context }: { context: { user: { id: string } } }) => {
+export const fetchTasks = createServerFn({ method: "GET" }).handler(
+	async () => {
 		try {
+			const user = await getAuthenticatedUser();
 			const tasks = await db
 				.select()
 				.from(task)
-				.where(eq(task.user_id, context.user.id))
+				.where(eq(task.user_id, user.id))
 				.execute();
 			return tasks;
 		} catch (error) {
 			console.error("Error fetching tasks:", error);
 			throw new Error("Failed to fetch tasks");
 		}
-	});
+	},
+);
 
 /**
  * Fetches a single task by ID
  */
 export const fetchTask = createServerFn({ method: "GET" })
-	.middleware([authMiddleware])
 	.validator(validateTaskId)
-	.handler(
-		async ({
-			context,
-			data: taskId,
-		}: {
-			context: { user: { id: string } };
-			data: string;
-		}) => {
-			try {
-				const [result] = await db
-					.select()
-					.from(task)
-					.where(and(eq(task.id, taskId), eq(task.user_id, context.user.id)))
-					.execute();
+	.handler(async ({ data: taskId }) => {
+		try {
+			const user = await getAuthenticatedUser();
+			const [result] = await db
+				.select()
+				.from(task)
+				.where(and(eq(task.id, taskId), eq(task.user_id, user.id)))
+				.execute();
 
-				if (!result) {
-					throw new Error("Task not found");
-				}
-
-				return result;
-			} catch (error) {
-				console.error("Error fetching task:", error);
-				throw new Error("Failed to fetch task");
+			if (!result) {
+				throw new Error("Task not found");
 			}
-		},
-	);
+
+			return result;
+		} catch (error) {
+			console.error("Error fetching task:", error);
+			throw new Error("Failed to fetch task");
+		}
+	});
 
 /**
  * Creates a new task
  */
 export const createTask = createServerFn({ method: "POST" })
-	.middleware([authMiddleware])
 	.validator(validateNewTask)
-	.handler(
-		async ({
-			context,
-			data,
-		}: { context: { user: { id: string } }; data: NewTask }) => {
-			try {
-				const [result] = await db
-					.insert(task)
-					.values({
-						...data,
-						user_id: context.user.id,
-					})
-					.returning()
-					.execute();
-				return result;
-			} catch (error) {
-				console.error("Error creating task:", error);
-				throw new Error("Failed to create task");
-			}
-		},
-	);
+	.handler(async ({ data }) => {
+		try {
+			const user = await getAuthenticatedUser();
+			const [result] = await db
+				.insert(task)
+				.values({
+					...data,
+					user_id: user.id,
+				})
+				.returning()
+				.execute();
+			return result;
+		} catch (error) {
+			console.error("Error creating task:", error);
+			throw new Error("Failed to create task");
+		}
+	});
 
 /**
  * Updates an existing task
  */
 export const updateTask = createServerFn({ method: "POST" })
-	.middleware([authMiddleware])
 	.validator(validateUpdateTask)
-	.handler(
-		async ({
-			context,
-			data,
-		}: {
-			context: { user: { id: string } };
-			data: { taskId: string; data: Partial<NewTask> };
-		}) => {
-			try {
-				const [result] = await db
-					.update(task)
-					.set(data.data)
-					.where(
-						and(eq(task.id, data.taskId), eq(task.user_id, context.user.id)),
-					)
-					.returning()
-					.execute();
+	.handler(async ({ data }) => {
+		try {
+			const user = await getAuthenticatedUser();
+			const [result] = await db
+				.update(task)
+				.set(data.data)
+				.where(and(eq(task.id, data.taskId), eq(task.user_id, user.id)))
+				.returning()
+				.execute();
 
-				if (!result) {
-					throw new Error("Task not found");
-				}
-
-				return result;
-			} catch (error) {
-				console.error("Error updating task:", error);
-				throw new Error("Failed to update task");
+			if (!result) {
+				throw new Error("Task not found");
 			}
-		},
-	);
+
+			return result;
+		} catch (error) {
+			console.error("Error updating task:", error);
+			throw new Error("Failed to update task");
+		}
+	});
 
 /**
  * Deletes a task
  */
 export const deleteTask = createServerFn({ method: "POST" })
-	.middleware([authMiddleware])
 	.validator(validateTaskId)
-	.handler(
-		async ({
-			context,
-			data: taskId,
-		}: {
-			context: { user: { id: string } };
-			data: string;
-		}) => {
-			try {
-				const [result] = await db
-					.delete(task)
-					.where(and(eq(task.id, taskId), eq(task.user_id, context.user.id)))
-					.returning()
-					.execute();
+	.handler(async ({ data: taskId }) => {
+		try {
+			const user = await getAuthenticatedUser();
+			const [result] = await db
+				.delete(task)
+				.where(and(eq(task.id, taskId), eq(task.user_id, user.id)))
+				.returning()
+				.execute();
 
-				if (!result) {
-					throw new Error("Task not found");
-				}
-
-				return result;
-			} catch (error) {
-				console.error("Error deleting task:", error);
-				throw new Error("Failed to delete task");
+			if (!result) {
+				throw new Error("Task not found");
 			}
-		},
-	);
+
+			return result;
+		} catch (error) {
+			console.error("Error deleting task:", error);
+			throw new Error("Failed to delete task");
+		}
+	});

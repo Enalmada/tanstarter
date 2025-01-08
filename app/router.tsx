@@ -10,9 +10,21 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import type { ReactNode } from "react";
+import type { ClientUser } from "~/server/db/schema";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
 import { NotFound } from "./components/NotFound";
 import { routeTree } from "./routeTree.gen";
+
+declare module "@tanstack/react-router" {
+	interface Register {
+		router: ReturnType<typeof createRouter>;
+	}
+}
+
+interface RouterContext {
+	queryClient: QueryClient;
+	user: ClientUser | null | undefined;
+}
 
 export function createRouter() {
 	// Create QueryClient here as recommended by TanStack examples
@@ -28,10 +40,10 @@ export function createRouter() {
 	return routerWithQueryClient(
 		createTanStackRouter({
 			routeTree,
-			context: { queryClient, user: null },
-			// Let React Query handle stale data and preloading
-			defaultPreloadStaleTime: 0,
+			context: { queryClient, user: undefined } as RouterContext,
+			// Preload on hover/focus, but respect 5-minute stale time
 			defaultPreload: "intent" as const,
+			defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
 			defaultErrorComponent: DefaultCatchBoundary,
 			defaultNotFoundComponent: NotFound,
 			Wrap: ({ children }: { children: ReactNode }) => (
@@ -40,10 +52,4 @@ export function createRouter() {
 		}),
 		queryClient,
 	);
-}
-
-declare module "@tanstack/react-router" {
-	interface Register {
-		router: ReturnType<typeof createRouter>;
-	}
 }

@@ -5,16 +5,17 @@
  */
 
 import { Button, Card, Group, Stack } from "@mantine/core";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
 import { showToast } from "~/components/Toast";
 import type { Task, TaskStatusType } from "~/server/db/schema";
-import {
-	deleteTask,
-	fetchTask,
-	updateTask,
-} from "~/server/services/task-service";
+import { deleteTask, updateTask } from "~/server/services/task-service";
+import { taskQueryOptions } from "~/utils/tasks";
 
 type TaskFormData = {
 	title: string;
@@ -29,16 +30,13 @@ export const Route = createFileRoute("/tasks/$taskId")({
 		if (!context.user) {
 			throw redirect({ to: "/signin" });
 		}
-		const task = await fetchTask({ data: params.taskId });
-		if (!task) {
-			throw new Error("Task not found");
-		}
-		return { task };
+		await context.queryClient.ensureQueryData(taskQueryOptions(params.taskId));
 	},
 });
 
 function EditTask() {
-	const { task } = Route.useLoaderData();
+	const { taskId } = Route.useParams();
+	const { data: task } = useSuspenseQuery(taskQueryOptions(taskId));
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 
