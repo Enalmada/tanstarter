@@ -20,10 +20,11 @@ import {
 import { getAuthSession } from "~/server/auth/auth";
 import type { ClientUser } from "~/server/db/schema";
 
-import mantineCoreCss from "@mantine/core/styles.css?url";
-import mantineDatesCss from "@mantine/dates/styles.css?url";
-import mantineNotificationsCss from "@mantine/notifications/styles.css?url";
-import appCss from "~/styles/app.css?url";
+import mantineCoreCss from "@mantine/core/styles.css?inline";
+import mantineDatesCss from "@mantine/dates/styles.css?inline";
+import mantineNotificationsCss from "@mantine/notifications/styles.css?inline";
+// Import CSS with ?inline to ensure proper SSR handling
+import appCss from "~/styles/app.css?inline";
 
 const TanStackRouterDevtools = import.meta.env.PROD
 	? () => null
@@ -105,10 +106,6 @@ export const Route = createRootRouteWithContext<{
 			},
 		],
 		links: [
-			{ rel: "stylesheet", href: mantineCoreCss },
-			{ rel: "stylesheet", href: mantineNotificationsCss },
-			{ rel: "stylesheet", href: mantineDatesCss },
-			{ rel: "stylesheet", href: appCss },
 			{ rel: "manifest", href: "/manifest.json" },
 			{ rel: "shortcut icon", href: "/favicon.ico" },
 			{
@@ -134,6 +131,7 @@ export const Route = createRootRouteWithContext<{
 function RootComponent() {
 	const { user } = Route.useLoaderData();
 
+	/*
 	useLayoutEffect(() => {
 		const loadSerwist = async () => {
 			if ("serviceWorker" in navigator) {
@@ -151,6 +149,7 @@ function RootComponent() {
 
 		loadSerwist();
 	}, []);
+	*/
 
 	return (
 		<RootDocument>
@@ -172,6 +171,14 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 			<head>
 				<Meta />
 				<ColorSchemeScript />
+				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
+				<style dangerouslySetInnerHTML={{ __html: mantineCoreCss }} />
+				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
+				<style dangerouslySetInnerHTML={{ __html: mantineNotificationsCss }} />
+				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
+				<style dangerouslySetInnerHTML={{ __html: mantineDatesCss }} />
+				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
+				<style dangerouslySetInnerHTML={{ __html: appCss }} />
 			</head>
 			<body>
 				<MantineProvider>{children}</MantineProvider>

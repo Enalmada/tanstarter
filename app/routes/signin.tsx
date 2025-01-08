@@ -22,12 +22,12 @@ function AuthPage() {
 					</Text>
 					<Divider />
 					<form
-						method="POST"
-						action="/api/auth/github"
+						method="GET"
+						action="/api/auth/google"
 						className="flex flex-col gap-4"
 					>
 						<Button type="submit" size="lg">
-							Continue with GitHub
+							Continue with Google
 						</Button>
 					</form>
 				</Stack>

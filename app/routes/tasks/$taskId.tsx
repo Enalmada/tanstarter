@@ -55,27 +55,35 @@ function EditTask() {
 		onMutate: async (newData) => {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({ queryKey: ["tasks"] });
+			await queryClient.cancelQueries({ queryKey: ["tasks", task.id] });
 
-			// Snapshot the previous value
+			// Snapshot the previous values
 			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
+			const previousTask = queryClient.getQueryData<Task>(["tasks", task.id]);
 
-			// Optimistically update to the new value
+			// Create optimistic task
+			const optimisticTask: Task = {
+				...task,
+				...newData,
+				updated_at: new Date(),
+			};
+
+			// Optimistically update both caches
 			queryClient.setQueryData<Task[]>(["tasks"], (old = []) =>
-				old.map((t) =>
-					t.id === task.id
-						? {
-								...t,
-								...newData,
-								updated_at: new Date(),
-							}
-						: t,
-				),
+				old.map((t) => (t.id === task.id ? optimisticTask : t)),
 			);
+			queryClient.setQueryData(["tasks", task.id], optimisticTask);
 
-			// Return a context object with the snapshotted value
-			return { previousTasks };
+			// Return a context object with the snapshotted values
+			return { previousTasks, previousTask };
 		},
-		onSuccess: () => {
+		onSuccess: (updatedTask) => {
+			// Update both caches with the actual server data
+			queryClient.setQueryData<Task[]>(["tasks"], (old = []) =>
+				old.map((t) => (t.id === task.id ? updatedTask : t)),
+			);
+			queryClient.setQueryData(["tasks", task.id], updatedTask);
+
 			showToast({
 				title: "Success",
 				description: "Task updated successfully",
@@ -85,6 +93,9 @@ function EditTask() {
 		},
 		onError: (error, _variables, context) => {
 			// If the mutation fails, use the context returned from onMutate to roll back
+			if (context?.previousTask) {
+				queryClient.setQueryData(["tasks", task.id], context.previousTask);
+			}
 			if (context?.previousTasks) {
 				queryClient.setQueryData(["tasks"], context.previousTasks);
 			}
@@ -93,10 +104,6 @@ function EditTask() {
 				description: error.message,
 				type: "error",
 			});
-		},
-		onSettled: () => {
-			// Always refetch after error or success to ensure cache is in sync with server
-			queryClient.invalidateQueries({ queryKey: ["tasks"] });
 		},
 	});
 
@@ -110,19 +117,23 @@ function EditTask() {
 		onMutate: async () => {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({ queryKey: ["tasks"] });
+			await queryClient.cancelQueries({ queryKey: ["tasks", task.id] });
 
-			// Snapshot the previous value
+			// Snapshot the previous values
 			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
+			const previousTask = queryClient.getQueryData<Task>(["tasks", task.id]);
 
-			// Optimistically update to the new value
+			// Optimistically remove from both caches
 			queryClient.setQueryData<Task[]>(["tasks"], (old = []) =>
 				old.filter((t) => t.id !== task.id),
 			);
+			queryClient.removeQueries({ queryKey: ["tasks", task.id] });
 
-			// Return a context object with the snapshotted value
-			return { previousTasks };
+			// Return a context object with the snapshotted values
+			return { previousTasks, previousTask };
 		},
 		onSuccess: () => {
+			// The task is already removed from cache in onMutate
 			showToast({
 				title: "Success",
 				description: "Task deleted successfully",
@@ -132,6 +143,9 @@ function EditTask() {
 		},
 		onError: (error, _variables, context) => {
 			// If the mutation fails, use the context returned from onMutate to roll back
+			if (context?.previousTask) {
+				queryClient.setQueryData(["tasks", task.id], context.previousTask);
+			}
 			if (context?.previousTasks) {
 				queryClient.setQueryData(["tasks"], context.previousTasks);
 			}
@@ -140,10 +154,6 @@ function EditTask() {
 				description: error.message,
 				type: "error",
 			});
-		},
-		onSettled: () => {
-			// Always refetch after error or success to ensure cache is in sync with server
-			queryClient.invalidateQueries({ queryKey: ["tasks"] });
 		},
 	});
 

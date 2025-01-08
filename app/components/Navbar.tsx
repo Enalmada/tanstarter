@@ -15,6 +15,26 @@ interface NavbarProps {
 export function Navbar({ user }: NavbarProps) {
 	const navigate = useNavigate();
 
+	const handleSignOut = async () => {
+		try {
+			const response = await fetch("/api/auth/signout", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+
+			if (response.ok) {
+				// Force a full page reload to clear all client state
+				window.location.href = "/";
+			} else {
+				throw new Error("Failed to sign out");
+			}
+		} catch (error) {
+			console.error("Sign out error:", error);
+		}
+	};
+
 	return (
 		<Group h="100%" px="md" justify="space-between">
 			<Link to="/" className="text-2xl font-bold">
@@ -44,7 +64,7 @@ export function Navbar({ user }: NavbarProps) {
 									</Text>
 								</Menu.Item>
 								<Menu.Divider />
-								<Menu.Item component="a" href="/api/auth/signout" color="red">
+								<Menu.Item onClick={handleSignOut} color="red">
 									Sign out
 								</Menu.Item>
 							</Menu.Dropdown>

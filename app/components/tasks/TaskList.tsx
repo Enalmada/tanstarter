@@ -55,7 +55,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			await queryClient.cancelQueries({ queryKey: ["tasks"] });
 			await queryClient.cancelQueries({ queryKey: ["tasks", taskId] });
 
-			// Snapshot the previous value
+			// Snapshot the previous values
 			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
 			const previousTask = queryClient.getQueryData<Task>(["tasks", taskId]);
 
@@ -63,15 +63,24 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			const optimisticTask: Task = {
 				...currentTask,
 				...data,
+				updated_at: new Date(),
 			};
 
-			// Optimistically update the lists
+			// Optimistically update both caches
 			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
 				return old.map((t) => (t.id === taskId ? optimisticTask : t));
 			});
 			queryClient.setQueryData(["tasks", taskId], optimisticTask);
 
 			return { previousTasks, previousTask };
+		},
+		onSuccess: (updatedTask, { taskId }) => {
+			// Update both caches with the actual server data
+			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
+				return old.map((t) => (t.id === taskId ? updatedTask : t));
+			});
+			queryClient.setQueryData(["tasks", taskId], updatedTask);
+			setPendingTaskId(null);
 		},
 		onError: (err, { taskId }, context) => {
 			// Revert both caches on error
@@ -82,14 +91,6 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 				queryClient.setQueryData(["tasks"], context.previousTasks);
 			}
 			setErrorMessage(err.message);
-			setPendingTaskId(null);
-		},
-		onSuccess: (updatedTask, { taskId }) => {
-			// Update both caches with server data
-			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
-				return old.map((t) => (t.id === taskId ? updatedTask : t));
-			});
-			queryClient.setQueryData(["tasks", taskId], updatedTask);
 			setPendingTaskId(null);
 		},
 	});
@@ -107,17 +108,21 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			await queryClient.cancelQueries({ queryKey: ["tasks"] });
 			await queryClient.cancelQueries({ queryKey: ["tasks", taskId] });
 
-			// Snapshot the previous value
+			// Snapshot the previous values
 			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
 			const previousTask = queryClient.getQueryData<Task>(["tasks", taskId]);
 
-			// Optimistically remove from lists
+			// Optimistically remove from both caches
 			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
 				return old.filter((t) => t.id !== taskId);
 			});
 			queryClient.removeQueries({ queryKey: ["tasks", taskId] });
 
-			return { previousTasks, previousTask, taskId };
+			return { previousTasks, previousTask };
+		},
+		onSuccess: (taskId) => {
+			// The task is already removed from cache in onMutate
+			setPendingDeleteId(null);
 		},
 		onError: (err, { taskId }, context) => {
 			// Revert both caches on error
@@ -128,11 +133,6 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 				queryClient.setQueryData(["tasks"], context.previousTasks);
 			}
 			setErrorMessage(err.message);
-			setPendingDeleteId(null);
-		},
-		onSuccess: (taskId) => {
-			// Remove from cache on success (already done optimistically)
-			queryClient.removeQueries({ queryKey: ["tasks", taskId] });
 			setPendingDeleteId(null);
 		},
 	});

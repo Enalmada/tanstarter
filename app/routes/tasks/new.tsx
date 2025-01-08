@@ -46,22 +46,30 @@ function NewTask() {
 			// Snapshot the previous value
 			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
 
+			// Create optimistic task
+			const optimisticTask: Task = {
+				id: `temp-${Date.now()}`,
+				user_id: userId,
+				created_at: new Date(),
+				updated_at: new Date(),
+				...newTask,
+			};
+
 			// Optimistically update to the new value
 			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => [
 				...old,
-				{
-					id: `temp-${Date.now()}`,
-					user_id: userId,
-					created_at: new Date(),
-					updated_at: new Date(),
-					...newTask,
-				},
+				optimisticTask,
 			]);
 
 			// Return a context object with the snapshotted value
-			return { previousTasks };
+			return { previousTasks, optimisticTask };
 		},
-		onSuccess: () => {
+		onSuccess: (createdTask, _variables, context) => {
+			// Update the cache with the actual server data
+			queryClient.setQueryData<Task[]>(["tasks"], (old = []) =>
+				old.map((t) => (t.id === context?.optimisticTask.id ? createdTask : t)),
+			);
+
 			showToast({
 				title: "Success",
 				description: "Task created successfully",
@@ -79,10 +87,6 @@ function NewTask() {
 				description: error.message,
 				type: "error",
 			});
-		},
-		onSettled: () => {
-			// Always refetch after error or success to ensure cache is in sync with server
-			queryClient.invalidateQueries({ queryKey: ["tasks"] });
 		},
 	});
 
