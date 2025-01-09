@@ -6,6 +6,7 @@ import {
 	Outlet,
 	ScrollRestoration,
 	createRootRouteWithContext,
+	redirect,
 } from "@tanstack/react-router";
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import type { ReactNode } from "react";
@@ -23,7 +24,6 @@ import type { ClientUser } from "~/server/db/schema";
 import mantineCoreCss from "@mantine/core/styles.css?inline";
 import mantineDatesCss from "@mantine/dates/styles.css?inline";
 import mantineNotificationsCss from "@mantine/notifications/styles.css?inline";
-// Import CSS with ?inline to ensure proper SSR handling
 import appCss from "~/styles/app.css?inline";
 
 const ENABLE_SERVICE_WORKER = false;
@@ -47,19 +47,25 @@ export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
 	user: ClientUser | null | undefined;
 }>()({
-	beforeLoad: async ({ context }) => {
+	beforeLoad: async ({ context, location }) => {
 		const queryClient = context.queryClient;
 		// Try to get user from query cache first
 		const cachedUser = queryClient.getQueryData<ClientUser | null>(
 			USER_QUERY_KEY,
 		);
-		if (cachedUser !== undefined) {
-			return { user: cachedUser };
-		}
+		const user = cachedUser !== undefined ? cachedUser : await getUser();
 
 		// If not in cache, fetch and cache it
-		const user = await getUser();
-		queryClient.setQueryData<ClientUser | null>(USER_QUERY_KEY, user);
+		if (cachedUser === undefined) {
+			queryClient.setQueryData<ClientUser | null>(USER_QUERY_KEY, user);
+		}
+
+		// Check if this is a protected route (starts with /tasks)
+		const isProtectedRoute = location.pathname.startsWith("/tasks");
+		if (isProtectedRoute && !user) {
+			throw redirect({ to: "/signin" });
+		}
+
 		return { user };
 	},
 	loader: ({ context }) => {

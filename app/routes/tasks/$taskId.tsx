@@ -2,6 +2,12 @@
  * Task edit route component
  * Handles task updates and manages task data fetching
  * Includes navigation back to task list and form state management
+ *
+ * Mutation function order:
+ * 1. mutationFn - The actual server call
+ * 2. onMutate - Pre-mutation optimistic updates
+ * 3. onSuccess - Post-mutation success handling
+ * 4. onError - Error handling and rollback
  */
 
 import { Button, Card, Group, Stack } from "@mantine/core";
@@ -10,7 +16,7 @@ import {
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
 import { showToast } from "~/components/Toast";
 import type { Task, TaskStatusType } from "~/server/db/schema";
@@ -27,9 +33,6 @@ type TaskFormData = {
 export const Route = createFileRoute("/tasks/$taskId")({
 	component: EditTask,
 	loader: async ({ context, params }) => {
-		if (!context.user) {
-			throw redirect({ to: "/signin" });
-		}
 		await context.queryClient.ensureQueryData(taskQueryOptions(params.taskId));
 	},
 });
@@ -59,11 +62,14 @@ function EditTask() {
 			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
 			const previousTask = queryClient.getQueryData<Task>(["tasks", task.id]);
 
+			// Use a consistent timestamp for optimistic updates
+			const now = new Date().toISOString();
+
 			// Create optimistic task
 			const optimisticTask: Task = {
 				...task,
 				...newData,
-				updated_at: new Date(),
+				updated_at: new Date(now),
 			};
 
 			// Optimistically update both caches
@@ -71,6 +77,9 @@ function EditTask() {
 				old.map((t) => (t.id === task.id ? optimisticTask : t)),
 			);
 			queryClient.setQueryData(["tasks", task.id], optimisticTask);
+
+			// Navigate optimistically
+			navigate({ to: "/tasks" });
 
 			// Return a context object with the snapshotted values
 			return { previousTasks, previousTask };
@@ -87,7 +96,6 @@ function EditTask() {
 				description: "Task updated successfully",
 				type: "success",
 			});
-			navigate({ to: "/tasks" });
 		},
 		onError: (error, _variables, context) => {
 			// If the mutation fails, use the context returned from onMutate to roll back
@@ -102,6 +110,8 @@ function EditTask() {
 				description: error.message,
 				type: "error",
 			});
+			// Navigate back to the form on error
+			navigate({ to: `/tasks/${task.id}` });
 		},
 	});
 
@@ -127,6 +137,9 @@ function EditTask() {
 			);
 			queryClient.removeQueries({ queryKey: ["tasks", task.id] });
 
+			// Navigate optimistically
+			navigate({ to: "/tasks" });
+
 			// Return a context object with the snapshotted values
 			return { previousTasks, previousTask };
 		},
@@ -137,7 +150,6 @@ function EditTask() {
 				description: "Task deleted successfully",
 				type: "success",
 			});
-			navigate({ to: "/tasks" });
 		},
 		onError: (error, _variables, context) => {
 			// If the mutation fails, use the context returned from onMutate to roll back
@@ -152,6 +164,8 @@ function EditTask() {
 				description: error.message,
 				type: "error",
 			});
+			// Navigate back to the form on error
+			navigate({ to: `/tasks/${task.id}` });
 		},
 	});
 

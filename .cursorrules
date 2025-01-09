@@ -4,6 +4,56 @@
 
 # Helps AI understand project context and preferences
 
+<development_process>
+
+1. Planning and Validation:
+
+- Always start with a clear plan before making code changes
+- Break down complex tasks into smaller, manageable steps
+- Validate approach with user before proceeding with implementation
+- Consider mocking/stubbing complex integrations first
+- Identify dependencies and potential conflicts upfront
+
+2. Incremental Development:
+
+- Start with minimal viable implementations
+- Prefer multiple small, focused changes over large refactors
+- Complete and validate one step before moving to the next
+- Order steps from least to most complex:
+  1. UI/Component structure
+  2. Type definitions and interfaces
+  3. Basic routing and navigation
+  4. Core business logic
+  5. Data integration
+  6. Error handling and edge cases
+  7. Performance optimizations
+
+3. Implementation Guidelines:
+
+- Mock data and services initially when building UI before continuing
+- Implement basic happy path first, then add error handling
+- Test each layer before moving to the next
+- Document assumptions and decisions
+- Consider rollback strategy for each change
+
+4. Communication:
+
+- Present clear plan before starting implementation
+- Break down complex changes into discrete steps
+- Get confirmation before proceeding with major changes
+- Highlight potential risks and tradeoffs
+- Suggest alternative approaches when relevant
+
+5. Validation Steps:
+
+- Confirm requirements are clear
+- Verify approach aligns with existing patterns
+- Check for potential conflicts with existing code
+- Consider impact on existing features
+- Plan testing strategy
+
+</development_process>
+
 <framework_preferences>
 
 1. Framework Requirements:
@@ -47,12 +97,60 @@
 - Use strict TypeScript checks
 - Maintain end-to-end type safety with Drizzle
 
-7. Technical Notes:
+7. Form Patterns:
 
-- Uses app.config.ts instead of vite.config.ts
-- All server functions must use TanStack Start patterns
-- Database operations should use Drizzle query builder
-- Run "bun lint" and "bun check-types" after changes
+- Create reusable form components for entity types
+- Use TanStack Form's useForm hook with proper TypeScript types
+- Define form schemas using drizzle-valibot
+- Separate form field types from API types when needed
+- Handle form submission with proper error handling
+- Use optimistic updates for better UX
+- Include loading states and disable controls during submission
+- Validate on both client and server side
+- Use proper type inference from schemas
+
+8. Query Patterns:
+
+- Define query keys as constants
+- Use suspense mode for initial data loading
+- Implement optimistic updates with proper rollback
+- Cache invalidation on mutations
+- Error handling with toast notifications
+- Type query results using database schema types
+- Use query options objects for reusable queries
+- Implement proper loading states
+- Handle stale data with proper refetch strategies
+
+9. Component Organization:
+
+- Separate reusable form components
+- Keep route components focused on data fetching and layout
+- Use proper TypeScript types for props
+- Document component responsibilities
+- Follow consistent naming conventions
+- Implement proper loading and error states
+
+10. Mutation Patterns:
+
+- Follow standard mutation flow:
+  1. mutationFn - Server call
+  2. onMutate - Optimistic updates
+  3. onSuccess - Success handling and navigation
+  4. onError - Error handling and rollback
+- Type mutation variables and results
+- Handle loading states
+- Show success/error notifications
+- Update query cache appropriately
+- Implement proper rollback mechanisms
+
+11. Code Style:
+
+- Document complex logic with comments
+- Use consistent formatting (follow Biome config)
+- Proper error handling at all levels
+- Clear separation of concerns
+- Consistent naming conventions
+- Type safety throughout
   </framework_preferences>
 
 <code_style>

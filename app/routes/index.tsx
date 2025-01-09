@@ -1,59 +1,123 @@
-import { Trans } from "@lingui/react/macro";
 import {
 	Anchor,
 	Button,
 	Card,
-	Divider,
+	Container,
 	Group,
 	Stack,
 	Text,
+	Title,
 } from "@mantine/core";
-import { Link, createFileRoute, redirect } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
 	component: Home,
-	beforeLoad: ({ context }) => {
-		if (context.user) {
-			throw redirect({ to: "/tasks" });
-		}
-		return { user: context.user };
-	},
 });
 
 function Home() {
 	return (
-		<div className="container mx-auto flex flex-col gap-6 p-6">
-			<Card withBorder>
-				<Stack gap="md" p="md">
-					<Text size="xl" fw={700}>
-						TanStarter
+		<Container size="lg">
+			<Stack gap="xl" py="xl">
+				{/* Hero Section */}
+				<Stack ta="center" gap="md">
+					<Title size="h1">TanStarter Todo</Title>
+					<Text size="xl" c="dimmed" maw={600} mx="auto">
+						A modern, type-safe todo application built with TanStack Router,
+						React Query, and PostgreSQL.
 					</Text>
-					<Divider />
-					<Group>
-						<Text c="dimmed">Current location:</Text>
-						<code className="rounded-md bg-default-100 px-2 py-1">
-							routes/index.tsx
-						</code>
-					</Group>
-
-					<Stack gap="md" mt="md">
-						<Text size="lg" c="dimmed">
-							Welcome to TanStarter Todo!
-						</Text>
-						<Button component={Link} to="/signin" size="lg" className="w-fit">
-							Sign in to get started
+					<Group justify="center" mt="md">
+						<Button
+							component={Link}
+							to="/tasks"
+							size="lg"
+							variant="gradient"
+							gradient={{ from: "blue", to: "cyan" }}
+						>
+							Get Started
 						</Button>
-					</Stack>
+						<Anchor
+							href="https://github.com/dotnize/tanstarter"
+							target="_blank"
+							size="lg"
+							className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+						>
+							View on GitHub
+						</Anchor>
+					</Group>
 				</Stack>
-			</Card>
 
-			<Anchor
-				href="https://github.com/dotnize/tanstarter"
-				target="_blank"
-				className="w-fit"
-			>
-				dotnize/tanstarter
-			</Anchor>
-		</div>
+				{/* Features Section */}
+				<Stack gap="lg" mt="xl">
+					<Title order={2} ta="center">
+						Features
+					</Title>
+					<Group grow>
+						<Card withBorder>
+							<Stack>
+								<Title order={3} size="h4">
+									Type Safety
+								</Title>
+								<Text c="dimmed">
+									End-to-end type safety with TypeScript, Drizzle ORM, and
+									Valibot validation.
+								</Text>
+							</Stack>
+						</Card>
+						<Card withBorder>
+							<Stack>
+								<Title order={3} size="h4">
+									Modern Stack
+								</Title>
+								<Text c="dimmed">
+									Built with TanStack Router, React Query, and Mantine UI
+									components.
+								</Text>
+							</Stack>
+						</Card>
+						<Card withBorder>
+							<Stack>
+								<Title order={3} size="h4">
+									Great DX
+								</Title>
+								<Text c="dimmed">
+									Fast refresh, automatic type generation, and excellent error
+									handling.
+								</Text>
+							</Stack>
+						</Card>
+					</Group>
+				</Stack>
+
+				{/* Tech Stack Section */}
+				<Stack gap="lg" mt="xl">
+					<Title order={2} ta="center">
+						Tech Stack
+					</Title>
+					<Group grow>
+						<Card withBorder>
+							<Stack>
+								<Title order={3} size="h4">
+									Frontend
+								</Title>
+								<Text c="dimmed">
+									React, TanStack Router, TanStack Query, Mantine UI, Tailwind
+									CSS
+								</Text>
+							</Stack>
+						</Card>
+						<Card withBorder>
+							<Stack>
+								<Title order={3} size="h4">
+									Backend
+								</Title>
+								<Text c="dimmed">
+									TanStack Start, Drizzle ORM, PostgreSQL, Google OAuth
+								</Text>
+							</Stack>
+						</Card>
+					</Group>
+				</Stack>
+			</Stack>
+		</Container>
 	);
 }

@@ -2,11 +2,17 @@
  * Route component for task creation
  * Handles task creation mutation and redirects to task list on success
  * Protected route requiring authentication
+ *
+ * Mutation function order:
+ * 1. mutationFn - The actual server call
+ * 2. onMutate - Pre-mutation optimistic updates
+ * 3. onSuccess - Post-mutation success handling
+ * 4. onError - Error handling and rollback
  */
 
 import { Card, Stack } from "@mantine/core";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
 import { showToast } from "~/components/Toast";
 import type { Task, TaskStatusType } from "~/server/db/schema";
@@ -22,10 +28,7 @@ type TaskFormData = {
 export const Route = createFileRoute("/tasks/new")({
 	component: NewTask,
 	loader: async ({ context }) => {
-		if (!context.user) {
-			throw new Error("Not authenticated");
-		}
-		return { userId: context.user.id };
+		return { userId: context.user!.id };
 	},
 });
 
@@ -46,12 +49,15 @@ function NewTask() {
 			// Snapshot the previous value
 			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
 
+			// Use a consistent timestamp for optimistic updates
+			const now = new Date().toISOString();
+
 			// Create optimistic task
 			const optimisticTask: Task = {
 				id: `temp-${Date.now()}`,
 				user_id: userId,
-				created_at: new Date(),
-				updated_at: new Date(),
+				created_at: new Date(now),
+				updated_at: new Date(now),
 				...newTask,
 			};
 
@@ -60,6 +66,9 @@ function NewTask() {
 				...old,
 				optimisticTask,
 			]);
+
+			// Navigate optimistically
+			navigate({ to: "/tasks" });
 
 			// Return a context object with the snapshotted value
 			return { previousTasks, optimisticTask };
@@ -75,7 +84,6 @@ function NewTask() {
 				description: "Task created successfully",
 				type: "success",
 			});
-			navigate({ to: "/tasks" });
 		},
 		onError: (error, _variables, context) => {
 			// If the mutation fails, use the context returned from onMutate to roll back
@@ -87,6 +95,8 @@ function NewTask() {
 				description: error.message,
 				type: "error",
 			});
+			// Navigate back to the form on error
+			navigate({ to: "/tasks/new" });
 		},
 	});
 
