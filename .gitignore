@@ -25,3 +25,4 @@ public/sw*
 public/swe-worker*
 
 .swc
+.tsbuildinfo

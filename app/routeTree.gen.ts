@@ -11,17 +11,34 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as TasksImport } from './routes/tasks'
 import { Route as SigninImport } from './routes/signin'
+import { Route as AdminImport } from './routes/admin'
 import { Route as IndexImport } from './routes/index'
 import { Route as TasksIndexImport } from './routes/tasks/index'
+import { Route as AdminIndexImport } from './routes/admin.index'
 import { Route as TasksNewImport } from './routes/tasks/new'
 import { Route as TasksTaskIdImport } from './routes/tasks/$taskId'
+import { Route as AdminUsersImport } from './routes/admin.users'
+import { Route as AdminTasksImport } from './routes/admin.tasks'
 
 // Create/Update Routes
+
+const TasksRoute = TasksImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const SigninRoute = SigninImport.update({
   id: '/signin',
   path: '/signin',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AdminRoute = AdminImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -32,21 +49,39 @@ const IndexRoute = IndexImport.update({
 } as any)
 
 const TasksIndexRoute = TasksIndexImport.update({
-  id: '/tasks/',
-  path: '/tasks/',
-  getParentRoute: () => rootRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => TasksRoute,
+} as any)
+
+const AdminIndexRoute = AdminIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 const TasksNewRoute = TasksNewImport.update({
-  id: '/tasks/new',
-  path: '/tasks/new',
-  getParentRoute: () => rootRoute,
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => TasksRoute,
 } as any)
 
 const TasksTaskIdRoute = TasksTaskIdImport.update({
-  id: '/tasks/$taskId',
-  path: '/tasks/$taskId',
-  getParentRoute: () => rootRoute,
+  id: '/$taskId',
+  path: '/$taskId',
+  getParentRoute: () => TasksRoute,
+} as any)
+
+const AdminUsersRoute = AdminUsersImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminTasksRoute = AdminTasksImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -60,6 +95,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminImport
+      parentRoute: typeof rootRoute
+    }
     '/signin': {
       id: '/signin'
       path: '/signin'
@@ -67,80 +109,176 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SigninImport
       parentRoute: typeof rootRoute
     }
+    '/tasks': {
+      id: '/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof TasksImport
+      parentRoute: typeof rootRoute
+    }
+    '/admin/tasks': {
+      id: '/admin/tasks'
+      path: '/tasks'
+      fullPath: '/admin/tasks'
+      preLoaderRoute: typeof AdminTasksImport
+      parentRoute: typeof AdminImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersImport
+      parentRoute: typeof AdminImport
+    }
     '/tasks/$taskId': {
       id: '/tasks/$taskId'
-      path: '/tasks/$taskId'
+      path: '/$taskId'
       fullPath: '/tasks/$taskId'
       preLoaderRoute: typeof TasksTaskIdImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof TasksImport
     }
     '/tasks/new': {
       id: '/tasks/new'
-      path: '/tasks/new'
+      path: '/new'
       fullPath: '/tasks/new'
       preLoaderRoute: typeof TasksNewImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof TasksImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexImport
+      parentRoute: typeof AdminImport
     }
     '/tasks/': {
       id: '/tasks/'
-      path: '/tasks'
-      fullPath: '/tasks'
+      path: '/'
+      fullPath: '/tasks/'
       preLoaderRoute: typeof TasksIndexImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof TasksImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface AdminRouteChildren {
+  AdminTasksRoute: typeof AdminTasksRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminTasksRoute: AdminTasksRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface TasksRouteChildren {
+  TasksTaskIdRoute: typeof TasksTaskIdRoute
+  TasksNewRoute: typeof TasksNewRoute
+  TasksIndexRoute: typeof TasksIndexRoute
+}
+
+const TasksRouteChildren: TasksRouteChildren = {
+  TasksTaskIdRoute: TasksTaskIdRoute,
+  TasksNewRoute: TasksNewRoute,
+  TasksIndexRoute: TasksIndexRoute,
+}
+
+const TasksRouteWithChildren = TasksRoute._addFileChildren(TasksRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/signin': typeof SigninRoute
+  '/tasks': typeof TasksRouteWithChildren
+  '/admin/tasks': typeof AdminTasksRoute
+  '/admin/users': typeof AdminUsersRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
-  '/tasks': typeof TasksIndexRoute
+  '/admin/': typeof AdminIndexRoute
+  '/tasks/': typeof TasksIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
+  '/admin/tasks': typeof AdminTasksRoute
+  '/admin/users': typeof AdminUsersRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
+  '/admin': typeof AdminIndexRoute
   '/tasks': typeof TasksIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/signin': typeof SigninRoute
+  '/tasks': typeof TasksRouteWithChildren
+  '/admin/tasks': typeof AdminTasksRoute
+  '/admin/users': typeof AdminUsersRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
+  '/admin/': typeof AdminIndexRoute
   '/tasks/': typeof TasksIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/signin' | '/tasks/$taskId' | '/tasks/new' | '/tasks'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/signin'
+    | '/tasks'
+    | '/admin/tasks'
+    | '/admin/users'
+    | '/tasks/$taskId'
+    | '/tasks/new'
+    | '/admin/'
+    | '/tasks/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/signin' | '/tasks/$taskId' | '/tasks/new' | '/tasks'
-  id: '__root__' | '/' | '/signin' | '/tasks/$taskId' | '/tasks/new' | '/tasks/'
+  to:
+    | '/'
+    | '/signin'
+    | '/admin/tasks'
+    | '/admin/users'
+    | '/tasks/$taskId'
+    | '/tasks/new'
+    | '/admin'
+    | '/tasks'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/signin'
+    | '/tasks'
+    | '/admin/tasks'
+    | '/admin/users'
+    | '/tasks/$taskId'
+    | '/tasks/new'
+    | '/admin/'
+    | '/tasks/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   SigninRoute: typeof SigninRoute
-  TasksTaskIdRoute: typeof TasksTaskIdRoute
-  TasksNewRoute: typeof TasksNewRoute
-  TasksIndexRoute: typeof TasksIndexRoute
+  TasksRoute: typeof TasksRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   SigninRoute: SigninRoute,
-  TasksTaskIdRoute: TasksTaskIdRoute,
-  TasksNewRoute: TasksNewRoute,
-  TasksIndexRoute: TasksIndexRoute,
+  TasksRoute: TasksRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -154,26 +292,56 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/admin",
         "/signin",
-        "/tasks/$taskId",
-        "/tasks/new",
-        "/tasks/"
+        "/tasks"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
+    "/admin": {
+      "filePath": "admin.tsx",
+      "children": [
+        "/admin/tasks",
+        "/admin/users",
+        "/admin/"
+      ]
+    },
     "/signin": {
       "filePath": "signin.tsx"
     },
+    "/tasks": {
+      "filePath": "tasks.tsx",
+      "children": [
+        "/tasks/$taskId",
+        "/tasks/new",
+        "/tasks/"
+      ]
+    },
+    "/admin/tasks": {
+      "filePath": "admin.tasks.tsx",
+      "parent": "/admin"
+    },
+    "/admin/users": {
+      "filePath": "admin.users.tsx",
+      "parent": "/admin"
+    },
     "/tasks/$taskId": {
-      "filePath": "tasks/$taskId.tsx"
+      "filePath": "tasks/$taskId.tsx",
+      "parent": "/tasks"
     },
     "/tasks/new": {
-      "filePath": "tasks/new.tsx"
+      "filePath": "tasks/new.tsx",
+      "parent": "/tasks"
+    },
+    "/admin/": {
+      "filePath": "admin.index.tsx",
+      "parent": "/admin"
     },
     "/tasks/": {
-      "filePath": "tasks/index.tsx"
+      "filePath": "tasks/index.tsx",
+      "parent": "/tasks"
     }
   }
 }

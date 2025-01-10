@@ -32,13 +32,20 @@ export const user = pgTable("user", {
 	avatar_url: text(),
 	email: text().unique().notNull(),
 
-	created_at: timestamp().defaultNow().notNull(),
-	updated_at: timestamp()
+	created_at: timestamp({ mode: "date" }).defaultNow().notNull(),
+	updated_at: timestamp({ mode: "date" })
 		.defaultNow()
 		.$onUpdate(() => new Date()),
-	setup_at: timestamp(),
-	terms_accepted_at: timestamp(),
+	setup_at: timestamp({ mode: "date" }),
+	terms_accepted_at: timestamp({ mode: "date" }),
 });
+
+export type User = typeof user.$inferSelect;
+
+export type ClientUser = Pick<
+	typeof user.$inferSelect,
+	"id" | "name" | "avatar_url" | "email" | "setup_at"
+>;
 
 export const oauthAccount = pgTable(
 	"oauth_account",
@@ -65,13 +72,7 @@ export const session = pgTable("session", {
 	}).notNull(),
 });
 
-export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
-
-export type ClientUser = Pick<
-	typeof user.$inferSelect,
-	"id" | "name" | "avatar_url" | "email" | "setup_at"
->;
 
 // Task Schema
 export const TaskStatus = {
@@ -96,14 +97,26 @@ export const task = pgTable("task", {
 	user_id: varchar("user_id")
 		.notNull()
 		.references(() => user.id, { onDelete: "cascade" }),
-	created_at: timestamp("created_at").defaultNow().notNull(),
-	updated_at: timestamp("updated_at")
+	created_at: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+	updated_at: timestamp("updated_at", { mode: "date" })
 		.defaultNow()
 		.$onUpdate(() => new Date()),
 });
 
 export type Task = typeof task.$inferSelect;
 export type NewTask = typeof task.$inferInsert;
+
+export type ClientTask = Pick<
+	typeof task.$inferSelect,
+	| "id"
+	| "title"
+	| "description"
+	| "status"
+	| "due_date"
+	| "user_id"
+	| "created_at"
+	| "updated_at"
+>;
 
 // Valibot schemas with proper enum handling
 export const taskSelectSchema = createSelectSchema(task, {

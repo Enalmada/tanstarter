@@ -1,5 +1,7 @@
 import { getSerwist } from "virtual:serwist";
-import { AppShell } from "@mantine/core";
+import mantineCoreCss from "@mantine/core/styles.css?inline";
+import mantineDatesCss from "@mantine/dates/styles.css?inline";
+import mantineNotificationsCss from "@mantine/notifications/styles.css?inline";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
@@ -12,19 +14,15 @@ import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import type { ReactNode } from "react";
 import { Suspense, lazy, useLayoutEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
-import { Navbar } from "~/components/Navbar";
 import { NotFound } from "~/components/NotFound";
 import {
 	ColorSchemeScript,
 	MantineProvider,
 } from "~/components/providers/mantine-provider";
-import { getAuthSession } from "~/server/auth/auth";
 import type { ClientUser } from "~/server/db/schema";
-
-import mantineCoreCss from "@mantine/core/styles.css?inline";
-import mantineDatesCss from "@mantine/dates/styles.css?inline";
-import mantineNotificationsCss from "@mantine/notifications/styles.css?inline";
+import { getUserAuth } from "~/server/services/user-service";
 import appCss from "~/styles/app.css?inline";
+import { queries } from "~/utils/queries";
 
 const ENABLE_SERVICE_WORKER = false;
 
@@ -36,13 +34,6 @@ const TanStackRouterDevtools = import.meta.env.PROD
 			})),
 		);
 
-const USER_QUERY_KEY = ["auth", "user"] as const;
-
-const getUser = createServerFn({ method: "GET" }).handler(async () => {
-	const { user } = await getAuthSession();
-	return user;
-});
-
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
 	user: ClientUser | null | undefined;
@@ -51,13 +42,16 @@ export const Route = createRootRouteWithContext<{
 		const queryClient = context.queryClient;
 		// Try to get user from query cache first
 		const cachedUser = queryClient.getQueryData<ClientUser | null>(
-			USER_QUERY_KEY,
+			queries.user.auth.queryKey,
 		);
-		const user = cachedUser !== undefined ? cachedUser : await getUser();
+		const user = cachedUser !== undefined ? cachedUser : await getUserAuth();
 
 		// If not in cache, fetch and cache it
 		if (cachedUser === undefined) {
-			queryClient.setQueryData<ClientUser | null>(USER_QUERY_KEY, user);
+			queryClient.setQueryData<ClientUser | null>(
+				queries.user.auth.queryKey,
+				user,
+			);
 		}
 
 		// Check if this is a protected route (starts with /tasks)
@@ -150,8 +144,6 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
-	const { user } = Route.useLoaderData();
-
 	useLayoutEffect(() => {
 		const loadSerwist = async () => {
 			if (ENABLE_SERVICE_WORKER && "serviceWorker" in navigator) {
@@ -172,14 +164,7 @@ function RootComponent() {
 
 	return (
 		<RootDocument>
-			<AppShell header={{ height: 60 }}>
-				<AppShell.Header>
-					<Navbar user={user} />
-				</AppShell.Header>
-				<AppShell.Main>
-					<Outlet />
-				</AppShell.Main>
-			</AppShell>
+			<Outlet />
 		</RootDocument>
 	);
 }

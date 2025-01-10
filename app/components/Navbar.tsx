@@ -68,6 +68,9 @@ export function Navbar({ user }: NavbarProps) {
 									</Text>
 								</Menu.Item>
 								<Menu.Divider />
+								<Menu.Item component={Link} to="/admin">
+									Admin
+								</Menu.Item>
 								<Menu.Item onClick={handleSignOut} color="red">
 									Sign out
 								</Menu.Item>

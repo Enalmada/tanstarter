@@ -9,11 +9,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { TaskList } from "~/components/tasks/TaskList";
 import { TaskListError } from "~/components/tasks/TaskListError";
 import { TaskListSkeleton } from "~/components/tasks/TaskListSkeleton";
-import { tasksQueryOptions } from "~/utils/tasks";
+import { queries } from "~/utils/queries";
 
 export const Route = createFileRoute("/tasks/")({
 	loader: async ({ context }) => {
-		await context.queryClient.ensureQueryData(tasksQueryOptions());
+		await context.queryClient.ensureQueryData(queries.task.list);
 	},
 	component: TaskListPage,
 	pendingComponent: TaskListSkeleton,
@@ -23,6 +23,6 @@ export const Route = createFileRoute("/tasks/")({
 });
 
 function TaskListPage() {
-	const { data: tasks } = useSuspenseQuery(tasksQueryOptions());
+	const { data: tasks } = useSuspenseQuery(queries.task.list);
 	return <TaskList tasks={tasks} />;
 }

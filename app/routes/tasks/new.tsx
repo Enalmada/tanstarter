@@ -16,7 +16,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
 import { showToast } from "~/components/Toast";
 import type { Task, TaskStatusType } from "~/server/db/schema";
-import { createTask } from "~/server/services/task-service";
+import { clientTaskService } from "~/server/services/task-service";
+import { queries } from "~/utils/queries";
 
 type TaskFormData = {
 	title: string;
@@ -39,15 +40,17 @@ function NewTask() {
 
 	const createTaskMutation = useMutation({
 		mutationFn: async (data: TaskFormData) => {
-			const result = await createTask({ data });
+			const result = await clientTaskService.createTask({ data });
 			return result;
 		},
 		onMutate: async (newTask) => {
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: ["tasks"] });
+			await queryClient.cancelQueries({ queryKey: queries.task.list.queryKey });
 
 			// Snapshot the previous value
-			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
+			const previousTasks = queryClient.getQueryData<Task[]>(
+				queries.task.list.queryKey,
+			);
 
 			// Use a consistent timestamp for optimistic updates
 			const now = new Date().toISOString();
@@ -62,10 +65,10 @@ function NewTask() {
 			};
 
 			// Optimistically update to the new value
-			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => [
-				...old,
-				optimisticTask,
-			]);
+			queryClient.setQueryData<Task[]>(
+				queries.task.list.queryKey,
+				(old = []) => [...old, optimisticTask],
+			);
 
 			// Navigate optimistically
 			navigate({ to: "/tasks" });
@@ -73,12 +76,19 @@ function NewTask() {
 			// Return a context object with the snapshotted value
 			return { previousTasks, optimisticTask };
 		},
-		onSuccess: (createdTask, _variables, context) => {
-			// Update the cache with the actual server data
-			queryClient.setQueryData<Task[]>(["tasks"], (old = []) =>
-				old.map((t) => (t.id === context?.optimisticTask.id ? createdTask : t)),
-			);
-
+		onSettled: (createdTask, error, _variables, context) => {
+			if (createdTask && context) {
+				// Update the cache with the actual server data
+				queryClient.setQueryData<Task[]>(
+					queries.task.list.queryKey,
+					(old = []) =>
+						old.map((t) =>
+							t.id === context.optimisticTask.id ? createdTask : t,
+						),
+				);
+			}
+		},
+		onSuccess: (_createdTask, _variables, _context) => {
 			showToast({
 				title: "Success",
 				description: "Task created successfully",
@@ -88,7 +98,10 @@ function NewTask() {
 		onError: (error, _variables, context) => {
 			// If the mutation fails, use the context returned from onMutate to roll back
 			if (context?.previousTasks) {
-				queryClient.setQueryData(["tasks"], context.previousTasks);
+				queryClient.setQueryData(
+					queries.task.list.queryKey,
+					context.previousTasks,
+				);
 			}
 			showToast({
 				title: "Error",

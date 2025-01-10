@@ -9,10 +9,23 @@ import {
 	Title,
 } from "@mantine/core";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { DefaultLayout } from "~/components/layouts/DefaultLayout";
 
 export const Route = createFileRoute("/")({
-	component: Home,
+	component: HomeLayout,
+	loader: ({ context }) => ({
+		user: context.user ?? null,
+	}),
 });
+
+function HomeLayout() {
+	const { user } = Route.useLoaderData();
+	return (
+		<DefaultLayout user={user}>
+			<Home />
+		</DefaultLayout>
+	);
+}
 
 function Home() {
 	return (

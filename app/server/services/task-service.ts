@@ -1,38 +1,29 @@
 /**
  * Task service implementation
  * Handles all task-related database operations
- * Includes CRUD operations and task status management
  */
 
 import { createServerFn } from "@tanstack/start";
 import { and, eq } from "drizzle-orm";
 import { object, safeParse, string } from "valibot";
-import { getAuthSession } from "~/server/auth/auth";
-import db from "../db";
+import DB from "../db";
 import {
 	type NewTask,
-	type Task,
 	TaskStatus,
 	type TaskStatusType,
 	task,
 	taskFormSchema,
 } from "../db/schema";
+import type { ClientTask, Task } from "../db/schema";
+
+import type { ServerFn } from "@tanstack/start";
+import { getAuthenticatedUser, idSchema, validateId } from "./base-service";
 
 // Valibot validators
-const taskIdSchema = string();
-
 const updateTaskSchema = object({
-	taskId: string(),
+	id: string(),
 	data: taskFormSchema,
 });
-
-function validateTaskId(input: unknown): string {
-	const result = safeParse(taskIdSchema, input);
-	if (!result.success) {
-		throw new Error("Invalid task ID");
-	}
-	return result.output;
-}
 
 function validateNewTask(input: unknown): NewTask {
 	const result = safeParse(taskFormSchema, input);
@@ -47,13 +38,13 @@ function validateNewTask(input: unknown): NewTask {
 	}
 	return {
 		...result.output,
-		status: TaskStatus.ACTIVE,
+		status: (result.output.status as TaskStatusType) ?? TaskStatus.ACTIVE, // Default to ACTIVE if not provided
 		user_id: "", // Will be set in handler
 	};
 }
 
 function validateUpdateTask(input: unknown): {
-	taskId: string;
+	id: string;
 	data: Partial<NewTask>;
 } {
 	const result = safeParse(updateTaskSchema, input);
@@ -67,7 +58,7 @@ function validateUpdateTask(input: unknown): {
 		throw new Error(`Invalid update data: ${errorMessage}`);
 	}
 	return {
-		taskId: result.output.taskId,
+		id: result.output.id,
 		data: {
 			title: result.output.data.title,
 			description: result.output.data.description,
@@ -77,130 +68,99 @@ function validateUpdateTask(input: unknown): {
 	};
 }
 
-// Helper function to get authenticated user
-async function getAuthenticatedUser() {
-	const { user } = await getAuthSession();
-	if (!user) {
-		throw new Error("Unauthorized");
-	}
-	return user;
-}
-
-/**
- * Fetches all tasks for the current user
- */
+// Export server functions directly for TanStack Start to discover
+// @ts-ignore - TanStack Start type system issue with date serialization
 export const fetchTasks = createServerFn({ method: "GET" }).handler(
 	async () => {
-		try {
-			const user = await getAuthenticatedUser();
-			const tasks = await db
-				.select()
-				.from(task)
-				.where(eq(task.user_id, user.id))
-				.execute();
-			return tasks;
-		} catch (error) {
-			console.error("Error fetching tasks:", error);
-			throw new Error("Failed to fetch tasks");
-		}
+		const user = await getAuthenticatedUser();
+		const tasks = await DB.select()
+			.from(task)
+			.where(eq(task.user_id, user.id))
+			.execute();
+		return tasks;
 	},
 );
 
-/**
- * Fetches a single task by ID
- */
+// @ts-ignore - TanStack Start type system issue with date serialization
 export const fetchTask = createServerFn({ method: "GET" })
-	.validator(validateTaskId)
-	.handler(async ({ data: taskId }) => {
-		try {
-			const user = await getAuthenticatedUser();
-			const [result] = await db
-				.select()
-				.from(task)
-				.where(and(eq(task.id, taskId), eq(task.user_id, user.id)))
-				.execute();
+	.validator(validateId)
+	.handler(async ({ data: id }) => {
+		const user = await getAuthenticatedUser();
+		const [result] = await DB.select()
+			.from(task)
+			.where(eq(task.id, id))
+			.execute();
 
-			if (!result) {
-				throw new Error("Task not found");
-			}
-
-			return result;
-		} catch (error) {
-			console.error("Error fetching task:", error);
-			throw new Error("Failed to fetch task");
+		if (!result) {
+			throw new Error("Task not found");
 		}
+
+		return result;
 	});
 
-/**
- * Creates a new task
- */
+// @ts-ignore - TanStack Start type system issue with date serialization
 export const createTask = createServerFn({ method: "POST" })
 	.validator(validateNewTask)
 	.handler(async ({ data }) => {
-		try {
-			const user = await getAuthenticatedUser();
-			const [result] = await db
-				.insert(task)
-				.values({
-					...data,
-					user_id: user.id,
-				})
-				.returning()
-				.execute();
-			return result;
-		} catch (error) {
-			console.error("Error creating task:", error);
-			throw new Error("Failed to create task");
-		}
+		const user = await getAuthenticatedUser();
+		const [result] = await DB.insert(task)
+			.values({
+				...data,
+				user_id: user.id,
+			})
+			.returning()
+			.execute();
+		return result;
 	});
 
-/**
- * Updates an existing task
- */
+// @ts-ignore - TanStack Start type system issue with date serialization
 export const updateTask = createServerFn({ method: "POST" })
 	.validator(validateUpdateTask)
 	.handler(async ({ data }) => {
-		try {
-			const user = await getAuthenticatedUser();
-			const [result] = await db
-				.update(task)
-				.set(data.data)
-				.where(and(eq(task.id, data.taskId), eq(task.user_id, user.id)))
-				.returning()
-				.execute();
+		const user = await getAuthenticatedUser();
+		const [result] = await DB.update(task)
+			.set(data.data)
+			.where(eq(task.id, data.id))
+			.returning()
+			.execute();
 
-			if (!result) {
-				throw new Error("Task not found");
-			}
-
-			return result;
-		} catch (error) {
-			console.error("Error updating task:", error);
-			throw new Error("Failed to update task");
+		if (!result) {
+			throw new Error("Task not found");
 		}
+
+		return result;
 	});
 
-/**
- * Deletes a task
- */
+// @ts-ignore - TanStack Start type system issue with date serialization
 export const deleteTask = createServerFn({ method: "POST" })
-	.validator(validateTaskId)
-	.handler(async ({ data: taskId }) => {
-		try {
-			const user = await getAuthenticatedUser();
-			const [result] = await db
-				.delete(task)
-				.where(and(eq(task.id, taskId), eq(task.user_id, user.id)))
-				.returning()
-				.execute();
+	.validator(validateId)
+	.handler(async ({ data: id }) => {
+		const user = await getAuthenticatedUser();
+		const [result] = await DB.delete(task)
+			.where(eq(task.id, id))
+			.returning()
+			.execute();
 
-			if (!result) {
-				throw new Error("Task not found");
-			}
-
-			return result;
-		} catch (error) {
-			console.error("Error deleting task:", error);
-			throw new Error("Failed to delete task");
+		if (!result) {
+			throw new Error("Task not found");
 		}
+
+		return result;
 	});
+
+// Create service objects that use the server functions
+export const adminTaskService = {
+	fetchTasks,
+	fetchTask,
+	createTask,
+	updateTask,
+	deleteTask,
+};
+
+export const clientTaskService = {
+	fetchTasks,
+	fetchTask,
+	createTask,
+	updateTask,
+	deleteTask,
+};

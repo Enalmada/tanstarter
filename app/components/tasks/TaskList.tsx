@@ -12,7 +12,8 @@ import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { type Task, TaskStatus } from "~/server/db/schema";
-import { deleteTask, updateTask } from "~/server/services/task-service";
+import { clientTaskService } from "~/server/services/task-service";
+import { queries } from "~/utils/queries";
 
 export function TaskList({ tasks }: { tasks: Task[] }) {
 	const queryClient = useQueryClient();
@@ -30,10 +31,17 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			data: Partial<Task>;
 			currentTask: Task;
 		}) => {
-			const result = await updateTask({
+			const updatedData = {
+				...data,
+				description:
+					data.description === undefined
+						? currentTask.description
+						: data.description,
+			};
+			const result = await clientTaskService.updateTask({
 				data: {
-					taskId,
-					data,
+					id: taskId,
+					data: updatedData,
 				},
 			});
 			return result;
@@ -42,89 +50,151 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			setErrorMessage("");
 			setPendingTaskId(taskId);
 
-			// Cancel any outgoing refetches so they don't overwrite our optimistic update
-			await queryClient.cancelQueries({ queryKey: ["tasks"] });
-			await queryClient.cancelQueries({ queryKey: ["tasks", taskId] });
+			// Cancel any outgoing refetches
+			await queryClient.cancelQueries({ queryKey: queries.task.list.queryKey });
+			await queryClient.cancelQueries({
+				queryKey: queries.task.detail(taskId).queryKey,
+			});
 
 			// Snapshot the previous values
-			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
-			const previousTask = queryClient.getQueryData<Task>(["tasks", taskId]);
+			const previousTasks = queryClient.getQueryData<Task[]>(
+				queries.task.list.queryKey,
+			);
+			const previousTask = queryClient.getQueryData<Task>(
+				queries.task.detail(taskId).queryKey,
+			);
 
-			// Create optimistic task
+			// Create optimistic task with explicit description handling
 			const optimisticTask: Task = {
 				...currentTask,
 				...data,
+				description:
+					data.description === undefined
+						? currentTask.description
+						: data.description,
 				updated_at: new Date(),
 			};
 
 			// Optimistically update both caches
-			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
-				return old.map((t) => (t.id === taskId ? optimisticTask : t));
-			});
-			queryClient.setQueryData(["tasks", taskId], optimisticTask);
+			queryClient.setQueryData<Task[]>(queries.task.list.queryKey, (old = []) =>
+				old.map((t) => (t.id === taskId ? optimisticTask : t)),
+			);
+			queryClient.setQueryData(
+				queries.task.detail(taskId).queryKey,
+				optimisticTask,
+			);
 
 			return { previousTasks, previousTask };
 		},
-		onSuccess: (updatedTask, { taskId }) => {
-			// Update both caches with the actual server data
-			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
-				return old.map((t) => (t.id === taskId ? updatedTask : t));
-			});
-			queryClient.setQueryData(["tasks", taskId], updatedTask);
+		onSettled: (updatedTask, error, { taskId }, context) => {
+			if (updatedTask && context) {
+				// Update both caches with the actual server data
+				queryClient.setQueryData<Task[]>(
+					queries.task.list.queryKey,
+					(old = []) => old.map((t) => (t.id === taskId ? updatedTask : t)),
+				);
+				queryClient.setQueryData(
+					queries.task.detail(taskId).queryKey,
+					updatedTask,
+				);
+			}
 			setPendingTaskId(null);
+		},
+		onSuccess: () => {
+			setErrorMessage("");
 		},
 		onError: (err, { taskId }, context) => {
 			// Revert both caches on error
 			if (context?.previousTask) {
-				queryClient.setQueryData(["tasks", taskId], context.previousTask);
+				queryClient.setQueryData(
+					queries.task.detail(taskId).queryKey,
+					context.previousTask,
+				);
 			}
 			if (context?.previousTasks) {
-				queryClient.setQueryData(["tasks"], context.previousTasks);
+				queryClient.setQueryData(
+					queries.task.list.queryKey,
+					context.previousTasks,
+				);
 			}
 			setErrorMessage(err.message);
-			setPendingTaskId(null);
 		},
 	});
 
 	const deleteTaskMutation = useMutation({
-		mutationFn: async ({ taskId }: { taskId: string }) => {
-			const result = await deleteTask({ data: taskId });
-			return taskId;
+		mutationFn: async ({ id }: { id: string }) => {
+			const result = await clientTaskService.deleteTask({
+				data: { id },
+			});
+			return id;
 		},
-		onMutate: async ({ taskId }) => {
+		onMutate: async ({ id }) => {
 			setErrorMessage("");
-			setPendingDeleteId(taskId);
+			setPendingDeleteId(id);
 
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: ["tasks"] });
-			await queryClient.cancelQueries({ queryKey: ["tasks", taskId] });
+			await queryClient.cancelQueries({ queryKey: queries.task.list.queryKey });
+			await queryClient.cancelQueries({
+				queryKey: queries.task.detail(id).queryKey,
+			});
 
 			// Snapshot the previous values
-			const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
-			const previousTask = queryClient.getQueryData<Task>(["tasks", taskId]);
+			const previousTasks = queryClient.getQueryData<Task[]>(
+				queries.task.list.queryKey,
+			);
+			const previousTask = queryClient.getQueryData<Task>(
+				queries.task.detail(id).queryKey,
+			);
 
 			// Optimistically remove from both caches
-			queryClient.setQueryData<Task[]>(["tasks"], (old = []) => {
-				return old.filter((t) => t.id !== taskId);
+			queryClient.setQueryData<Task[]>(queries.task.list.queryKey, (old = []) =>
+				old.filter((t) => t.id !== id),
+			);
+			queryClient.removeQueries({
+				queryKey: queries.task.detail(id).queryKey,
 			});
-			queryClient.removeQueries({ queryKey: ["tasks", taskId] });
 
 			return { previousTasks, previousTask };
 		},
-		onSuccess: (taskId) => {
-			// The task is already removed from cache in onMutate
+		onSettled: (id, error, _variables, context) => {
+			const isTaskNotFound = error?.message === "Task not found";
+			if ((!error && id && context) || isTaskNotFound) {
+				// Ensure id exists before using queries.task.detail
+				if (id) {
+					queryClient.setQueryData<Task[]>(
+						queries.task.list.queryKey,
+						(old = []) => old.filter((t) => t.id !== id),
+					);
+					queryClient.removeQueries({
+						queryKey: queries.task.detail(id).queryKey,
+					});
+				}
+			}
 			setPendingDeleteId(null);
 		},
-		onError: (err, { taskId }, context) => {
-			// Revert both caches on error
+		onSuccess: () => {
+			setErrorMessage("");
+		},
+		onError: (err, { id }, context) => {
+			// If task is not found, treat it as a success case
+			if (err.message === "Task not found") {
+				return;
+			}
+
+			// For other errors, revert both caches
 			if (context?.previousTask) {
-				queryClient.setQueryData(["tasks", taskId], context.previousTask);
+				queryClient.setQueryData(
+					queries.task.detail(id).queryKey,
+					context.previousTask,
+				);
 			}
 			if (context?.previousTasks) {
-				queryClient.setQueryData(["tasks"], context.previousTasks);
+				queryClient.setQueryData(
+					queries.task.list.queryKey,
+					context.previousTasks,
+				);
 			}
 			setErrorMessage(err.message);
-			setPendingDeleteId(null);
 		},
 	});
 
@@ -195,7 +265,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 							<Button
 								variant="subtle"
 								color="red"
-								onClick={() => deleteTaskMutation.mutate({ taskId: task.id })}
+								onClick={() => deleteTaskMutation.mutate({ id: task.id })}
 								disabled={
 									task.id.startsWith("-") || pendingDeleteId === task.id
 								}
