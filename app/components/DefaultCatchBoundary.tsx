@@ -4,15 +4,14 @@
  * Provides user-friendly error messages and retry options
  */
 
-import { Button, Group, Stack } from "@mantine/core";
 import {
 	ErrorComponent,
 	type ErrorComponentProps,
-	Link,
 	rootRouteId,
 	useMatch,
 	useRouter,
 } from "@tanstack/react-router";
+import { Button, Group, LinkButton, Stack } from "~/components/ui";
 
 export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 	const router = useRouter();
@@ -35,9 +34,9 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 					Try Again
 				</Button>
 				{isRoot ? (
-					<Button component={Link} to="/" variant="outline">
+					<LinkButton to="/" variant="outline">
 						Home
-					</Button>
+					</LinkButton>
 				) : (
 					<Button
 						variant="outline"

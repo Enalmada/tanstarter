@@ -4,8 +4,7 @@
  * Includes navigation back to home
  */
 
-import { Button, Group, Stack, Text } from "@mantine/core";
-import { Link } from "@tanstack/react-router";
+import { Button, Group, LinkButton, Stack, Text } from "~/components/ui";
 
 export function NotFound() {
 	return (
@@ -13,9 +12,9 @@ export function NotFound() {
 			<Text>The page you are looking for does not exist.</Text>
 			<Group>
 				<Button onClick={() => window.history.back()}>Go back</Button>
-				<Button component={Link} to="/" variant="outline">
+				<LinkButton to="/" variant="outline">
 					Home
-				</Button>
+				</LinkButton>
 			</Group>
 		</Stack>
 	);

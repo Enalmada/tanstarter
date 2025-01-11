@@ -1,5 +1,5 @@
-import { Button, Card, Stack, Text } from "@mantine/core";
 import type { FallbackProps } from "react-error-boundary";
+import { Button, Card, Stack, Text } from "~/components/ui";
 
 export function TaskListError({ error, resetErrorBoundary }: FallbackProps) {
 	return (

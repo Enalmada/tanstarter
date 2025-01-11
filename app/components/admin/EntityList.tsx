@@ -1,4 +1,4 @@
-import { Container, Table, Title } from "@mantine/core";
+import { Table } from "@mantine/core";
 import type { ColumnDef, TableOptions } from "@tanstack/react-table";
 import {
 	createColumnHelper,
@@ -6,6 +6,7 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
+import { Container, Title } from "~/components/ui";
 import type { TableDefinition } from "~/types/table";
 
 export interface EntityListProps<TData> {

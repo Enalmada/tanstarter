@@ -10,7 +10,6 @@
  * 4. onError - Error handling and rollback
  */
 
-import { Button, Card, Group, Stack } from "@mantine/core";
 import {
 	useMutation,
 	useQueryClient,
@@ -19,6 +18,7 @@ import {
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
 import { showToast } from "~/components/Toast";
+import { Button, Card, Group, Stack } from "~/components/ui";
 import type { Task, TaskStatusType } from "~/server/db/schema";
 import { clientTaskService } from "~/server/services/task-service";
 import { queries } from "~/utils/queries";

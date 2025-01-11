@@ -1,5 +1,5 @@
-import { Container, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
+import { Container, Title } from "~/components/ui";
 
 export const Route = createFileRoute("/admin/")({
 	component: AdminIndexComponent,

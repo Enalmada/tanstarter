@@ -1,15 +1,15 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { DefaultLayout } from "~/components/layouts/DefaultLayout";
 import {
 	Anchor,
-	Button,
 	Card,
 	Container,
 	Group,
+	LinkButton,
 	Stack,
 	Text,
 	Title,
-} from "@mantine/core";
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { DefaultLayout } from "~/components/layouts/DefaultLayout";
+} from "~/components/ui";
 
 export const Route = createFileRoute("/")({
 	component: HomeLayout,
@@ -34,20 +34,14 @@ function Home() {
 				{/* Hero Section */}
 				<Stack ta="center" gap="md">
 					<Title size="h1">TanStarter Todo</Title>
-					<Text size="xl" c="dimmed" maw={600} mx="auto">
+					<Text c="dimmed" size="xl" maw={600} mx="auto">
 						A modern, type-safe todo application built with TanStack Router,
 						React Query, and PostgreSQL.
 					</Text>
 					<Group justify="center" mt="md">
-						<Button
-							component={Link}
-							to="/tasks"
-							size="lg"
-							variant="gradient"
-							gradient={{ from: "blue", to: "cyan" }}
-						>
+						<LinkButton to="/tasks" size="lg">
 							Get Started
-						</Button>
+						</LinkButton>
 						<Anchor
 							href="https://github.com/dotnize/tanstarter"
 							target="_blank"
