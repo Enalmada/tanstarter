@@ -1,5 +1,5 @@
 import { Avatar, Container, Group, Table, Text, Title } from "@mantine/core";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	createColumnHelper,
@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { formatDistanceToNow } from "date-fns";
 import type { User } from "~/server/db/schema";
-import { adminQueries, queries } from "~/utils/queries";
+import { adminQueries } from "~/utils/queries";
 
 const columnHelper = createColumnHelper<User>();
 
@@ -51,7 +51,7 @@ const columns = [
 	}),
 ];
 
-export const Route = createFileRoute("/admin/users")({
+export const Route = createFileRoute("/admin/users/")({
 	loader: ({ context }) =>
 		context.queryClient.ensureQueryData(adminQueries.adminUser.list),
 	component: UsersComponent,
