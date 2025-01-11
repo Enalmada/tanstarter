@@ -21,7 +21,7 @@ import { showToast } from "~/components/Toast";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { Task, TaskStatusType } from "~/server/db/schema";
 import { clientTaskService } from "~/server/services/task-service";
-import { queries } from "~/utils/queries";
+import { queries } from "~/utils/query/queries";
 
 type TaskFormData = {
 	title: string;
@@ -57,9 +57,11 @@ function EditTask() {
 		},
 		onMutate: async (newData) => {
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: queries.task.list.queryKey });
 			await queryClient.cancelQueries({
-				queryKey: queries.task.detail(task.id).queryKey,
+				queryKey: [
+					queries.task.list.queryKey,
+					queries.task.detail(task.id).queryKey,
+				],
 			});
 
 			// Snapshot the previous values
@@ -148,9 +150,11 @@ function EditTask() {
 		},
 		onMutate: async () => {
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: queries.task.list.queryKey });
 			await queryClient.cancelQueries({
-				queryKey: queries.task.detail(task.id).queryKey,
+				queryKey: [
+					queries.task.list.queryKey,
+					queries.task.detail(task.id).queryKey,
+				],
 			});
 
 			// Snapshot the previous values

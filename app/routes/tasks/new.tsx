@@ -17,7 +17,7 @@ import { showToast } from "~/components/Toast";
 import { Card, Stack } from "~/components/ui";
 import type { Task, TaskStatusType } from "~/server/db/schema";
 import { clientTaskService } from "~/server/services/task-service";
-import { queries } from "~/utils/queries";
+import { queries } from "~/utils/query/queries";
 
 type TaskFormData = {
 	title: string;

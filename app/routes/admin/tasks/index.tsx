@@ -5,7 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import { EntityList } from "~/components/admin/EntityList";
 import type { Task } from "~/server/db/schema";
 import type { TableDefinition } from "~/types/table";
-import { adminQueries } from "~/utils/queries";
+import { adminQueries } from "~/utils/query/queries";
 
 const columns: TableDefinition<Task> = [
 	{

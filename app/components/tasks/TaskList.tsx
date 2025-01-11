@@ -13,13 +13,13 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { type Task, TaskStatus } from "~/server/db/schema";
 import { clientTaskService } from "~/server/services/task-service";
-import { queries } from "~/utils/queries";
+import { queries } from "~/utils/query/queries";
 
 export function TaskList({ tasks }: { tasks: Task[] }) {
 	const queryClient = useQueryClient();
 	const [errorMessage, setErrorMessage] = useState("");
-	const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
-	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+	const [pendingTaskIds] = useState(() => new Set<string>());
+	const [pendingDeleteIds] = useState(() => new Set<string>());
 
 	const updateTaskMutation = useMutation({
 		mutationFn: async ({
@@ -48,12 +48,14 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 		},
 		onMutate: async ({ taskId, data, currentTask }) => {
 			setErrorMessage("");
-			setPendingTaskId(taskId);
+			pendingTaskIds.add(taskId);
 
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: queries.task.list.queryKey });
 			await queryClient.cancelQueries({
-				queryKey: queries.task.detail(taskId).queryKey,
+				queryKey: [
+					queries.task.list.queryKey,
+					queries.task.detail(taskId).queryKey,
+				],
 			});
 
 			// Snapshot the previous values
@@ -68,10 +70,6 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			const optimisticTask: Task = {
 				...currentTask,
 				...data,
-				description:
-					data.description === undefined
-						? currentTask.description
-						: data.description,
 				updated_at: new Date(),
 			};
 
@@ -98,7 +96,9 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 					updatedTask,
 				);
 			}
-			setPendingTaskId(null);
+			if (taskId) {
+				pendingTaskIds.delete(taskId);
+			}
 		},
 		onSuccess: () => {
 			setErrorMessage("");
@@ -117,6 +117,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 					context.previousTasks,
 				);
 			}
+
 			setErrorMessage(err.message);
 		},
 	});
@@ -130,12 +131,14 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 		},
 		onMutate: async ({ id }) => {
 			setErrorMessage("");
-			setPendingDeleteId(id);
+			pendingDeleteIds.add(id);
 
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: queries.task.list.queryKey });
 			await queryClient.cancelQueries({
-				queryKey: queries.task.detail(id).queryKey,
+				queryKey: [
+					queries.task.list.queryKey,
+					queries.task.detail(id).queryKey,
+				],
 			});
 
 			// Snapshot the previous values
@@ -170,7 +173,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 					});
 				}
 			}
-			setPendingDeleteId(null);
+			id && pendingDeleteIds.delete(id);
 		},
 		onSuccess: () => {
 			setErrorMessage("");
@@ -182,18 +185,16 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			}
 
 			// For other errors, revert both caches
-			if (context?.previousTask) {
-				queryClient.setQueryData(
-					queries.task.detail(id).queryKey,
-					context.previousTask,
-				);
-			}
-			if (context?.previousTasks) {
-				queryClient.setQueryData(
-					queries.task.list.queryKey,
-					context.previousTasks,
-				);
-			}
+			const previousData = [
+				{ key: queries.task.detail(id).queryKey, data: context?.previousTask },
+				{ key: queries.task.list.queryKey, data: context?.previousTasks },
+			];
+
+			previousData.forEach(({ key, data }) => {
+				if (data) {
+					queryClient.setQueryData(key, data);
+				}
+			});
 			setErrorMessage(err.message);
 		},
 	});
@@ -267,7 +268,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 								color="red"
 								onClick={() => deleteTaskMutation.mutate({ id: task.id })}
 								disabled={
-									task.id.startsWith("-") || pendingDeleteId === task.id
+									task.id.startsWith("-") || pendingDeleteIds.has(task.id)
 								}
 							>
 								<Trash2 size={20} />

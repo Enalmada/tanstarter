@@ -9,7 +9,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { TaskList } from "~/components/tasks/TaskList";
 import { TaskListError } from "~/components/tasks/TaskListError";
 import { TaskListSkeleton } from "~/components/tasks/TaskListSkeleton";
-import { queries } from "~/utils/queries";
+import { queries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/tasks/")({
 	loader: async ({ context }) => {

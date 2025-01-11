@@ -22,7 +22,7 @@ import {
 import type { ClientUser } from "~/server/db/schema";
 import { getUserAuth } from "~/server/services/user-service";
 import appCss from "~/styles/app.css?inline";
-import { queries } from "~/utils/queries";
+import { queries } from "~/utils/query/queries";
 
 const ENABLE_SERVICE_WORKER = false;
 
