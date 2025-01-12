@@ -1,51 +1,57 @@
-/**
- * Reusable form component for creating and editing tasks
- * Handles validation via valibot schema and manages form state with TanStack Form
- * Supports both create and edit modes through defaultValues prop
- */
-
-import { Button, Checkbox, Stack, TextInput, Textarea } from "@mantine/core";
+import { Button, Select, Stack, TextInput, Textarea } from "@mantine/core";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { ValiError, parse } from "valibot";
-import type { Task } from "~/server/db/schema";
+import type { Task, TaskStatusType } from "~/server/db/schema";
 import { TaskStatus, taskFormSchema } from "~/server/db/schema";
 
-// Single type for form data
+type FormFields = {
+	title: string;
+	description: string | null;
+	due_date: string | null;
+	status: TaskStatusType;
+};
+
 export type TaskFormData = {
 	title: string;
 	description: string | null;
 	due_date: Date | null;
-	status: (typeof TaskStatus)[keyof typeof TaskStatus];
+	status: TaskStatusType;
 };
 
-interface TaskFormProps {
+interface AdminTaskFormProps {
 	defaultValues?: Partial<Task>;
 	onSubmit: (values: TaskFormData) => void;
 	isSubmitting?: boolean;
 }
 
-export function TaskForm({
+export function AdminTaskForm({
 	defaultValues,
 	onSubmit,
 	isSubmitting = false,
-}: TaskFormProps) {
+}: AdminTaskFormProps) {
 	const [error, setError] = useState<string | null>(null);
 
-	const form = useForm<TaskFormData>({
+	const form = useForm<FormFields>({
 		defaultValues: {
 			title: defaultValues?.title ?? "",
 			description: defaultValues?.description ?? null,
 			due_date: defaultValues?.due_date
-				? new Date(defaultValues.due_date)
+				? new Date(defaultValues.due_date).toISOString().split("T")[0]
 				: null,
 			status: defaultValues?.status ?? TaskStatus.ACTIVE,
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				// Pass the value directly - the schema will handle date conversion
-				const result = parse(taskFormSchema, value);
-				onSubmit(value);
+				const formData = {
+					title: value.title,
+					description: value.description,
+					due_date: value.due_date ? new Date(value.due_date) : null,
+					status: value.status,
+				} satisfies TaskFormData;
+
+				const result = parse(taskFormSchema, formData);
+				onSubmit(formData);
 			} catch (err) {
 				if (err instanceof ValiError) {
 					setError(err.message);
@@ -104,12 +110,8 @@ export function TaskForm({
 					{(field) => (
 						<TextInput
 							type="date"
-							value={field.state.value?.toISOString().split("T")[0] ?? ""}
-							onChange={(e) =>
-								field.handleChange(
-									e.target.value ? new Date(e.target.value) : null,
-								)
-							}
+							value={field.state.value ?? ""}
+							onChange={(e) => field.handleChange(e.target.value || null)}
 							onBlur={field.handleBlur}
 							label="Due Date"
 							error={field.state.meta.errors[0]}
@@ -119,17 +121,16 @@ export function TaskForm({
 
 				<form.Field name="status">
 					{(field) => (
-						<Checkbox
-							checked={field.state.value === TaskStatus.COMPLETED}
-							onChange={(e) =>
-								field.handleChange(
-									e.currentTarget.checked
-										? TaskStatus.COMPLETED
-										: TaskStatus.ACTIVE,
-								)
-							}
+						<Select
+							value={field.state.value}
+							onChange={(value) => field.handleChange(value as TaskStatusType)}
 							onBlur={field.handleBlur}
-							label="Completed"
+							label="Status"
+							data={[
+								{ value: TaskStatus.ACTIVE, label: "Active" },
+								{ value: TaskStatus.COMPLETED, label: "Completed" },
+							]}
+							error={field.state.meta.errors[0]}
 						/>
 					)}
 				</form.Field>

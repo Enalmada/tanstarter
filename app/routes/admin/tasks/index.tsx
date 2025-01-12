@@ -1,6 +1,6 @@
 import { Badge, Text } from "@mantine/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { EntityList } from "~/components/admin/EntityList";
 import type { Task } from "~/server/db/schema";
@@ -73,5 +73,14 @@ export const Route = createFileRoute("/admin/tasks/")({
 
 function TasksComponent() {
 	const { data: tasks = [] } = useSuspenseQuery(adminQueries.adminTask.list);
-	return <EntityList title="Tasks" data={tasks} columns={columns} />;
+	const navigate = useNavigate();
+
+	return (
+		<EntityList
+			title="Tasks"
+			data={tasks}
+			columns={columns}
+			onRowClick={(row: Task) => navigate({ to: `/admin/tasks/${row.id}` })}
+		/>
+	);
 }

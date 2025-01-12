@@ -1,53 +1,39 @@
-/**
- * Task edit route component
- * Handles task updates and manages task data fetching
- * Includes navigation back to task list and form state management
- *
- * Mutation function order:
- * 1. mutationFn - The actual server call
- * 2. onMutate - Pre-mutation optimistic updates
- * 3. onSuccess - Post-mutation success handling
- * 4. onError - Error handling and rollback
- */
-
 import {
 	useMutation,
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { TaskForm } from "~/components/TaskForm";
 import { showToast } from "~/components/Toast";
+import { AdminTaskForm, type TaskFormData } from "~/components/admin/TaskForm";
 import { Button, Card, Group, Stack } from "~/components/ui";
-import type { Task, TaskStatusType } from "~/server/db/schema";
-import { clientTaskService } from "~/server/services/task-service";
-import { queries } from "~/utils/query/queries";
+import type { Task } from "~/server/db/schema";
+import {
+	adminTaskService,
+	clientTaskService,
+} from "~/server/services/task-service";
+import { adminQueries } from "~/utils/query/queries";
 
-export type TaskFormData = {
-	title: string;
-	description: string | null;
-	due_date: Date | null;
-	status: TaskStatusType;
-};
-
-export const Route = createFileRoute("/tasks/$taskId")({
-	component: EditTask,
+export const Route = createFileRoute("/admin/tasks/$taskId")({
+	component: AdminEditTask,
 	loader: async ({ context, params }) => {
 		await context.queryClient.ensureQueryData(
-			queries.task.detail(params.taskId),
+			adminQueries.adminTask.detail(params.taskId),
 		);
 	},
 });
 
-function EditTask() {
+function AdminEditTask() {
 	const { taskId } = Route.useParams();
-	const { data: task } = useSuspenseQuery(queries.task.detail(taskId));
+	const { data: task } = useSuspenseQuery(
+		adminQueries.adminTask.detail(taskId),
+	);
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 
 	const updateTaskMutation = useMutation({
 		mutationFn: async (data: TaskFormData) => {
-			const result = await clientTaskService.updateTask({
+			const result = await adminTaskService.updateTask({
 				data: {
 					id: task.id,
 					data,
@@ -59,17 +45,17 @@ function EditTask() {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
 				queryKey: [
-					queries.task.list.queryKey,
-					queries.task.detail(task.id).queryKey,
+					adminQueries.adminTask.list.queryKey,
+					adminQueries.adminTask.detail(task.id).queryKey,
 				],
 			});
 
 			// Snapshot the previous values
 			const previousTasks = queryClient.getQueryData<Task[]>(
-				queries.task.list.queryKey,
+				adminQueries.adminTask.list.queryKey,
 			);
 			const previousTask = queryClient.getQueryData<Task>(
-				queries.task.detail(task.id).queryKey,
+				adminQueries.adminTask.detail(task.id).queryKey,
 			);
 
 			// Use a consistent timestamp for optimistic updates
@@ -83,16 +69,17 @@ function EditTask() {
 			};
 
 			// Optimistically update both caches
-			queryClient.setQueryData<Task[]>(queries.task.list.queryKey, (old = []) =>
-				old.map((t) => (t.id === task.id ? optimisticTask : t)),
+			queryClient.setQueryData<Task[]>(
+				adminQueries.adminTask.list.queryKey,
+				(old = []) => old.map((t) => (t.id === task.id ? optimisticTask : t)),
 			);
 			queryClient.setQueryData(
-				queries.task.detail(task.id).queryKey,
+				adminQueries.adminTask.detail(task.id).queryKey,
 				optimisticTask,
 			);
 
 			// Navigate optimistically
-			navigate({ to: "/tasks" });
+			navigate({ to: "/admin/tasks" });
 
 			// Return a context object with the snapshotted values
 			return { previousTasks, previousTask };
@@ -101,11 +88,11 @@ function EditTask() {
 			if (updatedTask && context) {
 				// Update both caches with the actual server data
 				queryClient.setQueryData<Task[]>(
-					queries.task.list.queryKey,
+					adminQueries.adminTask.list.queryKey,
 					(old = []) => old.map((t) => (t.id === task.id ? updatedTask : t)),
 				);
 				queryClient.setQueryData(
-					queries.task.detail(task.id).queryKey,
+					adminQueries.adminTask.detail(task.id).queryKey,
 					updatedTask,
 				);
 			}
@@ -121,13 +108,13 @@ function EditTask() {
 			// If the mutation fails, use the context returned from onMutate to roll back
 			if (context?.previousTask) {
 				queryClient.setQueryData(
-					queries.task.detail(task.id).queryKey,
+					adminQueries.adminTask.detail(task.id).queryKey,
 					context.previousTask,
 				);
 			}
 			if (context?.previousTasks) {
 				queryClient.setQueryData(
-					queries.task.list.queryKey,
+					adminQueries.adminTask.list.queryKey,
 					context.previousTasks,
 				);
 			}
@@ -137,7 +124,7 @@ function EditTask() {
 				type: "error",
 			});
 			// Navigate back to the form on error
-			navigate({ to: `/tasks/${task.id}` });
+			navigate({ to: `/admin/tasks/${task.id}` });
 		},
 	});
 
@@ -152,29 +139,30 @@ function EditTask() {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
 				queryKey: [
-					queries.task.list.queryKey,
-					queries.task.detail(task.id).queryKey,
+					adminQueries.adminTask.list.queryKey,
+					adminQueries.adminTask.detail(task.id).queryKey,
 				],
 			});
 
 			// Snapshot the previous values
 			const previousTasks = queryClient.getQueryData<Task[]>(
-				queries.task.list.queryKey,
+				adminQueries.adminTask.list.queryKey,
 			);
 			const previousTask = queryClient.getQueryData<Task>(
-				queries.task.detail(task.id).queryKey,
+				adminQueries.adminTask.detail(task.id).queryKey,
 			);
 
 			// Optimistically remove from both caches
-			queryClient.setQueryData<Task[]>(queries.task.list.queryKey, (old = []) =>
-				old.filter((t) => t.id !== task.id),
+			queryClient.setQueryData<Task[]>(
+				adminQueries.adminTask.list.queryKey,
+				(old = []) => old.filter((t) => t.id !== task.id),
 			);
 			queryClient.removeQueries({
-				queryKey: queries.task.detail(task.id).queryKey,
+				queryKey: adminQueries.adminTask.detail(task.id).queryKey,
 			});
 
 			// Navigate optimistically
-			navigate({ to: "/tasks" });
+			navigate({ to: "/admin/tasks" });
 
 			// Return a context object with the snapshotted values
 			return { previousTasks, previousTask };
@@ -184,11 +172,11 @@ function EditTask() {
 				// Ensure the task is removed from both caches
 				// Also remove if we got "Task not found" as it means it's already gone
 				queryClient.setQueryData<Task[]>(
-					queries.task.list.queryKey,
+					adminQueries.adminTask.list.queryKey,
 					(old = []) => old.filter((t) => t.id !== task.id),
 				);
 				queryClient.removeQueries({
-					queryKey: queries.task.detail(task.id).queryKey,
+					queryKey: adminQueries.adminTask.detail(task.id).queryKey,
 				});
 			}
 		},
@@ -213,13 +201,13 @@ function EditTask() {
 			// For other errors, revert both caches and show error
 			if (context?.previousTask) {
 				queryClient.setQueryData(
-					queries.task.detail(task.id).queryKey,
+					adminQueries.adminTask.detail(task.id).queryKey,
 					context.previousTask,
 				);
 			}
 			if (context?.previousTasks) {
 				queryClient.setQueryData(
-					queries.task.list.queryKey,
+					adminQueries.adminTask.list.queryKey,
 					context.previousTasks,
 				);
 			}
@@ -229,14 +217,17 @@ function EditTask() {
 				type: "error",
 			});
 			// Navigate back to the form on error
-			navigate({ to: `/tasks/${task.id}` });
+			navigate({ to: `/admin/tasks/${task.id}` });
 		},
 	});
 
 	return (
 		<div className="container mx-auto flex flex-col gap-4 p-6">
 			<Group justify="space-between">
-				<Button variant="subtle" onClick={() => navigate({ to: "/tasks" })}>
+				<Button
+					variant="subtle"
+					onClick={() => navigate({ to: "/admin/tasks" })}
+				>
 					← Back to Tasks
 				</Button>
 				<Button
@@ -251,7 +242,7 @@ function EditTask() {
 
 			<Card withBorder>
 				<Stack gap="md" p="md">
-					<TaskForm
+					<AdminTaskForm
 						defaultValues={task}
 						onSubmit={(values) => updateTaskMutation.mutate(values)}
 						isSubmitting={updateTaskMutation.isPending}

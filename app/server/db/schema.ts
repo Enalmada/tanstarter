@@ -5,15 +5,30 @@
  */
 
 import {
+	pgEnum,
 	pgTable,
 	primaryKey,
 	text,
 	timestamp,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-valibot";
+import {
+	createInsertSchema,
+	createSelectSchema,
+	createUpdateSchema,
+} from "drizzle-valibot";
 import { nanoid } from "nanoid/non-secure";
-import { date, enum_, nullable, object, string, undefined_ } from "valibot";
+import {
+	date,
+	enum_,
+	minLength,
+	nullable,
+	object,
+	pipe,
+	string,
+	transform,
+	undefined_,
+} from "valibot";
 
 // Parameterized insert don't seem to respect defaultFn
 export const nanoString = (prefix: string) => `${prefix}_${nanoid()}`;
@@ -24,6 +39,20 @@ const generateIdField = (prefix: string) => {
 		.primaryKey();
 };
 
+export enum UserRole {
+	MEMBER = "MEMBER",
+	ADMIN = "ADMIN",
+}
+
+export const UserRolesEnum = pgEnum(
+	"role",
+	Object.values(UserRole) as [string, ...string[]],
+);
+
+export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
+
+export const userRoleSchema = enum_(UserRole);
+
 export const user = pgTable("user", {
 	id: generateIdField("usr"),
 	name: text(),
@@ -31,7 +60,10 @@ export const user = pgTable("user", {
 	// last_name: text(),
 	avatar_url: text(),
 	email: text().unique().notNull(),
-
+	role: UserRolesEnum("role")
+		.default(UserRole.MEMBER)
+		.$type<UserRole>()
+		.notNull(),
 	created_at: timestamp({ mode: "date" }).defaultNow().notNull(),
 	updated_at: timestamp({ mode: "date" })
 		.defaultNow()
@@ -41,6 +73,7 @@ export const user = pgTable("user", {
 });
 
 export type User = typeof user.$inferSelect;
+export type UserInsert = typeof user.$inferInsert;
 
 export type ClientUser = Pick<
 	typeof user.$inferSelect,
@@ -104,7 +137,7 @@ export const task = pgTable("task", {
 });
 
 export type Task = typeof task.$inferSelect;
-export type NewTask = typeof task.$inferInsert;
+export type TaskInsert = typeof task.$inferInsert;
 
 export type ClientTask = Pick<
 	typeof task.$inferSelect,
@@ -127,6 +160,10 @@ export const taskInsertSchema = createInsertSchema(task, {
 	status: taskStatusSchema,
 });
 
+export const taskUpdateSchema = createUpdateSchema(task, {
+	status: taskStatusSchema,
+});
+
 // Form-specific schema that excludes server-side fields
 export const taskFormSchema = createInsertSchema(task, {
 	// Override server-managed fields to be undefined
@@ -134,4 +171,24 @@ export const taskFormSchema = createInsertSchema(task, {
 	user_id: undefined_(),
 	created_at: undefined_(),
 	updated_at: undefined_(),
+	status: taskStatusSchema,
+	due_date: pipe(
+		nullable(date()),
+		transform((input) => (input ? new Date(input) : null)),
+	),
+});
+
+export const userSelectSchema = createSelectSchema(user, {
+	role: userRoleSchema,
+});
+
+export const userInsertSchema = createInsertSchema(user, {
+	role: userRoleSchema,
+});
+
+// Form-specific schema that excludes server-side fields
+export const userFormSchema = object({
+	email: string(),
+	name: nullable(string()),
+	role: userRoleSchema,
 });

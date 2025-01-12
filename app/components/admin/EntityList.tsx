@@ -1,86 +1,51 @@
 import { Table } from "@mantine/core";
-import type { ColumnDef, TableOptions } from "@tanstack/react-table";
-import {
-	createColumnHelper,
-	flexRender,
-	getCoreRowModel,
-	useReactTable,
-} from "@tanstack/react-table";
-import { Container, Title } from "~/components/ui";
 import type { TableDefinition } from "~/types/table";
 
-export interface EntityListProps<TData> {
+export interface EntityListProps<TData extends { id: string }> {
 	title: string;
 	data: TData[];
 	columns: TableDefinition<TData>;
-	tableOptions?: Partial<TableOptions<TData>>;
+	onRowClick?: (row: TData) => void;
 }
 
-function convertToTanStackColumns<TData>(
-	columns: TableDefinition<TData>,
-): ColumnDef<TData, any>[] {
-	const columnHelper = createColumnHelper<TData>();
-
-	return columns.map((col) => {
-		return columnHelper.accessor((row: TData) => row[col.key], {
-			id: String(col.key),
-			header: col.header,
-			cell: (info) =>
-				col.render
-					? col.render({ value: info.getValue(), row: info.row.original })
-					: info.getValue(),
-		});
-	});
-}
-
-export function EntityList<TData>({
+export function EntityList<TData extends { id: string }>({
 	title,
 	data,
 	columns,
-	tableOptions = {},
+	onRowClick,
 }: EntityListProps<TData>) {
-	const tanstackColumns = convertToTanStackColumns(columns);
-
-	const table = useReactTable({
-		data,
-		columns: tanstackColumns,
-		getCoreRowModel: getCoreRowModel(),
-		...tableOptions,
-	});
-
 	return (
-		<Container size="xl">
-			<Title mb="lg">{title}</Title>
-
-			<Table highlightOnHover withTableBorder>
+		<div className="container mx-auto flex flex-col gap-4 p-6">
+			<h1 className="text-2xl font-bold">{title}</h1>
+			<Table>
 				<Table.Thead>
-					{table.getHeaderGroups().map((headerGroup) => (
-						<Table.Tr key={headerGroup.id}>
-							{headerGroup.headers.map((header) => (
-								<Table.Th key={header.id}>
-									{header.isPlaceholder
-										? null
-										: flexRender(
-												header.column.columnDef.header,
-												header.getContext(),
-											)}
-								</Table.Th>
-							))}
-						</Table.Tr>
-					))}
+					<Table.Tr>
+						{columns.map((column) => (
+							<Table.Th key={column.key as string}>{column.header}</Table.Th>
+						))}
+					</Table.Tr>
 				</Table.Thead>
 				<Table.Tbody>
-					{table.getRowModel().rows.map((row) => (
-						<Table.Tr key={row.id}>
-							{row.getVisibleCells().map((cell) => (
-								<Table.Td key={cell.id}>
-									{flexRender(cell.column.columnDef.cell, cell.getContext())}
+					{data.map((row) => (
+						<Table.Tr
+							key={row.id as string}
+							onClick={() => onRowClick?.(row)}
+							className={onRowClick ? "cursor-pointer hover:bg-gray-50" : ""}
+						>
+							{columns.map((column) => (
+								<Table.Td key={column.key as string}>
+									{column.render
+										? column.render({
+												value: row[column.key],
+												row,
+											})
+										: (row[column.key] as string)}
 								</Table.Td>
 							))}
 						</Table.Tr>
 					))}
 				</Table.Tbody>
 			</Table>
-		</Container>
+		</div>
 	);
 }

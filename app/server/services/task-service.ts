@@ -8,7 +8,7 @@ import { and, eq } from "drizzle-orm";
 import { object, safeParse, string } from "valibot";
 import DB from "../db";
 import {
-	type NewTask,
+	type TaskInsert,
 	TaskStatus,
 	type TaskStatusType,
 	task,
@@ -25,7 +25,7 @@ const updateTaskSchema = object({
 	data: taskFormSchema,
 });
 
-function validateNewTask(input: unknown): NewTask {
+function validateNewTask(input: unknown): TaskInsert {
 	const result = safeParse(taskFormSchema, input);
 	if (!result.success) {
 		const errorMessage = result.issues
@@ -45,7 +45,7 @@ function validateNewTask(input: unknown): NewTask {
 
 function validateUpdateTask(input: unknown): {
 	id: string;
-	data: Partial<NewTask>;
+	data: Partial<TaskInsert>;
 } {
 	const result = safeParse(updateTaskSchema, input);
 	if (!result.success) {
@@ -69,7 +69,6 @@ function validateUpdateTask(input: unknown): {
 }
 
 // Export server functions directly for TanStack Start to discover
-// @ts-ignore - TanStack Start type system issue with date serialization
 export const fetchTasks = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const user = await getAuthenticatedUser();
@@ -81,7 +80,6 @@ export const fetchTasks = createServerFn({ method: "GET" }).handler(
 	},
 );
 
-// @ts-ignore - TanStack Start type system issue with date serialization
 export const fetchTask = createServerFn({ method: "GET" })
 	.validator(validateId)
 	.handler(async ({ data: id }) => {
@@ -98,7 +96,6 @@ export const fetchTask = createServerFn({ method: "GET" })
 		return result;
 	});
 
-// @ts-ignore - TanStack Start type system issue with date serialization
 export const createTask = createServerFn({ method: "POST" })
 	.validator(validateNewTask)
 	.handler(async ({ data }) => {
@@ -113,7 +110,6 @@ export const createTask = createServerFn({ method: "POST" })
 		return result;
 	});
 
-// @ts-ignore - TanStack Start type system issue with date serialization
 export const updateTask = createServerFn({ method: "POST" })
 	.validator(validateUpdateTask)
 	.handler(async ({ data }) => {
@@ -131,7 +127,6 @@ export const updateTask = createServerFn({ method: "POST" })
 		return result;
 	});
 
-// @ts-ignore - TanStack Start type system issue with date serialization
 export const deleteTask = createServerFn({ method: "POST" })
 	.validator(validateId)
 	.handler(async ({ data: id }) => {
