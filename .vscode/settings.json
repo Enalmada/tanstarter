@@ -69,5 +69,25 @@
   "vitest.rootConfig": "./vitest.config.ts",
   "vitest.debuggerPort": "9229",
   "testing.openTesting": "openOnTestStart",
-  "vitest.experimentalStaticAstCollect": true
+  "vitest.experimentalStaticAstCollect": true,
+
+  // Playwright settings
+  "playwright.env": {
+    "CI": "0"
+  },
+  "playwright.reuseBrowser": true,
+  "playwright.showTrace": true,
+
+  // Testing sidebar configuration
+  "testing.automaticallyOpenPeekView": "never",
+  "testing.followRunningTest": true,
+  "testing.gutterEnabled": true,
+
+  // Playwright test explorer settings
+  "playwright.test-explorer": {
+    "enabled": true,
+    "showBrowser": true,
+    "showTrace": true,
+    "showScreenshot": true
+  }
 }

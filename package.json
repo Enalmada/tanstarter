@@ -22,7 +22,12 @@
 		"ui": "pnpm dlx shadcn@latest",
 		"test:unit": "cross-env NODE_ENV=test dotenv -o -e .env.test.local -e .env.test -- bunx vitest run",
 		"test:unit:coverage": "cross-env NODE_ENV=test dotenv -e .env.test.local -e .env.test -- vitest --coverage",
-		"test:unit:watch": "cross-env NODE_ENV=test dotenv -o -e .env.test.local -e .env.test -- vitest watch"
+		"test:unit:watch": "cross-env NODE_ENV=test dotenv -o -e .env.test.local -e .env.test -- vitest watch",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui",
+		"test:e2e:debug": "playwright test --debug",
+		"test:e2e:codegen": "playwright codegen http://localhost:3000",
+		"test:e2e:report": "bunx playwright show-report playwright/report --host 127.0.0.1 --port 9323"
 	},
 	"dependencies": {
 		"@enalmada/drizzle-helpers": "0.0.18",
@@ -72,10 +77,12 @@
 		"@enalmada/clone-code": "0.1.1",
 		"@lingui/loader": "^5.1.2",
 		"@lingui/vite-plugin": "^5.1.2",
+		"@playwright/test": "^1.49.1",
 		"@serwist/vite": "^9.0.11",
 		"@serwist/window": "^9.0.11",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/react": "^16.1.0",
+		"@types/node": "^22.10.5",
 		"@types/react": "^19.0.4",
 		"@types/react-dom": "^19.0.2",
 		"autoprefixer": "^10.4.20",

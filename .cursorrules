@@ -70,6 +70,40 @@
   4. Input validation - Data validation rules
   5. Integration points - Service boundaries
 
+7. E2E Testing with Playwright:
+
+- Add or update Playwright tests when making significant UI changes
+- Focus on critical user journeys and main functionality
+- Run "bun run test:e2e" after major UI changes
+- Use role-based selectors for better accessibility and stability
+- Follow best practices:
+  1. Use role-based selectors as primary choice (getByRole)
+  2. Use text content as secondary choice (getByText)
+  3. Use data-testid as last resort for complex cases
+  4. Test real user interactions
+  5. Verify visual and functional changes
+- Test structure:
+  1. Page object patterns for reusability
+  2. Descriptive test names
+  3. Clear arrange-act-assert blocks
+  4. Proper error handling
+  5. Appropriate timeouts and waits
+- File organization:
+  1. Tests in app/e2e directory
+- Development workflow:
+  1. Run dev server separately
+  2. Use VSCode test explorer for development
+  3. Use terminal for CI-like execution
+  4. View reports at http://localhost:9323
+- Common commands:
+  1. bun run test:e2e - Run all tests
+- Test patterns:
+  1. Wait for networkidle on navigation
+  2. Use explicit timeouts for critical elements
+  3. Store locators in variables for reuse
+  4. Clear comments explaining test flow
+  5. Verify both presence and functionality
+
 </development_process>
 
 <framework_preferences>
