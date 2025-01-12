@@ -45,7 +45,12 @@ export function TaskForm({
 			try {
 				// Pass the value directly - the schema will handle date conversion
 				const result = parse(taskFormSchema, value);
-				onSubmit(value);
+				onSubmit({
+					title: result.title,
+					description: result.description ?? null,
+					due_date: result.due_date,
+					status: result.status,
+				});
 			} catch (err) {
 				if (err instanceof ValiError) {
 					setError(err.message);
@@ -68,8 +73,14 @@ export function TaskForm({
 					validators={{
 						onChange: ({ value }) => {
 							if (!value) return "Title is required";
-							if (value.length < 3)
-								return "Title must be at least 3 characters";
+							return undefined;
+						},
+						onBlur: ({ value }) => {
+							if (!value) return "Title is required";
+							return undefined;
+						},
+						onSubmit: ({ value }) => {
+							if (!value) return "Title is required";
 							return undefined;
 						},
 					}}
@@ -83,6 +94,8 @@ export function TaskForm({
 							placeholder="Enter task title"
 							required
 							error={field.state.meta.errors[0]}
+							data-error={field.state.meta.errors[0]}
+							aria-invalid={!!field.state.meta.errors[0]}
 						/>
 					)}
 				</form.Field>

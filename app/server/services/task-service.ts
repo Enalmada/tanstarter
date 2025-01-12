@@ -5,12 +5,11 @@
 
 import { createServerFn } from "@tanstack/start";
 import { eq } from "drizzle-orm";
-import { object, safeParse, string } from "valibot";
+import { object, partial, safeParse, string } from "valibot";
 import DB from "../db";
 import {
 	type TaskInsert,
 	TaskStatus,
-	type TaskStatusType,
 	task,
 	taskFormSchema,
 } from "../db/schema";
@@ -19,11 +18,37 @@ import { getAuthenticatedUser, validateId } from "./base-service";
 // Valibot validators
 const updateTaskSchema = object({
 	id: string(),
-	data: taskFormSchema,
+	data: partial(taskFormSchema), // Make all fields optional for updates
 });
 
-function validateNewTask(input: unknown): TaskInsert {
-	const result = safeParse(taskFormSchema, input);
+export function validateNewTask(input: unknown): TaskInsert {
+	if (!input || typeof input !== "object") {
+		throw new Error("Invalid task data: Input must be an object");
+	}
+
+	// Add default status if not provided
+	const processedInput = {
+		status: TaskStatus.ACTIVE,
+		...input,
+	};
+
+	// Convert string date to Date object if needed
+	if (
+		"due_date" in processedInput &&
+		typeof processedInput.due_date === "string"
+	) {
+		try {
+			const date = new Date(processedInput.due_date);
+			if (Number.isNaN(date.getTime())) {
+				throw new Error("Invalid date format");
+			}
+			processedInput.due_date = date;
+		} catch {
+			throw new Error("Invalid task data: due_date: Invalid date format");
+		}
+	}
+
+	const result = safeParse(taskFormSchema, processedInput);
 	if (!result.success) {
 		const errorMessage = result.issues
 			.map((issue) => {
@@ -33,18 +58,57 @@ function validateNewTask(input: unknown): TaskInsert {
 			.join(", ");
 		throw new Error(`Invalid task data: ${errorMessage}`);
 	}
+
 	return {
 		...result.output,
-		status: (result.output.status as TaskStatusType) ?? TaskStatus.ACTIVE, // Default to ACTIVE if not provided
 		user_id: "", // Will be set in handler
 	};
 }
 
-function validateUpdateTask(input: unknown): {
+export function validateUpdateTask(input: unknown): {
 	id: string;
 	data: Partial<TaskInsert>;
 } {
-	const result = safeParse(updateTaskSchema, input);
+	if (!input || typeof input !== "object") {
+		throw new Error("Invalid task data: Input must be an object");
+	}
+
+	// Validate ID first
+	if (
+		!("id" in input) ||
+		typeof input.id !== "string" ||
+		input.id.length === 0
+	) {
+		throw new Error("Invalid task data: ID cannot be empty");
+	}
+
+	// Convert string date to Date object if needed
+	const processedInput = { ...input } as {
+		id: string;
+		data: Record<string, unknown>;
+	};
+	if (
+		"data" in processedInput &&
+		typeof processedInput.data === "object" &&
+		processedInput.data &&
+		"due_date" in processedInput.data &&
+		typeof processedInput.data.due_date === "string"
+	) {
+		try {
+			const date = new Date(processedInput.data.due_date);
+			if (Number.isNaN(date.getTime())) {
+				throw new Error("Invalid date format");
+			}
+			processedInput.data = {
+				...processedInput.data,
+				due_date: date,
+			};
+		} catch {
+			throw new Error("Invalid task data: due_date: Invalid date format");
+		}
+	}
+
+	const result = safeParse(updateTaskSchema, processedInput);
 	if (!result.success) {
 		const errorMessage = result.issues
 			.map((issue) => {
@@ -52,16 +116,14 @@ function validateUpdateTask(input: unknown): {
 				return path ? `${path}: ${issue.message}` : issue.message;
 			})
 			.join(", ");
-		throw new Error(`Invalid update data: ${errorMessage}`);
+		throw new Error(`Invalid task data: ${errorMessage}`);
 	}
+
+	const { id, data } = result.output;
+	const { user_id, created_at, updated_at, ...updateData } = data;
 	return {
-		id: result.output.id,
-		data: {
-			title: result.output.data.title,
-			description: result.output.data.description,
-			due_date: result.output.data.due_date,
-			status: result.output.data.status as TaskStatusType,
-		},
+		id,
+		data: updateData,
 	};
 }
 
