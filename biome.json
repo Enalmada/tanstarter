@@ -30,30 +30,10 @@
 		"enabled": true,
 		"rules": {
 			"suspicious": {
-				"noConsoleLog": { "level": "error", "fix": "none" },
-				"noExplicitAny": "off",
-				"noExportsInTest": "off",
-				"noArrayIndexKey": "off",
-				"noRedeclare": "off",
-				"noShadowRestrictedNames": "off"
-			},
-			"style": {
-				"noNonNullAssertion": "off"
-			},
-			"a11y": {
-				"noSvgWithoutTitle": "off",
-				"useButtonType": "off",
-				"useValidAnchor": "off",
-				"useHtmlLang": "off",
-				"useHeadingContent": "off"
+				"noConsoleLog": { "level": "error", "fix": "none" }
 			},
 			"correctness": {
-				"useExhaustiveDependencies": "off",
-				"noEmptyPattern": "off",
-				"noUnreachable": "off"
-			},
-			"complexity": {
-				"noForEach": "off"
+				"noUnusedImports": "error"
 			},
 			"recommended": true
 		}

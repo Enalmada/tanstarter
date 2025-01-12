@@ -27,7 +27,7 @@ export interface CspRule {
 export interface SecurityOptions {
 	isDev?: boolean;
 	nonce?: string;
-	headerConfig?: SecurityHeadersConfig; // This was missing
+	headerConfig?: SecurityHeadersConfig;
 }
 
 export interface SecurityHeadersConfig {
@@ -40,14 +40,21 @@ export interface SecurityHeadersConfig {
 	"X-Powered-By"?: string;
 }
 
-export interface SecurityHeaders
-	extends Required<Omit<SecurityHeadersConfig, "X-Powered-By">> {
+export interface SecurityHeaders {
 	"Content-Security-Policy": string;
+	"X-Frame-Options": string;
+	"X-Content-Type-Options": string;
+	"Referrer-Policy": string;
+	"X-XSS-Protection": string;
+	"Strict-Transport-Security": string;
+	"Permissions-Policy": string;
 	"X-Powered-By"?: string;
 	"x-nonce"?: string;
 }
 
-export const defaultSecurityHeadersConfig: SecurityHeadersConfig = {
+export const defaultSecurityHeadersConfig: Required<
+	Omit<SecurityHeadersConfig, "X-Powered-By">
+> = {
 	// Prevent clickjacking
 	"X-Frame-Options": "DENY",
 	// Prevent MIME-sniffing
@@ -61,8 +68,6 @@ export const defaultSecurityHeadersConfig: SecurityHeadersConfig = {
 	// Control browser features
 	"Permissions-Policy":
 		"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()",
-	// Remove X-Powered-By
-	"X-Powered-By": "",
 };
 
 export interface CreateSecurityHeadersOptions {
@@ -76,24 +81,40 @@ export function createSecurityHeaders(
 ): SecurityHeaders {
 	const { config = {}, nonce } = options;
 
-	// Merge default config with provided overrides
+	// Merge default config with provided overrides and ensure required fields
 	const finalConfig = {
 		...defaultSecurityHeadersConfig,
 		...config,
 	};
 
+	// Ensure all required fields have values
 	const headers: SecurityHeaders = {
 		"Content-Security-Policy": cspValue,
-		"X-Frame-Options": finalConfig["X-Frame-Options"]!,
-		"X-Content-Type-Options": finalConfig["X-Content-Type-Options"]!,
-		"Referrer-Policy": finalConfig["Referrer-Policy"]!,
-		"X-XSS-Protection": finalConfig["X-XSS-Protection"]!,
-		"Strict-Transport-Security": finalConfig["Strict-Transport-Security"]!,
-		"Permissions-Policy": finalConfig["Permissions-Policy"]!,
+		"X-Frame-Options":
+			finalConfig["X-Frame-Options"] ||
+			defaultSecurityHeadersConfig["X-Frame-Options"],
+		"X-Content-Type-Options":
+			finalConfig["X-Content-Type-Options"] ||
+			defaultSecurityHeadersConfig["X-Content-Type-Options"],
+		"Referrer-Policy":
+			finalConfig["Referrer-Policy"] ||
+			defaultSecurityHeadersConfig["Referrer-Policy"],
+		"X-XSS-Protection":
+			finalConfig["X-XSS-Protection"] ||
+			defaultSecurityHeadersConfig["X-XSS-Protection"],
+		"Strict-Transport-Security":
+			finalConfig["Strict-Transport-Security"] ||
+			defaultSecurityHeadersConfig["Strict-Transport-Security"],
+		"Permissions-Policy":
+			finalConfig["Permissions-Policy"] ||
+			defaultSecurityHeadersConfig["Permissions-Policy"],
 	};
 
-	// Only add X-Powered-By if it's explicitly set
-	if (finalConfig["X-Powered-By"] !== undefined) {
+	// Only add optional headers if they're explicitly set
+	if (
+		"X-Powered-By" in finalConfig &&
+		finalConfig["X-Powered-By"] !== undefined
+	) {
 		headers["X-Powered-By"] = finalConfig["X-Powered-By"];
 	}
 

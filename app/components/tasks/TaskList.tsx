@@ -190,11 +190,11 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 				{ key: queries.task.list.queryKey, data: context?.previousTasks },
 			];
 
-			previousData.forEach(({ key, data }) => {
+			for (const { key, data } of previousData) {
 				if (data) {
 					queryClient.setQueryData(key, data);
 				}
-			});
+			}
 			setErrorMessage(err.message);
 		},
 	});

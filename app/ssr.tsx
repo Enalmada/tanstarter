@@ -20,7 +20,9 @@ import {
 import { createRouter } from "./router";
 
 // Create a custom stream handler that initializes i18n
-const i18nStreamHandler = async (ctx: any) => {
+const i18nStreamHandler = async (
+	ctx: Parameters<typeof defaultStreamHandler>[0],
+) => {
 	try {
 		// Get locale from request and initialize i18n
 		const locale = (getLocale(ctx.request) ||

@@ -4,7 +4,7 @@
  */
 
 import { createServerFn } from "@tanstack/start";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { object, safeParse, string } from "valibot";
 import DB from "../db";
 import {
@@ -14,10 +14,7 @@ import {
 	task,
 	taskFormSchema,
 } from "../db/schema";
-import type { ClientTask, Task } from "../db/schema";
-
-import type { ServerFn } from "@tanstack/start";
-import { getAuthenticatedUser, idSchema, validateId } from "./base-service";
+import { getAuthenticatedUser, validateId } from "./base-service";
 
 // Valibot validators
 const updateTaskSchema = object({

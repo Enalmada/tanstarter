@@ -15,10 +15,21 @@ export type OAuthProvider = {
 		scopes: string[],
 	): URL;
 	createAuthorizationURL(state: string, scopes: string[]): URL;
-	validateCode: (code: string, codeVerifier?: string) => Promise<any>;
-	getUserInfo: (accessToken: string) => Promise<any>;
-	getProviderUserId: (user: any) => string;
-	formatUserForDatabase: (user: any) => {
+	validateCode: (
+		code: string,
+		codeVerifier?: string,
+	) => Promise<{
+		access_token: string;
+		token_type: string;
+		expires_in?: number;
+		refresh_token?: string;
+		scope?: string;
+	}>;
+	getUserInfo: (
+		accessToken: string,
+	) => Promise<GoogleUser | GitHubUser | DiscordUser>;
+	getProviderUserId: (user: GoogleUser | GitHubUser | DiscordUser) => string;
+	formatUserForDatabase: (user: GoogleUser | GitHubUser | DiscordUser) => {
 		email: string;
 		name: string;
 		avatar_url: string | null;

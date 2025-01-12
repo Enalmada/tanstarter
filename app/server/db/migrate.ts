@@ -11,12 +11,14 @@ import { migrate } from "drizzle-orm/neon-http/migrator";
 import { dbHelpers } from "~/env";
 
 export const databaseConfig = {
-	RETRY_INTERVAL: dbHelpers.getRetryInterval()
-		? Number.parseInt(dbHelpers.getRetryInterval()!)
-		: 1000,
-	MAX_RETRIES: dbHelpers.getMaxRetries()
-		? Number.parseInt(dbHelpers.getMaxRetries()!)
-		: 10,
+	RETRY_INTERVAL: (() => {
+		const interval = dbHelpers.getRetryInterval();
+		return interval ? Number.parseInt(interval) : 1000;
+	})(),
+	MAX_RETRIES: (() => {
+		const retries = dbHelpers.getMaxRetries();
+		return retries ? Number.parseInt(retries) : 10;
+	})(),
 };
 
 // Configure for local development with Neon HTTP proxy

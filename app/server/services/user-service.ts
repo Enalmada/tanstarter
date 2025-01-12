@@ -9,8 +9,7 @@ import { object, string } from "valibot";
 import { getAuthSession } from "~/server/auth/auth";
 import DB from "../db";
 import { user, userInsertSchema } from "../db/schema";
-import type { ClientUser, User } from "../db/schema";
-import { getAuthenticatedUser, idSchema, validateId } from "./base-service";
+import { getAuthenticatedUser, validateId } from "./base-service";
 
 export const getUserAuth = createServerFn({ method: "GET" }).handler(
 	async () => {

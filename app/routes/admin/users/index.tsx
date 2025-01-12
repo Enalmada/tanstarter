@@ -7,6 +7,12 @@ import type { User } from "~/server/db/schema";
 import type { TableDefinition } from "~/types/table";
 import { adminQueries } from "~/utils/query/queries";
 
+const formatDate = (value: string | Date | null): string | null => {
+	if (!value) return null;
+	const date = value instanceof Date ? value : new Date(value);
+	return formatDistanceToNow(date, { addSuffix: true });
+};
+
 const columns: TableDefinition<User> = [
 	{
 		key: "email",
@@ -14,7 +20,7 @@ const columns: TableDefinition<User> = [
 		render: ({ value, row }) => (
 			<div>
 				<Text size="sm" fw={500}>
-					{value}
+					{String(value)}
 				</Text>
 				{row.name && (
 					<Text size="xs" c="dimmed">
@@ -28,26 +34,32 @@ const columns: TableDefinition<User> = [
 		key: "role",
 		header: "Role",
 		render: ({ value }) => (
-			<Badge color={value === "ADMIN" ? "red" : "blue"}>{value}</Badge>
+			<Badge color={value === "ADMIN" ? "red" : "blue"}>{String(value)}</Badge>
 		),
 	},
 	{
 		key: "created_at",
 		header: "Created",
-		render: ({ value }) => (
-			<Text size="sm" c="dimmed">
-				{formatDistanceToNow(value, { addSuffix: true })}
-			</Text>
-		),
+		render: ({ value }) => {
+			const formatted = formatDate(value);
+			return formatted ? (
+				<Text size="sm" c="dimmed">
+					{formatted}
+				</Text>
+			) : null;
+		},
 	},
 	{
 		key: "updated_at",
 		header: "Last Updated",
-		render: ({ value }) => (
-			<Text size="sm" c="dimmed">
-				{value ? formatDistanceToNow(value, { addSuffix: true }) : "Never"}
-			</Text>
-		),
+		render: ({ value }) => {
+			const formatted = formatDate(value);
+			return (
+				<Text size="sm" c="dimmed">
+					{formatted || "Never"}
+				</Text>
+			);
+		},
 	},
 ];
 

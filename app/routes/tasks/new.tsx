@@ -29,7 +29,7 @@ type TaskFormData = {
 export const Route = createFileRoute("/tasks/new")({
 	component: NewTask,
 	loader: async ({ context }) => {
-		return { userId: context.user!.id };
+		return { userId: context.user?.id };
 	},
 });
 
@@ -58,7 +58,7 @@ function NewTask() {
 			// Create optimistic task
 			const optimisticTask: Task = {
 				id: `temp-${Date.now()}`,
-				user_id: userId,
+				user_id: userId ?? "temp-user",
 				created_at: new Date(now),
 				updated_at: new Date(now),
 				...newTask,

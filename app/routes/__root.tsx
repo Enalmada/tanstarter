@@ -10,7 +10,7 @@ import {
 	createRootRouteWithContext,
 	redirect,
 } from "@tanstack/react-router";
-import { Meta, Scripts, createServerFn } from "@tanstack/start";
+import { Meta, Scripts } from "@tanstack/start";
 import type { ReactNode } from "react";
 import { Suspense, lazy, useLayoutEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
@@ -171,7 +171,7 @@ function RootComponent() {
 
 function RootDocument({ children }: { readonly children: ReactNode }) {
 	return (
-		<html suppressHydrationWarning>
+		<html suppressHydrationWarning lang="en">
 			<head>
 				<Meta />
 				<ColorSchemeScript />

@@ -1,11 +1,18 @@
 import { Badge, Text } from "@mantine/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isValid } from "date-fns";
 import { EntityList } from "~/components/admin/EntityList";
 import type { Task } from "~/server/db/schema";
 import type { TableDefinition } from "~/types/table";
 import { adminQueries } from "~/utils/query/queries";
+
+const formatDate = (value: string | Date | null): string | null => {
+	if (!value) return null;
+	const date = value instanceof Date ? value : new Date(value);
+	if (!isValid(date)) return null;
+	return formatDistanceToNow(date, { addSuffix: true });
+};
 
 const columns: TableDefinition<Task> = [
 	{
@@ -14,7 +21,7 @@ const columns: TableDefinition<Task> = [
 		render: ({ value, row }) => (
 			<div>
 				<Text size="sm" fw={500}>
-					{value}
+					{String(value)}
 				</Text>
 				{row.description && (
 					<Text size="xs" c="dimmed" lineClamp={2}>
@@ -28,40 +35,46 @@ const columns: TableDefinition<Task> = [
 		key: "status",
 		header: "Status",
 		render: ({ value }) => (
-			<Badge color={value === "ACTIVE" ? "blue" : "green"}>{value}</Badge>
+			<Badge color={value === "ACTIVE" ? "blue" : "green"}>
+				{String(value)}
+			</Badge>
 		),
 	},
 	{
 		key: "due_date",
 		header: "Due Date",
-		render: ({ value }) =>
-			value ? (
+		render: ({ value }) => {
+			const formatted = formatDate(value);
+			return formatted ? (
 				<Text size="sm" c="dimmed">
-					{formatDistanceToNow(value, { addSuffix: true })}
+					{formatted}
 				</Text>
-			) : (
-				<Text size="sm" c="dimmed">
-					No due date
-				</Text>
-			),
+			) : null;
+		},
 	},
 	{
 		key: "created_at",
 		header: "Created",
-		render: ({ value }) => (
-			<Text size="sm" c="dimmed">
-				{formatDistanceToNow(value, { addSuffix: true })}
-			</Text>
-		),
+		render: ({ value }) => {
+			const formatted = formatDate(value);
+			return formatted ? (
+				<Text size="sm" c="dimmed">
+					{formatted}
+				</Text>
+			) : null;
+		},
 	},
 	{
 		key: "updated_at",
 		header: "Last Updated",
-		render: ({ value }) => (
-			<Text size="sm" c="dimmed">
-				{value ? formatDistanceToNow(value, { addSuffix: true }) : "Never"}
-			</Text>
-		),
+		render: ({ value }) => {
+			const formatted = formatDate(value);
+			return (
+				<Text size="sm" c="dimmed">
+					{formatted || "Never"}
+				</Text>
+			);
+		},
 	},
 ];
 

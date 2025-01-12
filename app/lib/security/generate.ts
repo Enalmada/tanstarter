@@ -54,13 +54,13 @@ export function generateSecurityHeaders(
 	const mergedDirectives: Record<string, Set<string>> = {};
 
 	// Initialize sets with default directives
-	Object.entries(defaultCspDirectives).forEach(([key, values]) => {
+	for (const [key, values] of Object.entries(defaultCspDirectives)) {
 		mergedDirectives[key] = new Set(values);
-	});
+	}
 
 	// Merge all rules into directives using Sets for automatic deduplication
-	rules.forEach((rule) => {
-		Object.entries(rule).forEach(([key, value]) => {
+	for (const rule of rules) {
+		for (const [key, value] of Object.entries(rule)) {
 			if (key !== "description" && key !== "source" && value !== undefined) {
 				const directiveKey = key as keyof typeof defaultCspDirectives;
 				// If the directive doesn't exist yet, initialize it with default values if any
@@ -73,12 +73,12 @@ export function generateSecurityHeaders(
 				const values = Array.isArray(value)
 					? value
 					: value.split(" ").filter(Boolean);
-				values.forEach((val: string) =>
-					mergedDirectives[directiveKey].add(val),
-				);
+				for (const val of values) {
+					mergedDirectives[directiveKey].add(val);
+				}
 			}
-		});
-	});
+		}
+	}
 
 	// Generate CSP header value from Sets
 	const cspValue = Object.entries(mergedDirectives)

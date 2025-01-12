@@ -21,7 +21,6 @@ import { nanoid } from "nanoid/non-secure";
 import {
 	date,
 	enum_,
-	minLength,
 	nullable,
 	object,
 	pipe,

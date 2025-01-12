@@ -1,12 +1,12 @@
-import type { QueryClient } from "@tanstack/react-query";
+import type { QueryClient, QueryKey } from "@tanstack/react-query";
 
 export const revertCache = (
 	queryClient: QueryClient,
-	items: { queryKey: any; data: any }[],
+	items: { queryKey: QueryKey; data: unknown }[],
 ) => {
-	items.forEach(({ queryKey, data }) => {
+	for (const { queryKey, data } of items) {
 		if (data) {
 			queryClient.setQueryData(queryKey, data);
 		}
-	});
+	}
 };

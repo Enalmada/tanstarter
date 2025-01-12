@@ -1,12 +1,14 @@
-export type CellRenderer<T> = (props: {
-	value: any;
-	row: T;
-}) => React.ReactNode;
+import type { ReactNode } from "react";
 
-export interface TableColumn<T> {
-	key: keyof T;
+export type CellRenderer<T, K extends keyof T> = (props: {
+	value: T[K];
+	row: T;
+}) => ReactNode;
+
+export interface TableColumn<T, K extends keyof T = keyof T> {
+	key: K;
 	header: string;
-	render?: CellRenderer<T>;
+	render?: CellRenderer<T, K>;
 }
 
 export type TableDefinition<T> = TableColumn<T>[];
