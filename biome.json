@@ -16,7 +16,12 @@
 			".vscode/**",
 			"app/server/db/migrations",
 			"app/routeTree.gen.ts",
-			"dist/**"
+			"dist/**",
+			"playwright/.artifacts/**",
+			"playwright/artifacts/**",
+			"playwright/report/**",
+			"playwright/results/**",
+			"playwright/test-results/**"
 		]
 	},
 	"formatter": {

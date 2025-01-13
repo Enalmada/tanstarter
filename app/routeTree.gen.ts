@@ -22,6 +22,7 @@ import { Route as TasksTaskIdImport } from './routes/tasks/$taskId'
 import { Route as AdminUsersIndexImport } from './routes/admin/users/index'
 import { Route as AdminTasksIndexImport } from './routes/admin/tasks/index'
 import { Route as AdminUsersUserIdImport } from './routes/admin/users/$userId'
+import { Route as AdminTasksNewImport } from './routes/admin/tasks/new'
 import { Route as AdminTasksTaskIdImport } from './routes/admin/tasks/$taskId'
 
 // Create/Update Routes
@@ -89,6 +90,12 @@ const AdminTasksIndexRoute = AdminTasksIndexImport.update({
 const AdminUsersUserIdRoute = AdminUsersUserIdImport.update({
   id: '/users/$userId',
   path: '/users/$userId',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminTasksNewRoute = AdminTasksNewImport.update({
+  id: '/tasks/new',
+  path: '/tasks/new',
   getParentRoute: () => AdminRoute,
 } as any)
 
@@ -165,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTasksTaskIdImport
       parentRoute: typeof AdminImport
     }
+    '/admin/tasks/new': {
+      id: '/admin/tasks/new'
+      path: '/tasks/new'
+      fullPath: '/admin/tasks/new'
+      preLoaderRoute: typeof AdminTasksNewImport
+      parentRoute: typeof AdminImport
+    }
     '/admin/users/$userId': {
       id: '/admin/users/$userId'
       path: '/users/$userId'
@@ -194,6 +208,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AdminTasksTaskIdRoute: typeof AdminTasksTaskIdRoute
+  AdminTasksNewRoute: typeof AdminTasksNewRoute
   AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
   AdminTasksIndexRoute: typeof AdminTasksIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
@@ -202,6 +217,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminTasksTaskIdRoute: AdminTasksTaskIdRoute,
+  AdminTasksNewRoute: AdminTasksNewRoute,
   AdminUsersUserIdRoute: AdminUsersUserIdRoute,
   AdminTasksIndexRoute: AdminTasksIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
@@ -233,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/admin/tasks/$taskId': typeof AdminTasksTaskIdRoute
+  '/admin/tasks/new': typeof AdminTasksNewRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/admin/tasks': typeof AdminTasksIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
@@ -246,6 +263,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/tasks': typeof TasksIndexRoute
   '/admin/tasks/$taskId': typeof AdminTasksTaskIdRoute
+  '/admin/tasks/new': typeof AdminTasksNewRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/admin/tasks': typeof AdminTasksIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
@@ -262,6 +280,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/admin/tasks/$taskId': typeof AdminTasksTaskIdRoute
+  '/admin/tasks/new': typeof AdminTasksNewRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/admin/tasks/': typeof AdminTasksIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
@@ -279,6 +298,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/tasks/'
     | '/admin/tasks/$taskId'
+    | '/admin/tasks/new'
     | '/admin/users/$userId'
     | '/admin/tasks'
     | '/admin/users'
@@ -291,6 +311,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/tasks'
     | '/admin/tasks/$taskId'
+    | '/admin/tasks/new'
     | '/admin/users/$userId'
     | '/admin/tasks'
     | '/admin/users'
@@ -305,6 +326,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/tasks/'
     | '/admin/tasks/$taskId'
+    | '/admin/tasks/new'
     | '/admin/users/$userId'
     | '/admin/tasks/'
     | '/admin/users/'
@@ -349,6 +371,7 @@ export const routeTree = rootRoute
       "children": [
         "/admin/",
         "/admin/tasks/$taskId",
+        "/admin/tasks/new",
         "/admin/users/$userId",
         "/admin/tasks/",
         "/admin/users/"
@@ -383,6 +406,10 @@ export const routeTree = rootRoute
     },
     "/admin/tasks/$taskId": {
       "filePath": "admin/tasks/$taskId.tsx",
+      "parent": "/admin"
+    },
+    "/admin/tasks/new": {
+      "filePath": "admin/tasks/new.tsx",
       "parent": "/admin"
     },
     "/admin/users/$userId": {

@@ -6,6 +6,7 @@ export interface EntityListProps<TData extends { id: string }> {
 	data: TData[];
 	columns: TableDefinition<TData>;
 	onRowClick?: (row: TData) => void;
+	onAdd?: () => void;
 }
 
 export function EntityList<TData extends { id: string }>({
@@ -13,10 +14,22 @@ export function EntityList<TData extends { id: string }>({
 	data,
 	columns,
 	onRowClick,
+	onAdd,
 }: EntityListProps<TData>) {
 	return (
 		<div className="container mx-auto flex flex-col gap-4 p-6">
-			<h1 className="text-2xl font-bold">{title}</h1>
+			<div className="flex items-center justify-between">
+				<h1 className="text-2xl font-bold">{title}</h1>
+				{onAdd && (
+					<button
+						type="button"
+						onClick={onAdd}
+						className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+					>
+						Add New
+					</button>
+				)}
+			</div>
 			<Table>
 				<Table.Thead>
 					<Table.Tr>

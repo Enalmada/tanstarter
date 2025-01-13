@@ -87,6 +87,7 @@ function TasksComponent() {
 			data={tasks}
 			columns={columns}
 			onRowClick={(row: Task) => navigate({ to: `/admin/tasks/${row.id}` })}
+			onAdd={() => navigate({ to: "/admin/tasks/new" })}
 		/>
 	);
 }

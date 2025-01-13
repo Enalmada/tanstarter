@@ -27,6 +27,8 @@
 		"test:unit:coverage": "cross-env NODE_ENV=test dotenv -e .env.test.local -e .env.test -- vitest --coverage",
 		"test:unit:watch": "cross-env NODE_ENV=test dotenv -o -e .env.test.local -e .env.test -- vitest watch",
 		"test:e2e": "playwright test",
+		"test:e2e:member": "playwright test --project=member",
+		"test:e2e:admin": "playwright test --project=admin",
 		"test:e2e:ui": "playwright test --ui",
 		"test:e2e:debug": "playwright test --debug",
 		"test:e2e:codegen": "playwright codegen http://localhost:3000",

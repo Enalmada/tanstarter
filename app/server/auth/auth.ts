@@ -9,9 +9,18 @@ import { eq } from "drizzle-orm";
 import { deleteCookie, getCookie, setCookie } from "vinxi/http";
 
 import db from "~/server/db";
-import { type Session, SessionTable, UserTable } from "~/server/db/schema";
+import {
+	type Session,
+	SessionTable,
+	UserRole,
+	UserTable,
+} from "~/server/db/schema";
 
 export const SESSION_COOKIE_NAME = "session";
+
+// Special tokens for Playwright tests
+const PLAYWRIGHT_TEST_TOKEN = "playwright-test-token";
+const PLAYWRIGHT_ADMIN_TEST_TOKEN = "playwright-admin-test-token";
 
 export function generateSessionToken(): string {
 	const bytes = new Uint8Array(20);
@@ -34,6 +43,58 @@ export async function createSession(
 }
 
 export async function validateSessionToken(token: string) {
+	// Handle Playwright test tokens in development
+	if (process.env.NODE_ENV === "development") {
+		if (
+			token === PLAYWRIGHT_TEST_TOKEN ||
+			token === PLAYWRIGHT_ADMIN_TEST_TOKEN
+		) {
+			const isAdmin = token === PLAYWRIGHT_ADMIN_TEST_TOKEN;
+			const email = isAdmin ? "admin@example.com" : "test@example.com";
+			const name = isAdmin ? "Test Admin" : "Test User";
+			const role = isAdmin ? UserRole.ADMIN : UserRole.MEMBER;
+
+			// Create or find test user
+			const testUser = await db.query.UserTable.findFirst({
+				where: eq(UserTable.email, email),
+			});
+
+			if (testUser) {
+				return {
+					session: {
+						id: "test-session-id",
+						userId: testUser.id,
+						expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+					},
+					user: testUser,
+				};
+			}
+
+			// Create test user if it doesn't exist
+			const [newTestUser] = await db
+				.insert(UserTable)
+				.values({
+					email,
+					name,
+					role,
+					version: 1,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				})
+				.returning();
+
+			return {
+				session: {
+					id: "test-session-id",
+					userId: newTestUser.id,
+					expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+				},
+				user: newTestUser,
+			};
+		}
+	}
+
+	// Normal session validation
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 	const result = await db
 		.select({
@@ -41,8 +102,6 @@ export async function validateSessionToken(token: string) {
 				// Only return the necessary user data for the client
 				id: UserTable.id,
 				name: UserTable.name,
-				// first_name: userTable.first_name,
-				// last_name: userTable.last_name,
 				role: UserTable.role,
 				avatarUrl: UserTable.avatarUrl,
 				email: UserTable.email,
