@@ -12,6 +12,7 @@ import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { type Task, TaskStatus } from "~/server/db/schema";
+import { deleteEntity } from "~/server/services/base-service";
 import { clientTaskService } from "~/server/services/task-service";
 import { queries } from "~/utils/query/queries";
 
@@ -23,6 +24,8 @@ export function TaskList({
 	const [errorMessage, setErrorMessage] = useState("");
 	const [pendingTaskIds] = useState(() => new Set<string>());
 	const [pendingDeleteIds] = useState(() => new Set<string>());
+	// Track optimistic versions
+	const [optimisticVersions] = useState(() => new Map<string, number>());
 
 	const updateTaskMutation = useMutation({
 		mutationFn: async ({
@@ -40,6 +43,8 @@ export function TaskList({
 					data.description === undefined
 						? currentTask.description
 						: data.description,
+				// Always send the original version for server validation
+				version: currentTask.version,
 			};
 			const result = await clientTaskService.updateTask({
 				data: {
@@ -69,10 +74,18 @@ export function TaskList({
 				queries.task.detail(taskId).queryKey,
 			);
 
+			// Get the current optimistic version or use the task's version
+			const currentVersion =
+				optimisticVersions.get(taskId) ?? currentTask.version;
+			const nextVersion = currentVersion + 1;
+			// Store the next version we expect
+			optimisticVersions.set(taskId, nextVersion);
+
 			// Create optimistic task with explicit description handling
 			const optimisticTask: Task = {
 				...currentTask,
 				...data,
+				version: nextVersion,
 				updatedAt: new Date(),
 			};
 
@@ -99,9 +112,15 @@ export function TaskList({
 					queries.task.detail(taskId).queryKey,
 					updatedTask,
 				);
+				// Update our tracked version with the server version
+				optimisticVersions.set(taskId, updatedTask.version);
 			}
 			if (taskId) {
 				pendingTaskIds.delete(taskId);
+				if (error) {
+					// If there was an error, clear the optimistic version
+					optimisticVersions.delete(taskId);
+				}
 			}
 		},
 		onSuccess: () => {
@@ -128,10 +147,10 @@ export function TaskList({
 
 	const deleteTaskMutation = useMutation({
 		mutationFn: async ({ id }: { id: string }) => {
-			const result = await clientTaskService.deleteTask({
-				data: { id },
+			const result = await deleteEntity({
+				data: { id, subject: "Task" },
 			});
-			return id;
+			return result.id;
 		},
 		onMutate: async ({ id }) => {
 			setErrorMessage("");

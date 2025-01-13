@@ -197,6 +197,7 @@ export const createTask = createServerFn({ method: "POST" })
 	.handler(async ({ data, context }) => {
 		const createWith = {
 			...data,
+			userId: context.user.id,
 			createdById: context.user.id,
 			updatedById: context.user.id,
 			version: 1,
@@ -206,7 +207,7 @@ export const createTask = createServerFn({ method: "POST" })
 
 		const [result] = await DB.insert(TaskTable)
 			.values({
-				...data,
+				...createWith,
 			})
 			.returning();
 
@@ -249,6 +250,7 @@ export const updateTask = createServerFn({ method: "POST" })
 		return result;
 	});
 
+/*
 export const deleteTask = createServerFn({ method: "POST" })
 	.validator(validateId)
 	.middleware([authMiddleware])
@@ -269,6 +271,7 @@ export const deleteTask = createServerFn({ method: "POST" })
 
 		return result;
 	});
+	*/
 
 // Create service objects that use the server functions
 export const adminTaskService = {
@@ -276,7 +279,6 @@ export const adminTaskService = {
 	fetchTask,
 	createTask,
 	updateTask,
-	deleteTask,
 };
 
 export const clientTaskService = {
@@ -284,5 +286,4 @@ export const clientTaskService = {
 	fetchTask,
 	createTask,
 	updateTask,
-	deleteTask,
 };

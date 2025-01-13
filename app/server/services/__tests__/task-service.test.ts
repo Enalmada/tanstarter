@@ -1,4 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
+import {
+	baseEntityMock,
+	mockUserId,
+} from "~/server/services/__tests__/base-service.test";
+import { type Task, TaskStatus } from "../../db/schema";
 
 type HandlerFn = (...args: unknown[]) => unknown;
 
@@ -19,31 +24,41 @@ vi.mock("~/middleware/auth-guard", () => ({
 	authMiddleware: vi.fn(),
 }));
 
-import { TaskStatus } from "../../db/schema";
+// biome-ignore lint/suspicious/noExportsInTest: <explanation>
+export const mockTaskId = "tsk_1";
+const fixedDate = new Date("2023-08-28T21:37:27.238Z");
+
+const mockTask: Task = {
+	id: mockTaskId,
+	title: "Task 1",
+	description: null,
+	dueDate: fixedDate,
+	status: TaskStatus.ACTIVE,
+	userId: mockUserId,
+	...baseEntityMock,
+};
+
+const mockTaskInput = {
+	title: mockTask.title,
+	description: mockTask.description,
+	status: mockTask.status,
+	dueDate: mockTask.dueDate,
+};
+
 import { validateNewTask, validateUpdateTask } from "../task-service";
 
 describe("task-service validation", () => {
 	describe("validateNewTask", () => {
 		it("should validate a valid task", () => {
-			const validInput = {
-				title: "Test Task",
-				description: "Test Description",
-				status: TaskStatus.ACTIVE,
-				dueDate: new Date(),
-			};
-			const result = validateNewTask(validInput);
+			const result = validateNewTask(mockTaskInput);
 			expect(result).toEqual({
-				...validInput,
+				...mockTaskInput,
 				userId: "",
 			});
 		});
 
 		it("should throw error for missing title", () => {
-			const invalidInput = {
-				description: "Test Description",
-				status: TaskStatus.ACTIVE,
-				dueDate: new Date(),
-			};
+			const { title, ...invalidInput } = mockTaskInput;
 			expect(() => validateNewTask(invalidInput)).toThrow(
 				"Invalid task data: title: Invalid type: Expected string but received undefined",
 			);
@@ -51,10 +66,8 @@ describe("task-service validation", () => {
 
 		it("should throw error for invalid status", () => {
 			const invalidInput = {
-				title: "Test Task",
-				description: "Test Description",
+				...mockTaskInput,
 				status: "INVALID",
-				dueDate: new Date(),
 			};
 			expect(() => validateNewTask(invalidInput)).toThrow(
 				'Invalid task data: status: Invalid type: Expected ("ACTIVE" | "COMPLETED") but received "INVALID"',
@@ -63,9 +76,7 @@ describe("task-service validation", () => {
 
 		it("should throw error for invalid date", () => {
 			const invalidInput = {
-				title: "Test Task",
-				description: "Test Description",
-				status: TaskStatus.ACTIVE,
+				...mockTaskInput,
 				dueDate: "invalid-date",
 			};
 			expect(() => validateNewTask(invalidInput)).toThrow(
@@ -75,37 +86,20 @@ describe("task-service validation", () => {
 	});
 
 	describe("validateUpdateTask", () => {
+		const validUpdateInput = {
+			id: mockTaskId,
+			data: mockTaskInput,
+		};
+
 		it("should validate a valid update", () => {
-			const validInput = {
-				id: "123",
-				data: {
-					title: "Updated Task",
-					description: "Updated Description",
-					status: TaskStatus.ACTIVE,
-					dueDate: new Date(),
-				},
-			};
-			const result = validateUpdateTask(validInput);
-			expect(result).toEqual({
-				id: "123",
-				data: {
-					title: "Updated Task",
-					description: "Updated Description",
-					status: TaskStatus.ACTIVE,
-					dueDate: validInput.data.dueDate,
-				},
-			});
+			const result = validateUpdateTask(validUpdateInput);
+			expect(result).toEqual(validUpdateInput);
 		});
 
 		it("should throw error for invalid id", () => {
 			const invalidInput = {
+				...validUpdateInput,
 				id: "",
-				data: {
-					title: "Updated Task",
-					description: "Updated Description",
-					status: TaskStatus.ACTIVE,
-					dueDate: new Date(),
-				},
 			};
 			expect(() => validateUpdateTask(invalidInput)).toThrow(
 				"Invalid task data: ID cannot be empty",
@@ -114,12 +108,10 @@ describe("task-service validation", () => {
 
 		it("should throw error for invalid status", () => {
 			const invalidInput = {
-				id: "123",
+				...validUpdateInput,
 				data: {
-					title: "Updated Task",
-					description: "Updated Description",
+					...mockTaskInput,
 					status: "INVALID",
-					dueDate: new Date(),
 				},
 			};
 			expect(() => validateUpdateTask(invalidInput)).toThrow(

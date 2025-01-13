@@ -8,10 +8,8 @@ import { showToast } from "~/components/Toast";
 import { AdminTaskForm, type TaskFormData } from "~/components/admin/TaskForm";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { Task } from "~/server/db/schema";
-import {
-	adminTaskService,
-	clientTaskService,
-} from "~/server/services/task-service";
+import { deleteEntity } from "~/server/services/base-service";
+import { adminTaskService } from "~/server/services/task-service";
 import { adminQueries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/admin/tasks/$taskId")({
@@ -36,7 +34,10 @@ function AdminEditTask() {
 			const result = await adminTaskService.updateTask({
 				data: {
 					id: task.id,
-					data,
+					data: {
+						...data,
+						version: task.version,
+					},
 				},
 			});
 			return result;
@@ -65,6 +66,7 @@ function AdminEditTask() {
 			const optimisticTask: Task = {
 				...task,
 				...newData,
+				version: task.version + 1,
 				updatedAt: new Date(now),
 			};
 
@@ -130,10 +132,10 @@ function AdminEditTask() {
 
 	const deleteTaskMutation = useMutation({
 		mutationFn: async () => {
-			const result = await clientTaskService.deleteTask({
-				data: { id: task.id },
+			const result = await deleteEntity({
+				data: { id: task.id, subject: "Task" },
 			});
-			return result;
+			return result.id;
 		},
 		onMutate: async () => {
 			// Cancel any outgoing refetches

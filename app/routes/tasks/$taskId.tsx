@@ -20,6 +20,7 @@ import { TaskForm } from "~/components/TaskForm";
 import { showToast } from "~/components/Toast";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { Task, TaskStatusType } from "~/server/db/schema";
+import { deleteEntity } from "~/server/services/base-service";
 import { clientTaskService } from "~/server/services/task-service";
 import { queries } from "~/utils/query/queries";
 
@@ -53,7 +54,10 @@ function EditTask() {
 			const result = await clientTaskService.updateTask({
 				data: {
 					id: task.id,
-					data,
+					data: {
+						...data,
+						version: task.version,
+					},
 				},
 			});
 			return result;
@@ -82,6 +86,7 @@ function EditTask() {
 			const optimisticTask: Task = {
 				...task,
 				...newData,
+				version: task.version + 1,
 				updatedAt: new Date(now),
 			};
 
@@ -147,10 +152,10 @@ function EditTask() {
 
 	const deleteTaskMutation = useMutation({
 		mutationFn: async () => {
-			const result = await clientTaskService.deleteTask({
-				data: { id: task.id },
+			const result = await deleteEntity({
+				data: { id: task.id, subject: "Task" },
 			});
-			return result;
+			return result.id;
 		},
 		onMutate: async () => {
 			// Cancel any outgoing refetches

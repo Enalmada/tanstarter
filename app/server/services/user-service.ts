@@ -130,6 +130,7 @@ export const updateUser = createServerFn({ method: "POST" })
 		return result;
 	});
 
+/*
 export const deleteUser = createServerFn({ method: "POST" })
 	.validator(validateId)
 	.middleware([authMiddleware])
@@ -150,6 +151,7 @@ export const deleteUser = createServerFn({ method: "POST" })
 
 		return result;
 	});
+*/
 
 // Create service objects that use the server functions
 export const adminUserService = {
@@ -157,7 +159,6 @@ export const adminUserService = {
 	fetchUser,
 	createUser,
 	updateUser,
-	deleteUser,
 };
 
 export const clientUserService = {

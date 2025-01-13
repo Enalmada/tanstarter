@@ -8,6 +8,7 @@ import { showToast } from "~/components/Toast";
 import { AdminUserForm, type UserFormData } from "~/components/admin/UserForm";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { User } from "~/server/db/schema";
+import { deleteEntity } from "~/server/services/base-service";
 import { adminUserService } from "~/server/services/user-service";
 import { adminQueries } from "~/utils/query/queries";
 
@@ -33,7 +34,10 @@ function AdminEditUser() {
 			const result = await adminUserService.updateUser({
 				data: {
 					id: user.id,
-					data,
+					data: {
+						...data,
+						version: user.version,
+					},
 				},
 			});
 			return result;
@@ -64,6 +68,7 @@ function AdminEditUser() {
 				email: newData.email,
 				name: newData.name,
 				role: newData.role,
+				version: user.version + 1,
 				updatedAt: new Date(now),
 			};
 
@@ -129,10 +134,10 @@ function AdminEditUser() {
 
 	const deleteUserMutation = useMutation({
 		mutationFn: async () => {
-			const result = await adminUserService.deleteUser({
-				data: { id: user.id },
+			const result = await deleteEntity({
+				data: { id: user.id, subject: "User" },
 			});
-			return result;
+			return result.id;
 		},
 		onMutate: async () => {
 			// Cancel any outgoing refetches
