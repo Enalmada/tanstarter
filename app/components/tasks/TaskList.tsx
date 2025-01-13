@@ -15,7 +15,10 @@ import { type Task, TaskStatus } from "~/server/db/schema";
 import { clientTaskService } from "~/server/services/task-service";
 import { queries } from "~/utils/query/queries";
 
-export function TaskList({ tasks }: { tasks: Task[] }) {
+export function TaskList({
+	userId,
+	tasks,
+}: { userId: string | undefined; tasks: Task[] }) {
 	const queryClient = useQueryClient();
 	const [errorMessage, setErrorMessage] = useState("");
 	const [pendingTaskIds] = useState(() => new Set<string>());
@@ -53,14 +56,14 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
 				queryKey: [
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					queries.task.detail(taskId).queryKey,
 				],
 			});
 
 			// Snapshot the previous values
 			const previousTasks = queryClient.getQueryData<Task[]>(
-				queries.task.list.queryKey,
+				queries.task.list(userId).queryKey,
 			);
 			const previousTask = queryClient.getQueryData<Task>(
 				queries.task.detail(taskId).queryKey,
@@ -70,12 +73,13 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			const optimisticTask: Task = {
 				...currentTask,
 				...data,
-				updated_at: new Date(),
+				updatedAt: new Date(),
 			};
 
 			// Optimistically update both caches
-			queryClient.setQueryData<Task[]>(queries.task.list.queryKey, (old = []) =>
-				old.map((t) => (t.id === taskId ? optimisticTask : t)),
+			queryClient.setQueryData<Task[]>(
+				queries.task.list(userId).queryKey,
+				(old = []) => old.map((t) => (t.id === taskId ? optimisticTask : t)),
 			);
 			queryClient.setQueryData(
 				queries.task.detail(taskId).queryKey,
@@ -88,7 +92,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			if (updatedTask && context) {
 				// Update both caches with the actual server data
 				queryClient.setQueryData<Task[]>(
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					(old = []) => old.map((t) => (t.id === taskId ? updatedTask : t)),
 				);
 				queryClient.setQueryData(
@@ -113,7 +117,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			}
 			if (context?.previousTasks) {
 				queryClient.setQueryData(
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					context.previousTasks,
 				);
 			}
@@ -136,22 +140,23 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
 				queryKey: [
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					queries.task.detail(id).queryKey,
 				],
 			});
 
 			// Snapshot the previous values
 			const previousTasks = queryClient.getQueryData<Task[]>(
-				queries.task.list.queryKey,
+				queries.task.list(userId).queryKey,
 			);
 			const previousTask = queryClient.getQueryData<Task>(
 				queries.task.detail(id).queryKey,
 			);
 
 			// Optimistically remove from both caches
-			queryClient.setQueryData<Task[]>(queries.task.list.queryKey, (old = []) =>
-				old.filter((t) => t.id !== id),
+			queryClient.setQueryData<Task[]>(
+				queries.task.list(userId).queryKey,
+				(old = []) => old.filter((t) => t.id !== id),
 			);
 			queryClient.removeQueries({
 				queryKey: queries.task.detail(id).queryKey,
@@ -165,7 +170,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 				// Ensure id exists before using queries.task.detail
 				if (id) {
 					queryClient.setQueryData<Task[]>(
-						queries.task.list.queryKey,
+						queries.task.list(userId).queryKey,
 						(old = []) => old.filter((t) => t.id !== id),
 					);
 					queryClient.removeQueries({
@@ -187,7 +192,10 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 			// For other errors, revert both caches
 			const previousData = [
 				{ key: queries.task.detail(id).queryKey, data: context?.previousTask },
-				{ key: queries.task.list.queryKey, data: context?.previousTasks },
+				{
+					key: queries.task.list(userId).queryKey,
+					data: context?.previousTasks,
+				},
 			];
 
 			for (const { key, data } of previousData) {
@@ -228,7 +236,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 										data: {
 											title: task.title,
 											description: task.description,
-											due_date: task.due_date,
+											dueDate: task.dueDate,
 											status:
 												task.status === TaskStatus.ACTIVE
 													? TaskStatus.COMPLETED
@@ -257,9 +265,9 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
 										{task.description}
 									</Text>
 								)}
-								{task.due_date && (
+								{task.dueDate && (
 									<Text size="xs" c="dimmed">
-										Due: {new Date(task.due_date).toLocaleDateString()}
+										Due: {new Date(task.dueDate).toLocaleDateString()}
 									</Text>
 								)}
 							</div>

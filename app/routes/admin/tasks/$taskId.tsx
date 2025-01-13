@@ -65,7 +65,7 @@ function AdminEditTask() {
 			const optimisticTask: Task = {
 				...task,
 				...newData,
-				updated_at: new Date(now),
+				updatedAt: new Date(now),
 			};
 
 			// Optimistically update both caches

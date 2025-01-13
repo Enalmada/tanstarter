@@ -1,114 +1,129 @@
 import { describe, expect, it, vi } from "vitest";
-import { TaskStatus } from "../../db/schema";
-import "./setup";
 
-// Import the validation functions directly
-const { validateNewTask, validateUpdateTask } = await import("../task-service");
+type HandlerFn = (...args: unknown[]) => unknown;
 
-// Mock TanStack Start
 vi.mock("@tanstack/start", () => ({
 	createServerFn: () => ({
-		handler: (fn: (...args: unknown[]) => unknown) => fn,
 		validator: () => ({
-			handler: (fn: (...args: unknown[]) => unknown) => fn,
+			middleware: () => ({
+				handler: (fn: HandlerFn) => fn,
+			}),
+		}),
+		middleware: () => ({
+			handler: (fn: HandlerFn) => fn,
 		}),
 	}),
 }));
 
+vi.mock("~/middleware/auth-guard", () => ({
+	authMiddleware: vi.fn(),
+}));
+
+import { TaskStatus } from "../../db/schema";
+import { validateNewTask, validateUpdateTask } from "../task-service";
+
 describe("task-service validation", () => {
 	describe("validateNewTask", () => {
 		it("should validate a valid task", () => {
-			const validTask = {
+			const validInput = {
 				title: "Test Task",
 				description: "Test Description",
 				status: TaskStatus.ACTIVE,
-				due_date: new Date().toISOString(),
+				dueDate: new Date(),
 			};
-
-			const result = validateNewTask(validTask);
-			expect(result).toMatchObject({
-				title: validTask.title,
-				description: validTask.description,
-				status: validTask.status,
-				user_id: "", // This gets set in the handler
+			const result = validateNewTask(validInput);
+			expect(result).toEqual({
+				...validInput,
+				userId: "",
 			});
-			expect(result.due_date).toBeInstanceOf(Date);
 		});
 
-		it("should use ACTIVE as default status", () => {
-			const taskWithoutStatus = {
+		it("should throw error for missing title", () => {
+			const invalidInput = {
+				description: "Test Description",
+				status: TaskStatus.ACTIVE,
+				dueDate: new Date(),
+			};
+			expect(() => validateNewTask(invalidInput)).toThrow(
+				"Invalid task data: title: Invalid type: Expected string but received undefined",
+			);
+		});
+
+		it("should throw error for invalid status", () => {
+			const invalidInput = {
 				title: "Test Task",
 				description: "Test Description",
-				due_date: new Date().toISOString(),
+				status: "INVALID",
+				dueDate: new Date(),
 			};
-
-			const result = validateNewTask(taskWithoutStatus);
-			expect(result.status).toBe(TaskStatus.ACTIVE);
-		});
-
-		it("should throw error for invalid task", () => {
-			const invalidTask = {
-				// Missing required title
-				description: "Test Description",
-			};
-
-			expect(() => validateNewTask(invalidTask)).toThrow("Invalid task data");
+			expect(() => validateNewTask(invalidInput)).toThrow(
+				'Invalid task data: status: Invalid type: Expected ("ACTIVE" | "COMPLETED") but received "INVALID"',
+			);
 		});
 
 		it("should throw error for invalid date", () => {
-			const invalidTask = {
+			const invalidInput = {
 				title: "Test Task",
 				description: "Test Description",
-				due_date: "not-a-date",
+				status: TaskStatus.ACTIVE,
+				dueDate: "invalid-date",
 			};
-
-			expect(() => validateNewTask(invalidTask)).toThrow("Invalid task data");
+			expect(() => validateNewTask(invalidInput)).toThrow(
+				"Invalid task data: dueDate: Invalid date format",
+			);
 		});
 	});
 
 	describe("validateUpdateTask", () => {
 		it("should validate a valid update", () => {
-			const validUpdate = {
+			const validInput = {
 				id: "123",
 				data: {
-					title: "Updated Title",
-					status: TaskStatus.COMPLETED,
+					title: "Updated Task",
+					description: "Updated Description",
+					status: TaskStatus.ACTIVE,
+					dueDate: new Date(),
 				},
 			};
-
-			const result = validateUpdateTask(validUpdate);
-			expect(result).toMatchObject({
-				id: validUpdate.id,
+			const result = validateUpdateTask(validInput);
+			expect(result).toEqual({
+				id: "123",
 				data: {
-					title: validUpdate.data.title,
-					status: validUpdate.data.status,
+					title: "Updated Task",
+					description: "Updated Description",
+					status: TaskStatus.ACTIVE,
+					dueDate: validInput.data.dueDate,
 				},
 			});
 		});
 
 		it("should throw error for invalid id", () => {
-			const invalidUpdate = {
-				id: "", // Empty ID
+			const invalidInput = {
+				id: "",
 				data: {
-					title: "Updated Title",
+					title: "Updated Task",
+					description: "Updated Description",
+					status: TaskStatus.ACTIVE,
+					dueDate: new Date(),
 				},
 			};
-
-			expect(() => validateUpdateTask(invalidUpdate)).toThrow(
-				"Invalid task data",
+			expect(() => validateUpdateTask(invalidInput)).toThrow(
+				"Invalid task data: ID cannot be empty",
 			);
 		});
 
 		it("should throw error for invalid status", () => {
-			const invalidUpdate = {
+			const invalidInput = {
 				id: "123",
 				data: {
-					status: "INVALID_STATUS",
+					title: "Updated Task",
+					description: "Updated Description",
+					status: "INVALID",
+					dueDate: new Date(),
 				},
 			};
-
-			expect(() => validateUpdateTask(invalidUpdate)).toThrow(
-				"Invalid task data",
+			expect(() => validateUpdateTask(invalidInput)).toThrow(
+				'Invalid task data: data: Invalid type: Expected ("ACTIVE" | "COMPLETED") but received "INVALID"',
 			);
 		});
 	});

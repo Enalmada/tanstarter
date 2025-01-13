@@ -30,3 +30,5 @@ public/swe-worker*
 # Playwright
 /playwright/
 !playwright.config.ts
+playwright-report/
+test-results/

@@ -32,7 +32,7 @@ export type OAuthProvider = {
 	formatUserForDatabase: (user: GoogleUser | GitHubUser | DiscordUser) => {
 		email: string;
 		name: string;
-		avatar_url: string | null;
+		avatarUrl: string | null;
 	};
 };
 

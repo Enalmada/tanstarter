@@ -1,6 +1,7 @@
 import { createMiddleware } from "@tanstack/start";
 import { setResponseStatus } from "vinxi/http";
 import { getAuthSession } from "~/server/auth/auth";
+import type { ClientUser } from "~/server/db/schema";
 
 /**
  * Authentication middleware
@@ -12,7 +13,7 @@ import { getAuthSession } from "~/server/auth/auth";
  * Middleware to force authentication on a server function, and add the user to the context.
  */
 export const authMiddleware = createMiddleware().server(async ({ next }) => {
-	const { user } = await getAuthSession();
+	const { user }: { user: ClientUser | null } = await getAuthSession();
 
 	if (!user) {
 		setResponseStatus(401);

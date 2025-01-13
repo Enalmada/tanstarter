@@ -64,7 +64,7 @@ function AdminEditUser() {
 				email: newData.email,
 				name: newData.name,
 				role: newData.role,
-				updated_at: new Date(now),
+				updatedAt: new Date(now),
 			};
 
 			// Optimistically update both caches

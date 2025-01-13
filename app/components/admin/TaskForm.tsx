@@ -8,14 +8,14 @@ import { TaskStatus, taskFormSchema } from "~/server/db/schema";
 type FormFields = {
 	title: string;
 	description: string | null;
-	due_date: string | null;
+	dueDate: string | null;
 	status: TaskStatusType;
 };
 
 export type TaskFormData = {
 	title: string;
 	description: string | null;
-	due_date: Date | null;
+	dueDate: Date | null;
 	status: TaskStatusType;
 };
 
@@ -36,8 +36,8 @@ export function AdminTaskForm({
 		defaultValues: {
 			title: defaultValues?.title ?? "",
 			description: defaultValues?.description ?? null,
-			due_date: defaultValues?.due_date
-				? new Date(defaultValues.due_date).toISOString().split("T")[0]
+			dueDate: defaultValues?.dueDate
+				? new Date(defaultValues.dueDate).toISOString().split("T")[0]
 				: null,
 			status: defaultValues?.status ?? TaskStatus.ACTIVE,
 		},
@@ -46,7 +46,7 @@ export function AdminTaskForm({
 				const formData = {
 					title: value.title,
 					description: value.description,
-					due_date: value.due_date ? new Date(value.due_date) : null,
+					dueDate: value.dueDate ? new Date(value.dueDate) : null,
 					status: value.status,
 				} satisfies TaskFormData;
 
@@ -106,7 +106,7 @@ export function AdminTaskForm({
 					)}
 				</form.Field>
 
-				<form.Field name="due_date">
+				<form.Field name="dueDate">
 					{(field) => (
 						<TextInput
 							type="date"

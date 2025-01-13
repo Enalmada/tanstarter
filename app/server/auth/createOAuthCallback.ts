@@ -11,13 +11,13 @@ import {
 	generateSessionToken,
 	setSessionTokenCookie,
 } from "~/server/auth/auth";
-import db, { withTransaction } from "~/server/db";
-import { oauthAccount, user } from "~/server/db/schema";
+import db from "~/server/db";
+import { OAuthAccountTable, UserTable } from "~/server/db/schema";
+import { UserRole } from "~/server/db/schema";
 
 export function createOAuthCallback(providerId: string) {
 	return createAPIFileRoute(`/api/auth/callback/${providerId}`)({
 		GET: async ({ request }) => {
-			// Initialize Google with our env helper
 			const google = new Google(
 				env.GOOGLE_CLIENT_ID,
 				env.GOOGLE_CLIENT_SECRET,
@@ -33,12 +33,6 @@ export function createOAuthCallback(providerId: string) {
 			const storedCodeVerifier = cookies[`${providerId}_code_verifier`];
 
 			if (!code || !state || !storedState || state !== storedState) {
-				console.error("OAuth validation failed:", {
-					hasCode: !!code,
-					hasState: !!state,
-					hasStoredState: !!storedState,
-					stateMatch: state === storedState,
-				});
 				return new Response(null, { status: 400 });
 			}
 
@@ -47,26 +41,28 @@ export function createOAuthCallback(providerId: string) {
 					code,
 					storedCodeVerifier || "",
 				);
+
 				const userResponse = await fetch(
 					"https://openidconnect.googleapis.com/v1/userinfo",
 					{
 						headers: { Authorization: `Bearer ${tokens.accessToken()}` },
 					},
 				);
+
 				const providerUser = await userResponse.json();
 				const providerUserId = providerUser.sub;
 
-				const existingUser = await db.query.oauthAccount.findFirst({
+				const existingUser = await db.query.OAuthAccountTable.findFirst({
 					where: and(
-						eq(oauthAccount.provider_id, providerId),
-						eq(oauthAccount.provider_user_id, providerUserId),
+						eq(OAuthAccountTable.providerId, providerId),
+						eq(OAuthAccountTable.providerUserId, providerUserId),
 					),
 				});
 
 				if (existingUser) {
 					const token = generateSessionToken();
-					const session = await createSession(token, existingUser.user_id);
-					setSessionTokenCookie(token, session.expires_at);
+					const session = await createSession(token, existingUser.userId);
+					setSessionTokenCookie(token, session.expiresAt);
 					return new Response(null, {
 						status: 302,
 						headers: { Location: "/" },
@@ -76,54 +72,54 @@ export function createOAuthCallback(providerId: string) {
 				const userData = {
 					email: providerUser.email,
 					name: providerUser.name,
-					avatar_url: providerUser.picture,
+					avatarUrl: providerUser.picture,
+					version: 1,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+					role: UserRole.MEMBER,
+					createdById: null,
+					updatedById: null,
 				};
 
-				const existingUserEmail = await db.query.user.findFirst({
-					where: eq(user.email, userData.email),
+				const existingUserEmail = await db.query.UserTable.findFirst({
+					where: eq(UserTable.email, userData.email),
 				});
 
 				if (existingUserEmail) {
-					await db.insert(oauthAccount).values({
-						provider_id: providerId,
-						provider_user_id: providerUserId,
-						user_id: existingUserEmail.id,
+					await db.insert(OAuthAccountTable).values({
+						providerId: providerId,
+						providerUserId: providerUserId,
+						userId: existingUserEmail.id,
 					});
+
 					const token = generateSessionToken();
 					const session = await createSession(token, existingUserEmail.id);
-					setSessionTokenCookie(token, session.expires_at);
+					setSessionTokenCookie(token, session.expiresAt);
 					return new Response(null, {
 						status: 302,
 						headers: { Location: "/" },
 					});
 				}
 
-				const userId = await withTransaction(async (db) => {
-					return await db.transaction(async (tx) => {
-						const [{ newId }] = await tx
-							.insert(user)
-							.values(userData)
-							.returning({ newId: user.id });
+				const [{ newId }] = await db
+					.insert(UserTable)
+					.values(userData)
+					.returning({ newId: UserTable.id });
 
-						await tx.insert(oauthAccount).values({
-							provider_id: providerId,
-							provider_user_id: providerUserId,
-							user_id: newId,
-						});
-
-						return newId;
-					});
+				await db.insert(OAuthAccountTable).values({
+					providerId: providerId,
+					providerUserId: providerUserId,
+					userId: newId,
 				});
 
 				const token = generateSessionToken();
-				const session = await createSession(token, userId);
-				setSessionTokenCookie(token, session.expires_at);
+				const session = await createSession(token, newId);
+				setSessionTokenCookie(token, session.expiresAt);
 				return new Response(null, {
 					status: 302,
 					headers: { Location: "/" },
 				});
 			} catch (e) {
-				console.error("OAuth error:", e);
 				if (e instanceof OAuth2RequestError) {
 					return new Response(null, { status: 400 });
 				}

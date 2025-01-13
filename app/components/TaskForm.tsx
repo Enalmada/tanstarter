@@ -15,7 +15,7 @@ import { TaskStatus, taskFormSchema } from "~/server/db/schema";
 export type TaskFormData = {
 	title: string;
 	description: string | null;
-	due_date: Date | null;
+	dueDate: Date | null;
 	status: (typeof TaskStatus)[keyof typeof TaskStatus];
 };
 
@@ -36,9 +36,7 @@ export function TaskForm({
 		defaultValues: {
 			title: defaultValues?.title ?? "",
 			description: defaultValues?.description ?? null,
-			due_date: defaultValues?.due_date
-				? new Date(defaultValues.due_date)
-				: null,
+			dueDate: defaultValues?.dueDate ? new Date(defaultValues.dueDate) : null,
 			status: defaultValues?.status ?? TaskStatus.ACTIVE,
 		},
 		onSubmit: async ({ value }) => {
@@ -48,7 +46,7 @@ export function TaskForm({
 				onSubmit({
 					title: result.title,
 					description: result.description ?? null,
-					due_date: result.due_date,
+					dueDate: result.dueDate,
 					status: result.status,
 				});
 			} catch (err) {
@@ -113,7 +111,7 @@ export function TaskForm({
 					)}
 				</form.Field>
 
-				<form.Field name="due_date">
+				<form.Field name="dueDate">
 					{(field) => (
 						<TextInput
 							type="date"

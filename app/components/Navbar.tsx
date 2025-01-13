@@ -51,7 +51,7 @@ export function Navbar({ user }: NavbarProps) {
 						<Menu shadow="md" width={200}>
 							<Menu.Target>
 								<Avatar
-									src={user.avatar_url}
+									src={user.avatarUrl}
 									alt={user.name ?? ""}
 									className="cursor-pointer"
 								/>

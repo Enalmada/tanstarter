@@ -57,14 +57,32 @@ export async function withTransaction<T>(
 		db: ReturnType<typeof drizzleServerless<typeof schema>>,
 	) => Promise<T>,
 ): Promise<T> {
-	// Use env helper for DATABASE_URL
-	const pool = new Pool({ connectionString: env.DATABASE_URL });
-	const dbWithTx = drizzleServerless(pool, { schema });
-
+	let pool: Pool | undefined;
 	try {
+		// biome-ignore lint/suspicious/noConsoleLog: Debugging transaction issues
+		console.log("Creating pool for transaction");
+		pool = new Pool({ connectionString: env.DATABASE_URL });
+
+		// biome-ignore lint/suspicious/noConsoleLog: Debugging transaction issues
+		console.log("Creating drizzle instance");
+		const dbWithTx = drizzleServerless(pool, { schema });
+
+		// biome-ignore lint/suspicious/noConsoleLog: Debugging transaction issues
+		console.log("Starting operation");
 		return await operation(dbWithTx);
+	} catch (error) {
+		console.error("Transaction error:", {
+			error,
+			message: error instanceof Error ? error.message : "Unknown error",
+			stack: error instanceof Error ? error.stack : undefined,
+		});
+		throw error;
 	} finally {
-		await pool.end();
+		if (pool) {
+			// biome-ignore lint/suspicious/noConsoleLog: Debugging transaction issues
+			console.log("Closing pool");
+			await pool.end().catch(console.error);
+		}
 	}
 }
 

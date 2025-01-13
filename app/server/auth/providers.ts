@@ -98,21 +98,21 @@ export function getProviders(request?: Request): Record<string, OAuthProvider> {
 					return {
 						email: user.email,
 						name: user.name,
-						avatar_url: user.picture,
+						avatarUrl: user.picture,
 					};
 				}
 				if ("id" in user && "login" in user) {
 					return {
 						email: user.email,
 						name: user.name || user.login,
-						avatar_url: user.avatar_url,
+						avatarUrl: user.avatar_url,
 					};
 				}
 				if ("id" in user && "username" in user) {
 					return {
 						email: user.email,
 						name: user.global_name || user.username,
-						avatar_url: user.avatar
+						avatarUrl: user.avatar
 							? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}`
 							: null,
 					};

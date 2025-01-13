@@ -33,7 +33,7 @@ describe("TaskForm", () => {
 		const defaultValues = {
 			title: "Test Task",
 			description: "Test Description",
-			due_date: new Date("2024-03-20"),
+			dueDate: new Date("2024-03-20"),
 			status: TaskStatus.ACTIVE,
 		};
 
@@ -84,7 +84,7 @@ describe("TaskForm", () => {
 				title: "New Task",
 				description: "New Description",
 				status: TaskStatus.COMPLETED,
-				due_date: null,
+				dueDate: null,
 			});
 		});
 	});

@@ -37,7 +37,7 @@ describe("schema validation", () => {
 					title: "Test Task",
 					description: "Test Description",
 					status: TaskStatus.ACTIVE,
-					due_date: new Date(),
+					dueDate: new Date(),
 				};
 
 				const result = safeParse(taskFormSchema, validTask);
@@ -48,7 +48,7 @@ describe("schema validation", () => {
 						description: validTask.description,
 						status: validTask.status,
 					});
-					expect(result.output.due_date).toBeInstanceOf(Date);
+					expect(result.output.dueDate).toBeInstanceOf(Date);
 				}
 			});
 
@@ -57,7 +57,7 @@ describe("schema validation", () => {
 					title: "Test Task",
 					description: null,
 					status: TaskStatus.ACTIVE,
-					due_date: null,
+					dueDate: null,
 				};
 
 				const result = safeParse(taskFormSchema, minimalTask);
@@ -66,7 +66,7 @@ describe("schema validation", () => {
 					expect(result.output).toMatchObject({
 						title: minimalTask.title,
 						description: null,
-						due_date: null,
+						dueDate: null,
 						status: TaskStatus.ACTIVE,
 					});
 				}
@@ -77,7 +77,7 @@ describe("schema validation", () => {
 					{}, // Missing required title
 					{ title: "" }, // Empty title
 					{ title: "Test", status: "INVALID" }, // Invalid status
-					{ title: "Test", due_date: "invalid-date" }, // Invalid date
+					{ title: "Test", dueDate: "invalid-date" }, // Invalid date
 				];
 
 				for (const task of invalidTasks) {
@@ -92,8 +92,8 @@ describe("schema validation", () => {
 					title: "Test Task",
 					description: "Test Description",
 					status: TaskStatus.ACTIVE,
-					user_id: "usr_123",
-					due_date: new Date(),
+					userId: "usr_123",
+					dueDate: new Date(),
 				};
 
 				const result = safeParse(taskInsertSchema, validInsert);
@@ -106,7 +106,7 @@ describe("schema validation", () => {
 				const validUpdates = [
 					{ title: "Updated Title", status: TaskStatus.ACTIVE },
 					{ description: null, status: TaskStatus.COMPLETED },
-					{ due_date: new Date(), status: TaskStatus.ACTIVE },
+					{ dueDate: new Date(), status: TaskStatus.ACTIVE },
 				];
 
 				for (const update of validUpdates) {

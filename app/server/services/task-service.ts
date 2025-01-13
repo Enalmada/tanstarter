@@ -1,25 +1,43 @@
 /**
- * Task service implementation
- * Handles all task-related database operations
+ * Task Service
+ * Example of using the base service pattern for a new entity
+ *
+ * Steps to create a new entity service:
+ * 1. Define your schema in db/schema.ts
+ * 2. Add entity type to Subjects in auth/casl.ts
+ * 3. Add permissions for the entity in createAbility() in auth/casl.ts
+ * 4. Create a service following this pattern
  */
 
 import { createServerFn } from "@tanstack/start";
-import { eq } from "drizzle-orm";
-import { object, partial, safeParse, string } from "valibot";
+import { object, optional, safeParse, string } from "valibot";
 import DB from "../db";
+
+import { eq } from "drizzle-orm";
+import { authMiddleware } from "~/middleware/auth-guard";
+import { accessCheck } from "~/server/access/check";
+import { buildWhereClause } from "~/server/db/DrizzleOrm";
 import {
 	type TaskInsert,
 	TaskStatus,
-	task,
+	TaskTable,
 	taskFormSchema,
 } from "../db/schema";
-import { getAuthenticatedUser, validateId } from "./base-service";
+import { validateId } from "./helpers";
 
-// Valibot validators
-const updateTaskSchema = object({
-	id: string(),
-	data: partial(taskFormSchema), // Make all fields optional for updates
-});
+// Create the base service instance
+//const taskService = createBaseService<
+//	typeof TaskTable.$inferSelect,
+//	TaskInsert
+//>(TaskTable, "Task");
+
+export const subject = "Task";
+
+const validateFetchTasks = optional(
+	object({
+		userId: optional(string(), undefined),
+	}),
+);
 
 export function validateNewTask(input: unknown): TaskInsert {
 	if (!input || typeof input !== "object") {
@@ -34,17 +52,17 @@ export function validateNewTask(input: unknown): TaskInsert {
 
 	// Convert string date to Date object if needed
 	if (
-		"due_date" in processedInput &&
-		typeof processedInput.due_date === "string"
+		"dueDate" in processedInput &&
+		typeof processedInput.dueDate === "string"
 	) {
 		try {
-			const date = new Date(processedInput.due_date);
+			const date = new Date(processedInput.dueDate);
 			if (Number.isNaN(date.getTime())) {
 				throw new Error("Invalid date format");
 			}
-			processedInput.due_date = date;
+			processedInput.dueDate = date;
 		} catch {
-			throw new Error("Invalid task data: due_date: Invalid date format");
+			throw new Error("Invalid task data: dueDate: Invalid date format");
 		}
 	}
 
@@ -61,9 +79,14 @@ export function validateNewTask(input: unknown): TaskInsert {
 
 	return {
 		...result.output,
-		user_id: "", // Will be set in handler
+		userId: "", // Will be set in handler
 	};
 }
+
+const updateTaskSchema = object({
+	id: string(),
+	data: taskFormSchema,
+});
 
 export function validateUpdateTask(input: unknown): {
 	id: string;
@@ -91,20 +114,20 @@ export function validateUpdateTask(input: unknown): {
 		"data" in processedInput &&
 		typeof processedInput.data === "object" &&
 		processedInput.data &&
-		"due_date" in processedInput.data &&
-		typeof processedInput.data.due_date === "string"
+		"dueDate" in processedInput.data &&
+		typeof processedInput.data.dueDate === "string"
 	) {
 		try {
-			const date = new Date(processedInput.data.due_date);
+			const date = new Date(processedInput.data.dueDate);
 			if (Number.isNaN(date.getTime())) {
 				throw new Error("Invalid date format");
 			}
 			processedInput.data = {
 				...processedInput.data,
-				due_date: date,
+				dueDate: date,
 			};
 		} catch {
-			throw new Error("Invalid task data: due_date: Invalid date format");
+			throw new Error("Invalid task data: dueDate: Invalid date format");
 		}
 	}
 
@@ -120,84 +143,129 @@ export function validateUpdateTask(input: unknown): {
 	}
 
 	const { id, data } = result.output;
-	const { user_id, created_at, updated_at, ...updateData } = data;
+	const { userId, createdAt, updatedAt, ...updateData } = data;
 	return {
 		id,
 		data: updateData,
 	};
 }
 
-// Export server functions directly for TanStack Start to discover
-export const fetchTasks = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const user = await getAuthenticatedUser();
-		const tasks = await DB.select()
-			.from(task)
-			.where(eq(task.user_id, user.id))
-			.execute();
-		return tasks;
-	},
-);
-
 export const fetchTask = createServerFn({ method: "GET" })
 	.validator(validateId)
-	.handler(async ({ data: id }) => {
-		const user = await getAuthenticatedUser();
-		const [result] = await DB.select()
-			.from(task)
-			.where(eq(task.id, id))
-			.execute();
+	.middleware([authMiddleware])
+	.handler(async ({ data: id, context }) => {
+		const result = await DB.query.TaskTable.findFirst({
+			where: eq(TaskTable.id, id),
+		});
 
 		if (!result) {
 			throw new Error("Task not found");
 		}
 
+		accessCheck(context.user, "read", subject, result);
+
 		return result;
+	});
+
+// Export server functions directly for TanStack Start to discover
+export const fetchTasks = createServerFn({ method: "GET" })
+	.validator(validateFetchTasks)
+	.middleware([authMiddleware])
+	.handler(async ({ data, context }) => {
+		const criteria = { ...data, userId: data?.userId || context.user.id };
+
+		accessCheck(context.user, "list", subject, data);
+
+		const config = { limit: undefined, offset: undefined };
+		const where = buildWhereClause(TaskTable, {
+			userId: data?.userId || context.user.id,
+		});
+		// const orderBy = buildOrderByClause(TaskTable, criteria);
+
+		const tasks = await DB.query.TaskTable.findMany({
+			where,
+			//orderBy,
+			limit: config.limit,
+			offset: config.offset,
+		});
+		return tasks;
 	});
 
 export const createTask = createServerFn({ method: "POST" })
 	.validator(validateNewTask)
-	.handler(async ({ data }) => {
-		const user = await getAuthenticatedUser();
-		const [result] = await DB.insert(task)
+	.middleware([authMiddleware])
+	.handler(async ({ data, context }) => {
+		const createWith = {
+			...data,
+			createdById: context.user.id,
+			updatedById: context.user.id,
+			version: 1,
+		};
+
+		accessCheck(context.user, "create", subject, createWith);
+
+		const [result] = await DB.insert(TaskTable)
 			.values({
 				...data,
-				user_id: user.id,
 			})
-			.returning()
-			.execute();
+			.returning();
+
 		return result;
 	});
 
 export const updateTask = createServerFn({ method: "POST" })
 	.validator(validateUpdateTask)
-	.handler(async ({ data }) => {
-		const user = await getAuthenticatedUser();
-		const [result] = await DB.update(task)
-			.set(data.data)
-			.where(eq(task.id, data.id))
-			.returning()
-			.execute();
+	.middleware([authMiddleware])
+	.handler(async ({ data: { id, data }, context }) => {
+		const entity = await DB.query.TaskTable.findFirst({
+			where: eq(TaskTable.id, id),
+		});
 
-		if (!result) {
-			throw new Error("Task not found");
+		if (!entity) {
+			throw new Error(`${subject} ${id} not found`);
 		}
+
+		if (entity.version !== data.version) {
+			// TODO notify user that entity has changed in another tab, device, or session.
+			throw new Error(
+				`${subject} has changed since loading.  Please reload and try again.`,
+			);
+		}
+
+		accessCheck(context.user, "update", subject, entity);
+
+		const updateWith = {
+			...data,
+			updatedAt: new Date(),
+			updatedById: context.user.id,
+			version: entity.version + 1,
+		};
+
+		const [result] = await DB.update(TaskTable)
+			.set(updateWith)
+			.where(eq(TaskTable.id, id))
+			.returning();
 
 		return result;
 	});
 
 export const deleteTask = createServerFn({ method: "POST" })
 	.validator(validateId)
-	.handler(async ({ data: id }) => {
-		const user = await getAuthenticatedUser();
-		const [result] = await DB.delete(task)
-			.where(eq(task.id, id))
-			.returning()
-			.execute();
+	.middleware([authMiddleware])
+	.handler(async ({ data: id, context }) => {
+		const entity = await DB.query.TaskTable.findFirst({
+			where: eq(TaskTable.id, id),
+		});
 
-		if (!result) {
-			throw new Error("Task not found");
+		if (!entity) {
+			throw new Error(`${subject} ${id} not found`);
 		}
+
+		accessCheck(context.user, "delete", subject, entity);
+
+		const [result] = await DB.delete(TaskTable)
+			.where(eq(TaskTable.id, id))
+			.returning();
 
 		return result;
 	});

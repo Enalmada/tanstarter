@@ -12,10 +12,11 @@ import { adminUserService } from "~/server/services/user-service";
 
 export const queries = createQueryKeyStore({
 	task: {
-		list: {
-			queryKey: null,
-			queryFn: () => clientTaskService.fetchTasks(),
-		},
+		list: (userId?: string) => ({
+			queryKey: [userId || "all"],
+			queryFn: () =>
+				clientTaskService.fetchTasks(userId ? { data: { userId } } : undefined),
+		}),
 		detail: (id: string) => ({
 			queryKey: [id],
 			queryFn: () => clientTaskService.fetchTask({ data: { id } }),

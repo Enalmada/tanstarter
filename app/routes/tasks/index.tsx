@@ -13,7 +13,9 @@ import { queries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/tasks/")({
 	loader: async ({ context }) => {
-		await context.queryClient.ensureQueryData(queries.task.list);
+		const userId = context.user?.id;
+		await context.queryClient.ensureQueryData(queries.task.list(userId));
+		return { userId };
 	},
 	component: TaskListPage,
 	pendingComponent: TaskListSkeleton,
@@ -23,6 +25,7 @@ export const Route = createFileRoute("/tasks/")({
 });
 
 function TaskListPage() {
-	const { data: tasks } = useSuspenseQuery(queries.task.list);
-	return <TaskList tasks={tasks} />;
+	const { userId } = Route.useLoaderData();
+	const { data: tasks } = useSuspenseQuery(queries.task.list(userId));
+	return <TaskList userId={userId || undefined} tasks={tasks} />;
 }

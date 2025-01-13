@@ -1,17 +1,11 @@
 import { Badge, Text } from "@mantine/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { formatDistanceToNow } from "date-fns";
 import { EntityList } from "~/components/admin/EntityList";
 import type { User } from "~/server/db/schema";
 import type { TableDefinition } from "~/types/table";
+import { formatDate } from "~/utils/date";
 import { adminQueries } from "~/utils/query/queries";
-
-const formatDate = (value: string | Date | null): string | null => {
-	if (!value) return null;
-	const date = value instanceof Date ? value : new Date(value);
-	return formatDistanceToNow(date, { addSuffix: true });
-};
 
 const columns: TableDefinition<User> = [
 	{
@@ -38,9 +32,9 @@ const columns: TableDefinition<User> = [
 		),
 	},
 	{
-		key: "created_at",
+		key: "createdAt",
 		header: "Created",
-		render: ({ value }) => {
+		render: ({ value }: { value: string | number | Date | null }) => {
 			const formatted = formatDate(value);
 			return formatted ? (
 				<Text size="sm" c="dimmed">
@@ -50,9 +44,9 @@ const columns: TableDefinition<User> = [
 		},
 	},
 	{
-		key: "updated_at",
+		key: "updatedAt",
 		header: "Last Updated",
-		render: ({ value }) => {
+		render: ({ value }: { value: string | number | Date | null }) => {
 			const formatted = formatDate(value);
 			return (
 				<Text size="sm" c="dimmed">

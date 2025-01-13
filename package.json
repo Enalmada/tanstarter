@@ -33,6 +33,7 @@
 		"test:e2e:report": "bunx playwright show-report playwright/report --host 127.0.0.1 --port 9323"
 	},
 	"dependencies": {
+		"@casl/ability": "^6.7.3",
 		"@enalmada/drizzle-helpers": "0.0.18",
 		"@lingui/babel-plugin-lingui-macro": "^5.1.2",
 		"@lingui/cli": "^5.1.2",
@@ -48,14 +49,14 @@
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
 		"@radix-ui/react-slot": "^1.1.1",
-		"@tanstack/react-form": "^0.41.0",
-		"@tanstack/react-query": "^5.63.0",
-		"@tanstack/react-query-devtools": "^5.63.0",
-		"@tanstack/react-router": "^1.95.2",
-		"@tanstack/react-router-with-query": "^1.95.2",
+		"@tanstack/react-form": "^0.41.1",
+		"@tanstack/react-query": "^5.64.0",
+		"@tanstack/react-query-devtools": "^5.64.0",
+		"@tanstack/react-router": "^1.95.4",
+		"@tanstack/react-router-with-query": "^1.95.4",
 		"@tanstack/react-table": "^8.20.6",
-		"@tanstack/router-devtools": "^1.95.2",
-		"@tanstack/start": "1.95.1",
+		"@tanstack/router-devtools": "^1.95.4",
+		"@tanstack/start": "1.95.4",
 		"@vercel/postgres": "^0.10.0",
 		"@vitejs/plugin-react": "^4.3.4",
 		"arctic": "^3.1.1",
@@ -63,7 +64,7 @@
 		"clsx": "^2.1.1",
 		"drizzle-orm": "^0.38.3",
 		"drizzle-valibot": "^0.3.1",
-		"lucide-react": "^0.469.0",
+		"lucide-react": "^0.471.0",
 		"nanoid": "^5.0.9",
 		"postgres": "^3.4.5",
 		"react": "^19.0.0",
@@ -94,8 +95,8 @@
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/react": "^16.1.0",
 		"@types/node": "^22.10.5",
-		"@types/react": "^19.0.4",
-		"@types/react-dom": "^19.0.2",
+		"@types/react": "^19.0.5",
+		"@types/react-dom": "^19.0.3",
 		"autoprefixer": "^10.4.20",
 		"cross-env": "^7.0.3",
 		"drizzle-kit": "^0.30.1",
@@ -118,14 +119,14 @@
 	"private": true,
 	"main": "",
 	"packageManager": "bun@1.1.43",
-	"patchedDependencies": {
-		"@tanstack/start@1.95.1": "patches/@tanstack%2Fstart@1.95.1.patch"
-	},
 	"trustedDependencies": [
 		"@biomejs/biome",
 		"@parcel/watcher",
 		"bufferutil",
 		"esbuild"
 	],
-	"type": "module"
+	"type": "module",
+	"patchedDependencies": {
+		"@tanstack/start@1.95.4": "patches/@tanstack%2Fstart@1.95.4.patch"
+	}
 }

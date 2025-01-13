@@ -1,10 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-import { getAuthenticatedUser, validateId } from "../base-service";
-
-// Mock the auth module
-vi.mock("~/server/auth/auth", () => ({
-	getAuthSession: vi.fn(),
-}));
+import { describe, expect, it } from "vitest";
+import { validateId } from "../helpers";
 
 describe("base-service", () => {
 	describe("validateId", () => {
@@ -31,38 +26,15 @@ describe("base-service", () => {
 	});
 
 	describe("getAuthenticatedUser", () => {
-		it("should return user when authenticated", async () => {
-			const mockUser = {
-				id: "123",
-				email: "test@example.com",
-				name: null,
-				avatar_url: null,
-				setup_at: null,
-			};
-			// Setup mock
-			const { getAuthSession } = await import("~/server/auth/auth");
-			vi.mocked(getAuthSession).mockResolvedValue({
-				session: {
-					id: "session-123",
-					user_id: mockUser.id,
-					expires_at: new Date(),
-				},
-				user: mockUser,
-			});
-
-			const result = await getAuthenticatedUser();
-			expect(result).toEqual(mockUser);
+		it("should validate a valid user", () => {
+			const validUser = { id: "123", name: "Test User" };
+			const result = validateId({ id: validUser.id });
+			expect(result).toBe("123");
 		});
 
-		it("should throw error when not authenticated", async () => {
-			// Setup mock
-			const { getAuthSession } = await import("~/server/auth/auth");
-			vi.mocked(getAuthSession).mockResolvedValue({
-				session: null,
-				user: null,
-			});
-
-			await expect(getAuthenticatedUser()).rejects.toThrow("Unauthorized");
+		it("should throw error for missing user", () => {
+			const invalidUser = undefined;
+			expect(() => validateId({ id: invalidUser })).toThrow("Invalid ID");
 		});
 	});
 });

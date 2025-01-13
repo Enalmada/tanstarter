@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { getAuthSession } from "~/server/auth/auth";
+import { UserRole } from "~/server/db/schema";
 import {
 	adminTaskService,
 	clientTaskService,
@@ -33,8 +34,14 @@ vi.mock("~/server/services/user-service", () => ({
 describe("queries", () => {
 	describe("task queries", () => {
 		it("should generate correct task list query", () => {
-			const query = queries.task.list;
-			expect(query.queryKey).toEqual(["task", "list"]);
+			const query = queries.task.list("123");
+			expect(query.queryKey).toEqual(["task", "list", "123"]);
+			expect(typeof query.queryFn).toBe("function");
+		});
+
+		it("should generate correct task list query", () => {
+			const query = queries.task.list();
+			expect(query.queryKey).toEqual(["task", "list", "all"]);
 			expect(typeof query.queryFn).toBe("function");
 		});
 
@@ -48,8 +55,8 @@ describe("queries", () => {
 		it("should call correct service methods", async () => {
 			// Test list query
 			const mockSignal = new AbortController().signal;
-			await queries.task.list.queryFn({
-				queryKey: ["task", "list"] as const,
+			await queries.task.list("123").queryFn({
+				queryKey: ["task", "list", "123"] as const,
 				signal: mockSignal,
 				meta: undefined,
 			});
@@ -80,13 +87,14 @@ describe("queries", () => {
 				id: "123",
 				email: "test@example.com",
 				name: null,
-				avatar_url: null,
-				setup_at: null,
+				avatarUrl: null,
+				setupAt: null,
+				role: UserRole.MEMBER,
 			};
 			const mockSession = {
 				id: "session-123",
-				user_id: mockUser.id,
-				expires_at: new Date(),
+				userId: mockUser.id,
+				expiresAt: new Date(),
 			};
 			vi.mocked(getAuthSession).mockResolvedValue({
 				session: mockSession,

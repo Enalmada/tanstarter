@@ -22,7 +22,7 @@ import { queries } from "~/utils/query/queries";
 type TaskFormData = {
 	title: string;
 	description: string | null;
-	due_date: Date | null;
+	dueDate: Date | null;
 	status: TaskStatusType;
 };
 
@@ -45,11 +45,13 @@ function NewTask() {
 		},
 		onMutate: async (newTask) => {
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: queries.task.list.queryKey });
+			await queryClient.cancelQueries({
+				queryKey: queries.task.list(userId).queryKey,
+			});
 
 			// Snapshot the previous value
 			const previousTasks = queryClient.getQueryData<Task[]>(
-				queries.task.list.queryKey,
+				queries.task.list(userId).queryKey,
 			);
 
 			// Use a consistent timestamp for optimistic updates
@@ -58,15 +60,18 @@ function NewTask() {
 			// Create optimistic task
 			const optimisticTask: Task = {
 				id: `temp-${Date.now()}`,
-				user_id: userId ?? "temp-user",
-				created_at: new Date(now),
-				updated_at: new Date(now),
+				userId: userId ?? "temp-user",
+				createdAt: new Date(now),
+				updatedAt: new Date(now),
+				version: 1,
+				createdById: userId ?? "temp-user",
+				updatedById: userId ?? "temp-user",
 				...newTask,
 			};
 
 			// Optimistically update to the new value
 			queryClient.setQueryData<Task[]>(
-				queries.task.list.queryKey,
+				queries.task.list(userId).queryKey,
 				(old = []) => [...old, optimisticTask],
 			);
 
@@ -80,7 +85,7 @@ function NewTask() {
 			if (createdTask && context) {
 				// Update the cache with the actual server data
 				queryClient.setQueryData<Task[]>(
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					(old = []) =>
 						old.map((t) =>
 							t.id === context.optimisticTask.id ? createdTask : t,
@@ -99,7 +104,7 @@ function NewTask() {
 			// If the mutation fails, use the context returned from onMutate to roll back
 			if (context?.previousTasks) {
 				queryClient.setQueryData(
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					context.previousTasks,
 				);
 			}

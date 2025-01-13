@@ -26,16 +26,18 @@ import { queries } from "~/utils/query/queries";
 export type TaskFormData = {
 	title: string;
 	description: string | null;
-	due_date: Date | null;
+	dueDate: Date | null;
 	status: TaskStatusType;
 };
 
 export const Route = createFileRoute("/tasks/$taskId")({
 	component: EditTask,
 	loader: async ({ context, params }) => {
+		const userId = context.user?.id;
 		await context.queryClient.ensureQueryData(
 			queries.task.detail(params.taskId),
 		);
+		return { userId };
 	},
 });
 
@@ -44,6 +46,7 @@ function EditTask() {
 	const { data: task } = useSuspenseQuery(queries.task.detail(taskId));
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const { userId } = Route.useLoaderData();
 
 	const updateTaskMutation = useMutation({
 		mutationFn: async (data: TaskFormData) => {
@@ -59,14 +62,14 @@ function EditTask() {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
 				queryKey: [
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					queries.task.detail(task.id).queryKey,
 				],
 			});
 
 			// Snapshot the previous values
 			const previousTasks = queryClient.getQueryData<Task[]>(
-				queries.task.list.queryKey,
+				queries.task.list(userId).queryKey,
 			);
 			const previousTask = queryClient.getQueryData<Task>(
 				queries.task.detail(task.id).queryKey,
@@ -79,12 +82,13 @@ function EditTask() {
 			const optimisticTask: Task = {
 				...task,
 				...newData,
-				updated_at: new Date(now),
+				updatedAt: new Date(now),
 			};
 
 			// Optimistically update both caches
-			queryClient.setQueryData<Task[]>(queries.task.list.queryKey, (old = []) =>
-				old.map((t) => (t.id === task.id ? optimisticTask : t)),
+			queryClient.setQueryData<Task[]>(
+				queries.task.list(userId).queryKey,
+				(old = []) => old.map((t) => (t.id === task.id ? optimisticTask : t)),
 			);
 			queryClient.setQueryData(
 				queries.task.detail(task.id).queryKey,
@@ -101,7 +105,7 @@ function EditTask() {
 			if (updatedTask && context) {
 				// Update both caches with the actual server data
 				queryClient.setQueryData<Task[]>(
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					(old = []) => old.map((t) => (t.id === task.id ? updatedTask : t)),
 				);
 				queryClient.setQueryData(
@@ -127,7 +131,7 @@ function EditTask() {
 			}
 			if (context?.previousTasks) {
 				queryClient.setQueryData(
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					context.previousTasks,
 				);
 			}
@@ -152,22 +156,23 @@ function EditTask() {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({
 				queryKey: [
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					queries.task.detail(task.id).queryKey,
 				],
 			});
 
 			// Snapshot the previous values
 			const previousTasks = queryClient.getQueryData<Task[]>(
-				queries.task.list.queryKey,
+				queries.task.list(userId).queryKey,
 			);
 			const previousTask = queryClient.getQueryData<Task>(
 				queries.task.detail(task.id).queryKey,
 			);
 
 			// Optimistically remove from both caches
-			queryClient.setQueryData<Task[]>(queries.task.list.queryKey, (old = []) =>
-				old.filter((t) => t.id !== task.id),
+			queryClient.setQueryData<Task[]>(
+				queries.task.list(userId).queryKey,
+				(old = []) => old.filter((t) => t.id !== task.id),
 			);
 			queryClient.removeQueries({
 				queryKey: queries.task.detail(task.id).queryKey,
@@ -184,7 +189,7 @@ function EditTask() {
 				// Ensure the task is removed from both caches
 				// Also remove if we got "Task not found" as it means it's already gone
 				queryClient.setQueryData<Task[]>(
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					(old = []) => old.filter((t) => t.id !== task.id),
 				);
 				queryClient.removeQueries({
@@ -219,7 +224,7 @@ function EditTask() {
 			}
 			if (context?.previousTasks) {
 				queryClient.setQueryData(
-					queries.task.list.queryKey,
+					queries.task.list(userId).queryKey,
 					context.previousTasks,
 				);
 			}
