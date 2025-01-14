@@ -1,0 +1,34 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"globalDependencies": ["**/.env.*local"],
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": ["dist/**"]
+		},
+		"check-types": {
+			"dependsOn": ["^check-types"]
+		},
+		"dev:install": {
+			"inputs": ["package.json", "bun.lockb"],
+			"outputLogs": "new-only"
+		},
+		"drizzle:migrate": {
+			"inputs": ["drizzle.config.ts", "app/server/db/migrations/**"],
+			"outputs": ["app/server/db/migrations/meta/_journal.json"],
+			"dependsOn": ["dev:install"],
+			"outputLogs": "new-only"
+		},
+		"dev:vinxi": {
+			"dependsOn": ["dev:install", "drizzle:migrate"],
+			"persistent": true,
+			"cache": false
+		},
+		"drizzle:generate": {
+			"cache": false
+		},
+		"lint": {
+			"dependsOn": ["^lint"]
+		}
+	}
+}

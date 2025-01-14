@@ -1,28 +1,55 @@
+/**
+ * TanStack Router configuration
+ * Sets up router instance with route tree and context
+ * Configures router defaults and error boundaries
+ */
+
+import { i18n } from "@lingui/core";
+import { I18nProvider } from "@lingui/react";
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { routerWithQueryClient } from "@tanstack/react-router-with-query";
-
+import type { ReactNode } from "react";
+import type { ClientUser } from "~/server/db/schema";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
 import { NotFound } from "./components/NotFound";
 import { routeTree } from "./routeTree.gen";
 
-export function createRouter() {
-  const queryClient = new QueryClient();
-
-  return routerWithQueryClient(
-    createTanStackRouter({
-      routeTree,
-      context: { queryClient },
-      defaultPreload: "intent",
-      defaultErrorComponent: DefaultCatchBoundary,
-      defaultNotFoundComponent: NotFound,
-    }),
-    queryClient,
-  );
+declare module "@tanstack/react-router" {
+	interface Register {
+		router: ReturnType<typeof createRouter>;
+	}
 }
 
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: ReturnType<typeof createRouter>;
-  }
+interface RouterContext {
+	queryClient: QueryClient;
+	user: ClientUser | null | undefined;
+}
+
+export function createRouter() {
+	// Create QueryClient here as recommended by TanStack examples
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: {
+				staleTime: 1000 * 60 * 5, // 5 minutes
+				gcTime: 1000 * 60 * 60 * 24, // 24 hours
+			},
+		},
+	});
+
+	return routerWithQueryClient(
+		createTanStackRouter({
+			routeTree,
+			context: { queryClient, user: undefined } as RouterContext,
+			// Preload on hover/focus, but respect 5-minute stale time
+			defaultPreload: "intent" as const,
+			defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
+			defaultErrorComponent: DefaultCatchBoundary,
+			defaultNotFoundComponent: NotFound,
+			Wrap: ({ children }: { children: ReactNode }) => (
+				<I18nProvider i18n={i18n}>{children}</I18nProvider>
+			),
+		}),
+		queryClient,
+	);
 }

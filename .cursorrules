@@ -1,0 +1,271 @@
+# Rules file for AI assistance
+
+# Update this file when making major architectural changes
+
+# Helps AI understand project context and preferences
+
+<development_process>
+
+1. Planning and Validation:
+
+- Always start with a clear plan before making code changes
+- Break down complex tasks into smaller, manageable steps
+- Validate approach with user before proceeding with implementation
+- Consider mocking/stubbing complex integrations first
+- Identify dependencies and potential conflicts upfront
+
+2. Incremental Development:
+
+- Start with minimal viable implementations
+- Prefer multiple small, focused changes over large refactors
+- Complete and validate one step before moving to the next
+- Order steps from least to most complex:
+  1. UI/Component structure
+  2. Type definitions and interfaces
+  3. Basic routing and navigation
+  4. Core business logic
+  5. Data integration
+  6. Error handling and edge cases
+  7. Performance optimizations
+
+3. Implementation Guidelines:
+
+- Mock data and services initially when building UI before continuing
+- Implement basic happy path first, then add error handling
+- Test each layer before moving to the next
+- Document assumptions and decisions
+- Consider rollback strategy for each change
+
+4. Communication:
+
+- Present clear plan before starting implementation
+- Break down complex changes into discrete steps
+- Get confirmation before proceeding with major changes
+- Highlight potential risks and tradeoffs
+- Suggest alternative approaches when relevant
+
+5. Validation Steps:
+
+- Confirm requirements are clear
+- Verify approach aligns with existing patterns
+- Check for potential conflicts with existing code
+- Consider impact on existing features
+- Plan testing strategy
+
+6. Testing Workflow:
+
+- Write unit tests alongside implementation
+- Run tests with "bun run test:unit" after changes
+- Check types with "bun run check-types"
+- Run linter with "bun run lint" before completing changes
+- Ensure all tests pass before handing back to user
+- Follow test patterns:
+  1. Arrange - Set up test data and conditions
+  2. Act - Execute the code being tested
+  3. Assert - Verify the results
+- Test categories to include:
+  1. Happy path - Expected successful scenarios
+  2. Edge cases - Boundary conditions
+  3. Error handling - Expected failure scenarios
+  4. Input validation - Data validation rules
+  5. Integration points - Service boundaries
+
+7. E2E Testing with Playwright:
+
+- Add or update Playwright tests when making significant UI changes
+- Focus on critical user journeys and main functionality
+- Run "bun run test:e2e" after major UI changes
+- Use role-based selectors for better accessibility and stability
+- Follow best practices:
+  1. Use role-based selectors as primary choice (getByRole)
+  2. Use text content as secondary choice (getByText)
+  3. Use data-testid as last resort for complex cases
+  4. Test real user interactions
+  5. Verify visual and functional changes
+- Test structure:
+  1. Page object patterns for reusability
+  2. Descriptive test names
+  3. Clear arrange-act-assert blocks
+  4. Proper error handling
+  5. Appropriate timeouts and waits
+- File organization:
+  1. Tests in app/e2e directory
+- Development workflow:
+  1. Run dev server separately
+  2. Use VSCode test explorer for development
+  3. Use terminal for CI-like execution
+  4. View reports at http://localhost:9323
+- Common commands:
+  1. bun run test:e2e - Run all tests
+- Test patterns:
+  1. Wait for networkidle on navigation
+  2. Use explicit timeouts for critical elements
+  3. Store locators in variables for reuse
+  4. Clear comments explaining test flow
+  5. Verify both presence and functionality
+
+</development_process>
+
+<framework_preferences>
+
+1. Framework Requirements:
+
+- TanStack Router for routing
+- TanStack Query for data fetching
+- TanStack Table for data grids
+- TanStack Form for form handling
+- TypeScript required
+- React Context for client state
+
+2. UI Components:
+
+- Mantine (@mantine/core)
+- Lucide Icons
+- Tailwind CSS
+
+3. Data Layer:
+
+- Drizzle ORM for database operations
+- Drizzle-valibot for schema validation
+- PostgreSQL (via Neon) as database
+- TanStack Start server functions for API
+
+4. Validation Patterns:
+
+- Use drizzle-valibot to define base schemas from database tables
+- Derive form and API schemas from base drizzle-valibot schemas
+- Reuse schemas across client and server validation
+- Prefer server-side validation as final authority
+
+5. Error Handling:
+
+- Use ValiError for validation errors
+- Propagate errors to UI with proper typing
+- Include error boundaries at route level
+
+6. Type Safety:
+
+- Prefer inference over explicit types when possible
+- Use strict TypeScript checks
+- Maintain end-to-end type safety with Drizzle
+
+7. Form Patterns:
+
+- Create reusable form components for entity types
+- Use TanStack Form's useForm hook with proper TypeScript types
+- Define form schemas using drizzle-valibot
+- Separate form field types from API types when needed
+- Handle form submission with proper error handling
+- Use optimistic updates for better UX
+- Include loading states and disable controls during submission
+- Validate on both client and server side
+- Use proper type inference from schemas
+
+8. Query Patterns:
+
+- Define query keys as constants
+- Use suspense mode for initial data loading
+- Implement optimistic updates with proper rollback
+- Cache invalidation on mutations
+- Error handling with toast notifications
+- Type query results using database schema types
+- Use query options objects for reusable queries
+- Implement proper loading states
+- Handle stale data with proper refetch strategies
+
+9. Component Organization:
+
+- Separate reusable form components
+- Keep route components focused on data fetching and layout
+- Use proper TypeScript types for props
+- Document component responsibilities
+- Follow consistent naming conventions
+- Implement proper loading and error states
+
+10. Mutation Patterns:
+
+- Follow standard mutation flow:
+  1. mutationFn - Server call
+  2. onMutate - Optimistic updates
+  3. onSuccess - Success handling and navigation
+  4. onError - Error handling and rollback
+- Type mutation variables and results
+- Handle loading states
+- Show success/error notifications
+- Update query cache appropriately
+- Implement proper rollback mechanisms
+
+11. Testing Patterns:
+
+- Test component rendering and interactions
+- Mock external dependencies (API, database)
+- Test form validation and submission
+- Test query and mutation behavior
+- Test error handling and edge cases
+- Use proper test data factories
+- Follow consistent test naming
+- Group tests logically by feature
+- Include both unit and integration tests
+- Test accessibility where applicable
+
+12. Code Style:
+
+- Document complex logic with comments
+- Use consistent formatting (follow Biome config)
+- Proper error handling at all levels
+- Clear separation of concerns
+- Consistent naming conventions
+- Type safety throughout
+  </framework_preferences>
+
+<code_style>
+
+- Tabs for indentation (not spaces)
+- Double quotes for strings
+- Follow Biome's import organization
+- Match biome.json linting rules
+  </code_style>
+
+<automation_preferences>
+
+- Run type checking after file changes
+- Run linting after file changes
+- Fix auto-fixable lint issues automatically
+  </automation_preferences>
+
+<testing_workflow>
+
+1. Test Execution:
+
+- Run "bun run test:unit" after code changes
+- Run "bun run check-types" to verify type safety
+- Run "bun run lint" before completing changes
+
+2. Test Coverage:
+
+- Write tests for new functionality
+- Update tests when modifying existing code
+- Ensure good coverage of edge cases
+- Test error handling paths
+
+3. Test Organization:
+
+- Group tests by feature/component
+- Use descriptive test names
+- Follow AAA pattern (Arrange-Act-Assert)
+- Keep tests focused and isolated
+
+4. Test Data:
+
+- Use realistic test data
+- Create test data factories
+- Mock external dependencies
+- Reset state between tests
+
+5. Test Types:
+
+- Unit tests for pure functions
+- Integration tests for services
+- Component tests with happy-dom
+- Route tests for page components
+  </testing_workflow>

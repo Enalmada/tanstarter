@@ -17,7 +17,11 @@
   },
 
   // always choose typescript from node_modules
-  "typescript.tsdk": "./node_modules/typescript/lib",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.validate.enable": true,
+  "typescript.surveys.enabled": false,
+  "javascript.validate.enable": true,
 
   // use LF line endings
   "files.eol": "\n",
@@ -32,5 +36,58 @@
 
   // auto-format on save & paste
   "editor.formatOnSave": true,
-  "editor.formatOnPaste": true
+  "editor.formatOnPaste": true,
+
+  // allow autocomplete for ArkType expressions like "string | num"
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  // prioritize ArkType's "type" for autoimports
+  "typescript.preferences.autoImportSpecifierExcludeRegexes": ["^(node:)?os$"],
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit",
+    "source.fixAll.eslint": "never",
+    "source.fixAll.biome": "explicit"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.suggest.autoImports": true,
+  "typescript.inlayHints.parameterNames.enabled": "all",
+  "typescript.inlayHints.parameterTypes.enabled": true,
+  "typescript.inlayHints.variableTypes.enabled": true,
+  "typescript.inlayHints.propertyDeclarationTypes.enabled": true,
+  "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
+
+  "vitest.rootConfig": "./vitest.config.ts",
+  "vitest.debuggerPort": "9229",
+  "testing.openTesting": "openOnTestStart",
+  "vitest.experimentalStaticAstCollect": true,
+
+  // Playwright settings
+  "playwright.env": {
+    "CI": "0"
+  },
+  "playwright.reuseBrowser": true,
+  "playwright.showTrace": true,
+
+  // Testing sidebar configuration
+  "testing.automaticallyOpenPeekView": "never",
+  "testing.followRunningTest": true,
+  "testing.gutterEnabled": true,
+
+  // Playwright test explorer settings
+  "playwright.test-explorer": {
+    "enabled": true,
+    "showBrowser": true,
+    "showTrace": true,
+    "showScreenshot": true
+  }
 }

@@ -1,0 +1,160 @@
+/**
+ * TEMPORARY WORKSPACE
+ * This file is a temporary workspace for improving an external module that provides drizzle crud operations.
+ * Once finalized, this will be moved to @enalmada/drizzle-helpers or similar.
+ *
+ * Goals:
+ * 1. Provide simple CRUD operations with proper typing
+ * 2. Support criteria filtering
+ * 3. Built-in pagination
+ * 4. Common query patterns (findFirst, etc)
+ */
+
+import { sql } from "drizzle-orm";
+import type { PgTableWithColumns } from "drizzle-orm/pg-core";
+import DB from "./index";
+
+export interface PageInfo {
+	currentPage: number;
+	perPage: number;
+	totalItems: number;
+	totalPages: number;
+}
+
+export interface Page<T> {
+	items: T[];
+	pageInfo: PageInfo | undefined;
+}
+
+export interface FindOptions<TEntity> {
+	criteria?: Partial<TEntity>;
+	order?: Record<string, "asc" | "desc">;
+	paging?: {
+		page: number;
+		perPage: number;
+	};
+}
+
+export interface DrizzleRepository<TEntity, TInput> {
+	findFirst: (options?: FindOptions<TEntity>) => Promise<TEntity | undefined>;
+	findMany: (options?: FindOptions<TEntity>) => Promise<TEntity[]>;
+	findPage: (options: FindOptions<TEntity>) => Promise<Page<TEntity>>;
+	create: (data: TInput) => Promise<TEntity>;
+	update: (id: string, data: Partial<TInput>) => Promise<TEntity>;
+	delete: (id: string) => Promise<TEntity>;
+}
+
+export function createDrizzleRepository<
+	TEntity extends { id: string },
+	TInput extends Record<string, unknown>,
+>(
+	// biome-ignore lint/suspicious/noExplicitAny: Proper typing will be added when moving to external module
+	table: PgTableWithColumns<any>,
+): DrizzleRepository<TEntity, TInput> {
+	function buildWhereConditions(criteria: Partial<TEntity>) {
+		if (Object.keys(criteria).length === 0) {
+			return sql`1=1`; // No criteria = match all
+		}
+
+		const conditions = Object.entries(criteria).map(([key, value]) => {
+			if (value === null) {
+				return sql.raw(`${key} IS NULL`);
+			}
+			return sql`${sql.raw(key)} = ${value}`;
+		});
+
+		return sql.join(conditions, sql` AND `);
+	}
+
+	function buildQuery(options: FindOptions<TEntity>) {
+		const { criteria = {}, order = {} } = options;
+		const whereConditions = buildWhereConditions(criteria);
+
+		// Build query
+		const query = DB.select().from(table).where(whereConditions);
+
+		// Add ordering
+		if (Object.keys(order).length > 0) {
+			const orderClauses = Object.entries(order).map(
+				([key, dir]) => sql`${sql.raw(key)} ${sql.raw(dir)}`,
+			);
+			query.orderBy(...orderClauses);
+		}
+
+		return query;
+	}
+
+	return {
+		findFirst: async (options = {}) => {
+			const query = buildQuery(options);
+			const results = await query.limit(1).execute();
+			return results[0] as TEntity | undefined;
+		},
+
+		findMany: async (options = {}) => {
+			const query = buildQuery(options);
+			return query.execute() as Promise<TEntity[]>;
+		},
+
+		findPage: async ({ criteria = {}, order = {}, paging }) => {
+			const query = buildQuery({ criteria, order });
+
+			// Add pagination if specified
+			if (paging) {
+				const { page, perPage } = paging;
+				const offset = (page - 1) * perPage;
+				query.limit(perPage).offset(offset);
+			}
+
+			// Execute query
+			const items = (await query.execute()) as TEntity[];
+
+			// Get total count for pagination
+			const [result] = await DB.select({
+				count: sql`count(*)`,
+			})
+				.from(table)
+				.where(buildWhereConditions(criteria))
+				.execute();
+
+			const count = Number(result?.count ?? 0);
+
+			return {
+				items,
+				pageInfo: paging
+					? {
+							currentPage: paging.page,
+							perPage: paging.perPage,
+							totalItems: count,
+							totalPages: Math.ceil(count / paging.perPage),
+						}
+					: undefined,
+			};
+		},
+
+		create: async (data) => {
+			const [result] = await DB.insert(table)
+				.values(data as Record<string, unknown>)
+				.returning()
+				.execute();
+			return result as TEntity;
+		},
+
+		update: async (id, data) => {
+			const [result] = await DB.update(table)
+				.set(data as Record<string, unknown>)
+				.where(sql`id = ${id}`)
+				.returning()
+				.execute();
+			return result as TEntity;
+		},
+
+		delete: async (id) => {
+			const [result] = await DB.delete(table)
+				.where(sql`id = ${id}`)
+				.returning()
+				.execute();
+			return result as TEntity;
+		},
+	};
+}

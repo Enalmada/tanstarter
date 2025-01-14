@@ -1,0 +1,51 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"vcs": {
+		"enabled": false,
+		"clientKind": "git",
+		"useIgnoreFile": false
+	},
+	"files": {
+		"ignoreUnknown": false,
+		"ignore": [
+			".turbo/**",
+			".output/**",
+			".vinxi/**",
+			".codebuddy/**",
+			".idea/**",
+			".vscode/**",
+			"app/server/db/migrations",
+			"app/routeTree.gen.ts",
+			"dist/**",
+			"playwright/.artifacts/**",
+			"playwright/artifacts/**",
+			"playwright/report/**",
+			"playwright/results/**",
+			"playwright/test-results/**"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab"
+	},
+	"organizeImports": {
+		"enabled": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"suspicious": {
+				"noConsoleLog": { "level": "error", "fix": "none" }
+			},
+			"correctness": {
+				"noUnusedImports": "error"
+			},
+			"recommended": true
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double"
+		}
+	}
+}

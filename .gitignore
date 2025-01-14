@@ -16,3 +16,19 @@ dist
 /api/
 /server/build
 /public/build
+
+.codebuddy
+.turbo
+
+# Serwist
+public/sw*
+public/swe-worker*
+
+.swc
+*.tsbuildinfo
+
+# Playwright
+/playwright/
+!playwright.config.ts
+playwright-report/
+test-results/

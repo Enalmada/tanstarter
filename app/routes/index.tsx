@@ -1,57 +1,130 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { Button } from "~/components/ui/button";
+import { createFileRoute } from "@tanstack/react-router";
+import { DefaultLayout } from "~/components/layouts/DefaultLayout";
+import {
+	Anchor,
+	Card,
+	Container,
+	Group,
+	LinkButton,
+	Stack,
+	Text,
+	Title,
+} from "~/components/ui";
 
 export const Route = createFileRoute("/")({
-  component: Home,
+	component: HomeLayout,
+	loader: ({ context }) => ({
+		user: context.user ?? null,
+	}),
 });
 
+function HomeLayout() {
+	const { user } = Route.useLoaderData();
+	return (
+		<DefaultLayout user={user}>
+			<Home />
+		</DefaultLayout>
+	);
+}
+
 function Home() {
-  const { user } = Route.useRouteContext();
+	return (
+		<Container size="lg">
+			<Stack gap="xl" py="xl">
+				{/* Hero Section */}
+				<Stack ta="center" gap="md">
+					<Title size="h1">TanStarter Todo</Title>
+					<Text c="dimmed" size="xl" maw={600} mx="auto">
+						A modern, type-safe todo application built with TanStack Router,
+						React Query, and PostgreSQL.
+					</Text>
+					<Group justify="center" mt="md">
+						<LinkButton to="/tasks" size="lg">
+							Get Started
+						</LinkButton>
+						<Anchor
+							href="https://github.com/dotnize/tanstarter"
+							target="_blank"
+							size="lg"
+							className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+						>
+							View on GitHub
+						</Anchor>
+					</Group>
+				</Stack>
 
-  return (
-    <div className="flex flex-col gap-4 p-6">
-      <h1 className="text-4xl font-bold">TanStarter</h1>
-      <div className="flex items-center gap-2">
-        This is an unprotected page:
-        <pre className="rounded-md border bg-card p-1 text-card-foreground">
-          routes/index.tsx
-        </pre>
-      </div>
+				{/* Features Section */}
+				<Stack gap="lg" mt="xl">
+					<Title order={2} ta="center">
+						Features
+					</Title>
+					<Group grow>
+						<Card withBorder>
+							<Stack>
+								<Title order={3} size="h4">
+									Type Safety
+								</Title>
+								<Text c="dimmed">
+									End-to-end type safety with TypeScript, Drizzle ORM, and
+									Valibot validation.
+								</Text>
+							</Stack>
+						</Card>
+						<Card withBorder>
+							<Stack>
+								<Title order={3} size="h4">
+									Modern Stack
+								</Title>
+								<Text c="dimmed">
+									Built with TanStack Router, React Query, and Mantine UI
+									components.
+								</Text>
+							</Stack>
+						</Card>
+						<Card withBorder>
+							<Stack>
+								<Title order={3} size="h4">
+									Great DX
+								</Title>
+								<Text c="dimmed">
+									Fast refresh, automatic type generation, and excellent error
+									handling.
+								</Text>
+							</Stack>
+						</Card>
+					</Group>
+				</Stack>
 
-      {user ? (
-        <div className="flex flex-col gap-2">
-          <p>Welcome back, {user.name}!</p>
-          <Button type="button" asChild className="w-fit" size="lg">
-            <Link to="/dashboard">Go to Dashboard</Link>
-          </Button>
-          <div>
-            More data:
-            <pre>{JSON.stringify(user, null, 2)}</pre>
-          </div>
-
-          <form method="POST" action="/api/auth/logout">
-            <Button type="submit" className="w-fit" variant="destructive" size="lg">
-              Sign out
-            </Button>
-          </form>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          <p>You are not signed in.</p>
-          <Button type="button" asChild className="w-fit" size="lg">
-            <Link to="/signin">Sign in</Link>
-          </Button>
-        </div>
-      )}
-
-      <a
-        className="text-muted-foreground underline hover:text-foreground"
-        href="https://github.com/dotnize/tanstarter"
-        target="_blank"
-        rel="noreferrer noopener"
-      >
-        dotnize/tanstarter
-      </a>
-    </div>
-  );
+				{/* Tech Stack Section */}
+				<Stack gap="lg" mt="xl">
+					<Title order={2} ta="center">
+						Tech Stack
+					</Title>
+					<Group grow>
+						<Card withBorder>
+							<Stack>
+								<Title order={3} size="h4">
+									Frontend
+								</Title>
+								<Text c="dimmed">
+									React, TanStack Router, TanStack Query, Mantine UI, Tailwind
+									CSS
+								</Text>
+							</Stack>
+						</Card>
+						<Card withBorder>
+							<Stack>
+								<Title order={3} size="h4">
+									Backend
+								</Title>
+								<Text c="dimmed">
+									TanStack Start, Drizzle ORM, PostgreSQL, Google OAuth
+								</Text>
+							</Stack>
+						</Card>
+					</Group>
+				</Stack>
+			</Stack>
+		</Container>
+	);
 }

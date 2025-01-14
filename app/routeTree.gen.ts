@@ -11,12 +11,28 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as TasksImport } from './routes/tasks'
 import { Route as SigninImport } from './routes/signin'
-import { Route as DashboardImport } from './routes/dashboard'
+import { Route as AdminImport } from './routes/admin'
 import { Route as IndexImport } from './routes/index'
-import { Route as DashboardIndexImport } from './routes/dashboard/index'
+import { Route as TasksIndexImport } from './routes/tasks/index'
+import { Route as AdminIndexImport } from './routes/admin/index'
+import { Route as TasksNewImport } from './routes/tasks/new'
+import { Route as TasksTaskIdImport } from './routes/tasks/$taskId'
+import { Route as AdminUsersIndexImport } from './routes/admin/users/index'
+import { Route as AdminTasksIndexImport } from './routes/admin/tasks/index'
+import { Route as AdminUsersUserIdImport } from './routes/admin/users/$userId'
+import { Route as AdminTasksNewImport } from './routes/admin/tasks/new'
+import { Route as AdminTasksTaskIdImport } from './routes/admin/tasks/$taskId'
+import { Route as AdminEmailsWelcomeImport } from './routes/admin/emails/welcome'
 
 // Create/Update Routes
+
+const TasksRoute = TasksImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const SigninRoute = SigninImport.update({
   id: '/signin',
@@ -24,9 +40,9 @@ const SigninRoute = SigninImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const DashboardRoute = DashboardImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const AdminRoute = AdminImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -36,10 +52,64 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const DashboardIndexRoute = DashboardIndexImport.update({
+const TasksIndexRoute = TasksIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => DashboardRoute,
+  getParentRoute: () => TasksRoute,
+} as any)
+
+const AdminIndexRoute = AdminIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const TasksNewRoute = TasksNewImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => TasksRoute,
+} as any)
+
+const TasksTaskIdRoute = TasksTaskIdImport.update({
+  id: '/$taskId',
+  path: '/$taskId',
+  getParentRoute: () => TasksRoute,
+} as any)
+
+const AdminUsersIndexRoute = AdminUsersIndexImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminTasksIndexRoute = AdminTasksIndexImport.update({
+  id: '/tasks/',
+  path: '/tasks/',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminUsersUserIdRoute = AdminUsersUserIdImport.update({
+  id: '/users/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminTasksNewRoute = AdminTasksNewImport.update({
+  id: '/tasks/new',
+  path: '/tasks/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminTasksTaskIdRoute = AdminTasksTaskIdImport.update({
+  id: '/tasks/$taskId',
+  path: '/tasks/$taskId',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminEmailsWelcomeRoute = AdminEmailsWelcomeImport.update({
+  id: '/emails/welcome',
+  path: '/emails/welcome',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -53,11 +123,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminImport
       parentRoute: typeof rootRoute
     }
     '/signin': {
@@ -67,70 +137,236 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SigninImport
       parentRoute: typeof rootRoute
     }
-    '/dashboard/': {
-      id: '/dashboard/'
+    '/tasks': {
+      id: '/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof TasksImport
+      parentRoute: typeof rootRoute
+    }
+    '/tasks/$taskId': {
+      id: '/tasks/$taskId'
+      path: '/$taskId'
+      fullPath: '/tasks/$taskId'
+      preLoaderRoute: typeof TasksTaskIdImport
+      parentRoute: typeof TasksImport
+    }
+    '/tasks/new': {
+      id: '/tasks/new'
+      path: '/new'
+      fullPath: '/tasks/new'
+      preLoaderRoute: typeof TasksNewImport
+      parentRoute: typeof TasksImport
+    }
+    '/admin/': {
+      id: '/admin/'
       path: '/'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexImport
-      parentRoute: typeof DashboardImport
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexImport
+      parentRoute: typeof AdminImport
+    }
+    '/tasks/': {
+      id: '/tasks/'
+      path: '/'
+      fullPath: '/tasks/'
+      preLoaderRoute: typeof TasksIndexImport
+      parentRoute: typeof TasksImport
+    }
+    '/admin/emails/welcome': {
+      id: '/admin/emails/welcome'
+      path: '/emails/welcome'
+      fullPath: '/admin/emails/welcome'
+      preLoaderRoute: typeof AdminEmailsWelcomeImport
+      parentRoute: typeof AdminImport
+    }
+    '/admin/tasks/$taskId': {
+      id: '/admin/tasks/$taskId'
+      path: '/tasks/$taskId'
+      fullPath: '/admin/tasks/$taskId'
+      preLoaderRoute: typeof AdminTasksTaskIdImport
+      parentRoute: typeof AdminImport
+    }
+    '/admin/tasks/new': {
+      id: '/admin/tasks/new'
+      path: '/tasks/new'
+      fullPath: '/admin/tasks/new'
+      preLoaderRoute: typeof AdminTasksNewImport
+      parentRoute: typeof AdminImport
+    }
+    '/admin/users/$userId': {
+      id: '/admin/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof AdminUsersUserIdImport
+      parentRoute: typeof AdminImport
+    }
+    '/admin/tasks/': {
+      id: '/admin/tasks/'
+      path: '/tasks'
+      fullPath: '/admin/tasks'
+      preLoaderRoute: typeof AdminTasksIndexImport
+      parentRoute: typeof AdminImport
+    }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersIndexImport
+      parentRoute: typeof AdminImport
     }
   }
 }
 
 // Create and export the route tree
 
-interface DashboardRouteChildren {
-  DashboardIndexRoute: typeof DashboardIndexRoute
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminEmailsWelcomeRoute: typeof AdminEmailsWelcomeRoute
+  AdminTasksTaskIdRoute: typeof AdminTasksTaskIdRoute
+  AdminTasksNewRoute: typeof AdminTasksNewRoute
+  AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
+  AdminTasksIndexRoute: typeof AdminTasksIndexRoute
+  AdminUsersIndexRoute: typeof AdminUsersIndexRoute
 }
 
-const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardIndexRoute: DashboardIndexRoute,
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+  AdminEmailsWelcomeRoute: AdminEmailsWelcomeRoute,
+  AdminTasksTaskIdRoute: AdminTasksTaskIdRoute,
+  AdminTasksNewRoute: AdminTasksNewRoute,
+  AdminUsersUserIdRoute: AdminUsersUserIdRoute,
+  AdminTasksIndexRoute: AdminTasksIndexRoute,
+  AdminUsersIndexRoute: AdminUsersIndexRoute,
 }
 
-const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
-  DashboardRouteChildren,
-)
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface TasksRouteChildren {
+  TasksTaskIdRoute: typeof TasksTaskIdRoute
+  TasksNewRoute: typeof TasksNewRoute
+  TasksIndexRoute: typeof TasksIndexRoute
+}
+
+const TasksRouteChildren: TasksRouteChildren = {
+  TasksTaskIdRoute: TasksTaskIdRoute,
+  TasksNewRoute: TasksNewRoute,
+  TasksIndexRoute: TasksIndexRoute,
+}
+
+const TasksRouteWithChildren = TasksRoute._addFileChildren(TasksRouteChildren)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/signin': typeof SigninRoute
-  '/dashboard/': typeof DashboardIndexRoute
+  '/tasks': typeof TasksRouteWithChildren
+  '/tasks/$taskId': typeof TasksTaskIdRoute
+  '/tasks/new': typeof TasksNewRoute
+  '/admin/': typeof AdminIndexRoute
+  '/tasks/': typeof TasksIndexRoute
+  '/admin/emails/welcome': typeof AdminEmailsWelcomeRoute
+  '/admin/tasks/$taskId': typeof AdminTasksTaskIdRoute
+  '/admin/tasks/new': typeof AdminTasksNewRoute
+  '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/admin/tasks': typeof AdminTasksIndexRoute
+  '/admin/users': typeof AdminUsersIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
-  '/dashboard': typeof DashboardIndexRoute
+  '/tasks/$taskId': typeof TasksTaskIdRoute
+  '/tasks/new': typeof TasksNewRoute
+  '/admin': typeof AdminIndexRoute
+  '/tasks': typeof TasksIndexRoute
+  '/admin/emails/welcome': typeof AdminEmailsWelcomeRoute
+  '/admin/tasks/$taskId': typeof AdminTasksTaskIdRoute
+  '/admin/tasks/new': typeof AdminTasksNewRoute
+  '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/admin/tasks': typeof AdminTasksIndexRoute
+  '/admin/users': typeof AdminUsersIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/signin': typeof SigninRoute
-  '/dashboard/': typeof DashboardIndexRoute
+  '/tasks': typeof TasksRouteWithChildren
+  '/tasks/$taskId': typeof TasksTaskIdRoute
+  '/tasks/new': typeof TasksNewRoute
+  '/admin/': typeof AdminIndexRoute
+  '/tasks/': typeof TasksIndexRoute
+  '/admin/emails/welcome': typeof AdminEmailsWelcomeRoute
+  '/admin/tasks/$taskId': typeof AdminTasksTaskIdRoute
+  '/admin/tasks/new': typeof AdminTasksNewRoute
+  '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/admin/tasks/': typeof AdminTasksIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/signin' | '/dashboard/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/signin'
+    | '/tasks'
+    | '/tasks/$taskId'
+    | '/tasks/new'
+    | '/admin/'
+    | '/tasks/'
+    | '/admin/emails/welcome'
+    | '/admin/tasks/$taskId'
+    | '/admin/tasks/new'
+    | '/admin/users/$userId'
+    | '/admin/tasks'
+    | '/admin/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/signin' | '/dashboard'
-  id: '__root__' | '/' | '/dashboard' | '/signin' | '/dashboard/'
+  to:
+    | '/'
+    | '/signin'
+    | '/tasks/$taskId'
+    | '/tasks/new'
+    | '/admin'
+    | '/tasks'
+    | '/admin/emails/welcome'
+    | '/admin/tasks/$taskId'
+    | '/admin/tasks/new'
+    | '/admin/users/$userId'
+    | '/admin/tasks'
+    | '/admin/users'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/signin'
+    | '/tasks'
+    | '/tasks/$taskId'
+    | '/tasks/new'
+    | '/admin/'
+    | '/tasks/'
+    | '/admin/emails/welcome'
+    | '/admin/tasks/$taskId'
+    | '/admin/tasks/new'
+    | '/admin/users/$userId'
+    | '/admin/tasks/'
+    | '/admin/users/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
   SigninRoute: typeof SigninRoute
+  TasksRoute: typeof TasksRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
   SigninRoute: SigninRoute,
+  TasksRoute: TasksRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -144,25 +380,76 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/dashboard",
-        "/signin"
+        "/admin",
+        "/signin",
+        "/tasks"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/dashboard": {
-      "filePath": "dashboard.tsx",
+    "/admin": {
+      "filePath": "admin.tsx",
       "children": [
-        "/dashboard/"
+        "/admin/",
+        "/admin/emails/welcome",
+        "/admin/tasks/$taskId",
+        "/admin/tasks/new",
+        "/admin/users/$userId",
+        "/admin/tasks/",
+        "/admin/users/"
       ]
     },
     "/signin": {
       "filePath": "signin.tsx"
     },
-    "/dashboard/": {
-      "filePath": "dashboard/index.tsx",
-      "parent": "/dashboard"
+    "/tasks": {
+      "filePath": "tasks.tsx",
+      "children": [
+        "/tasks/$taskId",
+        "/tasks/new",
+        "/tasks/"
+      ]
+    },
+    "/tasks/$taskId": {
+      "filePath": "tasks/$taskId.tsx",
+      "parent": "/tasks"
+    },
+    "/tasks/new": {
+      "filePath": "tasks/new.tsx",
+      "parent": "/tasks"
+    },
+    "/admin/": {
+      "filePath": "admin/index.tsx",
+      "parent": "/admin"
+    },
+    "/tasks/": {
+      "filePath": "tasks/index.tsx",
+      "parent": "/tasks"
+    },
+    "/admin/emails/welcome": {
+      "filePath": "admin/emails/welcome.tsx",
+      "parent": "/admin"
+    },
+    "/admin/tasks/$taskId": {
+      "filePath": "admin/tasks/$taskId.tsx",
+      "parent": "/admin"
+    },
+    "/admin/tasks/new": {
+      "filePath": "admin/tasks/new.tsx",
+      "parent": "/admin"
+    },
+    "/admin/users/$userId": {
+      "filePath": "admin/users/$userId.tsx",
+      "parent": "/admin"
+    },
+    "/admin/tasks/": {
+      "filePath": "admin/tasks/index.tsx",
+      "parent": "/admin"
+    },
+    "/admin/users/": {
+      "filePath": "admin/users/index.tsx",
+      "parent": "/admin"
     }
   }
 }
