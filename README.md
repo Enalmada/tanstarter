@@ -1,26 +1,56 @@
 # [TanStarter](https://github.com/enalmada/tanstarter)
 
-A minimal starter template for 🏝️ TanStack Start.
+A production starter template for TanStack Start.
 
-- TanStack [Start](https://tanstack.com/start/latest) + [Router](https://tanstack.com/router/latest) + [Query](https://tanstack.com/query/latest)
-- [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
-- [Drizzle ORM](https://orm.drizzle.team/) + PostgreSQL
-- Auth based on [Lucia](https://lucia-auth.com/)
+## Core Technologies
 
-Auth providers:
+### Frontend
 
-- [x] GitHub
-- [x] Google
-- [x] Discord
+- TanStack 
+   - [Start](https://tanstack.com/start/latest) 
+   - [Router](https://tanstack.com/router/latest) 
+   - [Query](https://tanstack.com/query/latest) 
+     -[@lukemorales/query-key-factory](https://github.com/lukemorales/query-key-factory)
+   - [Form](https://tanstack.com/form/latest) 
+   - [Table](https://tanstack.com/table/latest)
+- [Mantine](https://mantine.dev/) UI components
+- [Tailwind CSS](https://tailwindcss.com/) for styling
+- [Lucide Icons](https://lucide.dev/) for icons
+- [Lingui](https://lingui.dev/) for internationalization
+- [CSP Headers](https://csp.withgoogle.com/)
+- [Service Worker](https://developer.chrome.com/docs/workbox/service-worker-overview/) with Serwist
+
+### Backend & Data
+
+- [Drizzle ORM](https://orm.drizzle.team/) + PostgreSQL (via [Neon](https://neon.tech/))
+- [Drizzle-valibot](https://github.com/drizzle-team/drizzle-orm/tree/main/drizzle-valibot) for schema validation
+- [Lucia Auth](https://lucia-auth.com/)
+- [Docker](https://docker.com/) for containerization
+- [Casl](https://casl.js.org/) for authorization
+
+### Testing & Quality
+
+- [Vitest](https://vitest.dev/) for testing
+- [Playwright](https://playwright.dev/) for E2E testing
+
+
+### Tools
+
+- [Biome](https://biomejs.dev/) for linting and formatting
+- [Fixpack](https://fixpack.dev/) for package.json normalization
+- [React-Email](https://react.email/) for email templates
+- [Turborepo](https://turbo.build/repo) for monorepo management
+
 
 ## Getting Started
 
-1. [Use this template](https://github.com/new?template_name=tanstarter&template_owner=dotnize) or clone this repository.
+
+1. [Use this template](https://github.com/new?template_name=tanstarter&template_owner=enalmada) or clone this repository.
 
 2. Install dependencies:
 
    ```bash
-   pnpm install # or npm install
+   bun install
    ```
 
 3. Create a `.env` file based on [`.env.example`](./.env.example).
@@ -28,7 +58,7 @@ Auth providers:
 4. Run the development server:
 
    ```bash
-   pnpm dev # or npm run dev
+   bun dev
    ```
 
    The development server should be now running at [http://localhost:3000](http://localhost:3000).
@@ -40,16 +70,35 @@ Auth providers:
 2. Build the application:
 
    ```bash
-   pnpm build # or npm run build
+   bun run build
    ```
 
 3. If building for Node, you start the application via:
 
    ```bash
-   pnpm start # or npm start
+   bun start
    ```
 
+## Production Readiness Checklist
 
-Notes
+The following items are still needed for full production readiness:
 
-Icon set
+- [ ] [Sentry](https://sentry.io/) integration for error tracking
+- [ ] Nonce implementation (waiting on TanStack Start support)
+- [ ] [Axiom](https://axiom.co/) logging integration
+- [ ] Optimized image component implementation
+- [ ] SEO configuration
+- [ ] Bundle Analyzer
+- [ ] Github Actions
+- [ ] Analytics loading (partytown?)
+- [ ] AI - Vercel AI SDK
+
+
+
+Please note that this is an opinionated test project used for minumum reproduction 
+of issues and integration testing for a production site using the core technologies.
+Not all requests and PRs will be accepted.
+
+
+## Credits
+Thanks to dotnize for taking the time to create a starter template for TanStack Starter.  https://github.com/dotnize/tanstarter 
