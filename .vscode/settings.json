@@ -75,8 +75,8 @@
   "playwright.env": {
     "CI": "0"
   },
-  "playwright.reuseBrowser": true,
-  "playwright.showTrace": true,
+  "playwright.reuseBrowser": false,
+  "playwright.showTrace": false,
 
   // Testing sidebar configuration
   "testing.automaticallyOpenPeekView": "never",
