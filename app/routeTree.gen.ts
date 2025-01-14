@@ -24,6 +24,7 @@ import { Route as AdminTasksIndexImport } from './routes/admin/tasks/index'
 import { Route as AdminUsersUserIdImport } from './routes/admin/users/$userId'
 import { Route as AdminTasksNewImport } from './routes/admin/tasks/new'
 import { Route as AdminTasksTaskIdImport } from './routes/admin/tasks/$taskId'
+import { Route as AdminEmailsWelcomeImport } from './routes/admin/emails/welcome'
 
 // Create/Update Routes
 
@@ -105,6 +106,12 @@ const AdminTasksTaskIdRoute = AdminTasksTaskIdImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 
+const AdminEmailsWelcomeRoute = AdminEmailsWelcomeImport.update({
+  id: '/emails/welcome',
+  path: '/emails/welcome',
+  getParentRoute: () => AdminRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -165,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TasksIndexImport
       parentRoute: typeof TasksImport
     }
+    '/admin/emails/welcome': {
+      id: '/admin/emails/welcome'
+      path: '/emails/welcome'
+      fullPath: '/admin/emails/welcome'
+      preLoaderRoute: typeof AdminEmailsWelcomeImport
+      parentRoute: typeof AdminImport
+    }
     '/admin/tasks/$taskId': {
       id: '/admin/tasks/$taskId'
       path: '/tasks/$taskId'
@@ -207,6 +221,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminEmailsWelcomeRoute: typeof AdminEmailsWelcomeRoute
   AdminTasksTaskIdRoute: typeof AdminTasksTaskIdRoute
   AdminTasksNewRoute: typeof AdminTasksNewRoute
   AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
@@ -216,6 +231,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminEmailsWelcomeRoute: AdminEmailsWelcomeRoute,
   AdminTasksTaskIdRoute: AdminTasksTaskIdRoute,
   AdminTasksNewRoute: AdminTasksNewRoute,
   AdminUsersUserIdRoute: AdminUsersUserIdRoute,
@@ -248,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/tasks/new': typeof TasksNewRoute
   '/admin/': typeof AdminIndexRoute
   '/tasks/': typeof TasksIndexRoute
+  '/admin/emails/welcome': typeof AdminEmailsWelcomeRoute
   '/admin/tasks/$taskId': typeof AdminTasksTaskIdRoute
   '/admin/tasks/new': typeof AdminTasksNewRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -262,6 +279,7 @@ export interface FileRoutesByTo {
   '/tasks/new': typeof TasksNewRoute
   '/admin': typeof AdminIndexRoute
   '/tasks': typeof TasksIndexRoute
+  '/admin/emails/welcome': typeof AdminEmailsWelcomeRoute
   '/admin/tasks/$taskId': typeof AdminTasksTaskIdRoute
   '/admin/tasks/new': typeof AdminTasksNewRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -279,6 +297,7 @@ export interface FileRoutesById {
   '/tasks/new': typeof TasksNewRoute
   '/admin/': typeof AdminIndexRoute
   '/tasks/': typeof TasksIndexRoute
+  '/admin/emails/welcome': typeof AdminEmailsWelcomeRoute
   '/admin/tasks/$taskId': typeof AdminTasksTaskIdRoute
   '/admin/tasks/new': typeof AdminTasksNewRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -297,6 +316,7 @@ export interface FileRouteTypes {
     | '/tasks/new'
     | '/admin/'
     | '/tasks/'
+    | '/admin/emails/welcome'
     | '/admin/tasks/$taskId'
     | '/admin/tasks/new'
     | '/admin/users/$userId'
@@ -310,6 +330,7 @@ export interface FileRouteTypes {
     | '/tasks/new'
     | '/admin'
     | '/tasks'
+    | '/admin/emails/welcome'
     | '/admin/tasks/$taskId'
     | '/admin/tasks/new'
     | '/admin/users/$userId'
@@ -325,6 +346,7 @@ export interface FileRouteTypes {
     | '/tasks/new'
     | '/admin/'
     | '/tasks/'
+    | '/admin/emails/welcome'
     | '/admin/tasks/$taskId'
     | '/admin/tasks/new'
     | '/admin/users/$userId'
@@ -370,6 +392,7 @@ export const routeTree = rootRoute
       "filePath": "admin.tsx",
       "children": [
         "/admin/",
+        "/admin/emails/welcome",
         "/admin/tasks/$taskId",
         "/admin/tasks/new",
         "/admin/users/$userId",
@@ -403,6 +426,10 @@ export const routeTree = rootRoute
     "/tasks/": {
       "filePath": "tasks/index.tsx",
       "parent": "/tasks"
+    },
+    "/admin/emails/welcome": {
+      "filePath": "admin/emails/welcome.tsx",
+      "parent": "/admin"
     },
     "/admin/tasks/$taskId": {
       "filePath": "admin/tasks/$taskId.tsx",

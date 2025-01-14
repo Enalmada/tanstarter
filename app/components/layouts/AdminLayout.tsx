@@ -8,7 +8,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Link, Outlet } from "@tanstack/react-router";
-import { ListTodo, Users } from "lucide-react";
+import { ListTodo, Mail, Users } from "lucide-react";
 
 const navItems = [
 	{
@@ -20,6 +20,11 @@ const navItems = [
 		label: "Tasks",
 		icon: ListTodo,
 		to: "/admin/tasks",
+	},
+	{
+		label: "Emails",
+		icon: Mail,
+		to: "/admin/emails/welcome",
 	},
 ];
 
