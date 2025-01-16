@@ -74,45 +74,6 @@ describe("queries", () => {
 			});
 		});
 	});
-
-	describe("user queries", () => {
-		/*
-		it("should generate correct auth query", () => {
-			const query = queries.user.auth;
-			expect(query.queryKey).toEqual(["user", "auth"]);
-			expect(typeof query.queryFn).toBe("function");
-		});
-		*/
-		/*
-		it("should return user from auth session", async () => {
-			const mockUser = {
-				id: "123",
-				email: "test@example.com",
-				name: null,
-				avatarUrl: null,
-				setupAt: null,
-				role: UserRole.MEMBER,
-			};
-			const mockSession = {
-				id: "session-123",
-				userId: mockUser.id,
-				expiresAt: new Date(),
-			};
-			vi.mocked(getAuthSession).mockResolvedValue({
-				session: mockSession,
-				user: mockUser,
-			});
-
-			const mockSignal = new AbortController().signal;
-			const result = await queries.user.auth.queryFn({
-				queryKey: ["user", "auth"] as const,
-				signal: mockSignal,
-				meta: undefined,
-			});
-			expect(result).toEqual(mockUser);
-		});
-		*/
-	});
 });
 
 describe("adminQueries", () => {
