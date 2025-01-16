@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { type User, UserRole } from "../../db/schema";
+import type { SessionUser } from "~/server/auth/auth";
+import { UserRole } from "../../db/schema";
 import { NotAuthorizedError, accessCheck } from "../check";
 
 describe("accessCheck", () => {
-	const user = { id: "usr_1", role: UserRole.MEMBER } as User;
-	const admin = { id: "usr_2", role: UserRole.ADMIN } as User;
+	const user = { id: "usr_1", role: UserRole.MEMBER } as SessionUser;
+	const admin = { id: "usr_2", role: UserRole.ADMIN } as SessionUser;
 
 	describe("when user is a member", () => {
 		it("allows access to own resources", () => {

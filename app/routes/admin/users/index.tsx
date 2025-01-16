@@ -9,6 +9,14 @@ import { adminQueries } from "~/utils/query/queries";
 
 const columns: TableDefinition<User> = [
 	{
+		key: "id",
+		header: "ID",
+	},
+	{
+		key: "name",
+		header: "Name",
+	},
+	{
 		key: "email",
 		header: "Email",
 		render: ({ value, row }) => (
@@ -34,7 +42,8 @@ const columns: TableDefinition<User> = [
 	{
 		key: "createdAt",
 		header: "Created",
-		render: ({ value }: { value: string | number | Date | null }) => {
+		render: ({ value }: { value: string | number | Date | boolean | null }) => {
+			if (typeof value === "boolean") return null;
 			const formatted = formatDate(value);
 			return formatted ? (
 				<Text size="sm" c="dimmed">
@@ -46,11 +55,12 @@ const columns: TableDefinition<User> = [
 	{
 		key: "updatedAt",
 		header: "Last Updated",
-		render: ({ value }: { value: string | number | Date | null }) => {
+		render: ({ value }: { value: string | number | Date | boolean | null }) => {
+			if (typeof value === "boolean") return null;
 			const formatted = formatDate(value);
 			return (
 				<Text size="sm" c="dimmed">
-					{formatted || "Never"}
+					{formatted}
 				</Text>
 			);
 		},

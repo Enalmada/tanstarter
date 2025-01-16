@@ -7,10 +7,10 @@
 import { Avatar, Button, Group, Menu, Text } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import type { ClientUser } from "~/server/db/schema";
+import type { SessionUser } from "~/utils/auth-client";
 
 interface NavbarProps {
-	user: ClientUser | null;
+	user: SessionUser | null;
 }
 
 export function Navbar({ user }: NavbarProps) {
@@ -51,7 +51,10 @@ export function Navbar({ user }: NavbarProps) {
 						<Menu shadow="md" width={200}>
 							<Menu.Target>
 								<Avatar
-									src={user.avatarUrl}
+									src={
+										user.image ??
+										`https://www.gravatar.com/avatar/${btoa(user.email)}?d=mp`
+									}
 									alt={user.name ?? ""}
 									className="cursor-pointer"
 								/>

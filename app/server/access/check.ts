@@ -1,4 +1,4 @@
-import type { ClientUser } from "../db/schema";
+import type { SessionUser } from "~/server/auth/auth";
 import { type Action, type SubjectType, defineAbilitiesFor } from "./ability";
 
 export type { Action, SubjectType };
@@ -15,7 +15,7 @@ export class NotAuthorizedError extends Error {
  * @throws NotAuthorizedError if the user doesn't have permission
  */
 export function accessCheck(
-	user: ClientUser | undefined,
+	user: SessionUser | undefined,
 	action: Action,
 	subjectType: SubjectType,
 	criteria: Record<string, unknown> = {},

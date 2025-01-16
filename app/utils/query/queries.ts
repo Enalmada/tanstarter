@@ -3,7 +3,6 @@ import {
 	createQueryKeyStore,
 	type inferQueryKeyStore,
 } from "@lukemorales/query-key-factory";
-import { getAuthSession } from "~/server/auth/auth";
 import {
 	adminTaskService,
 	clientTaskService,
@@ -22,6 +21,7 @@ export const queries = createQueryKeyStore({
 			queryFn: () => clientTaskService.fetchTask({ data: { id } }),
 		}),
 	},
+	/* TODO - cache user session to enable offline support and improve performance
 	user: {
 		auth: {
 			queryKey: null,
@@ -31,6 +31,7 @@ export const queries = createQueryKeyStore({
 			},
 		},
 	},
+	*/
 });
 
 // Type inference helper

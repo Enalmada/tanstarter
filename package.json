@@ -63,7 +63,7 @@
 		"@tanstack/start": "1.95.4",
 		"@vercel/postgres": "^0.10.0",
 		"@vitejs/plugin-react": "^4.3.4",
-		"arctic": "^3.1.1",
+		"better-auth": "^1.1.13",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"drizzle-orm": "^0.38.3",
@@ -128,7 +128,8 @@
 		"@biomejs/biome",
 		"@parcel/watcher",
 		"bufferutil",
-		"esbuild"
+		"esbuild",
+		"sharp"
 	],
 	"type": "module",
 	"patchedDependencies": {

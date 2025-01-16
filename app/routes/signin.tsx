@@ -8,6 +8,7 @@ import {
 } from "@mantine/core";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
+import authClient from "~/utils/auth-client";
 
 function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
 	return (
@@ -84,18 +85,19 @@ function AuthPage() {
 			</Text>
 
 			<Paper withBorder shadow="md" p={30} mt={30} radius="md">
-				<form method="GET" action="/api/auth/google" onSubmit={handleSubmit}>
-					<GoogleButton
-						size="lg"
-						radius="md"
-						fullWidth
-						type="submit"
-						loading={isLoading}
-						disabled={isLoading}
-					>
-						Continue with Google
-					</GoogleButton>
-				</form>
+				<GoogleButton
+					size="lg"
+					radius="md"
+					fullWidth
+					type="submit"
+					loading={isLoading}
+					disabled={isLoading}
+					onClick={() => {
+						authClient.signIn.social({ provider: "google" });
+					}}
+				>
+					Continue with Google
+				</GoogleButton>
 			</Paper>
 		</Container>
 	);

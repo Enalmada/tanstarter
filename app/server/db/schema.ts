@@ -6,10 +6,10 @@
 
 import { relations } from "drizzle-orm";
 import {
+	boolean,
 	integer,
 	pgEnum,
 	pgTable,
-	primaryKey,
 	text,
 	timestamp,
 	varchar,
@@ -50,6 +50,7 @@ const generateAuditingFields = () => {
 	};
 };
 
+// User Schema
 export enum UserRole {
 	MEMBER = "MEMBER",
 	ADMIN = "ADMIN",
@@ -66,17 +67,15 @@ export const userRoleSchema = enum_(UserRole);
 
 export const UserTable = pgTable("user", {
 	id: generateIdField("usr"),
-	name: text(),
-	// firstName: text(),
-	// lastName: text(),
-	avatarUrl: text("avatar_url"),
 	email: text().unique().notNull(),
+	emailVerified: boolean("email_verified").default(false).notNull(),
+	name: text(),
+	image: text("image"),
+	// Additional fields
 	role: UserRolesEnum("role")
 		.default(UserRole.MEMBER)
 		.$type<UserRole>()
 		.notNull(),
-	setupAt: timestamp("setup_at", { mode: "date" }),
-	termsAcceptedAt: timestamp("terms_accepted_at", { mode: "date" }),
 	...generateAuditingFields(),
 });
 
@@ -87,37 +86,66 @@ export const usersRelations = relations(UserTable, ({ many }) => ({
 export type User = typeof UserTable.$inferSelect;
 export type UserInsert = typeof UserTable.$inferInsert;
 
-export type ClientUser = Pick<
-	typeof UserTable.$inferSelect,
-	"id" | "name" | "avatarUrl" | "email" | "setupAt" | "role"
->;
-
-export const OAuthAccountTable = pgTable(
-	"oauth_account",
-	{
-		providerId: text("provider_id"),
-		providerUserId: text("provider_user_id"),
-		userId: varchar("user_id")
-			.notNull()
-			.references(() => UserTable.id),
-	},
-	(table) => [
-		primaryKey({ columns: [table.providerId, table.providerUserId] }),
-	],
-);
-
+// Session Schema
 export const SessionTable = pgTable("session", {
-	id: text().primaryKey(),
-	userId: varchar("user_id")
+	id: generateIdField("ses"),
+	expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+	token: text("token").notNull().unique(),
+	createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+	updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+	ipAddress: text("ip_address"),
+	userAgent: text("user_agent"),
+	userId: text("user_id")
 		.notNull()
-		.references(() => UserTable.id),
-	expiresAt: timestamp("expires_at", {
-		withTimezone: true,
-		mode: "date",
-	}).notNull(),
+		.references(() => UserTable.id, { onDelete: "cascade" }),
 });
 
+export const sessionRelations = relations(SessionTable, ({ one }) => ({
+	user: one(UserTable, {
+		fields: [SessionTable.userId],
+		references: [UserTable.id],
+	}),
+}));
+
 export type Session = typeof SessionTable.$inferSelect;
+
+// Account Schema
+export const AccountTable = pgTable("account", {
+	id: generateIdField("acc"),
+	accountId: text("account_id").notNull(),
+	providerId: text("provider_id").notNull(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => UserTable.id, { onDelete: "cascade" }),
+	accessToken: text("access_token"),
+	refreshToken: text("refresh_token"),
+	idToken: text("id_token"),
+	accessTokenExpiresAt: timestamp("access_token_expires_at", { mode: "date" }),
+	refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {
+		mode: "date",
+	}),
+	scope: text("scope"),
+	password: text("password"),
+	createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+	updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+});
+
+export const accountRelations = relations(AccountTable, ({ one }) => ({
+	user: one(UserTable, {
+		fields: [AccountTable.userId],
+		references: [UserTable.id],
+	}),
+}));
+
+// Verification Schema
+export const VerificationTable = pgTable("verification", {
+	id: generateIdField("ver"),
+	identifier: text("identifier").notNull(),
+	value: text("value").notNull(),
+	expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+	createdAt: timestamp("created_at", { mode: "date" }),
+	updatedAt: timestamp("updated_at", { mode: "date" }),
+});
 
 // Task Schema
 export const TaskStatus = {

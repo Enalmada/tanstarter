@@ -10,19 +10,19 @@ import {
 	createRootRouteWithContext,
 	redirect,
 } from "@tanstack/react-router";
-import { Meta, Scripts } from "@tanstack/start";
+import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import type { ReactNode } from "react";
 import { Suspense, lazy, useLayoutEffect } from "react";
+import { getWebRequest } from "vinxi/http";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import {
 	ColorSchemeScript,
 	MantineProvider,
 } from "~/components/providers/mantine-provider";
-import type { ClientUser } from "~/server/db/schema";
-import { getUserAuth } from "~/server/services/user-service";
+import { auth } from "~/server/auth/auth";
 import appCss from "~/styles/app.css?inline";
-import { queries } from "~/utils/query/queries";
+import type { SessionUser } from "~/utils/auth-client";
 
 const ENABLE_SERVICE_WORKER = false;
 
@@ -34,25 +34,30 @@ const TanStackRouterDevtools = import.meta.env.PROD
 			})),
 		);
 
+const getUser = createServerFn({ method: "GET" }).handler(async () => {
+	const { headers } = getWebRequest();
+	const session = await auth.api.getSession({ headers });
+
+	return session?.user || null;
+});
+
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
-	user: ClientUser | null | undefined;
+	user: SessionUser | null | undefined;
 }>()({
 	beforeLoad: async ({ context, location }) => {
 		const queryClient = context.queryClient;
-		// Try to get user from query cache first
-		const cachedUser = queryClient.getQueryData<ClientUser | null>(
-			queries.user.auth.queryKey,
-		);
-		const user = cachedUser !== undefined ? cachedUser : await getUserAuth();
+		const user = await getUser();
 
-		// If not in cache, fetch and cache it
+		// TODO - If not in cache, fetch and cache it
+		/*
 		if (cachedUser === undefined) {
 			queryClient.setQueryData<ClientUser | null>(
 				queries.user.auth.queryKey,
 				user,
 			);
 		}
+		*/
 
 		// Check if this is a protected route (starts with /tasks)
 		const isProtectedRoute = location.pathname.startsWith("/tasks");

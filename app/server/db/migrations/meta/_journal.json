@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1734899112015,
-      "tag": "0000_jazzy_screwball",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1736130396013,
-      "tag": "0001_slippery_maginty",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1736643281484,
-      "tag": "0002_brave_lilith",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1736716042069,
-      "tag": "0003_gigantic_la_nuit",
+      "when": 1736992355251,
+      "tag": "0000_safe_nocturne",
       "breakpoints": true
     }
   ]

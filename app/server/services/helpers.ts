@@ -1,7 +1,4 @@
-import type { User } from "../db/schema";
-
 import { type StringSchema, object, safeParse, string } from "valibot";
-import { getAuthSession } from "~/server/auth/auth";
 
 export const idSchema = object({
 	id: string("ID is required") as StringSchema<string>,
@@ -30,13 +27,4 @@ export function validateId(input: unknown): string {
 		throw new Error(errorMessage || "Invalid ID");
 	}
 	return result.output.id;
-}
-
-// Helper function to get authenticated user
-export async function getAuthenticatedUser(): Promise<User> {
-	const { user } = await getAuthSession();
-	if (!user) {
-		throw new Error("Unauthorized");
-	}
-	return user as User;
 }
