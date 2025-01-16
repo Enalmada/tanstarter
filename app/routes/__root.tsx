@@ -10,15 +10,17 @@ import {
 	createRootRouteWithContext,
 	redirect,
 } from "@tanstack/react-router";
-import { Meta, Scripts } from "@tanstack/start";
+import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import type { ReactNode } from "react";
 import { Suspense, lazy, useLayoutEffect } from "react";
+import { getWebRequest } from "vinxi/http";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import {
 	ColorSchemeScript,
 	MantineProvider,
 } from "~/components/providers/mantine-provider";
+import { auth } from "~/server/auth/auth";
 import appCss from "~/styles/app.css?inline";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
@@ -33,14 +35,59 @@ const TanStackRouterDevtools = import.meta.env.PROD
 			})),
 		);
 
-/*
-const getUser = createServerFn({ method: "GET" }).handler(async () => {
-	const { headers } = getWebRequest();
-	const session = await auth.api.getSession({ headers });
+export const getSessionUser = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const { headers } = getWebRequest();
 
-	return session?.user || null;
-});
-*/
+		// In development, check for test tokens first
+		// TODO consider replacing this with email login
+		if (process.env.NODE_ENV === "development") {
+			const authHeader = headers.get("authorization");
+
+			if (authHeader === "playwright-test-token") {
+				return mockTestUser;
+			}
+			if (authHeader === "playwright-admin-test-token") {
+				return mockAdminUser;
+			}
+		}
+
+		// Normal auth flow
+		const session = await auth.api.getSession({ headers });
+		return session?.user || null;
+	},
+);
+
+// Mock users for testing - keep in sync with auth-guard.ts
+const mockTestUser: SessionUser = {
+	id: "test-user-id",
+	email: "test@example.com",
+	name: "Test User",
+	role: "MEMBER",
+	image: null,
+	emailVerified: false,
+	createdAt: new Date(),
+	updatedAt: new Date(),
+};
+
+const mockAdminUser: SessionUser = {
+	...mockTestUser,
+	id: "test-admin-id",
+	email: "admin@example.com",
+	name: "Test Admin",
+	role: "ADMIN",
+};
+
+const isPlaywrightTest = () => {
+	try {
+		const { headers } = getWebRequest();
+		const isPlaywright = headers.get("x-playwright-test") === "true";
+		return isPlaywright;
+	} catch (e) {
+		// If getWebRequest fails, we're on the client
+		return false;
+	}
+};
 
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
@@ -48,38 +95,27 @@ export const Route = createRootRouteWithContext<{
 }>()({
 	beforeLoad: async ({ context, location }) => {
 		const queryClient = context.queryClient;
+		let user: SessionUser | null = null;
 
-		// TODO look at using authClient.useSession() here instead
-		// https://www.better-auth.com/docs/basic-usage#client-side
-		const [user] = await Promise.all([
-			context.queryClient.ensureQueryData(queries.user.session),
-		]);
-
-		/*
-		const {
-			data: session,
-			isPending, //loading state
-			error, //error object
-		} = authClient.useSession();
-		*/
-
-		// TODO - If not in cache, fetch and cache it
-		/*
-		if (cachedUser === undefined) {
-			queryClient.setQueryData<ClientUser | null>(
-				queries.user.auth.queryKey,
-				user,
-			);
+		try {
+			user = await context.queryClient.ensureQueryData(queries.user.session);
+		} catch (error) {
+			// Handle error silently
 		}
-		*/
 
-		// Check if this is a protected route (starts with /tasks)
-		const isProtectedRoute = location.pathname.startsWith("/tasks");
+		// Cache the user data
+		queryClient.setQueryData(queries.user.session.queryKey, user);
+
+		// Check if this is a protected route
+		const isProtectedRoute =
+			location.pathname.startsWith("/tasks") ||
+			location.pathname.startsWith("/admin");
+
 		if (isProtectedRoute && !user) {
 			throw redirect({ to: "/signin" });
 		}
 
-		return { user: user as SessionUser };
+		return { user };
 	},
 	loader: ({ context }) => {
 		return {

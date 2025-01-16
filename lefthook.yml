@@ -7,6 +7,7 @@ pre-commit:
     lint:
       glob: "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
       run: bun run lint
+      stage_fixed: true
     drizzle-check:
       glob: "app/server/db/schema.ts"
       run: bun drizzle:generate

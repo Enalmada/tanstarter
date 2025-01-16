@@ -3,12 +3,12 @@ import {
 	createQueryKeyStore,
 	type inferQueryKeyStore,
 } from "@lukemorales/query-key-factory";
+import { getSessionUser } from "~/routes/__root";
 import {
 	adminTaskService,
 	clientTaskService,
 } from "~/server/services/task-service";
 import { adminUserService } from "~/server/services/user-service";
-import { getSessionUser } from "~/utils/auth-client";
 
 export const queries = createQueryKeyStore({
 	task: {

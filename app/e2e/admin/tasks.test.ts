@@ -36,6 +36,14 @@ import { expect, test } from "@playwright/test";
  * - Tests use isolated test data via test-specific API endpoints
  */
 test.describe("Admin Tasks", () => {
+	// TODO consider using email login instead
+	test.beforeEach(async ({ context }) => {
+		// Set auth header for all requests in this test
+		await context.setExtraHTTPHeaders({
+			authorization: "playwright-admin-test-token",
+		});
+	});
+
 	test("shows admin task list page elements", async ({ page }) => {
 		await page.goto("/admin/tasks");
 
