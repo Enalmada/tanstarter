@@ -8,6 +8,7 @@ import { Avatar, Button, Group, Menu, Text } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { SessionUser } from "~/utils/auth-client";
+import authClient from "~/utils/auth-client";
 
 interface NavbarProps {
 	user: SessionUser | null;
@@ -18,25 +19,14 @@ export function Navbar({ user }: NavbarProps) {
 	const queryClient = useQueryClient();
 
 	const handleSignOut = async () => {
-		try {
-			const response = await fetch("/api/auth/logout", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
+		await authClient.signOut({
+			fetchOptions: {
+				onSuccess: () => {
+					queryClient.clear();
+					navigate({ to: "/" });
 				},
-			});
-
-			if (response.ok) {
-				// Clear all queries from the cache
-				queryClient.clear();
-				// Navigate using the router
-				navigate({ to: "/" });
-			} else {
-				throw new Error("Failed to sign out");
-			}
-		} catch (error) {
-			console.error("Sign out error:", error);
-		}
+			},
+		});
 	};
 
 	return (

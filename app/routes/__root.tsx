@@ -10,19 +10,18 @@ import {
 	createRootRouteWithContext,
 	redirect,
 } from "@tanstack/react-router";
-import { Meta, Scripts, createServerFn } from "@tanstack/start";
+import { Meta, Scripts } from "@tanstack/start";
 import type { ReactNode } from "react";
 import { Suspense, lazy, useLayoutEffect } from "react";
-import { getWebRequest } from "vinxi/http";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import {
 	ColorSchemeScript,
 	MantineProvider,
 } from "~/components/providers/mantine-provider";
-import { auth } from "~/server/auth/auth";
 import appCss from "~/styles/app.css?inline";
 import type { SessionUser } from "~/utils/auth-client";
+import { queries } from "~/utils/query/queries";
 
 const ENABLE_SERVICE_WORKER = false;
 
@@ -34,12 +33,14 @@ const TanStackRouterDevtools = import.meta.env.PROD
 			})),
 		);
 
+/*
 const getUser = createServerFn({ method: "GET" }).handler(async () => {
 	const { headers } = getWebRequest();
 	const session = await auth.api.getSession({ headers });
 
 	return session?.user || null;
 });
+*/
 
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
@@ -47,7 +48,20 @@ export const Route = createRootRouteWithContext<{
 }>()({
 	beforeLoad: async ({ context, location }) => {
 		const queryClient = context.queryClient;
-		const user = await getUser();
+
+		// TODO look at using authClient.useSession() here instead
+		// https://www.better-auth.com/docs/basic-usage#client-side
+		const [user] = await Promise.all([
+			context.queryClient.ensureQueryData(queries.user.session),
+		]);
+
+		/*
+		const {
+			data: session,
+			isPending, //loading state
+			error, //error object
+		} = authClient.useSession();
+		*/
 
 		// TODO - If not in cache, fetch and cache it
 		/*
@@ -65,7 +79,7 @@ export const Route = createRootRouteWithContext<{
 			throw redirect({ to: "/signin" });
 		}
 
-		return { user };
+		return { user: user as SessionUser };
 	},
 	loader: ({ context }) => {
 		return {

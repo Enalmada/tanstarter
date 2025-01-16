@@ -17,12 +17,26 @@ export const auth = betterAuth({
 	},
 	baseURL: process.env.VITE_BASE_URL || "",
 	user: {
+		modelName: "UserTable",
 		additionalFields: {
 			role: {
 				type: "string",
 				defaultValue: "MEMBER",
 			},
 		},
+	},
+	session: {
+		modelName: "SessionTable",
+		cookieCache: {
+			enabled: true, // avoid hitting db
+			maxAge: 5 * 60, // Cache duration in seconds
+		},
+	},
+	account: {
+		modelName: "AccountTable",
+	},
+	verification: {
+		modelName: "VerificationTable",
 	},
 	advanced: {
 		generateId: false,

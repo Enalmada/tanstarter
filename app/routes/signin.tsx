@@ -92,8 +92,11 @@ function AuthPage() {
 					type="submit"
 					loading={isLoading}
 					disabled={isLoading}
-					onClick={() => {
-						authClient.signIn.social({ provider: "google" });
+					onClick={async () => {
+						await authClient.signIn.social({
+							provider: "google",
+							callbackURL: "/tasks",
+						});
 					}}
 				>
 					Continue with Google

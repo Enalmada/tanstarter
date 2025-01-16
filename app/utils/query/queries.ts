@@ -8,6 +8,7 @@ import {
 	clientTaskService,
 } from "~/server/services/task-service";
 import { adminUserService } from "~/server/services/user-service";
+import { getSessionUser } from "~/utils/auth-client";
 
 export const queries = createQueryKeyStore({
 	task: {
@@ -21,17 +22,14 @@ export const queries = createQueryKeyStore({
 			queryFn: () => clientTaskService.fetchTask({ data: { id } }),
 		}),
 	},
-	/* TODO - cache user session to enable offline support and improve performance
 	user: {
-		auth: {
+		session: {
 			queryKey: null,
 			queryFn: async () => {
-				const { user } = await getAuthSession();
-				return user;
+				return await getSessionUser();
 			},
 		},
 	},
-	*/
 });
 
 // Type inference helper

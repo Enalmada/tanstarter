@@ -89,5 +89,6 @@
     "showBrowser": true,
     "showTrace": true,
     "showScreenshot": true
-  }
+  },
+  "dbcode.connections": []
 }
