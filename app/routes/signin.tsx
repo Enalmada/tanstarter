@@ -70,11 +70,6 @@ function SigninLayout() {
 function AuthPage() {
 	const [isLoading, setIsLoading] = useState(false);
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-		setIsLoading(true);
-		// Let the form submit normally to the Google OAuth endpoint
-	};
-
 	return (
 		<Container size={420}>
 			<Title ta="center" fw={900}>
@@ -93,10 +88,17 @@ function AuthPage() {
 					loading={isLoading}
 					disabled={isLoading}
 					onClick={async () => {
-						await authClient.signIn.social({
-							provider: "google",
-							callbackURL: "/tasks",
-						});
+						try {
+							setIsLoading(true);
+							await authClient.signIn.social({
+								provider: "google",
+								callbackURL: "/tasks",
+							});
+						} catch (error) {
+							// Reset loading state if authentication fails
+							setIsLoading(false);
+							console.error("Authentication failed:", error);
+						}
 					}}
 				>
 					Continue with Google
