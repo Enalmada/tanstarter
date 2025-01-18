@@ -86,6 +86,21 @@ export const usersRelations = relations(UserTable, ({ many }) => ({
 export type User = typeof UserTable.$inferSelect;
 export type UserInsert = typeof UserTable.$inferInsert;
 
+export const userSelectSchema = createSelectSchema(UserTable, {
+	role: userRoleSchema,
+});
+
+export const userInsertSchema = createInsertSchema(UserTable, {
+	role: userRoleSchema,
+});
+
+// Form-specific schema that excludes server-side fields
+export const userFormSchema = object({
+	email: string(),
+	name: nullable(string()),
+	role: userRoleSchema,
+});
+
 // Session Schema
 export const SessionTable = pgTable("session", {
 	id: generateIdField("ses"),
@@ -220,19 +235,4 @@ export const taskFormSchema = createInsertSchema(TaskTable, {
 		nullable(date()),
 		transform((input) => (input ? new Date(input) : null)),
 	),
-});
-
-export const userSelectSchema = createSelectSchema(UserTable, {
-	role: userRoleSchema,
-});
-
-export const userInsertSchema = createInsertSchema(UserTable, {
-	role: userRoleSchema,
-});
-
-// Form-specific schema that excludes server-side fields
-export const userFormSchema = object({
-	email: string(),
-	name: nullable(string()),
-	role: userRoleSchema,
 });

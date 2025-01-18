@@ -5,7 +5,7 @@
 
 import { createServerFn } from "@tanstack/start";
 import { eq } from "drizzle-orm";
-import { object, string } from "valibot";
+import { object, safeParse, string } from "valibot";
 import DB from "../db";
 
 import { authMiddleware } from "~/middleware/auth-guard";
@@ -62,9 +62,24 @@ export const fetchUser = createServerFn({ method: "GET" })
 		return result;
 	});
 
-const validateNewUser = object({
-	data: userInsertSchema,
-});
+export function validateNewUser(input: unknown) {
+	if (!input || typeof input !== "object") {
+		throw new Error("Invalid user data: Input must be an object");
+	}
+
+	const result = safeParse(userInsertSchema, input);
+	if (!result.success) {
+		const errorMessage = result.issues
+			.map((issue) => {
+				const path = issue.path?.[0]?.key;
+				return path ? `${path}: ${issue.message}` : issue.message;
+			})
+			.join(", ");
+		throw new Error(`Invalid user data: ${errorMessage}`);
+	}
+
+	return result.output;
+}
 
 const validateUpdateUser = object({
 	id: string(),
@@ -76,7 +91,7 @@ export const createUser = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.handler(async ({ data, context }) => {
 		const createWith = {
-			...data.data,
+			...data,
 			createdById: context.user.id,
 			updatedById: context.user.id,
 		};
