@@ -63,6 +63,7 @@
 		"@unpic/react": "^0.1.15",
 		"@vercel/postgres": "^0.10.0",
 		"@vitejs/plugin-react": "^4.3.4",
+		"babel-plugin-react-compiler": "^19.0.0-beta-e552027-20250112",
 		"better-auth": "^1.1.14",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",

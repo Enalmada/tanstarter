@@ -26,7 +26,10 @@ export default defineConfig({
 
 			react({
 				babel: {
-					plugins: ["@lingui/babel-plugin-lingui-macro"],
+					plugins: [
+						["babel-plugin-react-compiler", { target: "19" }],
+						"@lingui/babel-plugin-lingui-macro",
+					],
 				},
 			}),
 
@@ -64,6 +67,7 @@ export default defineConfig({
 				"better-auth/react",
 				"lucide-react",
 				"date-fns",
+				"@unpic/react",
 			],
 		},
 	},
