@@ -47,7 +47,6 @@ function AdminNewTask() {
 				version: 1,
 				createdById: userId ?? "",
 				updatedById: userId ?? "",
-				userId: userId ?? "",
 			};
 
 			// Optimistically update to the new value
@@ -58,9 +57,26 @@ function AdminNewTask() {
 
 			// Navigate optimistically
 			navigate({ to: "/admin/tasks" });
-
 			// Return a context object with the snapshotted value
 			return { previousTasks, optimisticTask };
+		},
+		onSettled: (createdTask, error, _variables, context) => {
+			if (createdTask && context) {
+				// Update the list cache with the actual server data
+				queryClient.setQueryData<Task[]>(
+					adminQueries.adminTask.list.queryKey,
+					(old = []) =>
+						old.map((t) =>
+							t.id === context.optimisticTask.id ? (createdTask as Task) : t,
+						),
+				);
+
+				// Also set the detail cache for the new task
+				queryClient.setQueryData(
+					adminQueries.adminTask.detail(createdTask.id).queryKey,
+					createdTask,
+				);
+			}
 		},
 		onSuccess: () => {
 			showToast({

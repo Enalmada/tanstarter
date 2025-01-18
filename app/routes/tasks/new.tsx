@@ -60,14 +60,14 @@ function NewTask() {
 				queries.task.list(userId).queryKey,
 			);
 
-			// Use a consistent timestamp for optimistic updates
-			const now = new Date().toISOString();
+			const optimisticTimestamp = new Date();
+			const optimisticId = `temp-${optimisticTimestamp.getTime()}`;
 
 			// Create optimistic task
 			const optimisticTask: Task = {
-				id: `temp-${Date.now()}`,
-				createdAt: new Date(now),
-				updatedAt: new Date(now),
+				id: optimisticId,
+				createdAt: optimisticTimestamp,
+				updatedAt: optimisticTimestamp,
 				version: 1,
 				createdById: userId ?? "temp-user",
 				updatedById: userId ?? "temp-user",
@@ -84,11 +84,11 @@ function NewTask() {
 			navigate({ to: "/tasks" });
 
 			// Return a context object with the snapshotted value
-			return { previousTasks, optimisticTask };
+			return { previousTasks, optimisticTask, optimisticTimestamp };
 		},
 		onSettled: (createdTask, error, _variables, context) => {
 			if (createdTask && context) {
-				// Update the cache with the actual server data
+				// Update the cache with the actual server data, preserving optimistic timestamp
 				queryClient.setQueryData<Task[]>(
 					queries.task.list(userId).queryKey,
 					(old = []) =>

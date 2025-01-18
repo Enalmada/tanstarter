@@ -79,7 +79,6 @@ export function validateNewTask(input: unknown): TaskInsert {
 
 	return {
 		...result.output,
-		userId: "", // Will be set in handler
 	};
 }
 
@@ -143,7 +142,7 @@ export function validateUpdateTask(input: unknown): {
 	}
 
 	const { id, data } = result.output;
-	const { userId, createdAt, updatedAt, ...updateData } = data;
+	const { createdAt, updatedAt, ...updateData } = data;
 	return {
 		id,
 		data: updateData,

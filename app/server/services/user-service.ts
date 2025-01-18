@@ -160,6 +160,27 @@ export const deleteUser = createServerFn({ method: "POST" })
 	});
 */
 
+/*
+export const fetchUserOptions = createServerFn({ method: "GET" })
+	.middleware([authMiddleware])
+	.handler(async ({ context }) => {
+		accessCheck(context.user, "list", subject, {});
+
+		const users = await DB.query.UserTable.findMany({
+			columns: {
+				id: true,
+				email: true,
+				name: true,
+			},
+		});
+
+		return users.map(user => ({
+			value: user.id,
+			label: user.name || user.email,
+		}));
+	});
+	*/
+
 // Create service objects that use the server functions
 export const adminUserService = {
 	fetchUsers,

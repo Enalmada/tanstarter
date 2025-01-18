@@ -43,6 +43,7 @@ const mockTaskInput = {
 	description: mockTask.description,
 	status: mockTask.status,
 	dueDate: mockTask.dueDate,
+	userId: mockTask.userId,
 };
 
 import { validateNewTask, validateUpdateTask } from "../task-service";
@@ -53,7 +54,6 @@ describe("task-service validation", () => {
 			const result = validateNewTask(mockTaskInput);
 			expect(result).toEqual({
 				...mockTaskInput,
-				userId: "",
 			});
 		});
 

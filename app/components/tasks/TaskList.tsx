@@ -233,73 +233,80 @@ export function TaskList({
 					{errorMessage}
 				</Alert>
 			)}
-			<Group justify="space-between">
-				<Text size="xl" fw={700}>
+			<Group justify="space-between" className="h-[48px] min-h-[48px]">
+				<Text size="xl" fw={700} className="flex-shrink-0">
 					Tasks
 				</Text>
-				<Button component={Link} to="/tasks/new" size="lg">
+				<Button
+					component={Link}
+					to="/tasks/new"
+					size="lg"
+					className="flex-shrink-0"
+				>
 					New Task
 				</Button>
 			</Group>
 
-			<Stack gap="md">
+			<Stack gap="md" className="min-h-[50px]">
 				{tasks.map((task: Task) => (
-					<Card key={task.id} withBorder>
-						<Group>
-							<Checkbox
-								checked={task.status === TaskStatus.COMPLETED}
-								onChange={() =>
-									updateTaskMutation.mutate({
-										taskId: task.id,
-										currentTask: task,
-										data: {
-											title: task.title,
-											description: task.description,
-											dueDate: task.dueDate,
-											status:
-												task.status === TaskStatus.ACTIVE
-													? TaskStatus.COMPLETED
-													: TaskStatus.ACTIVE,
-										},
-									})
-								}
-								disabled={task.id.startsWith("-")}
-							/>
-							<div className="flex flex-col gap-1 flex-1">
-								<Link
-									to="/tasks/$taskId"
-									params={{ taskId: task.id }}
-									className={`${
-										task.status === TaskStatus.COMPLETED
-											? "text-gray-400 line-through"
-											: ""
-									} ${task.id.startsWith("-") ? "pointer-events-none opacity-50" : ""}`}
+					<Card key={task.id} withBorder className="w-full min-h-[60px]">
+						<Group className="w-full justify-between">
+							<Group>
+								<Checkbox
+									checked={task.status === TaskStatus.COMPLETED}
+									onChange={() =>
+										updateTaskMutation.mutate({
+											taskId: task.id,
+											currentTask: task,
+											data: {
+												title: task.title,
+												description: task.description,
+												dueDate: task.dueDate,
+												status:
+													task.status === TaskStatus.ACTIVE
+														? TaskStatus.COMPLETED
+														: TaskStatus.ACTIVE,
+											},
+										})
+									}
+									disabled={task.id.startsWith("-")}
+								/>
+								<div className="flex flex-col gap-1 flex-1">
+									<Link
+										to="/tasks/$taskId"
+										params={{ taskId: task.id }}
+										className={`${
+											task.status === TaskStatus.COMPLETED
+												? "text-gray-400 line-through"
+												: ""
+										} ${task.id.startsWith("-") ? "pointer-events-none opacity-50" : ""}`}
+									>
+										<Text size="lg" fw={500}>
+											{task.title}
+										</Text>
+									</Link>
+									{task.description && (
+										<Text size="sm" c="dimmed">
+											{task.description}
+										</Text>
+									)}
+									{task.dueDate && (
+										<Text size="xs" c="dimmed">
+											Due: {new Date(task.dueDate).toLocaleDateString()}
+										</Text>
+									)}
+								</div>
+								<Button
+									variant="subtle"
+									color="red"
+									onClick={() => deleteTaskMutation.mutate({ id: task.id })}
+									disabled={
+										task.id.startsWith("-") || pendingDeleteIds.has(task.id)
+									}
 								>
-									<Text size="lg" fw={500}>
-										{task.title}
-									</Text>
-								</Link>
-								{task.description && (
-									<Text size="sm" c="dimmed">
-										{task.description}
-									</Text>
-								)}
-								{task.dueDate && (
-									<Text size="xs" c="dimmed">
-										Due: {new Date(task.dueDate).toLocaleDateString()}
-									</Text>
-								)}
-							</div>
-							<Button
-								variant="subtle"
-								color="red"
-								onClick={() => deleteTaskMutation.mutate({ id: task.id })}
-								disabled={
-									task.id.startsWith("-") || pendingDeleteIds.has(task.id)
-								}
-							>
-								<Trash2 size={20} />
-							</Button>
+									<Trash2 size={20} />
+								</Button>
+							</Group>
 						</Group>
 					</Card>
 				))}

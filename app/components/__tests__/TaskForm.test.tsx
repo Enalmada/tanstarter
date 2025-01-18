@@ -97,6 +97,7 @@ describe("TaskForm", () => {
 				description: "New Description",
 				status: TaskStatus.COMPLETED,
 				dueDate: null,
+				userId: mockUserId,
 			});
 		});
 	});
