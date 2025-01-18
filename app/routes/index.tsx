@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Image } from "@unpic/react";
 import { DefaultLayout } from "~/components/layouts/DefaultLayout";
 import {
 	Anchor,
@@ -122,6 +123,31 @@ function Home() {
 							</Stack>
 						</Card>
 					</Group>
+				</Stack>
+
+				{/* Image Optimization Demo Section */}
+				<Stack gap="lg" mt="xl">
+					<Title order={2} ta="center">
+						Image Optimization Demo
+					</Title>
+					<Card withBorder mx="auto" p="xl">
+						<Image
+							src="https://images.unsplash.com/photo-1682687220742-aba13b6e50ba"
+							layout="constrained"
+							width={800}
+							height={400}
+							alt="Scenic mountain landscape"
+							priority={true}
+							loading="eager"
+							background="auto"
+							breakpoints={[320, 640, 960, 1280]}
+							className="rounded-lg"
+						/>
+						<Text size="sm" c="dimmed" ta="center" mt="md">
+							Image optimized with Unpic - Responsive, lazy-loaded, and
+							CDN-powered
+						</Text>
+					</Card>
 				</Stack>
 			</Stack>
 		</Container>

@@ -60,6 +60,7 @@
 		"@tanstack/react-table": "^8.20.6",
 		"@tanstack/router-devtools": "^1.95.4",
 		"@tanstack/start": "1.95.4",
+		"@unpic/react": "^0.1.15",
 		"@vercel/postgres": "^0.10.0",
 		"@vitejs/plugin-react": "^4.3.4",
 		"better-auth": "^1.1.13",
