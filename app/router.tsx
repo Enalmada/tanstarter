@@ -10,7 +10,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import type { ReactNode } from "react";
-import type { ClientUser } from "~/server/db/schema";
+import type { SessionUser } from "~/utils/auth-client";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
 import { NotFound } from "./components/NotFound";
 import { routeTree } from "./routeTree.gen";
@@ -23,7 +23,7 @@ declare module "@tanstack/react-router" {
 
 interface RouterContext {
 	queryClient: QueryClient;
-	user: ClientUser | null | undefined;
+	user: SessionUser | null | undefined;
 }
 
 export function createRouter() {

@@ -22,25 +22,27 @@ export const baseEntityMock = {
 };
 
 // biome-ignore lint/suspicious/noExportsInTest: <explanation>
-export const mockTask: Task = {
-	id: "tsk_1",
-	title: "Task 1",
-	description: null,
-	dueDate: fixedDate,
-	status: TaskStatus.ACTIVE,
-	userId: mockUserId,
-	...baseEntityMock,
-};
-
-// biome-ignore lint/suspicious/noExportsInTest: <explanation>
 export const mockUser: User = {
 	id: mockUserId,
 	email: "test@example.com",
 	name: "Test User",
 	role: UserRole.MEMBER,
-	avatarUrl: null,
-	setupAt: null,
-	termsAcceptedAt: null,
+	image: null,
+	emailVerified: false,
+	...baseEntityMock,
+};
+
+// biome-ignore lint/suspicious/noExportsInTest: <explanation>
+export const mockTaskId = "tsk_1";
+
+// biome-ignore lint/suspicious/noExportsInTest: <explanation>
+export const mockTask: Task = {
+	id: mockTaskId,
+	title: "Task 1",
+	description: null,
+	dueDate: fixedDate,
+	status: TaskStatus.ACTIVE,
+	userId: mockUserId,
 	...baseEntityMock,
 };
 

@@ -6,7 +6,6 @@
 import { createServerFn } from "@tanstack/start";
 import { eq } from "drizzle-orm";
 import { object, string } from "valibot";
-import { getAuthSession } from "~/server/auth/auth";
 import DB from "../db";
 
 import { authMiddleware } from "~/middleware/auth-guard";
@@ -22,13 +21,6 @@ const userService = createBaseService<
 	UserInsert
 >(UserTable, "User");
 */
-
-export const getUserAuth = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const { user } = await getAuthSession();
-		return user;
-	},
-);
 
 export const subject = "User";
 

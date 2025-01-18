@@ -13,20 +13,15 @@ declare global {
 export const required = [
 	"GOOGLE_CLIENT_ID",
 	"GOOGLE_CLIENT_SECRET",
-	"GOOGLE_REDIRECT_URI",
 	"DATABASE_URL",
+	"VITE_APP_BASE_URL",
 ] as const;
 
 export const optional = [
 	"DB_RETRY_INTERVAL",
 	"DB_MAX_RETRIES",
-	"DISCORD_CLIENT_ID",
-	"DISCORD_CLIENT_SECRET",
-	"DISCORD_REDIRECT_URI",
-	"GITHUB_CLIENT_ID",
-	"GITHUB_CLIENT_SECRET",
-	"GITHUB_REDIRECT_URI",
 	"NODE_ENV",
+	"CF_PAGES_URL",
 ] as const;
 
 type RequiredEnvKeys = (typeof required)[number];

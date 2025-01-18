@@ -1,11 +1,12 @@
 import { subject } from "@casl/ability";
 import { describe, expect, it } from "vitest";
-import { type Task, type User, UserRole } from "../../db/schema";
+import type { SessionUser } from "~/server/auth/auth";
+import { type Task, UserRole } from "../../db/schema";
 import { defineAbilitiesFor } from "../ability";
 
 describe("Permissions", () => {
 	describe("when user is an admin", () => {
-		const user = { id: "usr_1", role: UserRole.ADMIN } as User;
+		const user = { id: "usr_1", role: UserRole.ADMIN } as SessionUser;
 		const ability = defineAbilitiesFor(user);
 
 		it("can do anything", () => {
@@ -16,8 +17,8 @@ describe("Permissions", () => {
 	});
 
 	describe("when user is a member", () => {
-		const user = { id: "usr_1", role: UserRole.MEMBER } as User;
-		const otherUser = { id: "usr_2", role: UserRole.MEMBER } as User;
+		const user = { id: "usr_1", role: UserRole.MEMBER } as SessionUser;
+		const otherUser = { id: "usr_2", role: UserRole.MEMBER } as SessionUser;
 		const task = { userId: user.id } as Task;
 		const otherTask = { userId: otherUser.id } as Task;
 		const ability = defineAbilitiesFor(user);

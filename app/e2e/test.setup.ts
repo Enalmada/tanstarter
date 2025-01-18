@@ -1,23 +1,80 @@
+import type { Page } from "@playwright/test";
 import { test as base } from "@playwright/test";
-import type { ClientUser } from "~/server/db/schema";
-import { UserRole } from "~/server/db/schema";
+import type { SessionUser } from "~/utils/auth-client";
 
-// Extend the base test with auth fixtures
+// Mock users for testing
+const mockMemberUser: SessionUser = {
+	id: "test-user-id",
+	email: "test@example.com",
+	name: "Test User",
+	role: "MEMBER",
+	image: null,
+	emailVerified: false,
+	createdAt: new Date(),
+	updatedAt: new Date(),
+};
+
+const mockAdminUser: SessionUser = {
+	...mockMemberUser,
+	id: "test-admin-id",
+	email: "admin@example.com",
+	name: "Test Admin",
+	role: "ADMIN",
+};
+
+// Extend the base test type to include auth context
 export const test = base.extend<{
-	mockUser: ClientUser;
+	memberPage: Page;
+	adminPage: Page;
 }>({
-	mockUser: async (testInfo, use) => {
-		// Create a mock user
-		const mockUser: ClientUser = {
-			id: "test-user-id",
-			email: "test@example.com",
-			name: "Test User",
-			role: UserRole.MEMBER,
-			avatarUrl: null,
-			setupAt: null,
-		};
+	memberPage: async ({ page }, use) => {
+		// Set up member session data in localStorage
+		await page.addInitScript((user: SessionUser) => {
+			localStorage.setItem(
+				"better-auth:session",
+				JSON.stringify({
+					user,
+					expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+				}),
+			);
+		}, mockMemberUser);
 
-		await use(mockUser);
+		// Set auth header for API requests
+		await page.setExtraHTTPHeaders({
+			Authorization: "playwright-test-token",
+		});
+
+		await use(page);
+
+		// Clean up after test
+		await page.evaluate(() => {
+			localStorage.removeItem("better-auth:session");
+		});
+	},
+
+	adminPage: async ({ page }, use) => {
+		// Set up admin session data in localStorage
+		await page.addInitScript((user: SessionUser) => {
+			localStorage.setItem(
+				"better-auth:session",
+				JSON.stringify({
+					user,
+					expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+				}),
+			);
+		}, mockAdminUser);
+
+		// Set auth header for API requests
+		await page.setExtraHTTPHeaders({
+			Authorization: "playwright-admin-test-token",
+		});
+
+		await use(page);
+
+		// Clean up after test
+		await page.evaluate(() => {
+			localStorage.removeItem("better-auth:session");
+		});
 	},
 });
 

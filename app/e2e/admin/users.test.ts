@@ -20,6 +20,14 @@ import { expect, test } from "@playwright/test";
  * - Error states
  */
 test.describe("Admin Users", () => {
+	// TODO consider using email login instead
+	test.beforeEach(async ({ context }) => {
+		// Set auth header for all requests in this test
+		await context.setExtraHTTPHeaders({
+			authorization: "playwright-admin-test-token",
+		});
+	});
+
 	test("can access admin users page", async ({ page }) => {
 		await page.goto("/admin/users");
 		await expect(page.getByRole("heading", { name: "Users" })).toBeVisible();

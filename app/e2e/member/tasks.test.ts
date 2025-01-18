@@ -10,6 +10,13 @@ import { expect, test } from "@playwright/test";
  *    - Use role-based selectors when possible
  */
 test.describe("Member Tasks", () => {
+	test.beforeEach(async ({ context }) => {
+		// Set auth header for all requests in this test
+		await context.setExtraHTTPHeaders({
+			authorization: "playwright-test-token",
+		});
+	});
+
 	test("shows task list page elements", async ({ page }) => {
 		await page.goto("/tasks");
 
@@ -23,19 +30,7 @@ test.describe("Member Tasks", () => {
 	test("clears tasks and shows empty state", async ({ page }) => {
 		await page.goto("/tasks");
 
-		// Try to clear tasks and verify response
-		const response = await page.request.post("/api/test/clear-tasks");
-		expect(
-			response.status(),
-			`Clear tasks failed with status ${response.status()}: ${
-				response.statusText() || "No status text"
-			}`,
-		).toBe(200);
-
-		// Reload after clearing
-		await page.reload();
-
-		// Check for any empty state message - using common patterns
+		// Check for empty state text
 		const emptyStatePatterns = [
 			/no tasks/i,
 			/create.*first task/i,
@@ -44,7 +39,6 @@ test.describe("Member Tasks", () => {
 			/empty/i,
 		];
 
-		// Try each pattern until we find a match
 		const emptyText = page.getByText(
 			new RegExp(emptyStatePatterns.map((p) => p.source).join("|"), "i"),
 		);

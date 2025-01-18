@@ -2,10 +2,10 @@ import { AppShell } from "@mantine/core";
 import { Outlet } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Navbar } from "~/components/Navbar";
-import type { ClientUser } from "~/server/db/schema";
+import type { SessionUser } from "~/utils/auth-client";
 
 interface DefaultLayoutProps {
-	user: ClientUser | null;
+	user: SessionUser | null;
 	children?: ReactNode;
 }
 

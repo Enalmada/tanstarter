@@ -35,8 +35,7 @@ function Home() {
 				<Stack ta="center" gap="md">
 					<Title size="h1">TanStarter Todo</Title>
 					<Text c="dimmed" size="xl" maw={600} mx="auto">
-						A modern, type-safe todo application built with TanStack Router,
-						React Query, and PostgreSQL.
+						A modern, type-safe todo application built with TanStack Start.
 					</Text>
 					<Group justify="center" mt="md">
 						<LinkButton to="/tasks" size="lg">
@@ -76,8 +75,8 @@ function Home() {
 									Modern Stack
 								</Title>
 								<Text c="dimmed">
-									Built with TanStack Router, React Query, and Mantine UI
-									components.
+									Built with TanStack Start, TanStack Query, TanStack Table, and
+									Mantine UI components.
 								</Text>
 							</Stack>
 						</Card>
@@ -87,8 +86,7 @@ function Home() {
 									Great DX
 								</Title>
 								<Text c="dimmed">
-									Fast refresh, automatic type generation, and excellent error
-									handling.
+									Fast refresh, automatic type generation, and error handling.
 								</Text>
 							</Stack>
 						</Card>
@@ -107,8 +105,8 @@ function Home() {
 									Frontend
 								</Title>
 								<Text c="dimmed">
-									React, TanStack Router, TanStack Query, Mantine UI, Tailwind
-									CSS
+									React, TanStack Router, TanStack Query, Mantine UI with
+									modals, Tailwind CSS, and Lingui i18n
 								</Text>
 							</Stack>
 						</Card>
@@ -118,7 +116,8 @@ function Home() {
 									Backend
 								</Title>
 								<Text c="dimmed">
-									TanStack Start, Drizzle ORM, PostgreSQL, Google OAuth
+									TanStack Start, Drizzle ORM, PostgreSQL, Better Auth, and CASL
+									authorization
 								</Text>
 							</Stack>
 						</Card>

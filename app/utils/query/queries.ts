@@ -3,7 +3,7 @@ import {
 	createQueryKeyStore,
 	type inferQueryKeyStore,
 } from "@lukemorales/query-key-factory";
-import { getAuthSession } from "~/server/auth/auth";
+import { getSessionUser } from "~/routes/__root";
 import {
 	adminTaskService,
 	clientTaskService,
@@ -23,11 +23,10 @@ export const queries = createQueryKeyStore({
 		}),
 	},
 	user: {
-		auth: {
+		session: {
 			queryKey: null,
 			queryFn: async () => {
-				const { user } = await getAuthSession();
-				return user;
+				return await getSessionUser();
 			},
 		},
 	},

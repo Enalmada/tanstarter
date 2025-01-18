@@ -3,7 +3,8 @@ import {
 	type PureAbility,
 	createMongoAbility,
 } from "@casl/ability";
-import type { ClientUser, Task, UserRole } from "../db/schema";
+import type { SessionUser } from "~/server/auth/auth";
+import type { Task, UserRole } from "../db/schema";
 
 export type Action =
 	| "manage"
@@ -28,7 +29,7 @@ type AppAbilities = [
 export type AppAbility = PureAbility<AppAbilities>;
 
 type DefinePermissions = (
-	user: ClientUser,
+	user: SessionUser,
 	builder: AbilityBuilder<AppAbility>,
 ) => void;
 
@@ -57,7 +58,7 @@ const rolePermissions: Record<Roles, DefinePermissions> = {
 	},
 };
 
-export function defineAbilitiesFor(user: ClientUser | undefined) {
+export function defineAbilitiesFor(user: SessionUser | undefined) {
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	const builder = new AbilityBuilder<AppAbility>(createMongoAbility as any);
 

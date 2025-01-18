@@ -1,30 +1,24 @@
-import { expect, test as setup } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-setup("authenticate as admin", async ({ page }) => {
-	// Start from home page
-	await page.goto("/");
+/**
+ * Admin Authentication Setup
+ *
+ * This test sets up the authenticated state for admin tests.
+ * It uses a special test token that is only valid in development mode.
+ */
+test("authenticate as admin", async ({ page, context }) => {
+	// Set auth header for all requests
+	const headers = {
+		authorization: "playwright-admin-test-token",
+	};
+	await context.setExtraHTTPHeaders(headers);
 
-	// Set admin test token in cookie
-	await page.context().addCookies([
-		{
-			name: "session",
-			value: "playwright-admin-test-token",
-			domain: "localhost",
-			path: "/",
-		},
-	]);
+	// Navigate to admin page
+	await page.goto("/admin");
+	await expect(
+		page.getByText("Admin Dashboard", { exact: true }),
+	).toBeVisible();
 
-	// Navigate to admin page and verify we can access it
-	await page.goto("/admin/tasks");
-	await page.waitForURL("/admin/tasks");
-
-	// Basic check that we're logged in as admin
-	await expect(page.getByRole("heading", { name: "Tasks" })).toBeVisible({
-		timeout: 30000,
-	});
-
-	// Save signed-in state
-	await page.context().storageState({
-		path: "playwright/.auth/admin.json",
-	});
+	// Save signed-in state for other tests to use
+	await context.storageState({ path: "playwright/.auth/admin.json" });
 });

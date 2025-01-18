@@ -2,9 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 import type { PlaywrightTestConfig } from "@playwright/test";
 
 // Set NODE_ENV for tests - required for test tokens to work in auth.ts
-// This enables special handling of playwright-test-token and playwright-admin-test-token
 process.env.NODE_ENV = "development";
-
 /**
  * Playwright Configuration
  * @see https://playwright.dev/docs/test-configuration
@@ -33,13 +31,30 @@ const config: PlaywrightTestConfig = {
 	// Shared settings for all projects
 	use: {
 		baseURL: "http://localhost:3000",
-		// Only capture traces and media on failure to reduce noise
 		trace: "on-first-retry",
 		screenshot: "only-on-failure",
 		video: "retain-on-failure",
 	},
 
-	// Test reporters - multiple formats for different use cases
+	// Built-in development server management
+	webServer: {
+		command: "vinxi dev",
+		url: "http://localhost:3000",
+		reuseExistingServer: !process.env.CI,
+		stdout: "pipe",
+		stderr: "pipe",
+		timeout: 120000, // 2 minutes
+		env: {
+			NODE_ENV: "development",
+			DATABASE_URL:
+				process.env.DATABASE_URL ||
+				"postgres://postgres:postgres@db.localtest.me:5434/tanstarter",
+			DB_PROXY_PORT: process.env.DB_PROXY_PORT || "4444",
+			DB_RETRY_INTERVAL: process.env.DB_RETRY_INTERVAL || "2000",
+			DB_MAX_RETRIES: process.env.DB_MAX_RETRIES || "15",
+		},
+	},
+
 	reporter: [
 		["list"],
 		["json", { outputFile: "playwright/results/test-results.json" }],
@@ -58,7 +73,6 @@ const config: PlaywrightTestConfig = {
 
 	projects: [
 		// Auth setup projects run first to establish authenticated states
-		// These create the auth state files used by the test suites
 		{
 			name: "setup-member",
 			testMatch: "**/auth/member.setup.ts",
@@ -69,7 +83,6 @@ const config: PlaywrightTestConfig = {
 		},
 
 		// Member test suite - uses member.json auth state
-		// Tests member-specific functionality and access
 		{
 			name: "member",
 			testDir: "./app/e2e/member",
@@ -81,7 +94,6 @@ const config: PlaywrightTestConfig = {
 		},
 
 		// Admin test suite - uses admin.json auth state
-		// Tests admin-specific functionality and access
 		{
 			name: "admin",
 			testDir: "./app/e2e/admin",
@@ -93,7 +105,6 @@ const config: PlaywrightTestConfig = {
 		},
 
 		// Public pages - no auth required
-		// Tests publicly accessible pages and features
 		{
 			name: "public",
 			testDir: "./app/e2e/public",
