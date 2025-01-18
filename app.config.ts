@@ -26,7 +26,10 @@ export default defineConfig({
 
 			react({
 				babel: {
-					plugins: ["@lingui/babel-plugin-lingui-macro"],
+					plugins: [
+						["babel-plugin-react-compiler", { target: "19" }],
+						"@lingui/babel-plugin-lingui-macro",
+					],
 				},
 			}),
 
@@ -35,7 +38,13 @@ export default defineConfig({
 		envPrefix: ["PUBLIC_"],
 		assetsInclude: ["**/*.po"],
 		optimizeDeps: {
-			exclude: ["@lingui/macro", "@lingui/react"],
+			exclude: [
+				"@lingui/macro",
+				"@lingui/react",
+				"drizzle-orm",
+				"drizzle-orm/pg-core",
+				"drizzle-valibot",
+			],
 			include: [
 				"@mantine/core",
 				"@mantine/hooks",
@@ -55,15 +64,13 @@ export default defineConfig({
 				"@lukemorales/query-key-factory",
 				"@lingui/core",
 				"valibot",
-				"drizzle-orm",
-				"drizzle-orm/pg-core",
-				"drizzle-valibot",
 				"nanoid/non-secure",
 				"react-dom/client",
 				"better-auth/client/plugins",
 				"better-auth/react",
 				"lucide-react",
 				"date-fns",
+				"@unpic/react",
 			],
 		},
 	},

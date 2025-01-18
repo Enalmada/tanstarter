@@ -33,6 +33,11 @@ export const cspRules: CspRule[] = [
 		source: "/:path*",
 	},
 	{
+		description: "imageDemo",
+		"img-src": "'self' blob: data: https://images.unsplash.com",
+		source: "/:path*",
+	},
+	{
 		description: "sampleimage",
 		"img-src":
 			"'self' blob: data: https://picsum.photos/200/300 https://fastly.picsum.photos/ https://i.pravatar.cc/ https://*.googleusercontent.com",
