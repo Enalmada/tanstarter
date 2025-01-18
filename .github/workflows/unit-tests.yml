@@ -4,8 +4,8 @@ on:
   push:
     branches-ignore:
       - main
-  pull_request:
 
+      
 jobs:
   test-unit:
     runs-on: ubuntu-latest

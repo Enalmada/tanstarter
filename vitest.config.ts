@@ -5,6 +5,10 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			"~": path.resolve(__dirname, "./app"),
+			"virtual:serwist": path.resolve(
+				__dirname,
+				"./app/utils/query/__tests__/mocks/virtual-serwist.ts",
+			),
 		},
 	},
 	test: {

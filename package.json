@@ -10,7 +10,7 @@
 		"dev": "bun run docker:up && turbo dev:vinxi --log-prefix=none",
 		"dev:install": "bun install",
 		"dev:vinxi": "bun app/validate-env.ts && vinxi dev",
-		"docker:up": "docker-compose --env-file .env up -d --remove-orphans",
+		"docker:up": "docker compose --env-file .env up -d --remove-orphans",
 		"drizzle:generate": "dotenv -e ./.env drizzle-kit generate",
 		"drizzle:migrate": "bun ./app/server/db/migrate.ts",
 		"extract": "lingui extract",
