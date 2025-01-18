@@ -22,7 +22,8 @@ process.env.NODE_ENV = "development";
 const config: PlaywrightTestConfig = {
 	testDir: "./app/e2e",
 	// Enable parallel execution for faster test runs
-	// Tests must be independent since they run in parallel	fullyParallel: true,
+	// Tests must be independent since they run in parallel
+	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
 	workers: process.env.CI ? 1 : "100%",
@@ -33,6 +34,19 @@ const config: PlaywrightTestConfig = {
 		trace: "on-first-retry",
 		screenshot: "only-on-failure",
 		video: "retain-on-failure",
+	},
+
+	// Built-in development server management
+	webServer: {
+		command: "bun run dev",
+		url: "http://localhost:3000",
+		reuseExistingServer: !process.env.CI,
+		stdout: "pipe",
+		stderr: "pipe",
+		timeout: 120000, // 2 minutes
+		env: {
+			NODE_ENV: "development",
+		},
 	},
 
 	reporter: [
