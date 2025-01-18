@@ -16,7 +16,7 @@ import { TaskForm } from "~/components/TaskForm";
 import { showToast } from "~/components/Toast";
 import { Card, Stack } from "~/components/ui";
 import type { Task, TaskStatusType } from "~/server/db/schema";
-import { clientTaskService } from "~/server/services/task-service";
+import { createEntity } from "~/server/services/base-service";
 import { queries } from "~/utils/query/queries";
 
 type TaskFormData = {
@@ -24,6 +24,7 @@ type TaskFormData = {
 	description: string | null;
 	dueDate: Date | null;
 	status: TaskStatusType;
+	userId: string;
 };
 
 export const Route = createFileRoute("/tasks/new")({
@@ -40,7 +41,12 @@ function NewTask() {
 
 	const createTaskMutation = useMutation({
 		mutationFn: async (data: TaskFormData) => {
-			const result = await clientTaskService.createTask({ data });
+			const result = await createEntity({
+				data: {
+					subject: "Task",
+					data,
+				},
+			});
 			return result;
 		},
 		onMutate: async (newTask) => {
@@ -60,7 +66,6 @@ function NewTask() {
 			// Create optimistic task
 			const optimisticTask: Task = {
 				id: `temp-${Date.now()}`,
-				userId: userId ?? "temp-user",
 				createdAt: new Date(now),
 				updatedAt: new Date(now),
 				version: 1,
@@ -88,7 +93,7 @@ function NewTask() {
 					queries.task.list(userId).queryKey,
 					(old = []) =>
 						old.map((t) =>
-							t.id === context.optimisticTask.id ? createdTask : t,
+							t.id === context.optimisticTask.id ? (createdTask as Task) : t,
 						),
 				);
 			}
@@ -125,6 +130,7 @@ function NewTask() {
 					<TaskForm
 						onSubmit={(values) => createTaskMutation.mutate(values)}
 						isSubmitting={createTaskMutation.isPending}
+						userId={userId ?? ""}
 					/>
 				</Stack>
 			</Card>

@@ -191,6 +191,7 @@ export const fetchTasks = createServerFn({ method: "GET" })
 		return tasks;
 	});
 
+/*
 export const createTask = createServerFn({ method: "POST" })
 	.validator(validateNewTask)
 	.middleware([authMiddleware])
@@ -213,6 +214,7 @@ export const createTask = createServerFn({ method: "POST" })
 
 		return result;
 	});
+	*/
 
 export const updateTask = createServerFn({ method: "POST" })
 	.validator(validateUpdateTask)
@@ -277,13 +279,13 @@ export const deleteTask = createServerFn({ method: "POST" })
 export const adminTaskService = {
 	fetchTasks,
 	fetchTask,
-	createTask,
+	// createTask,
 	updateTask,
 };
 
 export const clientTaskService = {
 	fetchTasks,
 	fetchTask,
-	createTask,
+	// createTask,
 	updateTask,
 };

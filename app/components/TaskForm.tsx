@@ -17,18 +17,21 @@ export type TaskFormData = {
 	description: string | null;
 	dueDate: Date | null;
 	status: (typeof TaskStatus)[keyof typeof TaskStatus];
+	userId: string;
 };
 
 interface TaskFormProps {
 	defaultValues?: Partial<Task>;
 	onSubmit: (values: TaskFormData) => void;
 	isSubmitting?: boolean;
+	userId: string;
 }
 
 export function TaskForm({
 	defaultValues,
 	onSubmit,
 	isSubmitting = false,
+	userId,
 }: TaskFormProps) {
 	const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +41,7 @@ export function TaskForm({
 			description: defaultValues?.description ?? null,
 			dueDate: defaultValues?.dueDate ? new Date(defaultValues.dueDate) : null,
 			status: defaultValues?.status ?? TaskStatus.ACTIVE,
+			userId,
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -48,6 +52,7 @@ export function TaskForm({
 					description: result.description ?? null,
 					dueDate: result.dueDate,
 					status: result.status,
+					userId,
 				});
 			} catch (err) {
 				if (err instanceof ValiError) {

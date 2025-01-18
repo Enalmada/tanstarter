@@ -227,7 +227,6 @@ export const taskUpdateSchema = createUpdateSchema(TaskTable, {
 export const taskFormSchema = createInsertSchema(TaskTable, {
 	// Override server-managed fields to be undefined
 	id: undefined_(),
-	userId: undefined_(),
 	createdAt: undefined_(),
 	updatedAt: undefined_(),
 	status: taskStatusSchema,

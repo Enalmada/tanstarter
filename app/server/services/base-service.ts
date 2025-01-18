@@ -63,13 +63,30 @@ export const createEntity = createServerFn({ method: "POST" })
 			throw new Error(`No schema found for subject type: ${subject}`);
 		}
 
-		// Validate the data using the subject-specific schema
-		const validatedData = parse(schema, data);
-
-		return {
-			subject,
-			data: validatedData,
-		};
+		try {
+			// Validate the data using the subject-specific schema
+			const validatedData = parse(schema, data);
+			return {
+				subject,
+				data: validatedData,
+			};
+		} catch (error) {
+			if (error && typeof error === "object" && "issues" in error) {
+				const issues = (
+					error.issues as Array<{
+						path?: Array<{ key: string }>;
+						message?: string;
+					}>
+				)
+					.map((issue) => {
+						const path = issue.path?.[0]?.key;
+						return path ? `${path}: ${issue.message}` : issue.message;
+					})
+					.join(", ");
+				throw new Error(`Validation failed for ${subject}: ${issues}`);
+			}
+			throw error;
+		}
 	})
 	.middleware([authMiddleware])
 	.handler(async ({ data: { subject, data }, context }) => {
@@ -77,7 +94,6 @@ export const createEntity = createServerFn({ method: "POST" })
 
 		const createWith = {
 			...data,
-			userId: context.user.id,
 			createdById: context.user.id,
 			updatedById: context.user.id,
 			version: 1,

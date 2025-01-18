@@ -4,20 +4,24 @@ import { showToast } from "~/components/Toast";
 import { AdminTaskForm, type TaskFormData } from "~/components/admin/TaskForm";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { Task } from "~/server/db/schema";
-import { adminTaskService } from "~/server/services/task-service";
+import { createEntity } from "~/server/services/base-service";
 import { adminQueries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/admin/tasks/new")({
 	component: AdminNewTask,
+	loader: async ({ context }) => {
+		return { userId: context.user?.id };
+	},
 });
 
 function AdminNewTask() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const { userId } = Route.useLoaderData();
 
 	const createTaskMutation = useMutation({
 		mutationFn: async (data: TaskFormData) => {
-			const result = await adminTaskService.createTask({ data });
+			const result = await createEntity({ data: { subject: "Task", data } });
 			return result;
 		},
 		onMutate: async (newTask) => {
@@ -41,9 +45,9 @@ function AdminNewTask() {
 				createdAt: new Date(now),
 				updatedAt: new Date(now),
 				version: 1,
-				createdById: null,
-				updatedById: null,
-				userId: "temp-user",
+				createdById: userId ?? "",
+				updatedById: userId ?? "",
+				userId: userId ?? "",
 			};
 
 			// Optimistically update to the new value

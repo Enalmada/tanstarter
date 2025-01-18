@@ -265,6 +265,7 @@ function EditTask() {
 						defaultValues={task}
 						onSubmit={(values) => updateTaskMutation.mutate(values)}
 						isSubmitting={updateTaskMutation.isPending}
+						userId={userId ?? ""}
 					/>
 				</Stack>
 			</Card>
