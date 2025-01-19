@@ -20,8 +20,7 @@ import { TaskForm } from "~/components/TaskForm";
 import { showToast } from "~/components/Toast";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { Task, TaskStatusType } from "~/server/db/schema";
-import { deleteEntity } from "~/server/services/base-service";
-import { clientTaskService } from "~/server/services/task-service";
+import { deleteEntity, updateEntity } from "~/server/services/base-service";
 import { queries } from "~/utils/query/queries";
 
 export type TaskFormData = {
@@ -29,6 +28,7 @@ export type TaskFormData = {
 	description: string | null;
 	dueDate: Date | null;
 	status: TaskStatusType;
+	userId: string;
 };
 
 export const Route = createFileRoute("/tasks/$taskId")({
@@ -51,16 +51,17 @@ function EditTask() {
 
 	const updateTaskMutation = useMutation({
 		mutationFn: async (data: TaskFormData) => {
-			const result = await clientTaskService.updateTask({
+			const result = await updateEntity({
 				data: {
 					id: task.id,
+					subject: "Task",
 					data: {
 						...data,
 						version: task.version,
 					},
 				},
 			});
-			return result;
+			return result as Task;
 		},
 		onMutate: async (newData) => {
 			// Cancel any outgoing refetches
@@ -111,7 +112,8 @@ function EditTask() {
 				// Update both caches with the actual server data
 				queryClient.setQueryData<Task[]>(
 					queries.task.list(userId).queryKey,
-					(old = []) => old.map((t) => (t.id === task.id ? updatedTask : t)),
+					(old = []) =>
+						old.map((t) => (t.id === task.id ? (updatedTask as Task) : t)),
 				);
 				queryClient.setQueryData(
 					queries.task.detail(task.id).queryKey,
@@ -265,6 +267,7 @@ function EditTask() {
 						defaultValues={task}
 						onSubmit={(values) => updateTaskMutation.mutate(values)}
 						isSubmitting={updateTaskMutation.isPending}
+						userId={userId ?? ""}
 					/>
 				</Stack>
 			</Card>

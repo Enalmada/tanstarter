@@ -71,6 +71,7 @@ export default defineConfig({
 				"lucide-react",
 				"date-fns",
 				"@unpic/react",
+				"@casl/ability",
 			],
 		},
 	},

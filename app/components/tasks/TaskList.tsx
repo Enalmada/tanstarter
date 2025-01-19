@@ -12,8 +12,7 @@ import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { type Task, TaskStatus } from "~/server/db/schema";
-import { deleteEntity } from "~/server/services/base-service";
-import { clientTaskService } from "~/server/services/task-service";
+import { deleteEntity, updateEntity } from "~/server/services/base-service";
 import { queries } from "~/utils/query/queries";
 
 export function TaskList({
@@ -24,7 +23,6 @@ export function TaskList({
 	const [errorMessage, setErrorMessage] = useState("");
 	const [pendingTaskIds] = useState(() => new Set<string>());
 	const [pendingDeleteIds] = useState(() => new Set<string>());
-	// Track optimistic versions
 	const [optimisticVersions] = useState(() => new Map<string, number>());
 
 	const updateTaskMutation = useMutation({
@@ -46,13 +44,14 @@ export function TaskList({
 				// Always send the original version for server validation
 				version: currentTask.version,
 			};
-			const result = await clientTaskService.updateTask({
+			const result = await updateEntity({
 				data: {
 					id: taskId,
+					subject: "Task",
 					data: updatedData,
 				},
 			});
-			return result;
+			return result as Task;
 		},
 		onMutate: async ({ taskId, data, currentTask }) => {
 			setErrorMessage("");
@@ -233,63 +232,70 @@ export function TaskList({
 					{errorMessage}
 				</Alert>
 			)}
-			<Group justify="space-between">
-				<Text size="xl" fw={700}>
+			<Group justify="space-between" className="h-[48px] min-h-[48px]">
+				<Text size="xl" fw={700} className="flex-shrink-0">
 					Tasks
 				</Text>
-				<Button component={Link} to="/tasks/new" size="lg">
+				<Button
+					component={Link}
+					to="/tasks/new"
+					size="lg"
+					className="flex-shrink-0"
+				>
 					New Task
 				</Button>
 			</Group>
 
-			<Stack gap="md">
+			<Stack gap="md" className="min-h-[50px]">
 				{tasks.map((task: Task) => (
-					<Card key={task.id} withBorder>
-						<Group>
-							<Checkbox
-								checked={task.status === TaskStatus.COMPLETED}
-								onChange={() =>
-									updateTaskMutation.mutate({
-										taskId: task.id,
-										currentTask: task,
-										data: {
-											title: task.title,
-											description: task.description,
-											dueDate: task.dueDate,
-											status:
-												task.status === TaskStatus.ACTIVE
-													? TaskStatus.COMPLETED
-													: TaskStatus.ACTIVE,
-										},
-									})
-								}
-								disabled={task.id.startsWith("-")}
-							/>
-							<div className="flex flex-col gap-1 flex-1">
-								<Link
-									to="/tasks/$taskId"
-									params={{ taskId: task.id }}
-									className={`${
-										task.status === TaskStatus.COMPLETED
-											? "text-gray-400 line-through"
-											: ""
-									} ${task.id.startsWith("-") ? "pointer-events-none opacity-50" : ""}`}
-								>
-									<Text size="lg" fw={500}>
-										{task.title}
-									</Text>
-								</Link>
-								{task.description && (
-									<Text size="sm" c="dimmed">
-										{task.description}
-									</Text>
-								)}
-								{task.dueDate && (
-									<Text size="xs" c="dimmed">
-										Due: {new Date(task.dueDate).toLocaleDateString()}
-									</Text>
-								)}
-							</div>
+					<Card key={task.id} withBorder className="w-full min-h-[60px]">
+						<Group className="w-full justify-between">
+							<Group>
+								<Checkbox
+									checked={task.status === TaskStatus.COMPLETED}
+									onChange={() =>
+										updateTaskMutation.mutate({
+											taskId: task.id,
+											currentTask: task,
+											data: {
+												title: task.title,
+												description: task.description,
+												dueDate: task.dueDate,
+												status:
+													task.status === TaskStatus.ACTIVE
+														? TaskStatus.COMPLETED
+														: TaskStatus.ACTIVE,
+											},
+										})
+									}
+									disabled={task.id.startsWith("-")}
+								/>
+								<div className="flex flex-col gap-1 flex-1">
+									<Link
+										to="/tasks/$taskId"
+										params={{ taskId: task.id }}
+										className={`${
+											task.status === TaskStatus.COMPLETED
+												? "text-gray-400 line-through"
+												: ""
+										} ${task.id.startsWith("-") ? "pointer-events-none opacity-50" : ""}`}
+									>
+										<Text size="lg" fw={500}>
+											{task.title}
+										</Text>
+									</Link>
+									{task.description && (
+										<Text size="sm" c="dimmed">
+											{task.description}
+										</Text>
+									)}
+									{task.dueDate && (
+										<Text size="xs" c="dimmed">
+											Due: {new Date(task.dueDate).toLocaleDateString()}
+										</Text>
+									)}
+								</div>
+							</Group>
 							<Button
 								variant="subtle"
 								color="red"

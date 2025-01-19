@@ -17,9 +17,11 @@ export interface Config<T> {
 
 export const buildWhereClause = <T>(
 	// biome-ignore lint/suspicious/noExplicitAny: Using any here is necessary for generic table operations
-	table: PgTableWithColumns<any>,
+	tableOrQuery: PgTableWithColumns<any> | { table: PgTableWithColumns<any> },
 	criteria?: Partial<T>,
 ): SQL | undefined => {
+	const table = "table" in tableOrQuery ? tableOrQuery.table : tableOrQuery;
+
 	const conditions = criteria
 		? Object.keys(criteria)
 				.filter((key) => criteria[key as CriteriaType<T>] !== undefined)

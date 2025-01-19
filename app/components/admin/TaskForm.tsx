@@ -10,6 +10,7 @@ type FormFields = {
 	description: string | null;
 	dueDate: string | null;
 	status: TaskStatusType;
+	userId: string;
 };
 
 export type TaskFormData = {
@@ -17,6 +18,7 @@ export type TaskFormData = {
 	description: string | null;
 	dueDate: Date | null;
 	status: TaskStatusType;
+	userId: string;
 };
 
 interface AdminTaskFormProps {
@@ -40,6 +42,7 @@ export function AdminTaskForm({
 				? new Date(defaultValues.dueDate).toISOString().split("T")[0]
 				: null,
 			status: defaultValues?.status ?? TaskStatus.ACTIVE,
+			userId: defaultValues?.userId ?? "",
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -48,6 +51,7 @@ export function AdminTaskForm({
 					description: value.description,
 					dueDate: value.dueDate ? new Date(value.dueDate) : null,
 					status: value.status,
+					userId: value.userId,
 				} satisfies TaskFormData;
 
 				const result = parse(taskFormSchema, formData);
@@ -130,6 +134,28 @@ export function AdminTaskForm({
 								{ value: TaskStatus.ACTIVE, label: "Active" },
 								{ value: TaskStatus.COMPLETED, label: "Completed" },
 							]}
+							error={field.state.meta.errors[0]}
+						/>
+					)}
+				</form.Field>
+
+				<form.Field
+					name="userId"
+					validators={{
+						onChange: ({ value }) => {
+							if (!value) return "User ID is required";
+							return undefined;
+						},
+					}}
+				>
+					{(field) => (
+						<TextInput
+							value={field.state.value}
+							onChange={(e) => field.handleChange(e.target.value)}
+							onBlur={field.handleBlur}
+							label="User ID"
+							placeholder="Enter user ID"
+							required
 							error={field.state.meta.errors[0]}
 						/>
 					)}

@@ -1,5 +1,6 @@
 import { safeParse } from "valibot";
 import { describe, expect, it } from "vitest";
+import { mockUserId } from "~/server/services/__tests__/base-service.test";
 import {
 	TaskStatus,
 	UserRole,
@@ -38,6 +39,7 @@ describe("schema validation", () => {
 					description: "Test Description",
 					status: TaskStatus.ACTIVE,
 					dueDate: new Date(),
+					userId: mockUserId,
 				};
 
 				const result = safeParse(taskFormSchema, validTask);
@@ -58,6 +60,7 @@ describe("schema validation", () => {
 					description: null,
 					status: TaskStatus.ACTIVE,
 					dueDate: null,
+					userId: mockUserId,
 				};
 
 				const result = safeParse(taskFormSchema, minimalTask);
@@ -68,6 +71,7 @@ describe("schema validation", () => {
 						description: null,
 						dueDate: null,
 						status: TaskStatus.ACTIVE,
+						userId: mockUserId,
 					});
 				}
 			});
