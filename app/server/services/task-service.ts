@@ -11,19 +11,16 @@
 
 import { createServerFn } from "@tanstack/start";
 import { object, optional, safeParse, string } from "valibot";
-import DB from "../db";
-
-import { eq } from "drizzle-orm";
 import { authMiddleware } from "~/middleware/auth-guard";
 import { accessCheck } from "~/server/access/check";
 import { buildWhereClause } from "~/server/db/DrizzleOrm";
+import DB from "../db";
 import {
 	type TaskInsert,
 	TaskStatus,
 	TaskTable,
 	taskFormSchema,
 } from "../db/schema";
-import { validateId } from "./helpers";
 
 // Create the base service instance
 //const taskService = createBaseService<
@@ -149,6 +146,7 @@ export function validateUpdateTask(input: unknown): {
 	};
 }
 
+/*
 export const fetchTask = createServerFn({ method: "GET" })
 	.validator(validateId)
 	.middleware([authMiddleware])
@@ -166,6 +164,7 @@ export const fetchTask = createServerFn({ method: "GET" })
 		return result;
 	});
 
+	*/
 // Export server functions directly for TanStack Start to discover
 export const fetchTasks = createServerFn({ method: "GET" })
 	.validator(validateFetchTasks)
@@ -279,10 +278,10 @@ export const deleteTask = createServerFn({ method: "POST" })
 // Create service objects that use the server functions
 export const adminTaskService = {
 	fetchTasks,
-	fetchTask,
+	// fetchTask,
 };
 
 export const clientTaskService = {
 	fetchTasks,
-	fetchTask,
+	//fetchTask,
 };

@@ -4,6 +4,7 @@ import {
 	type inferQueryKeyStore,
 } from "@lukemorales/query-key-factory";
 import { getSessionUser } from "~/routes/__root";
+import { findFirst } from "~/server/services/base-service";
 import {
 	adminTaskService,
 	clientTaskService,
@@ -19,7 +20,7 @@ export const queries = createQueryKeyStore({
 		}),
 		detail: (id: string) => ({
 			queryKey: [id],
-			queryFn: () => clientTaskService.fetchTask({ data: { id } }),
+			queryFn: () => findFirst({ data: { id, subject: "Task" } }),
 		}),
 	},
 	user: {
@@ -43,7 +44,7 @@ export const adminQueries = createQueryKeyStore({
 		},
 		detail: (id: string) => ({
 			queryKey: [id],
-			queryFn: () => adminTaskService.fetchTask({ data: { id } }),
+			queryFn: () => findFirst({ data: { id, subject: "Task" } }),
 		}),
 	},
 	adminUser: {
@@ -53,7 +54,7 @@ export const adminQueries = createQueryKeyStore({
 		},
 		detail: (id: string) => ({
 			queryKey: [id],
-			queryFn: () => adminUserService.fetchUser({ data: { id } }),
+			queryFn: () => findFirst({ data: { id, subject: "User" } }),
 		}),
 	},
 });

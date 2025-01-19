@@ -65,6 +65,8 @@ function AdminEditUser() {
 			// Create optimistic user
 			const optimisticUser: User = {
 				...user,
+				emailVerified: false,
+				image: null,
 				email: newData.email,
 				name: newData.name,
 				role: newData.role,

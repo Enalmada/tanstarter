@@ -4,14 +4,12 @@
  */
 
 import { createServerFn } from "@tanstack/start";
-import { eq } from "drizzle-orm";
 import { object, safeParse, string } from "valibot";
 import DB from "../db";
 
 import { authMiddleware } from "~/middleware/auth-guard";
 import { accessCheck } from "~/server/access/check";
 import { buildWhereClause } from "~/server/db/DrizzleOrm";
-import { validateId } from "~/server/services/helpers";
 import { UserTable, userInsertSchema } from "../db/schema";
 
 // Create the base service instance
@@ -45,6 +43,7 @@ export const fetchUsers = createServerFn({
 		return tasks;
 	});
 
+/*
 export const fetchUser = createServerFn({ method: "GET" })
 	.validator(validateId)
 	.middleware([authMiddleware])
@@ -61,6 +60,7 @@ export const fetchUser = createServerFn({ method: "GET" })
 
 		return result;
 	});
+*/
 
 export function validateNewUser(input: unknown) {
 	if (!input || typeof input !== "object") {
@@ -86,6 +86,7 @@ const validateUpdateUser = object({
 	data: userInsertSchema,
 });
 
+/*
 export const createUser = createServerFn({ method: "POST" })
 	.validator(validateNewUser)
 	.middleware([authMiddleware])
@@ -102,6 +103,7 @@ export const createUser = createServerFn({ method: "POST" })
 
 		return result;
 	});
+*/
 
 /*
 export const updateUser = createServerFn({ method: "POST" })
@@ -186,10 +188,10 @@ export const fetchUserOptions = createServerFn({ method: "GET" })
 // Create service objects that use the server functions
 export const adminUserService = {
 	fetchUsers,
-	fetchUser,
+	// fetchUser,
 };
 
 export const clientUserService = {
 	fetchUsers,
-	fetchUser,
+	//fetchUser,
 };

@@ -162,7 +162,7 @@ export const updateEntity = createServerFn({ method: "POST" })
 
 		const [entity] = await DB.select()
 			.from(table)
-			.where(eq(TaskTable.id, id))
+			.where(eq(table.id, id))
 			.limit(1);
 
 		if (!entity) {
@@ -188,6 +188,31 @@ export const updateEntity = createServerFn({ method: "POST" })
 			.set(updateWith)
 			.where(eq(table.id, id))
 			.returning();
+
+		return result;
+	});
+
+export const validateFindFirst = object({
+	subject: picklist(ENTITY_TYPES),
+	id: string(),
+});
+
+export const findFirst = createServerFn({ method: "GET" })
+	.validator(validateFindFirst)
+	.middleware([authMiddleware])
+	.handler(async ({ data: { subject, id }, context }) => {
+		const table = tables[subject as keyof typeof tables];
+
+		const [result] = await DB.select()
+			.from(table)
+			.where(eq(table.id, id))
+			.limit(1);
+
+		if (!result) {
+			throw new Error(`${subject} ${id} not found`);
+		}
+
+		accessCheck(context.user, "read", subject, result);
 
 		return result;
 	});

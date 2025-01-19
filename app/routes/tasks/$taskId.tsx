@@ -28,6 +28,7 @@ export type TaskFormData = {
 	description: string | null;
 	dueDate: Date | null;
 	status: TaskStatusType;
+	userId: string;
 };
 
 export const Route = createFileRoute("/tasks/$taskId")({
