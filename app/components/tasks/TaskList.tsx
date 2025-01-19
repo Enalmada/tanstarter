@@ -12,7 +12,8 @@ import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { type Task, TaskStatus } from "~/server/db/schema";
-import { deleteEntity, updateEntity } from "~/server/services/base-service";
+import { updateEntity } from "~/server/services/base-service";
+import { useDeleteEntityMutation } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
 
 export function TaskList({
@@ -144,85 +145,13 @@ export function TaskList({
 		},
 	});
 
-	const deleteTaskMutation = useMutation({
-		mutationFn: async ({ id }: { id: string }) => {
-			const result = await deleteEntity({
-				data: { id, subject: "Task" },
-			});
-			return result.id;
-		},
-		onMutate: async ({ id }) => {
-			setErrorMessage("");
-			pendingDeleteIds.add(id);
-
-			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({
-				queryKey: [
-					queries.task.list(userId).queryKey,
-					queries.task.detail(id).queryKey,
-				],
-			});
-
-			// Snapshot the previous values
-			const previousTasks = queryClient.getQueryData<Task[]>(
-				queries.task.list(userId).queryKey,
-			);
-			const previousTask = queryClient.getQueryData<Task>(
-				queries.task.detail(id).queryKey,
-			);
-
-			// Optimistically remove from both caches
-			queryClient.setQueryData<Task[]>(
-				queries.task.list(userId).queryKey,
-				(old = []) => old.filter((t) => t.id !== id),
-			);
-			queryClient.removeQueries({
-				queryKey: queries.task.detail(id).queryKey,
-			});
-
-			return { previousTasks, previousTask };
-		},
-		onSettled: (id, error, _variables, context) => {
-			const isTaskNotFound = error?.message === "Task not found";
-			if ((!error && id && context) || isTaskNotFound) {
-				// Ensure id exists before using queries.task.detail
-				if (id) {
-					queryClient.setQueryData<Task[]>(
-						queries.task.list(userId).queryKey,
-						(old = []) => old.filter((t) => t.id !== id),
-					);
-					queryClient.removeQueries({
-						queryKey: queries.task.detail(id).queryKey,
-					});
-				}
-			}
-			id && pendingDeleteIds.delete(id);
-		},
-		onSuccess: () => {
-			setErrorMessage("");
-		},
-		onError: (err, { id }, context) => {
-			// If task is not found, treat it as a success case
-			if (err.message === "Task not found") {
-				return;
-			}
-
-			// For other errors, revert both caches
-			const previousData = [
-				{ key: queries.task.detail(id).queryKey, data: context?.previousTask },
-				{
-					key: queries.task.list(userId).queryKey,
-					data: context?.previousTasks,
-				},
-			];
-
-			for (const { key, data } of previousData) {
-				if (data) {
-					queryClient.setQueryData(key, data);
-				}
-			}
-			setErrorMessage(err.message);
-		},
+	const deleteTaskMutation = useDeleteEntityMutation<Task>({
+		entityName: "Task",
+		subject: "Task",
+		listKeys: [queries.task.list(userId).queryKey],
+		detailKey: (entityId) => queries.task.detail(entityId).queryKey,
+		pendingDeleteIds,
+		setErrorMessage,
 	});
 
 	return (
@@ -299,7 +228,7 @@ export function TaskList({
 							<Button
 								variant="subtle"
 								color="red"
-								onClick={() => deleteTaskMutation.mutate({ id: task.id })}
+								onClick={() => deleteTaskMutation.mutate({ entityId: task.id })}
 								disabled={
 									task.id.startsWith("-") || pendingDeleteIds.has(task.id)
 								}

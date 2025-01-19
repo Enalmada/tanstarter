@@ -8,7 +8,8 @@ import { showToast } from "~/components/Toast";
 import { AdminUserForm, type UserFormData } from "~/components/admin/UserForm";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { User } from "~/server/db/schema";
-import { deleteEntity, updateEntity } from "~/server/services/base-service";
+import { updateEntity } from "~/server/services/base-service";
+import { useDeleteEntityMutation } from "~/utils/query/mutations";
 import { adminQueries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/admin/users/$userId")({
@@ -136,97 +137,14 @@ function AdminEditUser() {
 		},
 	});
 
-	const deleteUserMutation = useMutation({
-		mutationFn: async () => {
-			const result = await deleteEntity({
-				data: { id: user.id, subject: "User" },
-			});
-			return result.id;
-		},
-		onMutate: async () => {
-			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({
-				queryKey: [
-					adminQueries.adminUser.list.queryKey,
-					adminQueries.adminUser.detail(user.id).queryKey,
-				],
-			});
-
-			// Snapshot the previous values
-			const previousUsers = queryClient.getQueryData<User[]>(
-				adminQueries.adminUser.list.queryKey,
-			);
-			const previousUser = queryClient.getQueryData<User>(
-				adminQueries.adminUser.detail(user.id).queryKey,
-			);
-
-			// Optimistically remove from both caches
-			queryClient.setQueryData<User[]>(
-				adminQueries.adminUser.list.queryKey,
-				(old = []) => old.filter((u) => u.id !== user.id),
-			);
-			queryClient.removeQueries({
-				queryKey: adminQueries.adminUser.detail(user.id).queryKey,
-			});
-
-			// Navigate optimistically
-			navigate({ to: "/admin/users" });
-
-			// Return a context object with the snapshotted values
-			return { previousUsers, previousUser };
-		},
-		onSettled: (_result, error, _variables, context) => {
-			if ((!error && context) || error?.message === "User not found") {
-				// Ensure the user is removed from both caches
-				// Also remove if we got "User not found" as it means it's already gone
-				queryClient.setQueryData<User[]>(
-					adminQueries.adminUser.list.queryKey,
-					(old = []) => old.filter((u) => u.id !== user.id),
-				);
-				queryClient.removeQueries({
-					queryKey: adminQueries.adminUser.detail(user.id).queryKey,
-				});
-			}
-		},
-		onSuccess: () => {
-			showToast({
-				title: "Success",
-				description: "User deleted successfully",
-				type: "success",
-			});
-		},
-		onError: (error, _variables, context) => {
-			// If user is not found, treat it as a success case
-			if (error.message === "User not found") {
-				showToast({
-					title: "Success",
-					description: "User deleted successfully",
-					type: "success",
-				});
-				return;
-			}
-
-			// For other errors, revert both caches and show error
-			if (context?.previousUser) {
-				queryClient.setQueryData(
-					adminQueries.adminUser.detail(user.id).queryKey,
-					context.previousUser,
-				);
-			}
-			if (context?.previousUsers) {
-				queryClient.setQueryData(
-					adminQueries.adminUser.list.queryKey,
-					context.previousUsers,
-				);
-			}
-			showToast({
-				title: "Error",
-				description: error.message,
-				type: "error",
-			});
-			// Navigate back to the form on error
-			navigate({ to: `/admin/users/${user.id}` });
-		},
+	const deleteUserMutation = useDeleteEntityMutation<User>({
+		entityName: "User",
+		entityId: user.id,
+		subject: "User",
+		listKeys: [adminQueries.adminUser.list.queryKey],
+		detailKey: (entityId) => adminQueries.adminUser.detail(entityId).queryKey,
+		navigateTo: "/admin/users",
+		navigateBack: `/admin/users/${user.id}`,
 	});
 
 	return (
@@ -241,7 +159,7 @@ function AdminEditUser() {
 				<Button
 					color="red"
 					variant="subtle"
-					onClick={() => deleteUserMutation.mutate()}
+					onClick={() => deleteUserMutation.mutate({})}
 					loading={deleteUserMutation.isPending}
 				>
 					Delete User
