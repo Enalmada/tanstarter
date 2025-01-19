@@ -7,142 +7,29 @@ import {
 	Stack,
 	Text,
 } from "@mantine/core";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
-import { type Task, TaskStatus } from "~/server/db/schema";
-import { updateEntity } from "~/server/services/base-service";
-import { useDeleteEntityMutation } from "~/utils/query/mutations";
+import type { Task } from "~/server/db/schema";
+import { TaskStatus } from "~/server/db/schema";
+import {
+	useDeleteEntityMutation,
+	useUpdateEntityMutation,
+} from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
 
 export function TaskList({
 	userId,
 	tasks,
 }: { userId: string | undefined; tasks: Task[] }) {
-	const queryClient = useQueryClient();
-	const [errorMessage, setErrorMessage] = useState("");
-	const [pendingTaskIds] = useState(() => new Set<string>());
-	const [pendingDeleteIds] = useState(() => new Set<string>());
-	const [optimisticVersions] = useState(() => new Map<string, number>());
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-	const updateTaskMutation = useMutation({
-		mutationFn: async ({
-			taskId,
-			data,
-			currentTask,
-		}: {
-			taskId: string;
-			data: Partial<Task>;
-			currentTask: Task;
-		}) => {
-			const updatedData = {
-				...data,
-				description:
-					data.description === undefined
-						? currentTask.description
-						: data.description,
-				// Always send the original version for server validation
-				version: currentTask.version,
-			};
-			const result = await updateEntity({
-				data: {
-					id: taskId,
-					subject: "Task",
-					data: updatedData,
-				},
-			});
-			return result as Task;
-		},
-		onMutate: async ({ taskId, data, currentTask }) => {
-			setErrorMessage("");
-			pendingTaskIds.add(taskId);
-
-			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({
-				queryKey: [
-					queries.task.list(userId).queryKey,
-					queries.task.detail(taskId).queryKey,
-				],
-			});
-
-			// Snapshot the previous values
-			const previousTasks = queryClient.getQueryData<Task[]>(
-				queries.task.list(userId).queryKey,
-			);
-			const previousTask = queryClient.getQueryData<Task>(
-				queries.task.detail(taskId).queryKey,
-			);
-
-			// Get the current optimistic version or use the task's version
-			const currentVersion =
-				optimisticVersions.get(taskId) ?? currentTask.version;
-			const nextVersion = currentVersion + 1;
-			// Store the next version we expect
-			optimisticVersions.set(taskId, nextVersion);
-
-			// Create optimistic task with explicit description handling
-			const optimisticTask: Task = {
-				...currentTask,
-				...data,
-				version: nextVersion,
-				updatedAt: new Date(),
-			};
-
-			// Optimistically update both caches
-			queryClient.setQueryData<Task[]>(
-				queries.task.list(userId).queryKey,
-				(old = []) => old.map((t) => (t.id === taskId ? optimisticTask : t)),
-			);
-			queryClient.setQueryData(
-				queries.task.detail(taskId).queryKey,
-				optimisticTask,
-			);
-
-			return { previousTasks, previousTask };
-		},
-		onSettled: (updatedTask, error, { taskId }, context) => {
-			if (updatedTask && context) {
-				// Update both caches with the actual server data
-				queryClient.setQueryData<Task[]>(
-					queries.task.list(userId).queryKey,
-					(old = []) => old.map((t) => (t.id === taskId ? updatedTask : t)),
-				);
-				queryClient.setQueryData(
-					queries.task.detail(taskId).queryKey,
-					updatedTask,
-				);
-				// Update our tracked version with the server version
-				optimisticVersions.set(taskId, updatedTask.version);
-			}
-			if (taskId) {
-				pendingTaskIds.delete(taskId);
-				if (error) {
-					// If there was an error, clear the optimistic version
-					optimisticVersions.delete(taskId);
-				}
-			}
-		},
-		onSuccess: () => {
-			setErrorMessage("");
-		},
-		onError: (err, { taskId }, context) => {
-			// Revert both caches on error
-			if (context?.previousTask) {
-				queryClient.setQueryData(
-					queries.task.detail(taskId).queryKey,
-					context.previousTask,
-				);
-			}
-			if (context?.previousTasks) {
-				queryClient.setQueryData(
-					queries.task.list(userId).queryKey,
-					context.previousTasks,
-				);
-			}
-
-			setErrorMessage(err.message);
-		},
+	const updateTaskMutation = useUpdateEntityMutation<Task>({
+		entityName: "Task",
+		subject: "Task",
+		listKeys: [queries.task.list(userId).queryKey],
+		detailKey: (id) => queries.task.detail(id).queryKey,
+		setErrorMessage,
 	});
 
 	const deleteTaskMutation = useDeleteEntityMutation<Task>({
@@ -150,9 +37,18 @@ export function TaskList({
 		subject: "Task",
 		listKeys: [queries.task.list(userId).queryKey],
 		detailKey: (entityId) => queries.task.detail(entityId).queryKey,
-		pendingDeleteIds,
 		setErrorMessage,
 	});
+
+	const handleTaskUpdate = (task: Task, status: keyof typeof TaskStatus) => {
+		updateTaskMutation.mutate({
+			entity: task,
+			data: {
+				status,
+				version: task.version,
+			},
+		});
+	};
 
 	return (
 		<div className="container mx-auto flex flex-col gap-4 p-6">
@@ -183,21 +79,13 @@ export function TaskList({
 								<Checkbox
 									checked={task.status === TaskStatus.COMPLETED}
 									onChange={() =>
-										updateTaskMutation.mutate({
-											taskId: task.id,
-											currentTask: task,
-											data: {
-												title: task.title,
-												description: task.description,
-												dueDate: task.dueDate,
-												status:
-													task.status === TaskStatus.ACTIVE
-														? TaskStatus.COMPLETED
-														: TaskStatus.ACTIVE,
-											},
-										})
+										handleTaskUpdate(
+											task,
+											task.status === TaskStatus.ACTIVE
+												? TaskStatus.COMPLETED
+												: TaskStatus.ACTIVE,
+										)
 									}
-									disabled={task.id.startsWith("-")}
 								/>
 								<div className="flex flex-col gap-1 flex-1">
 									<Link
@@ -207,7 +95,7 @@ export function TaskList({
 											task.status === TaskStatus.COMPLETED
 												? "text-gray-400 line-through"
 												: ""
-										} ${task.id.startsWith("-") ? "pointer-events-none opacity-50" : ""}`}
+										}`}
 									>
 										<Text size="lg" fw={500}>
 											{task.title}
@@ -229,9 +117,6 @@ export function TaskList({
 								variant="subtle"
 								color="red"
 								onClick={() => deleteTaskMutation.mutate({ entityId: task.id })}
-								disabled={
-									task.id.startsWith("-") || pendingDeleteIds.has(task.id)
-								}
 							>
 								<Trash2 size={20} />
 							</Button>

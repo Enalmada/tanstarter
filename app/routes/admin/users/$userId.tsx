@@ -33,13 +33,9 @@ function AdminEditUser() {
 		detailKey: adminQueries.adminUser.detail(user.id).queryKey,
 		navigateTo: "/admin/users",
 		navigateBack: `/admin/users/${user.id}`,
-		createOptimisticEntity: (entity, newData) => ({
+		createOptimisticEntity: (entity, data) => ({
 			...entity,
-			emailVerified: false,
-			image: null,
-			email: newData.email as string,
-			name: newData.name as string,
-			role: newData.role as User["role"],
+			...data,
 			version: entity.version + 1,
 			updatedAt: new Date(),
 		}),
@@ -78,7 +74,11 @@ function AdminEditUser() {
 				<Stack gap="md" p="md">
 					<AdminUserForm
 						defaultValues={user}
-						onSubmit={(values) => updateUserMutation.mutate(values)}
+						onSubmit={(values) =>
+							updateUserMutation.mutate({
+								data: values,
+							})
+						}
 						isSubmitting={updateUserMutation.isPending}
 					/>
 				</Stack>

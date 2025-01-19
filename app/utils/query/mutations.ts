@@ -11,6 +11,157 @@ import {
 	updateEntity,
 } from "~/server/services/base-service";
 
+// Toast configuration for consistent messaging
+interface ToastConfig {
+	success: {
+		title: string;
+		description: (entityName: string) => string;
+	};
+	error: {
+		title: string;
+		description: (error: Error) => string;
+	};
+}
+
+type MutationType = "create" | "update" | "delete";
+
+const defaultToastConfig: Record<MutationType, ToastConfig> = {
+	create: {
+		success: {
+			title: "Success",
+			description: (entityName) => `${entityName} created successfully`,
+		},
+		error: {
+			title: "Error",
+			description: (error) => error.message,
+		},
+	},
+	update: {
+		success: {
+			title: "Success",
+			description: (entityName) => `${entityName} updated successfully`,
+		},
+		error: {
+			title: "Error",
+			description: (error) => error.message,
+		},
+	},
+	delete: {
+		success: {
+			title: "Success",
+			description: (entityName) => `${entityName} deleted successfully`,
+		},
+		error: {
+			title: "Error",
+			description: (error) => error.message,
+		},
+	},
+};
+
+// Shared utility functions
+const handleToast = (
+	config: ToastConfig,
+	type: "success" | "error",
+	entityName: string,
+	error: Error = new Error("Unknown error"),
+) => {
+	showToast({
+		title: config[type].title,
+		description:
+			type === "success"
+				? config[type].description(entityName)
+				: config[type].description(error),
+		type,
+	});
+};
+
+const handleCacheUpdate = async <T>(
+	queryClient: ReturnType<typeof useQueryClient>,
+	keys: QueryKey[],
+): Promise<{ key: QueryKey; data: T[] | undefined }[]> => {
+	await Promise.all(
+		keys.map((key) => queryClient.cancelQueries({ queryKey: key })),
+	);
+	return keys.map((key) => ({
+		key,
+		data: queryClient.getQueryData<T[]>(key),
+	}));
+};
+
+const restoreCaches = <T>(
+	queryClient: ReturnType<typeof useQueryClient>,
+	previousData: { key: QueryKey; data: T[] | undefined }[],
+) => {
+	for (const { key, data } of previousData) {
+		if (data) {
+			queryClient.setQueryData(key, data);
+		}
+	}
+};
+
+// Cache update helpers
+const updateListCachesWithEntity = <T extends { id: string }>(
+	queryClient: ReturnType<typeof useQueryClient>,
+	keys: QueryKey[],
+	entity: T,
+	prepend = false,
+	oldId?: string,
+) => {
+	for (const key of keys) {
+		queryClient.setQueryData<T[]>(key, (old = []) => {
+			const filtered = old.filter((item) => item.id !== (oldId ?? entity.id));
+			return prepend ? [entity, ...filtered] : [...filtered, entity];
+		});
+	}
+};
+
+const removeFromListCaches = <T extends { id: string }>(
+	queryClient: ReturnType<typeof useQueryClient>,
+	keys: QueryKey[],
+	entityId: string,
+) => {
+	for (const key of keys) {
+		queryClient.setQueryData<T[]>(key, (old = []) =>
+			old.filter((item) => item.id !== entityId),
+		);
+	}
+};
+
+// Mutation handler patterns for optimistic updates:
+//
+// Cache Update Strategy:
+// 1. Create: Prepend to list (optimistic) -> Update optimistic entry with server response
+// 2. Update: Replace in list/detail -> Update with server response
+// 3. Delete: Remove from list/detail -> Confirm removal or restore on error
+//
+// Handler Flow:
+// 1. onMutate: Optimistic updates
+//    - Cancel in-flight queries
+//    - Snapshot previous cache state
+//    - Apply optimistic updates to cache
+//    - Return context with previous state for rollback
+//
+// 2. onSettled: Final cache updates (runs after success/error)
+//    - Success: Update optimistic entry with server response
+//    - Error: Either invalidate queries or restore from snapshot
+//    - Clean up any pending state
+//
+// 3. onSuccess: Side effects only (runs before onSettled)
+//    - Show success notifications
+//    - Navigate to success routes
+//    - Clear error messages
+//
+// 4. onError: Side effects only (runs before onSettled)
+//    - Show error notifications
+//    - Navigate to error routes
+//    - Set error messages
+//
+// Cache Update Helpers:
+// - updateListCachesWithEntity: Updates/adds entity in lists (prepend option for create)
+// - removeFromListCaches: Removes entity from lists
+// - handleCacheUpdate: Cancels queries and snapshots previous state
+// - restoreCaches: Restores previous cache state on error
+
 interface UseDeleteEntityMutationOptions<T extends { id: string }> {
 	/**
 	 * The entity name (e.g. "Task", "User") used in error and success messages
@@ -85,7 +236,6 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 		detailKey: QueryKey;
 	};
 
-	// Allow calling mutate() without arguments when defaultEntityId is provided
 	type Variables = DeleteEntityMutateConfig | undefined;
 
 	return useMutation<string, Error, Variables, MutationContext>({
@@ -118,25 +268,13 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 
 			pendingDeleteIds?.add(id);
 
-			// Cancel any outgoing refetches
-			await Promise.all([
-				...listKeys.map((key) => queryClient.cancelQueries({ queryKey: key })),
-				queryClient.cancelQueries({ queryKey: detailKey }),
-			]);
-
-			// Snapshot the previous values
-			const previousLists = listKeys.map((key) => ({
-				key,
-				data: queryClient.getQueryData<T[]>(key),
-			}));
+			// Cancel queries and snapshot previous values
+			const previousLists = await handleCacheUpdate<T>(queryClient, listKeys);
+			await queryClient.cancelQueries({ queryKey: detailKey });
 			const previousDetail = queryClient.getQueryData<T>(detailKey);
 
 			// Optimistically remove from list caches
-			for (const key of listKeys) {
-				queryClient.setQueryData<T[]>(key, (old = []) =>
-					old.filter((item) => item.id !== id),
-				);
-			}
+			removeFromListCaches(queryClient, listKeys, id);
 
 			// Remove detail cache
 			queryClient.removeQueries({ queryKey: detailKey });
@@ -146,73 +284,50 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 				navigate({ to: navigateTo });
 			}
 
-			// Return a context object with the snapshotted values
 			return { previousLists, previousDetail, entityId: id, detailKey };
 		},
-		onSettled: (_result, error, config, context) => {
+		onSettled: (result, error, _config, context) => {
 			if (!context) return;
 
 			const { entityId: id, detailKey } = context;
 
-			// Only update caches if we have a successful deletion or a "not found" error
-			if (!error || error?.message === `${subject} ${id} not found`) {
-				// Ensure the entity is removed from all caches
-				for (const key of listKeys) {
-					queryClient.setQueryData<T[]>(key, (old = []) =>
-						old.filter((item) => item.id !== id),
-					);
+			if (error && error?.message !== `${subject} ${id} not found`) {
+				// On error (except not found), restore previous cache state
+				restoreCaches(queryClient, context.previousLists);
+				if (context.previousDetail) {
+					queryClient.setQueryData(detailKey, context.previousDetail);
+				} else {
+					queryClient.removeQueries({ queryKey: detailKey });
 				}
+			} else {
+				// On success or not found, ensure removal from cache
+				removeFromListCaches(queryClient, listKeys, id);
 				queryClient.removeQueries({ queryKey: detailKey });
 			}
+
 			pendingDeleteIds?.delete(id);
 		},
-		onSuccess: () => {
-			showToast({
-				title: "Success",
-				description: `${entityName} deleted successfully`,
-				type: "success",
-			});
+		onSuccess: (_id, _config, _context) => {
+			// Only handle side effects
+			handleToast(defaultToastConfig.delete, "success", entityName);
 			setErrorMessage?.("");
+
+			if (navigateTo) {
+				navigate({ to: navigateTo });
+			}
 		},
-		onError: (error, config, context) => {
-			if (!context) return;
-
-			const { entityId: id, detailKey } = context;
-
-			// If entity is not found, treat it as a success case
-			if (error.message === `${subject} ${id} not found`) {
-				showToast({
-					title: "Success",
-					description: `${entityName} deleted successfully`,
-					type: "success",
-				});
+		onError: (error, _config, _context) => {
+			// If entity not found, treat as success
+			if (error.message === `${subject} ${_context?.entityId} not found`) {
+				handleToast(defaultToastConfig.delete, "success", entityName);
 				setErrorMessage?.("");
 				return;
 			}
 
-			// For other errors, revert all caches and show error
-			if (context) {
-				// Restore detail cache
-				if (context.previousDetail) {
-					queryClient.setQueryData(detailKey, context.previousDetail);
-				}
-
-				// Restore list caches
-				for (const { key, data } of context.previousLists) {
-					if (data) {
-						queryClient.setQueryData(key, data);
-					}
-				}
-			}
-
-			showToast({
-				title: "Error",
-				description: error.message,
-				type: "error",
-			});
+			// Only handle side effects
+			handleToast(defaultToastConfig.delete, "error", entityName, error);
 			setErrorMessage?.(error.message);
 
-			// Navigate back on error if navigateBack is provided
 			if (navigateBack) {
 				navigate({ to: navigateBack });
 			}
@@ -220,17 +335,16 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 	});
 }
 
-interface UseUpdateEntityMutationOptions<
-	T extends { id: string; version: number },
-> {
+interface UseUpdateEntityMutationOptions<T extends { id: string }> {
 	/**
 	 * The entity name (e.g. "Task", "User") used in error and success messages
 	 */
 	entityName: string;
 	/**
-	 * The entity to update - used for id, version, and optimistic updates
+	 * The entity to update - used for id and optimistic updates
+	 * Optional if provided in mutate call
 	 */
-	entity: T;
+	entity?: T;
 	/**
 	 * The subject type for the entity (e.g. "Task", "User")
 	 */
@@ -274,11 +388,11 @@ interface UseUpdateEntityMutationOptions<
  * Handles cache updates, navigation, and error handling
  */
 export function useUpdateEntityMutation<
-	T extends { id: string; version: number },
+	T extends { id: string },
 	TData extends Record<string, unknown> = Record<string, unknown>,
 >({
 	entityName,
-	entity,
+	entity: defaultEntity,
 	subject,
 	listKeys,
 	detailKey: defaultDetailKeyOrFn,
@@ -297,60 +411,59 @@ export function useUpdateEntityMutation<
 		detailKey: QueryKey;
 	};
 
-	return useMutation<T, Error, TData, MutationContext>({
-		mutationFn: async (data) => {
+	type MutateVariables = {
+		entity?: T;
+		data: TData;
+	};
+
+	return useMutation<T, Error, MutateVariables, MutationContext>({
+		mutationFn: async ({ entity, data }) => {
+			const targetEntity = entity ?? defaultEntity;
+			if (!targetEntity) {
+				throw new Error(
+					"entity must be provided either in options or mutate call",
+				);
+			}
 			const result = await updateEntity({
 				data: {
-					id: entity.id,
+					id: targetEntity.id,
 					subject,
-					data: {
-						...data,
-						version: entity.version,
-					},
+					data,
 				},
 			});
 			return result as T;
 		},
-		onMutate: async (newData) => {
+		onMutate: async ({ entity, data }) => {
+			const targetEntity = entity ?? defaultEntity;
+			if (!targetEntity) {
+				throw new Error(
+					"entity must be provided either in options or mutate call",
+				);
+			}
 			setErrorMessage?.("");
 
 			const detailKey =
 				typeof defaultDetailKeyOrFn === "function"
-					? defaultDetailKeyOrFn(entity.id)
+					? defaultDetailKeyOrFn(targetEntity.id)
 					: defaultDetailKeyOrFn;
 
-			// Cancel any outgoing refetches
-			await Promise.all([
-				...listKeys.map((key) => queryClient.cancelQueries({ queryKey: key })),
-				queryClient.cancelQueries({ queryKey: detailKey }),
-			]);
-
-			// Snapshot the previous values
-			const previousLists = listKeys.map((key) => ({
-				key,
-				data: queryClient.getQueryData<T[]>(key),
-			}));
+			// Cancel queries and snapshot previous values
+			const previousLists = await handleCacheUpdate<T>(queryClient, listKeys);
+			await queryClient.cancelQueries({ queryKey: detailKey });
 			const previousDetail = queryClient.getQueryData<T>(detailKey);
-
-			// Use a consistent timestamp for optimistic updates
-			const now = new Date().toISOString();
 
 			// Create optimistic entity
 			const optimisticEntity = createOptimisticEntity
-				? createOptimisticEntity(entity, newData)
+				? createOptimisticEntity(targetEntity, data)
 				: {
-						...entity,
-						...newData,
-						version: entity.version + 1,
-						updatedAt: new Date(now),
+						...targetEntity,
+						...data,
 					};
 
-			// Optimistically update both caches
-			for (const key of listKeys) {
-				queryClient.setQueryData<T[]>(key, (old = []) =>
-					old.map((item) => (item.id === entity.id ? optimisticEntity : item)),
-				);
-			}
+			// Optimistically update list caches
+			updateListCachesWithEntity(queryClient, listKeys, optimisticEntity);
+
+			// Update detail cache
 			queryClient.setQueryData(detailKey, optimisticEntity);
 
 			// Navigate optimistically if navigateTo is provided
@@ -358,60 +471,64 @@ export function useUpdateEntityMutation<
 				navigate({ to: navigateTo });
 			}
 
-			// Return a context object with the snapshotted values
-			return { previousLists, previousDetail, entityId: entity.id, detailKey };
+			return {
+				previousLists,
+				previousDetail,
+				entityId: targetEntity.id,
+				detailKey,
+			};
 		},
-		onSettled: (updatedEntity, error, _variables, context) => {
+		onSettled: (result, error, _variables, context) => {
 			if (!context) return;
 
-			const { entityId: id, detailKey } = context;
+			const { detailKey, entityId } = context;
 
-			if (updatedEntity) {
-				// Update both caches with the actual server data
-				for (const key of listKeys) {
-					queryClient.setQueryData<T[]>(key, (old = []) =>
-						old.map((item) => (item.id === id ? updatedEntity : item)),
-					);
-				}
-				queryClient.setQueryData(detailKey, updatedEntity);
-			}
-		},
-		onSuccess: () => {
-			showToast({
-				title: "Success",
-				description: `${entityName} updated successfully`,
-				type: "success",
-			});
-			setErrorMessage?.("");
-		},
-		onError: (error, _variables, context) => {
-			if (!context) return;
-
-			const { detailKey } = context;
-
-			// For other errors, revert all caches and show error
-			if (context) {
-				// Restore detail cache
+			if (error) {
+				// On error, restore previous cache state
+				restoreCaches(queryClient, context.previousLists);
 				if (context.previousDetail) {
 					queryClient.setQueryData(detailKey, context.previousDetail);
+				} else {
+					queryClient.removeQueries({ queryKey: detailKey });
 				}
+			} else if (result) {
+				// On success, update both list and detail caches with server response
+				// Use entityId to ensure we replace the correct entry even if ID changed
+				updateListCachesWithEntity(
+					queryClient,
+					listKeys,
+					result,
+					false,
+					entityId,
+				);
 
-				// Restore list caches
-				for (const { key, data } of context.previousLists) {
-					if (data) {
-						queryClient.setQueryData(key, data);
-					}
+				// Update detail cache with real entity
+				const realDetailKey =
+					typeof defaultDetailKeyOrFn === "function"
+						? defaultDetailKeyOrFn(result.id)
+						: defaultDetailKeyOrFn;
+				queryClient.setQueryData(realDetailKey, result);
+
+				// Remove the old detail cache if ID changed
+				if (detailKey !== realDetailKey) {
+					queryClient.removeQueries({ queryKey: detailKey });
 				}
 			}
+		},
+		onSuccess: (_result, _variables, _context) => {
+			// Only handle side effects
+			handleToast(defaultToastConfig.update, "success", entityName);
+			setErrorMessage?.("");
 
-			showToast({
-				title: "Error",
-				description: error.message,
-				type: "error",
-			});
+			if (navigateTo) {
+				navigate({ to: navigateTo });
+			}
+		},
+		onError: (error, _variables, _context) => {
+			// Only handle side effects
+			handleToast(defaultToastConfig.update, "error", entityName, error);
 			setErrorMessage?.(error.message);
 
-			// Navigate back on error if navigateBack is provided
 			if (navigateBack) {
 				navigate({ to: navigateBack });
 			}
@@ -435,6 +552,11 @@ interface UseCreateEntityMutationOptions<
 	 * Array of list query keys to update
 	 */
 	listKeys: QueryKey[];
+	/**
+	 * The detail query key for this entity
+	 * Can be a static key or a function that takes the entityId and returns a key
+	 */
+	detailKey: QueryKey | ((entityId: string) => QueryKey);
 	/**
 	 * Where to navigate after successful creation
 	 * Optional - if not provided, will stay on current page
@@ -468,6 +590,7 @@ export function useCreateEntityMutation<
 	entityName,
 	subject,
 	listKeys,
+	detailKey: defaultDetailKeyOrFn,
 	navigateTo,
 	navigateBack,
 	setErrorMessage,
@@ -478,7 +601,10 @@ export function useCreateEntityMutation<
 
 	type MutationContext = {
 		previousLists: { key: QueryKey; data: T[] | undefined }[];
+		previousDetail: T | undefined;
 		optimisticEntity: T;
+		detailKey: QueryKey;
+		tempId: string;
 	};
 
 	return useMutation<T, Error, TData, MutationContext>({
@@ -494,79 +620,85 @@ export function useCreateEntityMutation<
 		onMutate: async (data) => {
 			setErrorMessage?.("");
 
-			// Cancel any outgoing refetches
-			await Promise.all([
-				...listKeys.map((key) => queryClient.cancelQueries({ queryKey: key })),
-			]);
-
-			// Snapshot the previous values
-			const previousLists = listKeys.map((key) => ({
-				key,
-				data: queryClient.getQueryData<T[]>(key),
-			}));
-
-			// Create optimistic entity
+			// Create optimistic entity with temporary ID
 			const optimisticEntity = createOptimisticEntity(data);
+			const tempId = optimisticEntity.id; // Store the temporary ID
+
+			// Get detail key
+			const detailKey =
+				typeof defaultDetailKeyOrFn === "function"
+					? defaultDetailKeyOrFn(tempId)
+					: defaultDetailKeyOrFn;
+
+			// Cancel queries and snapshot previous values
+			const previousLists = await handleCacheUpdate<T>(queryClient, listKeys);
+			await queryClient.cancelQueries({ queryKey: detailKey });
+			const previousDetail = queryClient.getQueryData<T>(detailKey);
 
 			// Optimistically update list caches
-			for (const key of listKeys) {
-				queryClient.setQueryData<T[]>(key, (old = []) => [
-					...old,
-					optimisticEntity,
-				]);
-			}
+			updateListCachesWithEntity(queryClient, listKeys, optimisticEntity, true);
+
+			// Update detail cache
+			queryClient.setQueryData(detailKey, optimisticEntity);
 
 			// Navigate optimistically if navigateTo is provided
 			if (navigateTo) {
 				navigate({ to: navigateTo });
 			}
 
-			// Return a context object with the snapshotted values
-			return { previousLists, optimisticEntity };
+			return {
+				previousLists,
+				previousDetail,
+				optimisticEntity,
+				detailKey,
+				tempId,
+			};
 		},
-		onSettled: (createdEntity, error, _variables, context) => {
+		onSettled: (result, error, _data, context) => {
 			if (!context) return;
 
-			if (createdEntity) {
-				// Update list caches with the actual server data
-				for (const key of listKeys) {
-					queryClient.setQueryData<T[]>(key, (old = []) =>
-						old.map((item) =>
-							item.id === context.optimisticEntity.id ? createdEntity : item,
-						),
-					);
+			const { detailKey, tempId } = context;
+
+			if (error) {
+				// On error, restore previous cache state
+				restoreCaches(queryClient, context.previousLists);
+				if (context.previousDetail) {
+					queryClient.setQueryData(detailKey, context.previousDetail);
+				} else {
+					queryClient.removeQueries({ queryKey: detailKey });
+				}
+			} else if (result) {
+				// On success, update both list and detail caches with server response
+				// Update using tempId to ensure we replace the optimistic entry
+				updateListCachesWithEntity(queryClient, listKeys, result, true, tempId);
+
+				// Update detail cache with real entity
+				const realDetailKey =
+					typeof defaultDetailKeyOrFn === "function"
+						? defaultDetailKeyOrFn(result.id)
+						: defaultDetailKeyOrFn;
+				queryClient.setQueryData(realDetailKey, result);
+
+				// Remove the temporary detail cache if different
+				if (detailKey !== realDetailKey) {
+					queryClient.removeQueries({ queryKey: detailKey });
 				}
 			}
 		},
-		onSuccess: () => {
-			showToast({
-				title: "Success",
-				description: `${entityName} created successfully`,
-				type: "success",
-			});
+		onSuccess: (_result, _data, _context) => {
+			// Only handle side effects
+			handleToast(defaultToastConfig.create, "success", entityName);
 			setErrorMessage?.("");
-		},
-		onError: (error, _variables, context) => {
-			if (!context) return;
 
-			// For errors, revert all caches and show error
-			if (context) {
-				// Restore list caches
-				for (const { key, data } of context.previousLists) {
-					if (data) {
-						queryClient.setQueryData(key, data);
-					}
-				}
+			if (navigateTo) {
+				navigate({ to: navigateTo });
 			}
-
-			showToast({
-				title: "Error",
-				description: error.message,
-				type: "error",
-			});
+		},
+		onError: (error, _data, _context) => {
+			// Only handle side effects
+			handleToast(defaultToastConfig.create, "error", entityName, error);
 			setErrorMessage?.(error.message);
 
-			// Navigate back on error if navigateBack is provided
 			if (navigateBack) {
 				navigate({ to: navigateBack });
 			}

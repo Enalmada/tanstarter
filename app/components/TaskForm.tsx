@@ -18,6 +18,7 @@ export type TaskFormData = {
 	dueDate: Date | null;
 	status: (typeof TaskStatus)[keyof typeof TaskStatus];
 	userId: string;
+	version: number | undefined;
 };
 
 interface TaskFormProps {
@@ -42,17 +43,18 @@ export function TaskForm({
 			dueDate: defaultValues?.dueDate ? new Date(defaultValues.dueDate) : null,
 			status: defaultValues?.status ?? TaskStatus.ACTIVE,
 			userId,
+			version: defaultValues ? defaultValues.version : 1,
 		},
 		onSubmit: async ({ value }) => {
 			try {
 				// Pass the value directly - the schema will handle date conversion
 				const result = parse(taskFormSchema, value);
 				onSubmit({
-					title: result.title,
+					...result,
 					description: result.description ?? null,
 					dueDate: result.dueDate,
-					status: result.status,
 					userId,
+					version: value.version,
 				});
 			} catch (err) {
 				if (err instanceof ValiError) {
@@ -71,6 +73,20 @@ export function TaskForm({
 			}}
 		>
 			<Stack gap="md">
+				<form.Field name="version">
+					{(field) => (
+						<input
+							type="hidden"
+							value={field.state.value?.toString() ?? ""}
+							onChange={(e) =>
+								field.handleChange(
+									e.target.value ? Number(e.target.value) : undefined,
+								)
+							}
+						/>
+					)}
+				</form.Field>
+
 				<form.Field
 					name="title"
 					validators={{

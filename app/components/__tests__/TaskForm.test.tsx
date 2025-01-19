@@ -38,6 +38,7 @@ describe("TaskForm", () => {
 			description: "Test Description",
 			dueDate: new Date("2024-03-20"),
 			status: TaskStatus.ACTIVE,
+			version: 1,
 		};
 
 		render(
@@ -98,6 +99,7 @@ describe("TaskForm", () => {
 				status: TaskStatus.COMPLETED,
 				dueDate: null,
 				userId: mockUserId,
+				version: 1,
 			});
 		});
 	});

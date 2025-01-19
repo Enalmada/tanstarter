@@ -229,6 +229,7 @@ export const updateEntity = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.handler(async ({ data, context }) => {
 		if (!data) throw new Error("No data provided");
+
 		const { subject, id, data: entityData } = data as UpdateEntityPayload;
 
 		const { table } = entityConfig[subject as EntityType];
@@ -242,6 +243,8 @@ export const updateEntity = createServerFn({ method: "POST" })
 		if (!entity) {
 			throw new Error(`${subject} ${id} not found`);
 		}
+		console.debug("input", JSON.stringify(data));
+		console.debug("entity", JSON.stringify(entity));
 
 		const version = (entityData as Record<string, unknown>).version;
 		if (entity.version && entity.version !== version) {

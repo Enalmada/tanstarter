@@ -33,6 +33,7 @@ function NewTask() {
 		entityName: "Task",
 		subject: "Task",
 		listKeys: [queries.task.list(userId).queryKey],
+		detailKey: (id) => queries.task.detail(id).queryKey,
 		navigateTo: "/tasks",
 		navigateBack: "/tasks/new",
 		createOptimisticEntity: (data) => ({

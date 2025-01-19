@@ -11,6 +11,7 @@ type FormFields = {
 	dueDate: string | null;
 	status: TaskStatusType;
 	userId: string;
+	version: number | undefined;
 };
 
 export type TaskFormData = {
@@ -19,6 +20,7 @@ export type TaskFormData = {
 	dueDate: Date | null;
 	status: TaskStatusType;
 	userId: string;
+	version: number | undefined;
 };
 
 interface AdminTaskFormProps {
@@ -43,6 +45,7 @@ export function AdminTaskForm({
 				: null,
 			status: defaultValues?.status ?? TaskStatus.ACTIVE,
 			userId: defaultValues?.userId ?? "",
+			version: defaultValues?.version ?? 1,
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -52,13 +55,20 @@ export function AdminTaskForm({
 					dueDate: value.dueDate ? new Date(value.dueDate) : null,
 					status: value.status,
 					userId: value.userId,
+					version: value.version,
 				} satisfies TaskFormData;
 
 				const result = parse(taskFormSchema, formData);
 				onSubmit(formData);
 			} catch (err) {
 				if (err instanceof ValiError) {
-					setError(err.message);
+					setError(
+						`Validation error: ${err.message}\nDetails: ${JSON.stringify(err.issues, null, 2)}`,
+					);
+				} else {
+					setError(
+						`Unexpected error: ${err instanceof Error ? err.message : String(err)}`,
+					);
 				}
 			}
 		},
@@ -73,6 +83,20 @@ export function AdminTaskForm({
 			}}
 		>
 			<Stack gap="md">
+				<form.Field name="version">
+					{(field) => (
+						<input
+							type="hidden"
+							value={field.state.value?.toString() ?? ""}
+							onChange={(e) =>
+								field.handleChange(
+									e.target.value ? Number(e.target.value) : undefined,
+								)
+							}
+						/>
+					)}
+				</form.Field>
+
 				<form.Field
 					name="title"
 					validators={{

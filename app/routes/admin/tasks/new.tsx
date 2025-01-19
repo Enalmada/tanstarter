@@ -22,6 +22,7 @@ function AdminNewTask() {
 		listKeys: [adminQueries.adminTask.list.queryKey],
 		navigateTo: "/admin/tasks",
 		navigateBack: "/admin/tasks/new",
+		detailKey: (id) => adminQueries.adminTask.detail(id).queryKey,
 		createOptimisticEntity: (data) => ({
 			...data,
 			id: `temp-${Date.now()}`,

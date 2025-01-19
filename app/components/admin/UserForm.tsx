@@ -5,10 +5,12 @@ import { ValiError, parse } from "valibot";
 import type { User, UserRoleType } from "~/server/db/schema";
 import { UserRole, userFormSchema } from "~/server/db/schema";
 
+// Use the form schema type
 type FormFields = {
 	email: string;
-	name: string | null;
+	name?: string | null;
 	role: UserRoleType;
+	version: number | undefined;
 };
 
 export type UserFormData = FormFields;
@@ -31,17 +33,12 @@ export function AdminUserForm({
 			email: defaultValues?.email ?? "",
 			name: defaultValues?.name ?? null,
 			role: defaultValues?.role ?? UserRole.MEMBER,
+			version: defaultValues?.version,
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				const formData: UserFormData = {
-					email: value.email,
-					name: value.name,
-					role: value.role,
-				};
-
-				const result = parse(userFormSchema, formData);
-				onSubmit(result);
+				const result = parse(userFormSchema, value);
+				onSubmit(result as FormFields);
 			} catch (err) {
 				if (err instanceof ValiError) {
 					setError(err.message);
@@ -59,6 +56,20 @@ export function AdminUserForm({
 			}}
 		>
 			<Stack gap="md">
+				<form.Field name="version">
+					{(field) => (
+						<input
+							type="hidden"
+							value={field.state.value?.toString() ?? ""}
+							onChange={(e) =>
+								field.handleChange(
+									e.target.value ? Number(e.target.value) : undefined,
+								)
+							}
+						/>
+					)}
+				</form.Field>
+
 				<form.Field
 					name="email"
 					validators={{

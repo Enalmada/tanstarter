@@ -48,6 +48,12 @@ function EditTask() {
 		detailKey: queries.task.detail(task.id).queryKey,
 		navigateTo: "/tasks",
 		navigateBack: `/tasks/${task.id}`,
+		createOptimisticEntity: (entity, data) => ({
+			...entity,
+			...data,
+			version: entity.version + 1,
+			updatedAt: new Date(),
+		}),
 	});
 
 	const deleteTaskMutation = useDeleteEntityMutation<Task>({
@@ -80,7 +86,11 @@ function EditTask() {
 				<Stack gap="md" p="md">
 					<TaskForm
 						defaultValues={task}
-						onSubmit={(values) => updateTaskMutation.mutate(values)}
+						onSubmit={(values) =>
+							updateTaskMutation.mutate({
+								data: values,
+							})
+						}
 						isSubmitting={updateTaskMutation.isPending}
 						userId={userId ?? ""}
 					/>

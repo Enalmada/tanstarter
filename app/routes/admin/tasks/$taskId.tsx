@@ -33,6 +33,12 @@ function AdminEditTask() {
 		detailKey: adminQueries.adminTask.detail(task.id).queryKey,
 		navigateTo: "/admin/tasks",
 		navigateBack: `/admin/tasks/${task.id}`,
+		createOptimisticEntity: (entity, data) => ({
+			...entity,
+			...data,
+			version: entity.version + 1,
+			updatedAt: new Date(),
+		}),
 	});
 
 	const deleteTaskMutation = useDeleteEntityMutation<Task>({
@@ -55,10 +61,9 @@ function AdminEditTask() {
 					← Back to Tasks
 				</Button>
 				<Button
-					color="red"
 					variant="subtle"
+					color="red"
 					onClick={() => deleteTaskMutation.mutate({})}
-					loading={deleteTaskMutation.isPending}
 				>
 					Delete Task
 				</Button>
@@ -68,7 +73,11 @@ function AdminEditTask() {
 				<Stack gap="md" p="md">
 					<AdminTaskForm
 						defaultValues={task}
-						onSubmit={(values) => updateTaskMutation.mutate(values)}
+						onSubmit={(values) =>
+							updateTaskMutation.mutate({
+								data: values,
+							})
+						}
 						isSubmitting={updateTaskMutation.isPending}
 					/>
 				</Stack>
