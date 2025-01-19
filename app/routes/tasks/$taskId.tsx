@@ -9,10 +9,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { Task, TaskStatusType } from "~/server/db/schema";
-import {
-	useDeleteEntityMutation,
-	useUpdateEntityMutation,
-} from "~/utils/query/mutations";
+import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
 
 export type TaskFormData = {
@@ -40,30 +37,23 @@ function EditTask() {
 	const navigate = useNavigate();
 	const { userId } = Route.useLoaderData();
 
-	const updateTaskMutation = useUpdateEntityMutation<Task, TaskFormData>({
+	const { updateMutation, deleteMutation } = useEntityMutations<
+		Task,
+		TaskFormData
+	>({
 		entityName: "Task",
 		entity: task,
 		subject: "Task",
 		listKeys: [queries.task.list(userId).queryKey],
-		detailKey: queries.task.detail(task.id).queryKey,
+		detailKey: (id) => queries.task.detail(id).queryKey,
 		navigateTo: "/tasks",
 		navigateBack: `/tasks/${task.id}`,
-		createOptimisticEntity: (entity, data) => ({
-			...entity,
+		createOptimisticEntity: (data: TaskFormData) => ({
+			...task,
 			...data,
-			version: entity.version + 1,
+			version: task.version + 1,
 			updatedAt: new Date(),
 		}),
-	});
-
-	const deleteTaskMutation = useDeleteEntityMutation<Task>({
-		entityName: "Task",
-		entityId: task.id,
-		subject: "Task",
-		listKeys: [queries.task.list(userId).queryKey],
-		detailKey: queries.task.detail(task.id).queryKey,
-		navigateTo: "/tasks",
-		navigateBack: `/tasks/${task.id}`,
 	});
 
 	return (
@@ -75,8 +65,8 @@ function EditTask() {
 				<Button
 					color="red"
 					variant="subtle"
-					onClick={() => deleteTaskMutation.mutate({})}
-					loading={deleteTaskMutation.isPending}
+					onClick={() => deleteMutation.mutate({ entityId: task.id })}
+					loading={deleteMutation.isPending}
 				>
 					Delete Task
 				</Button>
@@ -87,11 +77,11 @@ function EditTask() {
 					<TaskForm
 						defaultValues={task}
 						onSubmit={(values) =>
-							updateTaskMutation.mutate({
+							updateMutation.mutate({
 								data: values,
 							})
 						}
-						isSubmitting={updateTaskMutation.isPending}
+						isSubmitting={updateMutation.isPending}
 						userId={userId ?? ""}
 					/>
 				</Stack>

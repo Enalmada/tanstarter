@@ -12,10 +12,7 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { Task } from "~/server/db/schema";
 import { TaskStatus } from "~/server/db/schema";
-import {
-	useDeleteEntityMutation,
-	useUpdateEntityMutation,
-} from "~/utils/query/mutations";
+import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
 
 export function TaskList({
@@ -24,24 +21,18 @@ export function TaskList({
 }: { userId: string | undefined; tasks: Task[] }) {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-	const updateTaskMutation = useUpdateEntityMutation<Task>({
+	const { updateMutation, deleteMutation } = useEntityMutations<Task>({
 		entityName: "Task",
 		subject: "Task",
 		listKeys: [queries.task.list(userId).queryKey],
 		detailKey: (id) => queries.task.detail(id).queryKey,
 		setErrorMessage,
-	});
-
-	const deleteTaskMutation = useDeleteEntityMutation<Task>({
-		entityName: "Task",
-		subject: "Task",
-		listKeys: [queries.task.list(userId).queryKey],
-		detailKey: (entityId) => queries.task.detail(entityId).queryKey,
-		setErrorMessage,
+		navigateTo: "/tasks",
+		navigateBack: "/tasks",
 	});
 
 	const handleTaskUpdate = (task: Task, status: keyof typeof TaskStatus) => {
-		updateTaskMutation.mutate({
+		updateMutation.mutate({
 			entity: task,
 			data: {
 				status,
@@ -116,7 +107,7 @@ export function TaskList({
 							<Button
 								variant="subtle"
 								color="red"
-								onClick={() => deleteTaskMutation.mutate({ entityId: task.id })}
+								onClick={() => deleteMutation.mutate({ entityId: task.id })}
 							>
 								<Trash2 size={20} />
 							</Button>

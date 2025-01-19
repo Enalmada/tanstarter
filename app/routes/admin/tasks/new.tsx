@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AdminTaskForm, type TaskFormData } from "~/components/admin/TaskForm";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { Task } from "~/server/db/schema";
-import { useCreateEntityMutation } from "~/utils/query/mutations";
+import { useEntityMutations } from "~/utils/query/mutations";
 import { adminQueries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/admin/tasks/new")({
@@ -16,14 +16,14 @@ function AdminNewTask() {
 	const navigate = useNavigate();
 	const { userId } = Route.useLoaderData();
 
-	const createTaskMutation = useCreateEntityMutation<Task, TaskFormData>({
+	const { createMutation } = useEntityMutations<Task, TaskFormData>({
 		entityName: "Task",
 		subject: "Task",
 		listKeys: [adminQueries.adminTask.list.queryKey],
 		navigateTo: "/admin/tasks",
 		navigateBack: "/admin/tasks/new",
 		detailKey: (id) => adminQueries.adminTask.detail(id).queryKey,
-		createOptimisticEntity: (data) => ({
+		createOptimisticEntity: (data: TaskFormData) => ({
 			...data,
 			id: `temp-${Date.now()}`,
 			createdAt: new Date(),
@@ -48,8 +48,8 @@ function AdminNewTask() {
 			<Card withBorder>
 				<Stack gap="md" p="md">
 					<AdminTaskForm
-						onSubmit={createTaskMutation.mutate}
-						isSubmitting={createTaskMutation.isPending}
+						onSubmit={createMutation.mutate}
+						isSubmitting={createMutation.isPending}
 					/>
 				</Stack>
 			</Card>

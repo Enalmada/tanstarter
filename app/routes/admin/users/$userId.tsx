@@ -3,10 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AdminUserForm, type UserFormData } from "~/components/admin/UserForm";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { User } from "~/server/db/schema";
-import {
-	useDeleteEntityMutation,
-	useUpdateEntityMutation,
-} from "~/utils/query/mutations";
+import { useEntityMutations } from "~/utils/query/mutations";
 import { adminQueries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/admin/users/$userId")({
@@ -25,30 +22,23 @@ function AdminEditUser() {
 	);
 	const navigate = useNavigate();
 
-	const updateUserMutation = useUpdateEntityMutation<User, UserFormData>({
+	const { updateMutation, deleteMutation } = useEntityMutations<
+		User,
+		UserFormData
+	>({
 		entityName: "User",
 		entity: user,
 		subject: "User",
 		listKeys: [adminQueries.adminUser.list.queryKey],
-		detailKey: adminQueries.adminUser.detail(user.id).queryKey,
+		detailKey: (id) => adminQueries.adminUser.detail(id).queryKey,
 		navigateTo: "/admin/users",
 		navigateBack: `/admin/users/${user.id}`,
-		createOptimisticEntity: (entity, data) => ({
-			...entity,
+		createOptimisticEntity: (data: UserFormData) => ({
+			...user,
 			...data,
-			version: entity.version + 1,
+			version: user.version + 1,
 			updatedAt: new Date(),
 		}),
-	});
-
-	const deleteUserMutation = useDeleteEntityMutation<User>({
-		entityName: "User",
-		entityId: user.id,
-		subject: "User",
-		listKeys: [adminQueries.adminUser.list.queryKey],
-		detailKey: (entityId) => adminQueries.adminUser.detail(entityId).queryKey,
-		navigateTo: "/admin/users",
-		navigateBack: `/admin/users/${user.id}`,
 	});
 
 	return (
@@ -63,8 +53,8 @@ function AdminEditUser() {
 				<Button
 					color="red"
 					variant="subtle"
-					onClick={() => deleteUserMutation.mutate({})}
-					loading={deleteUserMutation.isPending}
+					onClick={() => deleteMutation.mutate({ entityId: user.id })}
+					loading={deleteMutation.isPending}
 				>
 					Delete User
 				</Button>
@@ -75,11 +65,11 @@ function AdminEditUser() {
 					<AdminUserForm
 						defaultValues={user}
 						onSubmit={(values) =>
-							updateUserMutation.mutate({
+							updateMutation.mutate({
 								data: values,
 							})
 						}
-						isSubmitting={updateUserMutation.isPending}
+						isSubmitting={updateMutation.isPending}
 					/>
 				</Stack>
 			</Card>

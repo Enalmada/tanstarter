@@ -341,11 +341,6 @@ interface UseUpdateEntityMutationOptions<T extends { id: string }> {
 	 */
 	entityName: string;
 	/**
-	 * The entity to update - used for id and optimistic updates
-	 * Optional if provided in mutate call
-	 */
-	entity?: T;
-	/**
 	 * The subject type for the entity (e.g. "Task", "User")
 	 */
 	subject: "Task" | "User";
@@ -362,17 +357,22 @@ interface UseUpdateEntityMutationOptions<T extends { id: string }> {
 	 * Where to navigate after successful update
 	 * Optional - if not provided, will stay on current page
 	 */
-	navigateTo?: string;
+	navigateTo: string;
 	/**
 	 * Where to navigate on error (usually the current entity detail page)
 	 * Optional - if not provided, will stay on current page
 	 */
-	navigateBack?: string;
+	navigateBack: string;
 	/**
 	 * Optional error message setter
 	 * If provided, will be called with error message on error
 	 */
-	setErrorMessage?: (message: string) => void;
+	setErrorMessage: (message: string) => void;
+	/**
+	 * The entity to update - used for id and optimistic updates
+	 * Optional if provided in mutate call
+	 */
+	entity?: T;
 	/**
 	 * Function to create an optimistic entity from the update data
 	 * If not provided, will spread update data over existing entity
@@ -704,4 +704,101 @@ export function useCreateEntityMutation<
 			}
 		},
 	});
+}
+
+export interface UseEntityMutationsOptions<
+	T extends { id: string },
+	TData extends Record<string, unknown> = Record<string, unknown>,
+> {
+	entityName: string;
+	subject: "Task" | "User";
+	listKeys: QueryKey[];
+	detailKey: QueryKey | ((entityId: string) => QueryKey);
+	navigateTo: string;
+	navigateBack: string;
+	setErrorMessage?: (message: string) => void;
+	createOptimisticEntity?: (data: TData) => T;
+	entity?: T;
+	pendingDeleteIds?: Set<string>;
+}
+
+/**
+ * Hook that provides create, update, and delete mutations for an entity type
+ * Handles cache updates, navigation, and error handling for all operations
+ */
+export function useEntityMutations<
+	T extends { id: string },
+	TData extends Record<string, unknown> = Record<string, unknown>,
+>(options: UseEntityMutationsOptions<T, TData>) {
+	const {
+		entityName,
+		subject,
+		listKeys,
+		detailKey,
+		navigateTo,
+		navigateBack,
+		setErrorMessage,
+		createOptimisticEntity,
+		entity,
+		pendingDeleteIds,
+	} = options;
+
+	const createMutation = useCreateEntityMutation<T, TData>({
+		entityName,
+		subject,
+		listKeys,
+		detailKey,
+		navigateTo,
+		navigateBack,
+		setErrorMessage: setErrorMessage ?? (() => {}),
+		createOptimisticEntity:
+			createOptimisticEntity ??
+			(() => {
+				throw new Error(
+					"createOptimisticEntity is required for create mutation",
+				);
+			}),
+	});
+
+	const updateMutation = useUpdateEntityMutation<T, TData>({
+		entityName,
+		subject,
+		listKeys,
+		detailKey,
+		navigateTo,
+		navigateBack,
+		setErrorMessage: setErrorMessage ?? (() => {}),
+		createOptimisticEntity: (entity, data) => {
+			const optimisticEntity = {
+				...entity,
+				...data,
+			} as T & Record<string, unknown>;
+
+			// Only increment version if it exists
+			const record = optimisticEntity as Record<string, unknown>;
+			if (typeof record.version === "number") {
+				record.version = record.version + 1;
+			}
+
+			return optimisticEntity;
+		},
+		...(entity ? { entity } : {}),
+	});
+
+	const deleteMutation = useDeleteEntityMutation<T>({
+		entityName,
+		subject,
+		listKeys,
+		detailKey,
+		navigateTo,
+		navigateBack,
+		setErrorMessage: setErrorMessage ?? (() => {}),
+		pendingDeleteIds: pendingDeleteIds ?? new Set(),
+	});
+
+	return {
+		createMutation,
+		updateMutation,
+		deleteMutation,
+	};
 }

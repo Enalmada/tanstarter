@@ -8,7 +8,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
 import { Card, Stack } from "~/components/ui";
 import type { Task, TaskStatusType } from "~/server/db/schema";
-import { useCreateEntityMutation } from "~/utils/query/mutations";
+import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
 
 type TaskFormData = {
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/tasks/new")({
 function NewTask() {
 	const { userId } = Route.useLoaderData();
 
-	const createTaskMutation = useCreateEntityMutation<Task, TaskFormData>({
+	const { createMutation } = useEntityMutations<Task, TaskFormData>({
 		entityName: "Task",
 		subject: "Task",
 		listKeys: [queries.task.list(userId).queryKey],
@@ -52,8 +52,8 @@ function NewTask() {
 			<Card withBorder>
 				<Stack gap="md" p="md">
 					<TaskForm
-						onSubmit={createTaskMutation.mutate}
-						isSubmitting={createTaskMutation.isPending}
+						onSubmit={createMutation.mutate}
+						isSubmitting={createMutation.isPending}
 						userId={userId ?? ""}
 					/>
 				</Stack>
