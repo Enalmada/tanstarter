@@ -295,17 +295,17 @@ export function TaskList({
 										</Text>
 									)}
 								</div>
-								<Button
-									variant="subtle"
-									color="red"
-									onClick={() => deleteTaskMutation.mutate({ id: task.id })}
-									disabled={
-										task.id.startsWith("-") || pendingDeleteIds.has(task.id)
-									}
-								>
-									<Trash2 size={20} />
-								</Button>
 							</Group>
+							<Button
+								variant="subtle"
+								color="red"
+								onClick={() => deleteTaskMutation.mutate({ id: task.id })}
+								disabled={
+									task.id.startsWith("-") || pendingDeleteIds.has(task.id)
+								}
+							>
+								<Trash2 size={20} />
+							</Button>
 						</Group>
 					</Card>
 				))}

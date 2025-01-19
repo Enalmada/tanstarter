@@ -109,6 +109,16 @@ vi.mock("../../db", () => ({
 	default: {
 		select: vi.fn(),
 		delete: vi.fn(),
+		query: {
+			TaskTable: {
+				findFirst: vi.fn(),
+				findMany: vi.fn(),
+			},
+			UserTable: {
+				findFirst: vi.fn(),
+				findMany: vi.fn(),
+			},
+		},
 	},
 }));
 

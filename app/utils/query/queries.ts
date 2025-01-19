@@ -4,23 +4,24 @@ import {
 	type inferQueryKeyStore,
 } from "@lukemorales/query-key-factory";
 import { getSessionUser } from "~/routes/__root";
-import { findFirst } from "~/server/services/base-service";
-import {
-	adminTaskService,
-	clientTaskService,
-} from "~/server/services/task-service";
-import { adminUserService } from "~/server/services/user-service";
+import type { Task, User } from "~/server/db/schema";
+import { findFirst, findMany } from "~/server/services/base-service";
 
 export const queries = createQueryKeyStore({
 	task: {
 		list: (userId?: string) => ({
 			queryKey: [userId || "all"],
 			queryFn: () =>
-				clientTaskService.fetchTasks(userId ? { data: { userId } } : undefined),
+				findMany({ data: { where: { userId }, subject: "Task" } }) as Promise<
+					Task[]
+				>,
 		}),
 		detail: (id: string) => ({
 			queryKey: [id],
-			queryFn: () => findFirst({ data: { id, subject: "Task" } }),
+			queryFn: () =>
+				findFirst({
+					data: { where: { id }, subject: "Task" },
+				}) as Promise<Task>,
 		}),
 	},
 	user: {
@@ -40,21 +41,24 @@ export const adminQueries = createQueryKeyStore({
 	adminTask: {
 		list: {
 			queryKey: null,
-			queryFn: () => adminTaskService.fetchTasks(),
+			queryFn: () => findMany({ data: { subject: "Task" } }) as Promise<Task[]>,
 		},
 		detail: (id: string) => ({
 			queryKey: [id],
-			queryFn: () => findFirst({ data: { id, subject: "Task" } }),
+			queryFn: () => findFirst({ data: { where: { id }, subject: "Task" } }),
 		}),
 	},
 	adminUser: {
 		list: {
 			queryKey: null,
-			queryFn: () => adminUserService.fetchUsers(),
+			queryFn: () => findMany({ data: { subject: "User" } }) as Promise<User[]>,
 		},
 		detail: (id: string) => ({
 			queryKey: [id],
-			queryFn: () => findFirst({ data: { id, subject: "User" } }),
+			queryFn: () =>
+				findFirst({
+					data: { where: { id }, subject: "User" },
+				}) as Promise<User>,
 		}),
 	},
 });

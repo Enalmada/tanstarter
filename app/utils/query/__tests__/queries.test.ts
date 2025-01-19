@@ -1,10 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { findFirst } from "~/server/services/base-service";
-import {
-	adminTaskService,
-	clientTaskService,
-} from "~/server/services/task-service";
-import { adminUserService } from "~/server/services/user-service";
+import { findFirst, findMany } from "~/server/services/base-service";
 import { adminQueries, queries } from "../queries";
 
 // Mock dependencies
@@ -14,23 +9,9 @@ vi.mock("~/server/auth/auth", () => ({
 }));
 */
 
-vi.mock("~/server/services/task-service", () => ({
-	clientTaskService: {
-		fetchTasks: vi.fn(),
-	},
-	adminTaskService: {
-		fetchTasks: vi.fn(),
-	},
-}));
-
-vi.mock("~/server/services/user-service", () => ({
-	adminUserService: {
-		fetchUsers: vi.fn(),
-	},
-}));
-
 vi.mock("~/server/services/base-service", () => ({
 	findFirst: vi.fn(),
+	findMany: vi.fn(),
 	createEntity: vi.fn(),
 	updateEntity: vi.fn(),
 	deleteEntity: vi.fn(),
@@ -65,7 +46,7 @@ describe("queries", () => {
 				signal: mockSignal,
 				meta: undefined,
 			});
-			expect(clientTaskService.fetchTasks).toHaveBeenCalled();
+			expect(findMany).toHaveBeenCalled();
 
 			// Test detail query
 			const taskId = "123";
@@ -75,7 +56,7 @@ describe("queries", () => {
 				meta: undefined,
 			});
 			expect(findFirst).toHaveBeenCalledWith({
-				data: { id: taskId, subject: "Task" },
+				data: { where: { id: taskId }, subject: "Task" },
 			});
 		});
 	});
@@ -104,7 +85,7 @@ describe("adminQueries", () => {
 				signal: mockSignal,
 				meta: undefined,
 			});
-			expect(adminTaskService.fetchTasks).toHaveBeenCalled();
+			expect(findMany).toHaveBeenCalled();
 
 			// Test detail query
 			const taskId = "123";
@@ -114,7 +95,7 @@ describe("adminQueries", () => {
 				meta: undefined,
 			});
 			expect(findFirst).toHaveBeenCalledWith({
-				data: { id: taskId, subject: "Task" },
+				data: { where: { id: taskId }, subject: "Task" },
 			});
 		});
 	});
@@ -141,7 +122,7 @@ describe("adminQueries", () => {
 				signal: mockSignal,
 				meta: undefined,
 			});
-			expect(adminUserService.fetchUsers).toHaveBeenCalled();
+			expect(findMany).toHaveBeenCalled();
 
 			// Test detail query
 			const userId = "123";
@@ -151,7 +132,7 @@ describe("adminQueries", () => {
 				meta: undefined,
 			});
 			expect(findFirst).toHaveBeenCalledWith({
-				data: { id: userId, subject: "User" },
+				data: { where: { id: userId }, subject: "User" },
 			});
 		});
 	});
