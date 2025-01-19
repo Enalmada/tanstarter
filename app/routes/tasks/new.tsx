@@ -2,21 +2,13 @@
  * Route component for task creation
  * Handles task creation mutation and redirects to task list on success
  * Protected route requiring authentication
- *
- * Mutation function order:
- * 1. mutationFn - The actual server call
- * 2. onMutate - Pre-mutation optimistic updates
- * 3. onSuccess - Post-mutation success handling
- * 4. onError - Error handling and rollback
  */
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
-import { showToast } from "~/components/Toast";
 import { Card, Stack } from "~/components/ui";
 import type { Task, TaskStatusType } from "~/server/db/schema";
-import { createEntity } from "~/server/services/base-service";
+import { useCreateEntityMutation } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
 
 type TaskFormData = {
@@ -35,92 +27,23 @@ export const Route = createFileRoute("/tasks/new")({
 });
 
 function NewTask() {
-	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const { userId } = Route.useLoaderData();
 
-	const createTaskMutation = useMutation({
-		mutationFn: async (data: TaskFormData) => {
-			const result = await createEntity({
-				data: {
-					subject: "Task",
-					data,
-				},
-			});
-			return result;
-		},
-		onMutate: async (newTask) => {
-			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({
-				queryKey: queries.task.list(userId).queryKey,
-			});
-
-			// Snapshot the previous value
-			const previousTasks = queryClient.getQueryData<Task[]>(
-				queries.task.list(userId).queryKey,
-			);
-
-			const optimisticTimestamp = new Date();
-			const optimisticId = `temp-${optimisticTimestamp.getTime()}`;
-
-			// Create optimistic task
-			const optimisticTask: Task = {
-				id: optimisticId,
-				createdAt: optimisticTimestamp,
-				updatedAt: optimisticTimestamp,
-				version: 1,
-				createdById: userId ?? "temp-user",
-				updatedById: userId ?? "temp-user",
-				...newTask,
-			};
-
-			// Optimistically update to the new value
-			queryClient.setQueryData<Task[]>(
-				queries.task.list(userId).queryKey,
-				(old = []) => [...old, optimisticTask],
-			);
-
-			// Navigate optimistically
-			navigate({ to: "/tasks" });
-
-			// Return a context object with the snapshotted value
-			return { previousTasks, optimisticTask, optimisticTimestamp };
-		},
-		onSettled: (createdTask, error, _variables, context) => {
-			if (createdTask && context) {
-				// Update the cache with the actual server data, preserving optimistic timestamp
-				queryClient.setQueryData<Task[]>(
-					queries.task.list(userId).queryKey,
-					(old = []) =>
-						old.map((t) =>
-							t.id === context.optimisticTask.id ? (createdTask as Task) : t,
-						),
-				);
-			}
-		},
-		onSuccess: (_createdTask, _variables, _context) => {
-			showToast({
-				title: "Success",
-				description: "Task created successfully",
-				type: "success",
-			});
-		},
-		onError: (error, _variables, context) => {
-			// If the mutation fails, use the context returned from onMutate to roll back
-			if (context?.previousTasks) {
-				queryClient.setQueryData(
-					queries.task.list(userId).queryKey,
-					context.previousTasks,
-				);
-			}
-			showToast({
-				title: "Error",
-				description: error.message,
-				type: "error",
-			});
-			// Navigate back to the form on error
-			navigate({ to: "/tasks/new" });
-		},
+	const createTaskMutation = useCreateEntityMutation<Task, TaskFormData>({
+		entityName: "Task",
+		subject: "Task",
+		listKeys: [queries.task.list(userId).queryKey],
+		navigateTo: "/tasks",
+		navigateBack: "/tasks/new",
+		createOptimisticEntity: (data) => ({
+			...data,
+			id: `temp-${Date.now()}`,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+			version: 1,
+			createdById: userId ?? "temp-user",
+			updatedById: userId ?? "temp-user",
+		}),
 	});
 
 	return (
@@ -128,7 +51,7 @@ function NewTask() {
 			<Card withBorder>
 				<Stack gap="md" p="md">
 					<TaskForm
-						onSubmit={(values) => createTaskMutation.mutate(values)}
+						onSubmit={createTaskMutation.mutate}
 						isSubmitting={createTaskMutation.isPending}
 						userId={userId ?? ""}
 					/>

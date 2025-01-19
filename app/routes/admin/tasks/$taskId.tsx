@@ -1,15 +1,12 @@
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { showToast } from "~/components/Toast";
 import { AdminTaskForm, type TaskFormData } from "~/components/admin/TaskForm";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { Task } from "~/server/db/schema";
-import { updateEntity } from "~/server/services/base-service";
-import { useDeleteEntityMutation } from "~/utils/query/mutations";
+import {
+	useDeleteEntityMutation,
+	useUpdateEntityMutation,
+} from "~/utils/query/mutations";
 import { adminQueries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/admin/tasks/$taskId")({
@@ -27,110 +24,15 @@ function AdminEditTask() {
 		adminQueries.adminTask.detail(taskId),
 	);
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 
-	const updateTaskMutation = useMutation({
-		mutationFn: async (data: TaskFormData) => {
-			const result = await updateEntity({
-				data: {
-					id: task.id,
-					subject: "Task",
-					data: {
-						...data,
-						version: task.version,
-					},
-				},
-			});
-			return result;
-		},
-		onMutate: async (newData) => {
-			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({
-				queryKey: [
-					adminQueries.adminTask.list.queryKey,
-					adminQueries.adminTask.detail(task.id).queryKey,
-				],
-			});
-
-			// Snapshot the previous values
-			const previousTasks = queryClient.getQueryData<Task[]>(
-				adminQueries.adminTask.list.queryKey,
-			);
-			const previousTask = queryClient.getQueryData<Task>(
-				adminQueries.adminTask.detail(task.id).queryKey,
-			);
-
-			// Use a consistent timestamp for optimistic updates
-			const now = new Date().toISOString();
-
-			// Create optimistic task
-			const optimisticTask: Task = {
-				...task,
-				...newData,
-				version: task.version + 1,
-				updatedAt: new Date(now),
-			};
-
-			// Optimistically update both caches
-			queryClient.setQueryData<Task[]>(
-				adminQueries.adminTask.list.queryKey,
-				(old = []) =>
-					old.map((t) => (t.id === task.id ? (optimisticTask as Task) : t)),
-			);
-			queryClient.setQueryData(
-				adminQueries.adminTask.detail(task.id).queryKey,
-				optimisticTask,
-			);
-
-			// Navigate optimistically
-			navigate({ to: "/admin/tasks" });
-
-			// Return a context object with the snapshotted values
-			return { previousTasks, previousTask };
-		},
-		onSettled: (updatedTask, error, _variables, context) => {
-			if (updatedTask && context) {
-				// Update both caches with the actual server data
-				queryClient.setQueryData<Task[]>(
-					adminQueries.adminTask.list.queryKey,
-					(old = []) =>
-						old.map((t) => (t.id === task.id ? (updatedTask as Task) : t)),
-				);
-				queryClient.setQueryData(
-					adminQueries.adminTask.detail(task.id).queryKey,
-					updatedTask,
-				);
-			}
-		},
-		onSuccess: (_updatedTask) => {
-			showToast({
-				title: "Success",
-				description: "Task updated successfully",
-				type: "success",
-			});
-		},
-		onError: (error, _variables, context) => {
-			// If the mutation fails, use the context returned from onMutate to roll back
-			if (context?.previousTask) {
-				queryClient.setQueryData(
-					adminQueries.adminTask.detail(task.id).queryKey,
-					context.previousTask,
-				);
-			}
-			if (context?.previousTasks) {
-				queryClient.setQueryData(
-					adminQueries.adminTask.list.queryKey,
-					context.previousTasks,
-				);
-			}
-			showToast({
-				title: "Error",
-				description: error.message,
-				type: "error",
-			});
-			// Navigate back to the form on error
-			navigate({ to: `/admin/tasks/${task.id}` });
-		},
+	const updateTaskMutation = useUpdateEntityMutation<Task, TaskFormData>({
+		entityName: "Task",
+		entity: task,
+		subject: "Task",
+		listKeys: [adminQueries.adminTask.list.queryKey],
+		detailKey: adminQueries.adminTask.detail(task.id).queryKey,
+		navigateTo: "/admin/tasks",
+		navigateBack: `/admin/tasks/${task.id}`,
 	});
 
 	const deleteTaskMutation = useDeleteEntityMutation<Task>({
