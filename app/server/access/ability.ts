@@ -14,12 +14,14 @@ export type Action =
 	| "update"
 	| "delete";
 
+export const ENTITY_TYPES = ["Task", "User"] as const;
+
 /* clone-code ENTITY_HOOK
 {
   "addType": "<%= h.changeCase.pascalCase(name) %>"
 }
 */
-export type SubjectType = "Task" | "User" | "all";
+export type SubjectType = (typeof ENTITY_TYPES)[number] | "all";
 
 type AppAbilities = [
 	Action,

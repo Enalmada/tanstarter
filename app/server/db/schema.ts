@@ -94,6 +94,10 @@ export const userInsertSchema = createInsertSchema(UserTable, {
 	role: userRoleSchema,
 });
 
+export const userUpdateSchema = createUpdateSchema(UserTable, {
+	role: userRoleSchema,
+});
+
 // Form-specific schema that excludes server-side fields
 export const userFormSchema = object({
 	email: string(),

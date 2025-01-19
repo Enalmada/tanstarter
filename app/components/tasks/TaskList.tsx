@@ -12,8 +12,7 @@ import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { type Task, TaskStatus } from "~/server/db/schema";
-import { deleteEntity } from "~/server/services/base-service";
-import { clientTaskService } from "~/server/services/task-service";
+import { deleteEntity, updateEntity } from "~/server/services/base-service";
 import { queries } from "~/utils/query/queries";
 
 export function TaskList({
@@ -24,7 +23,6 @@ export function TaskList({
 	const [errorMessage, setErrorMessage] = useState("");
 	const [pendingTaskIds] = useState(() => new Set<string>());
 	const [pendingDeleteIds] = useState(() => new Set<string>());
-	// Track optimistic versions
 	const [optimisticVersions] = useState(() => new Map<string, number>());
 
 	const updateTaskMutation = useMutation({
@@ -46,13 +44,14 @@ export function TaskList({
 				// Always send the original version for server validation
 				version: currentTask.version,
 			};
-			const result = await clientTaskService.updateTask({
+			const result = await updateEntity({
 				data: {
 					id: taskId,
+					subject: "Task",
 					data: updatedData,
 				},
 			});
-			return result;
+			return result as Task;
 		},
 		onMutate: async ({ taskId, data, currentTask }) => {
 			setErrorMessage("");

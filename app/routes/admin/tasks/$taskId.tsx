@@ -8,8 +8,7 @@ import { showToast } from "~/components/Toast";
 import { AdminTaskForm, type TaskFormData } from "~/components/admin/TaskForm";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { Task } from "~/server/db/schema";
-import { deleteEntity } from "~/server/services/base-service";
-import { adminTaskService } from "~/server/services/task-service";
+import { deleteEntity, updateEntity } from "~/server/services/base-service";
 import { adminQueries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/admin/tasks/$taskId")({
@@ -31,9 +30,10 @@ function AdminEditTask() {
 
 	const updateTaskMutation = useMutation({
 		mutationFn: async (data: TaskFormData) => {
-			const result = await adminTaskService.updateTask({
+			const result = await updateEntity({
 				data: {
 					id: task.id,
+					subject: "Task",
 					data: {
 						...data,
 						version: task.version,
@@ -73,7 +73,8 @@ function AdminEditTask() {
 			// Optimistically update both caches
 			queryClient.setQueryData<Task[]>(
 				adminQueries.adminTask.list.queryKey,
-				(old = []) => old.map((t) => (t.id === task.id ? optimisticTask : t)),
+				(old = []) =>
+					old.map((t) => (t.id === task.id ? (optimisticTask as Task) : t)),
 			);
 			queryClient.setQueryData(
 				adminQueries.adminTask.detail(task.id).queryKey,
@@ -91,7 +92,8 @@ function AdminEditTask() {
 				// Update both caches with the actual server data
 				queryClient.setQueryData<Task[]>(
 					adminQueries.adminTask.list.queryKey,
-					(old = []) => old.map((t) => (t.id === task.id ? updatedTask : t)),
+					(old = []) =>
+						old.map((t) => (t.id === task.id ? (updatedTask as Task) : t)),
 				);
 				queryClient.setQueryData(
 					adminQueries.adminTask.detail(task.id).queryKey,

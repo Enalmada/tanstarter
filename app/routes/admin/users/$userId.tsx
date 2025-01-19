@@ -8,8 +8,7 @@ import { showToast } from "~/components/Toast";
 import { AdminUserForm, type UserFormData } from "~/components/admin/UserForm";
 import { Button, Card, Group, Stack } from "~/components/ui";
 import type { User } from "~/server/db/schema";
-import { deleteEntity } from "~/server/services/base-service";
-import { adminUserService } from "~/server/services/user-service";
+import { deleteEntity, updateEntity } from "~/server/services/base-service";
 import { adminQueries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/admin/users/$userId")({
@@ -31,9 +30,10 @@ function AdminEditUser() {
 
 	const updateUserMutation = useMutation({
 		mutationFn: async (data: UserFormData) => {
-			const result = await adminUserService.updateUser({
+			const result = await updateEntity({
 				data: {
 					id: user.id,
+					subject: "User",
 					data: {
 						...data,
 						version: user.version,
@@ -75,7 +75,8 @@ function AdminEditUser() {
 			// Optimistically update both caches
 			queryClient.setQueryData<User[]>(
 				adminQueries.adminUser.list.queryKey,
-				(old = []) => old.map((u) => (u.id === user.id ? optimisticUser : u)),
+				(old = []) =>
+					old.map((u) => (u.id === user.id ? (optimisticUser as User) : u)),
 			);
 			queryClient.setQueryData(
 				adminQueries.adminUser.detail(user.id).queryKey,
@@ -93,7 +94,8 @@ function AdminEditUser() {
 				// Update both caches with the actual server data
 				queryClient.setQueryData<User[]>(
 					adminQueries.adminUser.list.queryKey,
-					(old = []) => old.map((u) => (u.id === user.id ? updatedUser : u)),
+					(old = []) =>
+						old.map((u) => (u.id === user.id ? (updatedUser as User) : u)),
 				);
 				queryClient.setQueryData(
 					adminQueries.adminUser.detail(user.id).queryKey,
