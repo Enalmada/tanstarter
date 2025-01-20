@@ -4,6 +4,7 @@ import type { ExtractTablesWithRelations } from "drizzle-orm";
 import { any, object, optional, picklist, safeParse, string } from "valibot";
 import { authMiddleware } from "~/middleware/auth-guard";
 import { buildWhereClause } from "~/server/db/DrizzleOrm";
+import { logger } from "~/utils/logger";
 import type { SubjectType } from "../access/ability";
 import { ENTITY_TYPES } from "../access/ability";
 import { accessCheck } from "../access/check";
@@ -118,6 +119,8 @@ export const deleteEntity = createServerFn({ method: "POST" })
 	.validator(validateDeleteEntity)
 	.middleware([authMiddleware])
 	.handler(async ({ data: { subject, id }, context }) => {
+		logger.info("deleteEntity", { subject, id, userId: context.user.id });
+
 		const table = entityConfig[subject as EntityType].table;
 
 		const [entity] = await db.select().from(table).where(eq(table.id, id));
@@ -174,7 +177,8 @@ export const createEntity = createServerFn({ method: "POST" })
 	})
 	.middleware([authMiddleware])
 	.handler(async ({ data, context }) => {
-		if (!data) throw new Error("No data provided");
+		logger.info("createEntity", { data, userId: context.user.id });
+
 		const { subject, data: entityData } = data as CreateEntityPayload;
 
 		const { table } = entityConfig[subject as EntityType];
@@ -228,7 +232,7 @@ export const updateEntity = createServerFn({ method: "POST" })
 	})
 	.middleware([authMiddleware])
 	.handler(async ({ data, context }) => {
-		if (!data) throw new Error("No data provided");
+		logger.info("updateEntity", { data, userId: context.user.id });
 
 		const { subject, id, data: entityData } = data as UpdateEntityPayload;
 
@@ -302,7 +306,8 @@ export const findFirst = createServerFn({ method: "GET" })
 	})
 	.middleware([authMiddleware])
 	.handler(async ({ data, context }) => {
-		if (!data) throw new Error("No data provided");
+		logger.info("findFirst", { data, userId: context.user.id });
+
 		const { subject, where, with: withRelations } = data as FindEntityPayload;
 
 		const { table, query } = entityConfig[subject as EntityType];
@@ -353,7 +358,8 @@ export const findMany = createServerFn({ method: "GET" })
 	})
 	.middleware([authMiddleware])
 	.handler(async ({ data, context }) => {
-		if (!data) throw new Error("No data provided");
+		logger.info("findMany", { data, userId: context.user.id });
+
 		const { subject, where, with: withRelations } = data as FindEntityPayload;
 
 		const { table, query } = entityConfig[subject as EntityType];

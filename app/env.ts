@@ -14,7 +14,6 @@ export const required = [
 	"GOOGLE_CLIENT_ID",
 	"GOOGLE_CLIENT_SECRET",
 	"DATABASE_URL",
-	"VITE_APP_BASE_URL",
 ] as const;
 
 export const optional = [
@@ -22,6 +21,9 @@ export const optional = [
 	"DB_MAX_RETRIES",
 	"NODE_ENV",
 	"CF_PAGES_URL",
+	"AXIOM_DATASET_NAME",
+	"AXIOM_TOKEN",
+	"VITE_APP_BASE_URL",
 ] as const;
 
 type RequiredEnvKeys = (typeof required)[number];
