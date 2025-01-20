@@ -1,15 +1,8 @@
-/**
- * Reusable form component for creating and editing tasks
- * Handles validation via valibot schema and manages form state with TanStack Form
- * Supports both create and edit modes through defaultValues prop
- */
-
-import { Button, Checkbox, Stack, TextInput, Textarea } from "@mantine/core";
-import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
-import { ValiError, parse } from "valibot";
+import { date, minLength, nullish, picklist, pipe, string } from "valibot";
 import type { Task } from "~/server/db/schema";
-import { TaskStatus, taskFormSchema } from "~/server/db/schema";
+import { TaskStatus } from "~/server/db/schema";
+import { FormGenerator } from "./form/FormGenerator";
+import type { FormFieldConfig } from "./form/types";
 
 // Single type for form data
 export type TaskFormData = {
@@ -34,148 +27,78 @@ export function TaskForm({
 	isSubmitting = false,
 	userId,
 }: TaskFormProps) {
-	const [error, setError] = useState<string | null>(null);
-
-	const form = useForm<TaskFormData>({
-		defaultValues: {
-			title: defaultValues?.title ?? "",
-			description: defaultValues?.description ?? null,
-			dueDate: defaultValues?.dueDate ? new Date(defaultValues.dueDate) : null,
-			status: defaultValues?.status ?? TaskStatus.ACTIVE,
-			userId,
-			version: defaultValues ? defaultValues.version : 1,
+	const fields: FormFieldConfig<TaskFormData>[] = [
+		{
+			key: "version",
+			type: "hidden",
+			disabled: true,
 		},
-		onSubmit: async ({ value }) => {
-			try {
-				// Pass the value directly - the schema will handle date conversion
-				const result = parse(taskFormSchema, value);
-				onSubmit({
-					...result,
-					description: result.description ?? null,
-					dueDate: result.dueDate,
-					userId,
-					version: value.version,
-				});
-			} catch (err) {
-				if (err instanceof ValiError) {
-					setError(err.message);
-				}
-			}
+		{
+			key: "title",
+			type: "text",
+			label: "Title",
+			placeholder: "Enter task title",
+			required: true,
+			disabled: false,
+			validation: pipe(string(), minLength(1, "Title is required")),
 		},
-	});
+		{
+			key: "description",
+			type: "textarea",
+			label: "Description",
+			placeholder: "Enter task description",
+			disabled: false,
+			validation: nullish(string()),
+		},
+		{
+			key: "dueDate",
+			type: "date",
+			label: "Due Date",
+			disabled: false,
+			validation: nullish(date()),
+		},
+		{
+			key: "status",
+			type: "checkbox",
+			label: "Completed",
+			disabled: false,
+			validation: picklist([TaskStatus.ACTIVE, TaskStatus.COMPLETED]),
+			transform: {
+				input: (value: unknown) => {
+					// If it's already a boolean, use it directly
+					if (typeof value === "boolean") {
+						return value;
+					}
+					// If it's a string (TaskStatus), check if it's COMPLETED
+					if (typeof value === "string") {
+						return value === TaskStatus.COMPLETED;
+					}
+					// For any other case (including null/undefined), default to false
+					return false;
+				},
+				output: (checked: boolean) => {
+					return checked ? TaskStatus.COMPLETED : TaskStatus.ACTIVE;
+				},
+			},
+		},
+	];
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				void form.handleSubmit();
+		<FormGenerator<TaskFormData>
+			fields={fields}
+			defaultValues={{
+				title: defaultValues?.title ?? "",
+				description: defaultValues?.description ?? null,
+				dueDate: defaultValues?.dueDate
+					? new Date(defaultValues.dueDate)
+					: null,
+				status: defaultValues?.status ?? TaskStatus.ACTIVE,
+				userId,
+				version: defaultValues ? defaultValues.version : 1,
 			}}
-		>
-			<Stack gap="md">
-				<form.Field name="version">
-					{(field) => (
-						<input
-							type="hidden"
-							value={field.state.value?.toString() ?? ""}
-							onChange={(e) =>
-								field.handleChange(
-									e.target.value ? Number(e.target.value) : undefined,
-								)
-							}
-						/>
-					)}
-				</form.Field>
-
-				<form.Field
-					name="title"
-					validators={{
-						onChange: ({ value }) => {
-							if (!value) return "Title is required";
-							return undefined;
-						},
-						onBlur: ({ value }) => {
-							if (!value) return "Title is required";
-							return undefined;
-						},
-						onSubmit: ({ value }) => {
-							if (!value) return "Title is required";
-							return undefined;
-						},
-					}}
-				>
-					{(field) => (
-						<TextInput
-							value={field.state.value}
-							onChange={(e) => field.handleChange(e.target.value)}
-							onBlur={field.handleBlur}
-							label="Title"
-							placeholder="Enter task title"
-							required
-							error={field.state.meta.errors[0]}
-							data-error={field.state.meta.errors[0]}
-							aria-invalid={!!field.state.meta.errors[0]}
-						/>
-					)}
-				</form.Field>
-
-				<form.Field name="description">
-					{(field) => (
-						<Textarea
-							value={field.state.value ?? ""}
-							onChange={(e) => field.handleChange(e.target.value || null)}
-							onBlur={field.handleBlur}
-							label="Description"
-							placeholder="Enter task description"
-							error={field.state.meta.errors[0]}
-						/>
-					)}
-				</form.Field>
-
-				<form.Field name="dueDate">
-					{(field) => (
-						<TextInput
-							type="date"
-							value={field.state.value?.toISOString().split("T")[0] ?? ""}
-							onChange={(e) =>
-								field.handleChange(
-									e.target.value ? new Date(e.target.value) : null,
-								)
-							}
-							onBlur={field.handleBlur}
-							label="Due Date"
-							error={field.state.meta.errors[0]}
-						/>
-					)}
-				</form.Field>
-
-				<form.Field name="status">
-					{(field) => (
-						<Checkbox
-							checked={field.state.value === TaskStatus.COMPLETED}
-							onChange={(e) =>
-								field.handleChange(
-									e.currentTarget.checked
-										? TaskStatus.COMPLETED
-										: TaskStatus.ACTIVE,
-								)
-							}
-							onBlur={field.handleBlur}
-							label="Completed"
-						/>
-					)}
-				</form.Field>
-
-				{error && <div className="text-red-500 text-sm">{error}</div>}
-
-				<Button
-					type="submit"
-					loading={isSubmitting}
-					disabled={isSubmitting || form.state.isSubmitting}
-				>
-					{defaultValues ? "Update Task" : "Create Task"}
-				</Button>
-			</Stack>
-		</form>
+			onSubmit={onSubmit}
+			isSubmitting={isSubmitting}
+			submitText={defaultValues ? "Update Task" : "Create Task"}
+		/>
 	);
 }

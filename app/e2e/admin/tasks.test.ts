@@ -82,9 +82,7 @@ test.describe("Admin Tasks", () => {
 
 		// Check for form elements
 		await expect(page.getByLabel("Title")).toBeVisible();
-		await expect(
-			page.getByRole("button", { name: /create task/i }),
-		).toBeVisible();
+		await expect(page.getByRole("button", { name: /submit/i })).toBeVisible();
 	});
 
 	test("shows all form fields", async ({ page }) => {

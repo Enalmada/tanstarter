@@ -1,19 +1,14 @@
-import { Button, Select, Stack, TextInput } from "@mantine/core";
-import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
-import { ValiError, parse } from "valibot";
 import type { User, UserRoleType } from "~/server/db/schema";
-import { UserRole, userFormSchema } from "~/server/db/schema";
+import { UserRole } from "~/server/db/schema";
+import { FormGenerator } from "../form/FormGenerator";
+import type { FormFieldConfig } from "../form/types";
 
-// Use the form schema type
-type FormFields = {
+export type UserFormData = {
 	email: string;
-	name?: string | null;
+	name: string | null;
 	role: UserRoleType;
-	version: number | undefined;
+	version: number | null;
 };
-
-export type UserFormData = FormFields;
 
 interface AdminUserFormProps {
 	defaultValues?: Partial<User>;
@@ -26,112 +21,46 @@ export function AdminUserForm({
 	onSubmit,
 	isSubmitting = false,
 }: AdminUserFormProps) {
-	const [error, setError] = useState<string | null>(null);
-
-	const form = useForm<FormFields>({
-		defaultValues: {
-			email: defaultValues?.email ?? "",
-			name: defaultValues?.name ?? null,
-			role: defaultValues?.role ?? UserRole.MEMBER,
-			version: defaultValues?.version,
+	const fields: FormFieldConfig<UserFormData>[] = [
+		{
+			key: "version",
+			type: "hidden",
 		},
-		onSubmit: async ({ value }) => {
-			try {
-				const result = parse(userFormSchema, value);
-				onSubmit(result as FormFields);
-			} catch (err) {
-				if (err instanceof ValiError) {
-					setError(err.message);
-				}
-			}
+		{
+			key: "email",
+			type: "text",
+			label: "Email",
+			placeholder: "Enter user email",
+			required: true,
 		},
-	});
+		{
+			key: "name",
+			type: "text",
+			label: "Name",
+			placeholder: "Enter user name",
+		},
+		{
+			key: "role",
+			type: "select",
+			label: "Role",
+			options: [
+				{ value: UserRole.MEMBER, label: "Member" },
+				{ value: UserRole.ADMIN, label: "Admin" },
+			],
+		},
+	];
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				void form.handleSubmit();
+		<FormGenerator<UserFormData>
+			fields={fields}
+			defaultValues={{
+				email: defaultValues?.email ?? "",
+				name: defaultValues?.name ?? null,
+				role: defaultValues?.role ?? UserRole.MEMBER,
+				version: defaultValues?.version ?? null,
 			}}
-		>
-			<Stack gap="md">
-				<form.Field name="version">
-					{(field) => (
-						<input
-							type="hidden"
-							value={field.state.value?.toString() ?? ""}
-							onChange={(e) =>
-								field.handleChange(
-									e.target.value ? Number(e.target.value) : undefined,
-								)
-							}
-						/>
-					)}
-				</form.Field>
-
-				<form.Field
-					name="email"
-					validators={{
-						onChange: ({ value }) => {
-							if (!value) return "Email is required";
-							if (!value.includes("@")) return "Invalid email address";
-							return undefined;
-						},
-					}}
-				>
-					{(field) => (
-						<TextInput
-							value={field.state.value}
-							onChange={(e) => field.handleChange(e.target.value)}
-							onBlur={field.handleBlur}
-							label="Email"
-							placeholder="Enter user email"
-							required
-							error={field.state.meta.errors[0]}
-						/>
-					)}
-				</form.Field>
-
-				<form.Field name="name">
-					{(field) => (
-						<TextInput
-							value={field.state.value ?? ""}
-							onChange={(e) => field.handleChange(e.target.value || null)}
-							onBlur={field.handleBlur}
-							label="Name"
-							placeholder="Enter user name"
-							error={field.state.meta.errors[0]}
-						/>
-					)}
-				</form.Field>
-
-				<form.Field name="role">
-					{(field) => (
-						<Select
-							value={field.state.value ?? null}
-							onChange={(value) => field.handleChange(value as UserRoleType)}
-							onBlur={field.handleBlur}
-							label="Role"
-							data={[
-								{ value: UserRole.MEMBER, label: "Member" },
-								{ value: UserRole.ADMIN, label: "Admin" },
-							]}
-							error={field.state.meta.errors[0]}
-						/>
-					)}
-				</form.Field>
-
-				{error && <div className="text-red-500 text-sm">{error}</div>}
-
-				<Button
-					type="submit"
-					loading={isSubmitting}
-					disabled={isSubmitting || form.state.isSubmitting}
-				>
-					{defaultValues ? "Update User" : "Create User"}
-				</Button>
-			</Stack>
-		</form>
+			onSubmit={onSubmit}
+			isSubmitting={isSubmitting}
+		/>
 	);
 }
