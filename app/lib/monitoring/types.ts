@@ -17,6 +17,8 @@ export interface MonitoringConfig {
 	environment: string;
 	release?: string;
 	accessToken: string;
+	captureUncaught?: boolean;
+	captureUnhandledRejections?: boolean;
 }
 
 export interface MonitorUser {

@@ -28,8 +28,9 @@ const baseConfig: MonitoringConfig = {
 // Full Rollbar configuration with additional options
 export const monitoringConfig: Configuration = {
 	...baseConfig,
-	captureUncaught: true,
-	captureUnhandledRejections: true,
+	// Only capture uncaught errors on the server side
+	captureUncaught: isServer,
+	captureUnhandledRejections: isServer,
 	payload: {
 		client: {
 			javascript: {
@@ -48,6 +49,9 @@ export const monitor: ErrorMonitor = new RollbarMonitor(baseConfig);
 export const clientConfig = createRollbarConfig({
 	...baseConfig,
 	enabled: !isServer && hasToken,
+	// Let hooks handle errors on the client side
+	captureUncaught: false,
+	captureUnhandledRejections: false,
 });
 
 export { ErrorBoundary, MonitoringProvider } from "./rollbar";
