@@ -39,7 +39,6 @@ const enhancedStreamHandler = async (
 	} catch (error) {
 		// If i18n initialization fails, fallback to default language and log
 		monitor.error("Failed to initialize i18n:", error);
-		console.error("Failed to initialize i18n:", error);
 		await activateLanguage(DEFAULT_LANGUAGE);
 		return defaultStreamHandler(ctx);
 	}

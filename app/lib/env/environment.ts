@@ -1,5 +1,4 @@
 import { picklist, safeParse } from "valibot";
-import { clientEnv } from "../env-client";
 
 const environments = [
 	"development",
@@ -14,25 +13,27 @@ export type AppEnvironment = (typeof environments)[number];
 /**
  * Get the current application environment
  * Priority:
- * 1. Explicit APP_ENV setting
- * 2. Cloudflare Pages branch inference
+ * 1. Cloudflare Pages branch inference (in production)
+ * 2. Explicit APP_ENV setting (in development)
  * 3. Default to development
  */
 export const getAppEnv = (): AppEnvironment => {
-	// Explicit setting takes precedence
-	if (clientEnv.APP_ENV) {
-		const result = safeParse(AppEnvironment, clientEnv.APP_ENV);
-		if (result.success) {
-			return result.output;
-		}
-		console.warn(
-			`Invalid APP_ENV value: ${clientEnv.APP_ENV}. Falling back to branch detection.`,
-		);
-	}
+	// Debug environment variables
+	console.info("Environment Detection:", {
+		NODE_ENV: process.env.NODE_ENV,
+		CF_PAGES: process.env.CF_PAGES,
+		CF_PAGES_BRANCH: process.env.CF_PAGES_BRANCH,
+		APP_ENV: process.env.APP_ENV,
+		importMetaEnv:
+			typeof import.meta !== "undefined" ? import.meta.env : undefined,
+		hasGlobalEnv: typeof globalThis.__env__ !== "undefined",
+		globalEnvKeys: globalThis.__env__ ? Object.keys(globalThis.__env__) : [],
+	});
 
-	// In Cloudflare Pages, infer from branch
-	if (clientEnv.CF_PAGES_BRANCH) {
-		switch (clientEnv.CF_PAGES_BRANCH) {
+	// In production, always use Cloudflare Pages branch if available
+	if (process.env.NODE_ENV === "production" && process.env.CF_PAGES_BRANCH) {
+		console.info("Using Cloudflare Pages branch:", process.env.CF_PAGES_BRANCH);
+		switch (process.env.CF_PAGES_BRANCH) {
 			case "main":
 				return "production";
 			case "dev":
@@ -42,7 +43,20 @@ export const getAppEnv = (): AppEnvironment => {
 		}
 	}
 
-	// Local development
+	// In development, use explicit APP_ENV if valid
+	if (process.env.APP_ENV) {
+		console.info("Using explicit APP_ENV:", process.env.APP_ENV);
+		const result = safeParse(AppEnvironment, process.env.APP_ENV);
+		if (result.success) {
+			return result.output;
+		}
+		console.warn(
+			`Invalid APP_ENV value: ${process.env.APP_ENV}. Falling back to development.`,
+		);
+	}
+
+	// Default to development
+	console.info("No environment detected, defaulting to development");
 	return "development";
 };
 

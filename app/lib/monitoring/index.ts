@@ -1,28 +1,19 @@
 import type { Configuration } from "rollbar";
-import { clientEnv } from "../env-client";
+import { env } from "~/env";
 import { getAppEnv, shouldReportErrors } from "../env/environment";
+import { getRelease } from "../env/release";
 import { RollbarMonitor, createRollbarConfig } from "./rollbar";
 import type { ErrorMonitor, MonitoringConfig } from "./types";
 
 const isServer = typeof window === "undefined";
-const hasToken = Boolean(clientEnv.PUBLIC_ROLLBAR_ACCESS_TOKEN);
-
-// Get release info from Cloudflare Pages or default to environment
-const getRelease = () => {
-	const release = clientEnv.CF_PAGES_COMMIT_SHA
-		? `${clientEnv.CF_PAGES_BRANCH}@${clientEnv.CF_PAGES_COMMIT_SHA}`
-		: getAppEnv();
-
-	// Ensure release is always defined for type safety
-	return release;
-};
+const hasToken = Boolean(env.PUBLIC_ROLLBAR_ACCESS_TOKEN);
 
 // Base monitoring configuration that matches our local type
 const baseConfig: MonitoringConfig = {
 	enabled: hasToken && shouldReportErrors(),
 	environment: getAppEnv(),
 	release: getRelease(),
-	accessToken: clientEnv.PUBLIC_ROLLBAR_ACCESS_TOKEN || "",
+	accessToken: env.PUBLIC_ROLLBAR_ACCESS_TOKEN || "",
 };
 
 // Full Rollbar configuration with additional options

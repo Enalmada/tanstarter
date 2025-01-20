@@ -6,15 +6,47 @@ import { config } from "dotenv";
 import { cloudflare } from "unenv";
 import viteRollbar from "vite-plugin-rollbar";
 import tsConfigPaths from "vite-tsconfig-paths";
-import { getRelease } from "./app/lib/env/release";
 import { cspRules } from "./app/lib/security/cspRules";
 import { generateSecurityHeaders } from "./app/lib/security/generate";
 
-// Load environment variables early for build plugins (e.g. Rollbar source map upload)
+// Load environment variables early for build plugins
 config();
 
-// Debug logging for source map upload
-// console.log("Rollbar config:", getRollbarDebugInfo());
+// Set NODE_ENV to production for Cloudflare Pages
+if (process.env.CF_PAGES) {
+	process.env.NODE_ENV = "production";
+}
+
+// Debug environment access methods
+console.info("Environment Access Methods:", {
+	// Direct process.env access
+	processEnv: {
+		NODE_ENV: process.env.NODE_ENV,
+		CF_PAGES: process.env.CF_PAGES,
+		CF_PAGES_BRANCH: process.env.CF_PAGES_BRANCH,
+		CF_PAGES_COMMIT_SHA: process.env.CF_PAGES_COMMIT_SHA,
+	},
+	// Check if we have import.meta
+	hasImportMeta: typeof import.meta !== "undefined",
+	importMeta: typeof import.meta !== "undefined" ? import.meta : undefined,
+	// Check global env
+	hasGlobalEnv: typeof globalThis !== "undefined" && "__env__" in globalThis,
+});
+
+// Get release info for build time
+const getBuildRelease = () => {
+	if (process.env.CF_PAGES_COMMIT_SHA) {
+		return `${process.env.CF_PAGES_BRANCH}@${process.env.CF_PAGES_COMMIT_SHA}`;
+	}
+	return "development";
+};
+
+// Basic environment logging
+console.info("Build Environment:", {
+	NODE_ENV: process.env.NODE_ENV,
+	CF_PAGES: process.env.CF_PAGES,
+	CF_PAGES_BRANCH: process.env.CF_PAGES_BRANCH,
+});
 
 export default defineConfig({
 	vite: {
@@ -25,7 +57,7 @@ export default defineConfig({
 			// Upload source maps to Rollbar after build
 			viteRollbar({
 				accessToken: process.env.ROLLBAR_SERVER_TOKEN || "",
-				version: getRelease(),
+				version: getBuildRelease(),
 				baseUrl: process.env.CF_PAGES_URL || "http://localhost:3000",
 				ignoreUploadErrors: true,
 				silent: false,
@@ -58,13 +90,18 @@ export default defineConfig({
 			"process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN": JSON.stringify(
 				process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN,
 			),
-			"process.env.APP_ENV": JSON.stringify(process.env.APP_ENV),
+			// Environment and release info
+			"process.env.PUBLIC_APP_ENV": JSON.stringify(process.env.APP_ENV),
+			"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
 			// Cloudflare Pages environment info
-			"process.env.CF_PAGES_URL": JSON.stringify(process.env.CF_PAGES_URL),
-			"process.env.CF_PAGES_BRANCH": JSON.stringify(
+			"process.env.PUBLIC_CF_PAGES": JSON.stringify(process.env.CF_PAGES),
+			"process.env.PUBLIC_CF_PAGES_URL": JSON.stringify(
+				process.env.CF_PAGES_URL,
+			),
+			"process.env.PUBLIC_CF_PAGES_BRANCH": JSON.stringify(
 				process.env.CF_PAGES_BRANCH,
 			),
-			"process.env.CF_PAGES_COMMIT_SHA": JSON.stringify(
+			"process.env.PUBLIC_CF_PAGES_COMMIT_SHA": JSON.stringify(
 				process.env.CF_PAGES_COMMIT_SHA,
 			),
 		},

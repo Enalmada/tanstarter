@@ -1,17 +1,29 @@
 /**
- * Rollbar Deploy Tracking Integration
+ * Rollbar Deploy and Source Map Upload Integration
  *
- * This module handles notifying Rollbar about deployments to help correlate errors with specific releases.
- * It runs as part of the post-build process and uses Cloudflare Pages environment variables to determine
- * the deployment environment and details.
+ * This module handles source map uploads to Rollbar during the build process.
+ * It runs as part of the post-build process and uses Cloudflare Pages environment variables.
  *
  * @see https://docs.rollbar.com/reference/post-deploy
  */
 
 import { getRelease } from "../env/release";
-import { monitor } from "./index";
 
 const ROLLBAR_API = "https://api.rollbar.com/api/1/deploy";
+
+// Check if source map upload is configured
+export function isSourceMapUploadConfigured(): boolean {
+	console.info("Checking source map upload configuration...");
+	console.info("Environment variables:", {
+		ROLLBAR_SERVER_TOKEN: process.env.ROLLBAR_SERVER_TOKEN
+			? "[present]"
+			: "[missing]",
+		CF_PAGES: process.env.CF_PAGES,
+		CF_PAGES_BRANCH: process.env.CF_PAGES_BRANCH,
+		NODE_ENV: process.env.NODE_ENV,
+	});
+	return Boolean(process.env.ROLLBAR_SERVER_TOKEN);
+}
 
 // Interface matching Rollbar's deploy API payload requirements
 interface DeployPayload {
@@ -35,7 +47,7 @@ interface RollbarDeployResponse {
 }
 
 /**
- * Notifies Rollbar about a new deployment.
+ * Notifies Rollbar about source maps for a new deployment.
  *
  * This function:
  * 1. Determines the environment based on Cloudflare Pages branch
@@ -46,29 +58,43 @@ interface RollbarDeployResponse {
  * It's designed to run after successful builds via the post-build script.
  */
 export async function notifyRollbarDeploy() {
+	console.info("=== Starting Rollbar deploy notification ===");
+
+	if (!isSourceMapUploadConfigured()) {
+		console.info("Source map upload not configured - skipping");
+		return;
+	}
+
+	console.info("Starting source map upload...");
+
 	const token = process.env.ROLLBAR_SERVER_TOKEN;
+	// This check is redundant now but TypeScript needs it
 	if (!token) {
-		monitor.warn("Missing ROLLBAR_SERVER_TOKEN - skipping deploy notification");
 		return;
 	}
 
 	// Map Cloudflare Pages branch to environment
 	const environment =
 		process.env.CF_PAGES_BRANCH === "main" ? "production" : "preview";
+
 	const revision = getRelease();
 
 	const payload: DeployPayload = {
 		access_token: token,
 		environment,
 		revision,
-		local_username: process.env.CF_PAGES_BRANCH,
-		comment: `Deploy of ${revision} to ${environment} via Cloudflare Pages`,
-		status: "succeeded", // Since this runs after successful build
 		date: new Date().toISOString(),
-		// rollbar_username can be added if you have a Rollbar user context
+		status: "succeeded",
+		comment: `Deployed ${revision} to ${environment}`,
 	};
 
 	try {
+		console.info("Sending deploy notification to Rollbar...");
+		console.info("Deploy payload:", {
+			...payload,
+			access_token: "[hidden]",
+		});
+
 		const response = await fetch(ROLLBAR_API, {
 			method: "POST",
 			headers: {
@@ -78,17 +104,18 @@ export async function notifyRollbarDeploy() {
 		});
 
 		if (!response.ok) {
-			throw new Error(`Failed to notify Rollbar: ${response.statusText}`);
+			throw new Error(
+				`Failed to notify Rollbar: ${response.status} ${response.statusText}`,
+			);
 		}
 
-		// Log successful deploy with Rollbar's deploy ID for reference
 		const data = (await response.json()) as RollbarDeployResponse;
-		monitor.info(
-			`Notified Rollbar of deployment: ${revision} to ${environment}`,
-			{ deployId: data.result.deploy_id },
-		);
+		console.info("Deploy notification successful:", {
+			deployId: data.result.deploy_id,
+			environment: data.result.environment,
+		});
 	} catch (error) {
-		monitor.error("Failed to notify Rollbar of deployment:", error);
-		// Don't fail the build for this
+		console.error("Failed to notify Rollbar about deploy:", error);
+		// Don't throw - we don't want to fail the build for monitoring issues
 	}
 }
