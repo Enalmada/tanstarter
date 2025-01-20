@@ -149,6 +149,25 @@ function Home() {
 						</Text>
 					</Card>
 				</Stack>
+
+				{/* Error Monitoring Section */}
+				<Stack gap="lg" mt="xl">
+					<Title order={2} ta="center">
+						Error Monitoring
+					</Title>
+					<Card withBorder>
+						<Stack align="center" gap="md">
+							<Text c="dimmed" ta="center">
+								Test the error monitoring system with various scenarios
+								including error boundaries, uncaught errors, async errors, and
+								user context tracking.
+							</Text>
+							<LinkButton to="/debug/monitoring" size="md">
+								Test Error Monitoring
+							</LinkButton>
+						</Stack>
+					</Card>
+				</Stack>
 			</Stack>
 		</Container>
 	);

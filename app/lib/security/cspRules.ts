@@ -33,6 +33,11 @@ export const cspRules: CspRule[] = [
 		source: "/:path*",
 	},
 	{
+		description: "rollbar",
+		"connect-src": "'self' https://api.rollbar.com https://*.rollbar.com",
+		source: "/:path*",
+	},
+	{
 		description: "imageDemo",
 		"img-src": "'self' blob: data: https://images.unsplash.com",
 		source: "/:path*",

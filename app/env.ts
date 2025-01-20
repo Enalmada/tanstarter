@@ -24,6 +24,7 @@ export const optional = [
 	"AXIOM_DATASET_NAME",
 	"AXIOM_TOKEN",
 	"VITE_APP_BASE_URL",
+	"PUBLIC_ROLLBAR_ACCESS_TOKEN",
 ] as const;
 
 type RequiredEnvKeys = (typeof required)[number];

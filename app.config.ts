@@ -35,7 +35,13 @@ export default defineConfig({
 
 			lingui(),
 		],
-		envPrefix: ["PUBLIC_"],
+		envPrefix: ["PUBLIC_", "VITE_"],
+		define: {
+			// Expose environment variables to the client
+			"import.meta.env.PUBLIC_ROLLBAR_ACCESS_TOKEN": JSON.stringify(
+				process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN,
+			),
+		},
 		assetsInclude: ["**/*.po"],
 		optimizeDeps: {
 			exclude: [

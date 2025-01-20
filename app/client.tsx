@@ -7,6 +7,8 @@
 /// <reference types="vinxi/types/client" />
 import { StartClient } from "@tanstack/start";
 import { hydrateRoot } from "react-dom/client";
+import { clientEnv } from "~/lib/env-client";
+import { MonitoringProvider, clientConfig } from "~/lib/monitoring";
 import {
 	DEFAULT_LANGUAGE,
 	activateLanguage,
@@ -26,4 +28,34 @@ try {
 
 const router = createRouter();
 
-hydrateRoot(document, <StartClient router={router} />);
+// Ensure Rollbar is only initialized on the client side
+const isClient = typeof window !== "undefined";
+const hasToken = Boolean(clientEnv.PUBLIC_ROLLBAR_ACCESS_TOKEN);
+
+// Debug Rollbar configuration
+// biome-ignore lint/suspicious/noConsoleLog: debugging Rollbar configuration
+console.log("=== ROLLBAR DEBUG ===");
+// biome-ignore lint/suspicious/noConsoleLog: debugging Rollbar configuration
+console.log("Client Rollbar Config:", {
+	isClient,
+	hasToken,
+	accessToken: clientEnv.PUBLIC_ROLLBAR_ACCESS_TOKEN
+		? "[present]"
+		: "[missing]",
+	enabled: isClient && hasToken,
+	clientConfig: {
+		...clientConfig,
+		accessToken: clientConfig.accessToken ? "[present]" : "[missing]",
+	},
+});
+// biome-ignore lint/suspicious/noConsoleLog: debugging Rollbar configuration
+console.log("===================");
+
+hydrateRoot(
+	document,
+	<MonitoringProvider
+		config={{ ...clientConfig, enabled: isClient && hasToken }}
+	>
+		<StartClient router={router} />
+	</MonitoringProvider>,
+);
