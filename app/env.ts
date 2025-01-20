@@ -23,7 +23,7 @@ export const optional = [
 	"CF_PAGES_URL",
 	"AXIOM_DATASET_NAME",
 	"AXIOM_TOKEN",
-	"VITE_APP_BASE_URL",
+	"PUBLIC_APP_BASE_URL",
 	"PUBLIC_ROLLBAR_ACCESS_TOKEN",
 ] as const;
 

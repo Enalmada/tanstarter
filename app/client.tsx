@@ -32,24 +32,21 @@ const router = createRouter();
 const isClient = typeof window !== "undefined";
 const hasToken = Boolean(clientEnv.PUBLIC_ROLLBAR_ACCESS_TOKEN);
 
-// Debug Rollbar configuration
-// biome-ignore lint/suspicious/noConsoleLog: debugging Rollbar configuration
+// Debug Rollbar configuration - uncomment to troubleshoot
+/*
 console.log("=== ROLLBAR DEBUG ===");
-// biome-ignore lint/suspicious/noConsoleLog: debugging Rollbar configuration
 console.log("Client Rollbar Config:", {
 	isClient,
 	hasToken,
-	accessToken: clientEnv.PUBLIC_ROLLBAR_ACCESS_TOKEN
-		? "[present]"
-		: "[missing]",
+	accessToken: clientEnv.PUBLIC_ROLLBAR_ACCESS_TOKEN ? "[present]" : "[missing]",
 	enabled: isClient && hasToken,
 	clientConfig: {
 		...clientConfig,
 		accessToken: clientConfig.accessToken ? "[present]" : "[missing]",
 	},
 });
-// biome-ignore lint/suspicious/noConsoleLog: debugging Rollbar configuration
 console.log("===================");
+*/
 
 hydrateRoot(
 	document,

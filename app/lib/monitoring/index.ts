@@ -1,28 +1,52 @@
-import { clientEnv } from "~/lib/env-client";
+import type { Configuration } from "rollbar";
+import { clientEnv } from "../env-client";
+import { getAppEnv, shouldReportErrors } from "../env/environment";
 import { RollbarMonitor, createRollbarConfig } from "./rollbar";
-import type { ErrorMonitor } from "./types";
+import type { ErrorMonitor, MonitoringConfig } from "./types";
 
 const isServer = typeof window === "undefined";
 const hasToken = Boolean(clientEnv.PUBLIC_ROLLBAR_ACCESS_TOKEN);
 
-const monitoringConfig = {
+// Get release info from Cloudflare Pages or default to environment
+const getRelease = () => {
+	const release = clientEnv.CF_PAGES_COMMIT_SHA
+		? `${clientEnv.CF_PAGES_BRANCH}@${clientEnv.CF_PAGES_COMMIT_SHA}`
+		: getAppEnv();
+
+	// Ensure release is always defined for type safety
+	return release;
+};
+
+// Base monitoring configuration that matches our local type
+const baseConfig: MonitoringConfig = {
+	enabled: hasToken && shouldReportErrors(),
+	environment: getAppEnv(),
+	release: getRelease(),
 	accessToken: clientEnv.PUBLIC_ROLLBAR_ACCESS_TOKEN || "",
-	environment: clientEnv.NODE_ENV || "development",
-	enabled: hasToken,
-	release: "1.0.0", // TODO: Get this from package.json or build process
+};
+
+// Full Rollbar configuration with additional options
+export const monitoringConfig: Configuration = {
+	...baseConfig,
+	captureUncaught: true,
+	captureUnhandledRejections: true,
+	payload: {
+		client: {
+			javascript: {
+				source_map_enabled: true,
+				code_version: getRelease(),
+				guess_uncaught_frames: true,
+			},
+		},
+	},
 };
 
 // Server-side monitor instance
-export const monitor: ErrorMonitor = new RollbarMonitor({
-	...monitoringConfig,
-	// Server monitoring only works server-side
-	enabled: isServer && hasToken,
-});
+export const monitor: ErrorMonitor = new RollbarMonitor(baseConfig);
 
 // Client-side config
 export const clientConfig = createRollbarConfig({
-	...monitoringConfig,
-	// Client monitoring only works client-side
+	...baseConfig,
 	enabled: !isServer && hasToken,
 });
 

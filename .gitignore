@@ -32,3 +32,6 @@ public/swe-worker*
 !playwright.config.ts
 playwright-report/
 test-results/
+
+
+app.config.timestamp*
