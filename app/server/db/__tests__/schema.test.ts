@@ -40,6 +40,7 @@ describe("schema validation", () => {
 					status: TaskStatus.ACTIVE,
 					dueDate: new Date(),
 					userId: mockUserId,
+					version: 1,
 				};
 
 				const result = safeParse(taskFormSchema, validTask);
@@ -49,6 +50,7 @@ describe("schema validation", () => {
 						title: validTask.title,
 						description: validTask.description,
 						status: validTask.status,
+						version: 1,
 					});
 					expect(result.output.dueDate).toBeInstanceOf(Date);
 				}
@@ -61,6 +63,7 @@ describe("schema validation", () => {
 					status: TaskStatus.ACTIVE,
 					dueDate: null,
 					userId: mockUserId,
+					version: 1,
 				};
 
 				const result = safeParse(taskFormSchema, minimalTask);
@@ -72,6 +75,7 @@ describe("schema validation", () => {
 						dueDate: null,
 						status: TaskStatus.ACTIVE,
 						userId: mockUserId,
+						version: 1,
 					});
 				}
 			});
@@ -98,6 +102,7 @@ describe("schema validation", () => {
 					status: TaskStatus.ACTIVE,
 					userId: "usr_123",
 					dueDate: new Date(),
+					version: 1,
 				};
 
 				const result = safeParse(taskInsertSchema, validInsert);
@@ -140,6 +145,7 @@ describe("schema validation", () => {
 					email: "test@example.com",
 					name: "Test User",
 					role: UserRole.MEMBER,
+					version: 1,
 				};
 
 				const result = safeParse(userFormSchema, validUser);
@@ -154,6 +160,7 @@ describe("schema validation", () => {
 					email: "test@example.com",
 					role: UserRole.MEMBER,
 					name: null,
+					version: 1,
 				};
 
 				const result = safeParse(userFormSchema, minimalUser);

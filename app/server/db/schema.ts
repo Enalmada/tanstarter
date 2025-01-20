@@ -24,9 +24,8 @@ import {
 	date,
 	enum_,
 	nullable,
-	object,
+	number,
 	pipe,
-	string,
 	transform,
 	undefined_,
 } from "valibot";
@@ -99,10 +98,18 @@ export const userUpdateSchema = createUpdateSchema(UserTable, {
 });
 
 // Form-specific schema that excludes server-side fields
-export const userFormSchema = object({
-	email: string(),
-	name: nullable(string()),
+export const userFormSchema = createInsertSchema(UserTable, {
+	// Override server-managed fields to be undefined
+	id: undefined_(),
+	emailVerified: undefined_(),
+	image: undefined_(),
+	createdAt: undefined_(),
+	updatedAt: undefined_(),
+	createdById: undefined_(),
+	updatedById: undefined_(),
+	// Override specific field types
 	role: userRoleSchema,
+	version: nullable(number()),
 });
 
 // Session Schema
@@ -233,9 +240,13 @@ export const taskFormSchema = createInsertSchema(TaskTable, {
 	id: undefined_(),
 	createdAt: undefined_(),
 	updatedAt: undefined_(),
+	createdById: undefined_(),
+	updatedById: undefined_(),
+	// Override specific field types
 	status: taskStatusSchema,
 	dueDate: pipe(
 		nullable(date()),
 		transform((input) => (input ? new Date(input) : null)),
 	),
+	version: nullable(number()),
 });

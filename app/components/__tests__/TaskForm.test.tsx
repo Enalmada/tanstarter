@@ -38,6 +38,7 @@ describe("TaskForm", () => {
 			description: "Test Description",
 			dueDate: new Date("2024-03-20"),
 			status: TaskStatus.ACTIVE,
+			version: 1,
 		};
 
 		render(
@@ -95,9 +96,10 @@ describe("TaskForm", () => {
 			expect(onSubmit).toHaveBeenCalledWith({
 				title: "New Task",
 				description: "New Description",
-				status: TaskStatus.COMPLETED,
 				dueDate: null,
+				status: TaskStatus.COMPLETED,
 				userId: mockUserId,
+				version: 1,
 			});
 		});
 	});
