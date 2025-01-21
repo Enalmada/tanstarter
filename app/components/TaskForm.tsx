@@ -34,6 +34,11 @@ export function TaskForm({
 			disabled: true,
 		},
 		{
+			key: "userId",
+			type: "hidden",
+			disabled: true,
+		},
+		{
 			key: "title",
 			type: "text",
 			label: "Title",

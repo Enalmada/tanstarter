@@ -8,5 +8,18 @@ import {
 	createStartAPIHandler,
 	defaultAPIFileRouteHandler,
 } from "@tanstack/start/api";
+import { monitor } from "~/lib/monitoring";
 
-export default createStartAPIHandler(defaultAPIFileRouteHandler);
+// Wrap the default handler with error logging
+const enhancedHandler = async (
+	ctx: Parameters<typeof defaultAPIFileRouteHandler>[0],
+) => {
+	try {
+		return await defaultAPIFileRouteHandler(ctx);
+	} catch (error) {
+		monitor.error("API Error:", error);
+		throw error;
+	}
+};
+
+export default createStartAPIHandler(enhancedHandler);

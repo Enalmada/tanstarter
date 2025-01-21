@@ -16,7 +16,7 @@ export const auth = betterAuth({
 			clientSecret: env.GOOGLE_CLIENT_SECRET || "",
 		},
 	},
-	// baseURL: env.CF_PAGES_URL || env.VITE_APP_BASE_URL || "",
+	// baseURL: env.CF_PAGES_URL || env.APP_BASE_URL || "",
 	user: {
 		modelName: "UserTable",
 		additionalFields: {

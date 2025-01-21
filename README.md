@@ -25,6 +25,7 @@ A production starter template for TanStack Start.
 - [Better Auth](https://github.com/enalmada/better-auth) for authentication
 - [Casl](https://casl.js.org/) for authorization
 - [React-Email](https://react.email/) for email templates
+- [Axiom](https://axiom.co/) logging integration
 
 
 ### Testing & Quality
@@ -32,13 +33,16 @@ A production starter template for TanStack Start.
 - [Vitest](https://vitest.dev/) for unit testing
 - [Playwright](https://playwright.dev/) for E2E testing
 - [Storybook](https://storybook.js.org/) for component development and testing
+- [Rollbar](https://rollbar.com/) for error tracking and release monitoring
 
 ### Tools
+
 - [Docker](https://docker.com/) for containerization
 - [Biome](https://biomejs.dev/) for linting and formatting
 - [Fixpack](https://fixpack.dev/) for package.json normalization
 - [Turborepo](https://turbo.build/repo) for monorepo management
 - [LeftHook](https://lefthook.dev/) for hooks linting
+- [Rollbar](https://rollbar.com/) error tracking and release monitoring
 
 
 ## Getting Started
@@ -81,10 +85,7 @@ A production starter template for TanStack Start.
 
 The following items are still needed for full production readiness:
 
-- [ ] [Sentry](https://sentry.io/) integration for error tracking
 - [ ] Nonce implementation (waiting on TanStack Start support)
-- [ ] [Axiom](https://axiom.co/) logging integration
-- [ ] Optimized image component implementation
 - [ ] SEO configuration
 - [ ] Bundle Analyzer
 - [ ] Github Actions
@@ -96,7 +97,7 @@ of issues and integration testing for a production site using the core technolog
 Not all requests and PRs will be accepted.
 
 ## See Also
+
 - https://github.com/dotnize/tanstarter thanks so much for this great starter!
 - [nekochan0122/tanstack-boilerplate](https://github.com/nekochan0122/tanstack-boilerplate) - A batteries-included TanStack Start boilerplate that inspired some patterns in this template. If you're looking for a more feature-rich starter, check it out!
 - [AlexGaudon/tanstarter-better-auth](https://github.com/AlexGaudon/tanstarter-better-auth) for his own better-auth implementation.
-

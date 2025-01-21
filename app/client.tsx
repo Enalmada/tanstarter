@@ -7,6 +7,8 @@
 /// <reference types="vinxi/types/client" />
 import { StartClient } from "@tanstack/start";
 import { hydrateRoot } from "react-dom/client";
+import { env } from "~/env";
+import { MonitoringProvider, clientConfig } from "~/lib/monitoring";
 import {
 	DEFAULT_LANGUAGE,
 	activateLanguage,
@@ -26,4 +28,15 @@ try {
 
 const router = createRouter();
 
-hydrateRoot(document, <StartClient router={router} />);
+// Ensure Rollbar is only initialized on the client side
+const isClient = typeof window !== "undefined";
+const hasToken = Boolean(env.PUBLIC_ROLLBAR_ACCESS_TOKEN);
+
+hydrateRoot(
+	document,
+	<MonitoringProvider
+		config={{ ...clientConfig, enabled: isClient && hasToken }}
+	>
+		<StartClient router={router} />
+	</MonitoringProvider>,
+);

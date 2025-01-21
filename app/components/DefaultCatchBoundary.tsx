@@ -20,8 +20,6 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 		select: (state) => state.id === rootRouteId,
 	});
 
-	console.error(error);
-
 	return (
 		<Stack className="min-w-0 flex-1 items-center justify-center gap-6 p-4">
 			<ErrorComponent error={error} />

@@ -21,7 +21,8 @@
 			"playwright/artifacts/**",
 			"playwright/report/**",
 			"playwright/results/**",
-			"playwright/test-results/**"
+			"playwright/test-results/**",
+			"app.config.timestamp*"
 		]
 	},
 	"formatter": {

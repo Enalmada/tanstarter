@@ -19,6 +19,7 @@ import { Route as TasksIndexImport } from './routes/tasks/index'
 import { Route as AdminIndexImport } from './routes/admin/index'
 import { Route as TasksNewImport } from './routes/tasks/new'
 import { Route as TasksTaskIdImport } from './routes/tasks/$taskId'
+import { Route as DebugMonitoringImport } from './routes/debug/monitoring'
 import { Route as AdminUsersIndexImport } from './routes/admin/users/index'
 import { Route as AdminTasksIndexImport } from './routes/admin/tasks/index'
 import { Route as AdminUsersUserIdImport } from './routes/admin/users/$userId'
@@ -74,6 +75,12 @@ const TasksTaskIdRoute = TasksTaskIdImport.update({
   id: '/$taskId',
   path: '/$taskId',
   getParentRoute: () => TasksRoute,
+} as any)
+
+const DebugMonitoringRoute = DebugMonitoringImport.update({
+  id: '/debug/monitoring',
+  path: '/debug/monitoring',
+  getParentRoute: () => rootRoute,
 } as any)
 
 const AdminUsersIndexRoute = AdminUsersIndexImport.update({
@@ -142,6 +149,13 @@ declare module '@tanstack/react-router' {
       path: '/tasks'
       fullPath: '/tasks'
       preLoaderRoute: typeof TasksImport
+      parentRoute: typeof rootRoute
+    }
+    '/debug/monitoring': {
+      id: '/debug/monitoring'
+      path: '/debug/monitoring'
+      fullPath: '/debug/monitoring'
+      preLoaderRoute: typeof DebugMonitoringImport
       parentRoute: typeof rootRoute
     }
     '/tasks/$taskId': {
@@ -260,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/signin': typeof SigninRoute
   '/tasks': typeof TasksRouteWithChildren
+  '/debug/monitoring': typeof DebugMonitoringRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
   '/admin/': typeof AdminIndexRoute
@@ -275,6 +290,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
+  '/debug/monitoring': typeof DebugMonitoringRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
   '/admin': typeof AdminIndexRoute
@@ -293,6 +309,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/signin': typeof SigninRoute
   '/tasks': typeof TasksRouteWithChildren
+  '/debug/monitoring': typeof DebugMonitoringRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
   '/admin/': typeof AdminIndexRoute
@@ -312,6 +329,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/signin'
     | '/tasks'
+    | '/debug/monitoring'
     | '/tasks/$taskId'
     | '/tasks/new'
     | '/admin/'
@@ -326,6 +344,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/signin'
+    | '/debug/monitoring'
     | '/tasks/$taskId'
     | '/tasks/new'
     | '/admin'
@@ -342,6 +361,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/signin'
     | '/tasks'
+    | '/debug/monitoring'
     | '/tasks/$taskId'
     | '/tasks/new'
     | '/admin/'
@@ -360,6 +380,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   SigninRoute: typeof SigninRoute
   TasksRoute: typeof TasksRouteWithChildren
+  DebugMonitoringRoute: typeof DebugMonitoringRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -367,6 +388,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   SigninRoute: SigninRoute,
   TasksRoute: TasksRouteWithChildren,
+  DebugMonitoringRoute: DebugMonitoringRoute,
 }
 
 export const routeTree = rootRoute
@@ -382,7 +404,8 @@ export const routeTree = rootRoute
         "/",
         "/admin",
         "/signin",
-        "/tasks"
+        "/tasks",
+        "/debug/monitoring"
       ]
     },
     "/": {
@@ -410,6 +433,9 @@ export const routeTree = rootRoute
         "/tasks/new",
         "/tasks/"
       ]
+    },
+    "/debug/monitoring": {
+      "filePath": "debug/monitoring.tsx"
     },
     "/tasks/$taskId": {
       "filePath": "tasks/$taskId.tsx",
