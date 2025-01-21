@@ -3,7 +3,7 @@ import { env } from "~/env";
 import { getAppEnv, shouldReportErrors } from "../env/environment";
 import { getRelease } from "../env/release";
 import { RollbarMonitor, createRollbarConfig } from "./rollbar";
-import type { ErrorMonitor, MonitoringConfig } from "./types";
+import type { ErrorMonitor, MonitorUser, MonitoringConfig } from "./types";
 
 const isServer = typeof window === "undefined";
 const hasToken = Boolean(env.PUBLIC_ROLLBAR_ACCESS_TOKEN);
@@ -34,7 +34,36 @@ export const monitoringConfig: Configuration = {
 };
 
 // Server-side monitor instance
-export const monitor: ErrorMonitor = new RollbarMonitor(baseConfig);
+export const monitor: ErrorMonitor = (() => {
+	// Delay creation until first use
+	let instance: ErrorMonitor | null = null;
+	return {
+		error: (message: string | Error, extra?: unknown) => {
+			if (!instance) instance = new RollbarMonitor(baseConfig);
+			instance.error(message, extra);
+		},
+		warn: (message: string | Error, extra?: unknown) => {
+			if (!instance) instance = new RollbarMonitor(baseConfig);
+			instance.warn(message, extra);
+		},
+		info: (message: string | Error, extra?: unknown) => {
+			if (!instance) instance = new RollbarMonitor(baseConfig);
+			instance.info(message, extra);
+		},
+		debug: (message: string | Error, extra?: unknown) => {
+			if (!instance) instance = new RollbarMonitor(baseConfig);
+			instance.debug(message, extra);
+		},
+		setUser: (user: MonitorUser | null) => {
+			if (!instance) instance = new RollbarMonitor(baseConfig);
+			instance.setUser(user);
+		},
+		breadcrumb: (message: string, metadata?: Record<string, unknown>) => {
+			if (!instance) instance = new RollbarMonitor(baseConfig);
+			instance.breadcrumb(message, metadata);
+		},
+	};
+})();
 
 // Client-side config
 export const clientConfig = createRollbarConfig({
