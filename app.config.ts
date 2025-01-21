@@ -12,27 +12,6 @@ import { generateSecurityHeaders } from "./app/lib/security/generate";
 // Load environment variables early for build plugins
 config();
 
-// Set NODE_ENV to production for Cloudflare Pages
-if (process.env.CF_PAGES) {
-	process.env.NODE_ENV = "production";
-}
-
-// Debug environment access methods
-console.info("Environment Access Methods:", {
-	// Direct process.env access
-	processEnv: {
-		NODE_ENV: process.env.NODE_ENV,
-		CF_PAGES: process.env.CF_PAGES,
-		CF_PAGES_BRANCH: process.env.CF_PAGES_BRANCH,
-		CF_PAGES_COMMIT_SHA: process.env.CF_PAGES_COMMIT_SHA,
-	},
-	// Check if we have import.meta
-	hasImportMeta: typeof import.meta !== "undefined",
-	importMeta: typeof import.meta !== "undefined" ? import.meta : undefined,
-	// Check global env
-	hasGlobalEnv: typeof globalThis !== "undefined" && "__env__" in globalThis,
-});
-
 // Get release info for build time
 const getBuildRelease = () => {
 	if (process.env.CF_PAGES_COMMIT_SHA) {
@@ -40,13 +19,6 @@ const getBuildRelease = () => {
 	}
 	return "development";
 };
-
-// Basic environment logging
-console.info("Build Environment:", {
-	NODE_ENV: process.env.NODE_ENV,
-	CF_PAGES: process.env.CF_PAGES,
-	CF_PAGES_BRANCH: process.env.CF_PAGES_BRANCH,
-});
 
 export default defineConfig({
 	vite: {

@@ -10,14 +10,6 @@ export class RollbarMonitor implements ErrorMonitor {
 	constructor(config: MonitoringConfig) {
 		this.enabled = config.enabled;
 
-		console.info("Initializing RollbarMonitor:", {
-			enabled: config.enabled,
-			environment: config.environment,
-			release: config.release,
-			hasToken: Boolean(config.accessToken),
-			isClient: typeof window !== "undefined",
-		});
-
 		if (this.enabled) {
 			const rollbarConfig = {
 				accessToken: config.accessToken,
@@ -38,21 +30,16 @@ export class RollbarMonitor implements ErrorMonitor {
 				},
 			};
 
-			console.info("Creating Rollbar instance with config:", {
-				...rollbarConfig,
-				accessToken: "[hidden]",
-			});
-
 			this.rollbar = new Rollbar(rollbarConfig);
 		} else {
-			console.info("Rollbar disabled - using console fallback");
+			console.debug("Rollbar disabled - using console fallback");
 			this.rollbar = null;
 		}
 	}
 
 	error(message: string | Error, extra?: unknown) {
 		if (this.rollbar) {
-			console.info("Sending error to Rollbar:", { message, extra });
+			console.debug("Sending error to Rollbar:", { message, extra });
 			this.rollbar.error(message, extra as LogArgument);
 		} else {
 			console.error(message, extra);
@@ -61,7 +48,7 @@ export class RollbarMonitor implements ErrorMonitor {
 
 	warn(message: string | Error, extra?: unknown) {
 		if (this.rollbar) {
-			console.info("Sending warning to Rollbar:", { message, extra });
+			console.debug("Sending warning to Rollbar:", { message, extra });
 			this.rollbar.warning(message, extra as LogArgument);
 		} else {
 			console.warn(message, extra);
@@ -88,7 +75,7 @@ export class RollbarMonitor implements ErrorMonitor {
 		if (!this.rollbar) return;
 
 		if (user) {
-			console.info("Setting Rollbar user:", user);
+			// console.info("Setting Rollbar user:", user);
 			this.rollbar.configure({
 				payload: {
 					person: {
@@ -116,11 +103,6 @@ export class RollbarMonitor implements ErrorMonitor {
 }
 
 export function createRollbarConfig(config: MonitoringConfig): Configuration {
-	console.info("Creating Rollbar config:", {
-		...config,
-		accessToken: config.accessToken ? "[present]" : "[missing]",
-	});
-
 	return {
 		accessToken: config.accessToken,
 		environment: config.environment,

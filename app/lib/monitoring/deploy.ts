@@ -13,15 +13,6 @@ const ROLLBAR_API = "https://api.rollbar.com/api/1/deploy";
 
 // Check if source map upload is configured
 export function isSourceMapUploadConfigured(): boolean {
-	console.info("Checking source map upload configuration...");
-	console.info("Environment variables:", {
-		ROLLBAR_SERVER_TOKEN: process.env.ROLLBAR_SERVER_TOKEN
-			? "[present]"
-			: "[missing]",
-		CF_PAGES: process.env.CF_PAGES,
-		CF_PAGES_BRANCH: process.env.CF_PAGES_BRANCH,
-		NODE_ENV: process.env.NODE_ENV,
-	});
 	return Boolean(process.env.ROLLBAR_SERVER_TOKEN);
 }
 
@@ -56,8 +47,6 @@ interface RollbarDeployResponse {
  * It's designed to run after successful builds via the post-build script.
  */
 export async function notifyRollbarDeploy() {
-	console.info("=== Starting Rollbar deploy notification ===");
-
 	if (!isSourceMapUploadConfigured()) {
 		console.info("Source map upload not configured - skipping");
 		return;
@@ -88,10 +77,6 @@ export async function notifyRollbarDeploy() {
 
 	try {
 		console.info("Sending deploy notification to Rollbar...");
-		console.info("Deploy payload:", {
-			...payload,
-			access_token: "[hidden]",
-		});
 
 		const response = await fetch(ROLLBAR_API, {
 			method: "POST",
@@ -102,7 +87,6 @@ export async function notifyRollbarDeploy() {
 		});
 
 		const data = await response.json();
-		console.info("Raw Rollbar response:", data);
 
 		if (!response.ok) {
 			throw new Error(

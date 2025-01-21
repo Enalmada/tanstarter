@@ -18,21 +18,8 @@ export type AppEnvironment = (typeof environments)[number];
  * 3. Default to development
  */
 export const getAppEnv = (): AppEnvironment => {
-	// Debug environment variables
-	console.info("Environment Detection:", {
-		NODE_ENV: process.env.NODE_ENV,
-		CF_PAGES: process.env.CF_PAGES,
-		CF_PAGES_BRANCH: process.env.CF_PAGES_BRANCH,
-		APP_ENV: process.env.APP_ENV,
-		importMetaEnv:
-			typeof import.meta !== "undefined" ? import.meta.env : undefined,
-		hasGlobalEnv: typeof globalThis.__env__ !== "undefined",
-		globalEnvKeys: globalThis.__env__ ? Object.keys(globalThis.__env__) : [],
-	});
-
 	// In production, always use Cloudflare Pages branch if available
 	if (process.env.NODE_ENV === "production" && process.env.CF_PAGES_BRANCH) {
-		console.info("Using Cloudflare Pages branch:", process.env.CF_PAGES_BRANCH);
 		switch (process.env.CF_PAGES_BRANCH) {
 			case "main":
 				return "production";
@@ -45,7 +32,6 @@ export const getAppEnv = (): AppEnvironment => {
 
 	// In development, use explicit APP_ENV if valid
 	if (process.env.APP_ENV) {
-		console.info("Using explicit APP_ENV:", process.env.APP_ENV);
 		const result = safeParse(AppEnvironment, process.env.APP_ENV);
 		if (result.success) {
 			return result.output;
