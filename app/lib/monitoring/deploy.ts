@@ -39,10 +39,8 @@ interface DeployPayload {
 
 // Type definition for Rollbar's deploy API response
 interface RollbarDeployResponse {
-	err: number;
-	result: {
+	data: {
 		deploy_id: number;
-		environment: string;
 	};
 }
 
@@ -103,16 +101,32 @@ export async function notifyRollbarDeploy() {
 			body: JSON.stringify(payload),
 		});
 
+		const data = await response.json();
+		console.info("Raw Rollbar response:", data);
+
 		if (!response.ok) {
 			throw new Error(
 				`Failed to notify Rollbar: ${response.status} ${response.statusText}`,
 			);
 		}
 
-		const data = (await response.json()) as RollbarDeployResponse;
+		// Type guard to verify response shape
+		if (!data || typeof data !== "object" || !("data" in data)) {
+			throw new Error(
+				`Invalid Rollbar response format: ${JSON.stringify(data)}`,
+			);
+		}
+
+		const result = data.data;
+		if (typeof result !== "object" || !result || !("deploy_id" in result)) {
+			throw new Error(
+				`Missing required fields in Rollbar response: ${JSON.stringify(data)}`,
+			);
+		}
+
 		console.info("Deploy notification successful:", {
-			deployId: data.result.deploy_id,
-			environment: data.result.environment,
+			deployId: result.deploy_id,
+			environment,
 		});
 	} catch (error) {
 		console.error("Failed to notify Rollbar about deploy:", error);

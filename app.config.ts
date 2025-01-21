@@ -84,24 +84,22 @@ export default defineConfig({
 			lingui(),
 		],
 		// Only expose PUBLIC_ prefixed vars to client
-		envPrefix: ["PUBLIC_"],
+		envPrefix: ["PUBLIC_", "APP_", "CF_"],
 		define: {
 			// Explicitly expose specific environment variables to client
 			"process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN": JSON.stringify(
 				process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN,
 			),
 			// Environment and release info
-			"process.env.PUBLIC_APP_ENV": JSON.stringify(process.env.APP_ENV),
+			"process.env.APP_ENV": JSON.stringify(process.env.APP_ENV),
 			"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
 			// Cloudflare Pages environment info
-			"process.env.PUBLIC_CF_PAGES": JSON.stringify(process.env.CF_PAGES),
-			"process.env.PUBLIC_CF_PAGES_URL": JSON.stringify(
-				process.env.CF_PAGES_URL,
-			),
-			"process.env.PUBLIC_CF_PAGES_BRANCH": JSON.stringify(
+			"process.env.CF_PAGES": JSON.stringify(process.env.CF_PAGES),
+			"process.env.CF_PAGES_URL": JSON.stringify(process.env.CF_PAGES_URL),
+			"process.env.CF_PAGES_BRANCH": JSON.stringify(
 				process.env.CF_PAGES_BRANCH,
 			),
-			"process.env.PUBLIC_CF_PAGES_COMMIT_SHA": JSON.stringify(
+			"process.env.CF_PAGES_COMMIT_SHA": JSON.stringify(
 				process.env.CF_PAGES_COMMIT_SHA,
 			),
 		},
@@ -141,6 +139,8 @@ export default defineConfig({
 				"date-fns",
 				"@unpic/react",
 				"@casl/ability",
+				"@rollbar/react",
+				"rollbar",
 			],
 		},
 		build: {
