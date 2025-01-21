@@ -74,6 +74,9 @@ export default defineConfig({
 			"process.env.CF_PAGES_COMMIT_SHA": JSON.stringify(
 				process.env.CF_PAGES_COMMIT_SHA,
 			),
+			"process.env.PUBLIC_POSTHOG_API_KEY": JSON.stringify(
+				process.env.PUBLIC_POSTHOG_API_KEY,
+			),
 		},
 		assetsInclude: ["**/*.po"],
 		optimizeDeps: {

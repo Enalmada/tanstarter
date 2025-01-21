@@ -16,6 +16,7 @@ import { Suspense, lazy, useLayoutEffect } from "react";
 import { getWebRequest } from "vinxi/http";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
+import { AnalyticsProvider } from "~/components/providers/analytics-provider";
 import {
 	ColorSchemeScript,
 	MantineProvider,
@@ -247,6 +248,9 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 					<TanStackRouterDevtools position="bottom-right" />
 				</Suspense>
 				<Scripts />
+				<Suspense>
+					<AnalyticsProvider />
+				</Suspense>
 			</body>
 		</html>
 	);

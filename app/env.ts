@@ -29,6 +29,7 @@ export const optional = [
 	"APP_BASE_URL",
 	"PUBLIC_ROLLBAR_ACCESS_TOKEN",
 	"ROLLBAR_SERVER_TOKEN",
+	"PUBLIC_POSTHOG_API_KEY",
 ] as const;
 
 type RequiredEnvKeys = (typeof required)[number];
