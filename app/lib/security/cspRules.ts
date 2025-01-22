@@ -61,8 +61,8 @@ export const cspRules: CspRule[] = [
 	},
 	{
 		description: "posthog",
-		"script-src": "https://us-assets.i.posthog.com",
-		"connect-src": "https://us.i.posthog.com",
+		"script-src": "https://*.posthog.com",
+		"connect-src": "https://*.posthog.com",
 		source: "/:path*",
 	},
 ];

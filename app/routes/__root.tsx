@@ -9,10 +9,11 @@ import {
 	ScrollRestoration,
 	createRootRouteWithContext,
 	redirect,
+	useRouter,
 } from "@tanstack/react-router";
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import type { ReactNode } from "react";
-import { Suspense, lazy, useLayoutEffect } from "react";
+import { Suspense, lazy, useEffect, useLayoutEffect } from "react";
 import { getWebRequest } from "vinxi/http";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
@@ -23,6 +24,7 @@ import {
 } from "~/components/providers/mantine-provider";
 import { auth } from "~/server/auth/auth";
 import appCss from "~/styles/app.css?inline";
+import { capturePageView, identifyUser } from "~/utils/analytics";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
 
@@ -200,6 +202,9 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
+	const { user } = Route.useLoaderData();
+	const router = useRouter();
+
 	useLayoutEffect(() => {
 		const loadSerwist = async () => {
 			if (ENABLE_SERVICE_WORKER && "serviceWorker" in navigator) {
@@ -217,6 +222,14 @@ function RootComponent() {
 
 		loadSerwist();
 	}, []);
+
+	// Handle analytics on navigation events
+	useEffect(() => {
+		return router.subscribe("onResolved", () => {
+			identifyUser(user);
+			capturePageView();
+		});
+	}, [router, user]);
 
 	return (
 		<RootDocument>

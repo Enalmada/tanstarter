@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as TasksImport } from './routes/tasks'
+import { Route as SignoutImport } from './routes/signout'
 import { Route as SigninImport } from './routes/signin'
 import { Route as AdminImport } from './routes/admin'
 import { Route as IndexImport } from './routes/index'
@@ -32,6 +33,12 @@ import { Route as AdminEmailsWelcomeImport } from './routes/admin/emails/welcome
 const TasksRoute = TasksImport.update({
   id: '/tasks',
   path: '/tasks',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SignoutRoute = SignoutImport.update({
+  id: '/signout',
+  path: '/signout',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -142,6 +149,13 @@ declare module '@tanstack/react-router' {
       path: '/signin'
       fullPath: '/signin'
       preLoaderRoute: typeof SigninImport
+      parentRoute: typeof rootRoute
+    }
+    '/signout': {
+      id: '/signout'
+      path: '/signout'
+      fullPath: '/signout'
+      preLoaderRoute: typeof SignoutImport
       parentRoute: typeof rootRoute
     }
     '/tasks': {
@@ -273,6 +287,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/signin': typeof SigninRoute
+  '/signout': typeof SignoutRoute
   '/tasks': typeof TasksRouteWithChildren
   '/debug/monitoring': typeof DebugMonitoringRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
@@ -290,6 +305,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
+  '/signout': typeof SignoutRoute
   '/debug/monitoring': typeof DebugMonitoringRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
@@ -308,6 +324,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/signin': typeof SigninRoute
+  '/signout': typeof SignoutRoute
   '/tasks': typeof TasksRouteWithChildren
   '/debug/monitoring': typeof DebugMonitoringRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
@@ -328,6 +345,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/signin'
+    | '/signout'
     | '/tasks'
     | '/debug/monitoring'
     | '/tasks/$taskId'
@@ -344,6 +362,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/signin'
+    | '/signout'
     | '/debug/monitoring'
     | '/tasks/$taskId'
     | '/tasks/new'
@@ -360,6 +379,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/signin'
+    | '/signout'
     | '/tasks'
     | '/debug/monitoring'
     | '/tasks/$taskId'
@@ -379,6 +399,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   SigninRoute: typeof SigninRoute
+  SignoutRoute: typeof SignoutRoute
   TasksRoute: typeof TasksRouteWithChildren
   DebugMonitoringRoute: typeof DebugMonitoringRoute
 }
@@ -387,6 +408,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   SigninRoute: SigninRoute,
+  SignoutRoute: SignoutRoute,
   TasksRoute: TasksRouteWithChildren,
   DebugMonitoringRoute: DebugMonitoringRoute,
 }
@@ -404,6 +426,7 @@ export const routeTree = rootRoute
         "/",
         "/admin",
         "/signin",
+        "/signout",
         "/tasks",
         "/debug/monitoring"
       ]
@@ -425,6 +448,9 @@ export const routeTree = rootRoute
     },
     "/signin": {
       "filePath": "signin.tsx"
+    },
+    "/signout": {
+      "filePath": "signout.tsx"
     },
     "/tasks": {
       "filePath": "tasks.tsx",
