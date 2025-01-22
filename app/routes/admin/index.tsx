@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Container, Title } from "~/components/ui";
+import { Container } from "~/components/ui/Container";
+import { Title } from "~/components/ui/Title";
 
 export const Route = createFileRoute("/admin/")({
 	component: AdminIndexComponent,

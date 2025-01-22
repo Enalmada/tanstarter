@@ -4,7 +4,11 @@
  * Includes navigation back to home
  */
 
-import { Button, Group, LinkButton, Stack, Text } from "~/components/ui";
+import { Button } from "~/components/ui/Button";
+import { Group } from "~/components/ui/Group";
+import { LinkButton } from "~/components/ui/LinkButton";
+import { Stack } from "~/components/ui/Stack";
+import { Text } from "~/components/ui/Text";
 
 export function NotFound() {
 	return (

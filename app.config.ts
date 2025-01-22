@@ -58,6 +58,7 @@ export default defineConfig({
 		// Only expose PUBLIC_ prefixed vars to client
 		envPrefix: ["PUBLIC_", "APP_", "CF_"],
 		define: {
+			// TODO - try getting rid of these now that we have envPrefix
 			// Explicitly expose specific environment variables to client
 			"process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN": JSON.stringify(
 				process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN,

@@ -1,8 +1,8 @@
+import { Provider } from "@rollbar/react";
 import { useEffect } from "react";
 import type { Configuration } from "rollbar";
 import authClient from "~/utils/auth-client";
 import { useMonitor } from "./hooks";
-import { MonitoringProvider as BaseProvider } from "./rollbar";
 import type { MonitorUser } from "./types";
 
 function MonitoringUserSync() {
@@ -45,9 +45,9 @@ export function MonitoringProvider({ children, config }: Props) {
 	}
 
 	return (
-		<BaseProvider config={config}>
+		<Provider config={config}>
 			<MonitoringUserSync />
 			{children}
-		</BaseProvider>
+		</Provider>
 	);
 }

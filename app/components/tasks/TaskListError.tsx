@@ -1,5 +1,8 @@
 import type { FallbackProps } from "react-error-boundary";
-import { Button, Card, Stack, Text } from "~/components/ui";
+import { Button } from "~/components/ui/Button";
+import { Card } from "~/components/ui/Card";
+import { Stack } from "~/components/ui/Stack";
+import { Text } from "~/components/ui/Text";
 
 export function TaskListError({ error, resetErrorBoundary }: FallbackProps) {
 	return (

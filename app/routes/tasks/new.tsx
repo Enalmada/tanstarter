@@ -6,7 +6,8 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
-import { Card, Stack } from "~/components/ui";
+import { Card } from "~/components/ui/Card";
+import { Stack } from "~/components/ui/Stack";
 import type { Task, TaskStatusType } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";

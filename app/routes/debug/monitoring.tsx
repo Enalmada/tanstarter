@@ -1,8 +1,9 @@
 import { Button, Container, Stack, Text, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ErrorBoundary, useMonitor } from "~/lib/monitoring";
-import type { MonitorUser } from "~/lib/monitoring";
+import { useMonitor } from "~/lib/monitoring/hooks";
+import { ErrorBoundary } from "~/lib/monitoring/rollbar";
+import type { MonitorUser } from "~/lib/monitoring/types";
 
 function BuggyComponent() {
 	const [shouldError, setShouldError] = useState(false);

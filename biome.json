@@ -41,6 +41,9 @@
 			"correctness": {
 				"noUnusedImports": "error"
 			},
+			"performance": {
+				"noBarrelFile": "error"
+			},
 			"recommended": true
 		}
 	},

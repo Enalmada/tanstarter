@@ -73,7 +73,3 @@ export const clientConfig = createRollbarConfig({
 	captureUncaught: false,
 	captureUnhandledRejections: false,
 });
-
-export { ErrorBoundary, MonitoringProvider } from "./rollbar";
-export { useMonitor } from "./hooks";
-export type { ErrorBoundaryProps, ErrorMonitor, MonitorUser } from "./types";
