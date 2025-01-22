@@ -5,10 +5,8 @@
  */
 
 import { Avatar, Button, Group, Menu, Text } from "@mantine/core";
-import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { SessionUser } from "~/utils/auth-client";
-import authClient from "~/utils/auth-client";
 
 interface NavbarProps {
 	user: SessionUser | null;
@@ -16,18 +14,6 @@ interface NavbarProps {
 
 export function Navbar({ user }: NavbarProps) {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
-
-	const handleSignOut = async () => {
-		await authClient.signOut({
-			fetchOptions: {
-				onSuccess: () => {
-					queryClient.clear();
-					navigate({ to: "/" });
-				},
-			},
-		});
-	};
 
 	return (
 		<Group h="100%" px="md" justify="space-between">
@@ -64,7 +50,7 @@ export function Navbar({ user }: NavbarProps) {
 								<Menu.Item component={Link} to="/admin">
 									Admin
 								</Menu.Item>
-								<Menu.Item onClick={handleSignOut} color="red">
+								<Menu.Item component={Link} to="/signout" color="red">
 									Sign out
 								</Menu.Item>
 							</Menu.Dropdown>

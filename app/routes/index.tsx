@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Image } from "@unpic/react";
 import { DefaultLayout } from "~/components/layouts/DefaultLayout";
-import {
-	Anchor,
-	Card,
-	Container,
-	Group,
-	LinkButton,
-	Stack,
-	Text,
-	Title,
-} from "~/components/ui";
+import { Anchor } from "~/components/ui/Anchor";
+import { Card } from "~/components/ui/Card";
+import { Container } from "~/components/ui/Container";
+import { Group } from "~/components/ui/Group";
+import { LinkButton } from "~/components/ui/LinkButton";
+import { Stack } from "~/components/ui/Stack";
+import { Text } from "~/components/ui/Text";
+import { Title } from "~/components/ui/Title";
 
 export const Route = createFileRoute("/")({
 	component: HomeLayout,

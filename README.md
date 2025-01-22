@@ -13,35 +13,35 @@ A production starter template for TanStack Start.
   - [Form](https://tanstack.com/form/latest)
   - [Table](https://tanstack.com/table/latest)
 - [Mantine](https://mantine.dev/) UI components with modals and notifications
-- [Tailwind CSS](https://tailwindcss.com/) for styling
-- [Lingui](https://lingui.dev/) for internationalization
+- [Tailwind CSS](https://tailwindcss.com/) styling
+- [Lingui](https://lingui.dev/) localization
 - [CSP Headers](https://csp.withgoogle.com/)
 - [Service Worker](https://developer.chrome.com/docs/workbox/service-worker-overview/) with [Serwist](https://serwist.pages.dev/)
 
 ### Backend & Data
 
 - [Drizzle ORM](https://orm.drizzle.team/) + PostgreSQL (via [Neon](https://neon.tech/))
-- [Drizzle-valibot](https://github.com/drizzle-team/drizzle-orm/tree/main/drizzle-valibot) for schema validation
-- [Better Auth](https://github.com/enalmada/better-auth) for authentication
-- [Casl](https://casl.js.org/) for authorization
-- [React-Email](https://react.email/) for email templates
+- [Drizzle-valibot](https://github.com/drizzle-team/drizzle-orm/tree/main/drizzle-valibot) schema validation
+- [Better Auth](https://github.com/enalmada/better-auth) authentication
+- [Casl](https://casl.js.org/) authorization
+- [React-Email](https://react.email/) email templates
 - [Axiom](https://axiom.co/) logging integration
 
 
 ### Testing & Quality
 
-- [Vitest](https://vitest.dev/) for unit testing
-- [Playwright](https://playwright.dev/) for E2E testing
-- [Storybook](https://storybook.js.org/) for component development and testing
-- [Rollbar](https://rollbar.com/) for error tracking and release monitoring
+- [Vitest](https://vitest.dev/) unit testing
+- [Playwright](https://playwright.dev/) E2E testing
+- [Storybook](https://storybook.js.org/)component development and testing
+- [Rollbar](https://rollbar.com/) error tracking and release monitoring
 
 ### Tools
 
-- [Docker](https://docker.com/) for containerization
-- [Biome](https://biomejs.dev/) for linting and formatting
-- [Fixpack](https://fixpack.dev/) for package.json normalization
-- [Turborepo](https://turbo.build/repo) for monorepo management
-- [LeftHook](https://lefthook.dev/) for hooks linting
+- [Docker](https://docker.com/) containerization
+- [Biome](https://biomejs.dev/) fast linting and formatting.
+- [Fixpack](https://fixpack.dev/) package.json normalization
+- [Turborepo](https://turbo.build/repo) monorepo management
+- [LeftHook](https://lefthook.dev/) precommit checks
 - [Rollbar](https://rollbar.com/) error tracking and release monitoring
 
 
@@ -87,10 +87,16 @@ The following items are still needed for full production readiness:
 
 - [ ] Nonce implementation (waiting on TanStack Start support)
 - [ ] SEO configuration
-- [ ] Bundle Analyzer
-- [ ] Github Actions
-- [ ] Analytics loading (partytown?)
+- [ ] Bundle Analyzer (couldn't get it to work)
+
+## Future Considerations
+
+- [ ] event pipelines - Rudderstack
 - [ ] AI - Vercel AI SDK
+- [ ] [posthog proxy](https://posthog.com/docs/libraries/posthog-js#proxy-mode)
+
+
+## Contributing
 
 Please note that this is an opinionated test project used for minumum reproduction
 of issues and integration testing for a production site using the core technologies.

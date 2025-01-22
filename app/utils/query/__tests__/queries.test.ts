@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { findFirst, findMany } from "~/server/services/base-service";
-import { adminQueries, queries } from "../queries";
+import { queries } from "../queries";
 
 // Mock dependencies
 /*
@@ -20,29 +20,33 @@ vi.mock("~/server/services/base-service", () => ({
 describe("queries", () => {
 	describe("task queries", () => {
 		it("should generate correct task list query", () => {
-			const query = queries.task.list("123");
-			expect(query.queryKey).toEqual(["task", "list", "123"]);
+			const query = queries.task.list({ userId: "123" });
+			expect(query.queryKey).toEqual([
+				"task",
+				"list",
+				{ filters: { userId: "123" } },
+			]);
 			expect(typeof query.queryFn).toBe("function");
 		});
 
 		it("should generate correct task list query", () => {
 			const query = queries.task.list();
-			expect(query.queryKey).toEqual(["task", "list", "all"]);
+			expect(query.queryKey).toEqual(["task", "list", { filters: undefined }]);
 			expect(typeof query.queryFn).toBe("function");
 		});
 
 		it("should generate correct task detail query", () => {
 			const taskId = "123";
-			const query = queries.task.detail(taskId);
-			expect(query.queryKey).toEqual(["task", "detail", taskId]);
+			const query = queries.task.byId(taskId);
+			expect(query.queryKey).toEqual(["task", "byId", taskId]);
 			expect(typeof query.queryFn).toBe("function");
 		});
 
 		it("should call correct service methods", async () => {
 			// Test list query
 			const mockSignal = new AbortController().signal;
-			await queries.task.list("123").queryFn({
-				queryKey: ["task", "list", "123"] as const,
+			await queries.task.list({ userId: "123" }).queryFn({
+				queryKey: ["task", "list", { filters: { userId: "123" } }] as const,
 				signal: mockSignal,
 				meta: undefined,
 			});
@@ -50,89 +54,13 @@ describe("queries", () => {
 
 			// Test detail query
 			const taskId = "123";
-			await queries.task.detail(taskId).queryFn({
-				queryKey: ["task", "detail", taskId] as const,
+			await queries.task.byId(taskId).queryFn({
+				queryKey: ["task", "byId", taskId] as const,
 				signal: mockSignal,
 				meta: undefined,
 			});
 			expect(findFirst).toHaveBeenCalledWith({
 				data: { where: { id: taskId }, subject: "Task" },
-			});
-		});
-	});
-});
-
-describe("adminQueries", () => {
-	describe("admin task queries", () => {
-		it("should generate correct task list query", () => {
-			const query = adminQueries.adminTask.list;
-			expect(query.queryKey).toEqual(["adminTask", "list"]);
-			expect(typeof query.queryFn).toBe("function");
-		});
-
-		it("should generate correct task detail query", () => {
-			const taskId = "123";
-			const query = adminQueries.adminTask.detail(taskId);
-			expect(query.queryKey).toEqual(["adminTask", "detail", taskId]);
-			expect(typeof query.queryFn).toBe("function");
-		});
-
-		it("should call correct service methods", async () => {
-			// Test list query
-			const mockSignal = new AbortController().signal;
-			await adminQueries.adminTask.list.queryFn({
-				queryKey: ["adminTask", "list"] as const,
-				signal: mockSignal,
-				meta: undefined,
-			});
-			expect(findMany).toHaveBeenCalled();
-
-			// Test detail query
-			const taskId = "123";
-			await adminQueries.adminTask.detail(taskId).queryFn({
-				queryKey: ["adminTask", "detail", taskId] as const,
-				signal: mockSignal,
-				meta: undefined,
-			});
-			expect(findFirst).toHaveBeenCalledWith({
-				data: { where: { id: taskId }, subject: "Task" },
-			});
-		});
-	});
-
-	describe("admin user queries", () => {
-		it("should generate correct user list query", () => {
-			const query = adminQueries.adminUser.list;
-			expect(query.queryKey).toEqual(["adminUser", "list"]);
-			expect(typeof query.queryFn).toBe("function");
-		});
-
-		it("should generate correct user detail query", () => {
-			const userId = "123";
-			const query = adminQueries.adminUser.detail(userId);
-			expect(query.queryKey).toEqual(["adminUser", "detail", userId]);
-			expect(typeof query.queryFn).toBe("function");
-		});
-
-		it("should call correct service methods", async () => {
-			// Test list query
-			const mockSignal = new AbortController().signal;
-			await adminQueries.adminUser.list.queryFn({
-				queryKey: ["adminUser", "list"] as const,
-				signal: mockSignal,
-				meta: undefined,
-			});
-			expect(findMany).toHaveBeenCalled();
-
-			// Test detail query
-			const userId = "123";
-			await adminQueries.adminUser.detail(userId).queryFn({
-				queryKey: ["adminUser", "detail", userId] as const,
-				signal: mockSignal,
-				meta: undefined,
-			});
-			expect(findFirst).toHaveBeenCalledWith({
-				data: { where: { id: userId }, subject: "User" },
 			});
 		});
 	});

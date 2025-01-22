@@ -6,7 +6,8 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
-import { Card, Stack } from "~/components/ui";
+import { Card } from "~/components/ui/Card";
+import { Stack } from "~/components/ui/Stack";
 import type { Task, TaskStatusType } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
@@ -32,8 +33,8 @@ function NewTask() {
 	const { createMutation } = useEntityMutations<Task, TaskFormData>({
 		entityName: "Task",
 		subject: "Task",
-		listKeys: [queries.task.list(userId).queryKey],
-		detailKey: (id) => queries.task.detail(id).queryKey,
+		listKeys: [queries.task.list({ userId }).queryKey],
+		detailKey: (id) => queries.task.byId(id).queryKey,
 		navigateTo: "/tasks",
 		navigateBack: "/tasks/new",
 		createOptimisticEntity: (data) => ({

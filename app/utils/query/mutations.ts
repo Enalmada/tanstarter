@@ -1,9 +1,88 @@
+/**
+ * TanStack Start Optimistic Mutations
+ *
+ * This module provides a set of hooks and utilities for handling optimistic mutations
+ * in TanStack Start applications. It implements common patterns for creating, updating,
+ * and deleting entities with optimistic updates, cache management, navigation, and error handling.
+ *
+ * Key Features:
+ * - Optimistic updates for create/update/delete operations
+ * - Automatic cache management for lists and detail views
+ * - Consistent error handling and rollback mechanisms
+ * - Integrated navigation with duplicate prevention
+ * - Toast notifications for success/error states
+ *
+ * Core Patterns:
+ * 1. Cache Management:
+ *    - Lists and detail views are updated optimistically
+ *    - Previous cache state is preserved for rollback
+ *    - Cache is updated with server response on success
+ *    - Cache is restored from snapshot on error
+ *
+ * 2. Navigation Flow:
+ *    - Optimistic navigation on mutation start
+ *    - Navigation only occurs if target differs from current location
+ *    - Error navigation for returning to previous state
+ *
+ * 3. Error Handling:
+ *    - Consistent error messages via toast notifications
+ *    - Cache rollback on error
+ *    - Optional error message state management
+ *
+ * 4. Mutation Lifecycle:
+ *    - onMutate: Optimistic updates and navigation
+ *    - onSettled: Cache finalization (success or rollback)
+ *    - onSuccess: Success notifications and side effects
+ *    - onError: Error handling and navigation
+ *
+ * Usage Example:
+ * ```typescript
+ * const { createMutation, updateMutation, deleteMutation } = useEntityMutations<Task>({
+ *   entityName: "Task",
+ *   subject: "Task",
+ *   listKeys: [queries.task.list.queryKey],
+ *   detailKey: (id) => queries.task.detail(id).queryKey,
+ *   navigateTo: "/tasks",
+ *   navigateBack: "/tasks/new",
+ *   createOptimisticEntity: (data) => ({
+ *     ...data,
+ *     id: `temp-${Date.now()}`,
+ *     createdAt: new Date(),
+ *   })
+ * });
+ * ```
+ *
+ * Design Decisions:
+ * 1. Separate hooks for create/update/delete:
+ *    - Allows for specific optimistic update logic per operation
+ *    - Maintains type safety for operation-specific parameters
+ *    - Enables targeted cache updates based on operation
+ *
+ * 2. Combined hook (useEntityMutations):
+ *    - Provides convenient access to all operations
+ *    - Shares common configuration across operations
+ *    - Reduces boilerplate in consuming components
+ *
+ * 3. Helper functions:
+ *    - handleToast: Consistent toast notifications
+ *    - handleConditionalNavigation: Smart navigation with duplicate prevention
+ *    - handleCacheUpdate: Cache snapshot and cancellation
+ *    - updateListCachesWithEntity: List cache manipulation
+ *
+ * Future Considerations:
+ * - Support for batch operations
+ * - Configurable retry strategies
+ * - Custom cache update strategies
+ * - Extended navigation options
+ * - Additional mutation lifecycle hooks
+ */
+
 import {
 	type QueryKey,
 	useMutation,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { showToast } from "~/components/Toast";
 import {
 	createEntity,
@@ -73,6 +152,20 @@ const handleToast = (
 				: config[type].description(error),
 		type,
 	});
+};
+
+/**
+ * Helper function to handle conditional navigation
+ * Only navigates if target path is different from current location
+ */
+const handleConditionalNavigation = (
+	navigate: ReturnType<typeof useNavigate>,
+	router: ReturnType<typeof useRouter>,
+	targetPath?: string,
+) => {
+	if (targetPath && router.state.location.href !== targetPath) {
+		navigate({ to: targetPath });
+	}
 };
 
 const handleCacheUpdate = async <T>(
@@ -228,6 +321,7 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 }: UseDeleteEntityMutationOptions<T>) {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
+	const router = useRouter();
 
 	type MutationContext = {
 		previousLists: { key: QueryKey; data: T[] | undefined }[];
@@ -279,10 +373,8 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 			// Remove detail cache
 			queryClient.removeQueries({ queryKey: detailKey });
 
-			// Navigate optimistically if navigateTo is provided
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
+			// Navigate optimistically if navigateTo is provided and different from current path
+			handleConditionalNavigation(navigate, router, navigateTo);
 
 			return { previousLists, previousDetail, entityId: id, detailKey };
 		},
@@ -311,10 +403,6 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 			// Only handle side effects
 			handleToast(defaultToastConfig.delete, "success", entityName);
 			setErrorMessage?.("");
-
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
 		},
 		onError: (error, _config, _context) => {
 			// If entity not found, treat as success
@@ -328,9 +416,7 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 			handleToast(defaultToastConfig.delete, "error", entityName, error);
 			setErrorMessage?.(error.message);
 
-			if (navigateBack) {
-				navigate({ to: navigateBack });
-			}
+			handleConditionalNavigation(navigate, router, navigateBack);
 		},
 	});
 }
@@ -357,17 +443,17 @@ interface UseUpdateEntityMutationOptions<T extends { id: string }> {
 	 * Where to navigate after successful update
 	 * Optional - if not provided, will stay on current page
 	 */
-	navigateTo: string;
+	navigateTo?: string;
 	/**
 	 * Where to navigate on error (usually the current entity detail page)
 	 * Optional - if not provided, will stay on current page
 	 */
-	navigateBack: string;
+	navigateBack?: string;
 	/**
 	 * Optional error message setter
 	 * If provided, will be called with error message on error
 	 */
-	setErrorMessage: (message: string) => void;
+	setErrorMessage?: (message: string) => void;
 	/**
 	 * The entity to update - used for id and optimistic updates
 	 * Optional if provided in mutate call
@@ -403,6 +489,7 @@ export function useUpdateEntityMutation<
 }: UseUpdateEntityMutationOptions<T>) {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
+	const router = useRouter();
 
 	type MutationContext = {
 		previousLists: { key: QueryKey; data: T[] | undefined }[];
@@ -466,10 +553,8 @@ export function useUpdateEntityMutation<
 			// Update detail cache
 			queryClient.setQueryData(detailKey, optimisticEntity);
 
-			// Navigate optimistically if navigateTo is provided
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
+			// Navigate optimistically if navigateTo is provided and different from current path
+			handleConditionalNavigation(navigate, router, navigateTo);
 
 			return {
 				previousLists,
@@ -519,19 +604,13 @@ export function useUpdateEntityMutation<
 			// Only handle side effects
 			handleToast(defaultToastConfig.update, "success", entityName);
 			setErrorMessage?.("");
-
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
 		},
 		onError: (error, _variables, _context) => {
 			// Only handle side effects
 			handleToast(defaultToastConfig.update, "error", entityName, error);
 			setErrorMessage?.(error.message);
 
-			if (navigateBack) {
-				navigate({ to: navigateBack });
-			}
+			handleConditionalNavigation(navigate, router, navigateBack);
 		},
 	});
 }
@@ -598,6 +677,7 @@ export function useCreateEntityMutation<
 }: UseCreateEntityMutationOptions<T, TData>) {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
+	const router = useRouter();
 
 	type MutationContext = {
 		previousLists: { key: QueryKey; data: T[] | undefined }[];
@@ -641,10 +721,8 @@ export function useCreateEntityMutation<
 			// Update detail cache
 			queryClient.setQueryData(detailKey, optimisticEntity);
 
-			// Navigate optimistically if navigateTo is provided
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
+			// Navigate optimistically if navigateTo is provided and different from current path
+			handleConditionalNavigation(navigate, router, navigateTo);
 
 			return {
 				previousLists,
@@ -689,19 +767,13 @@ export function useCreateEntityMutation<
 			// Only handle side effects
 			handleToast(defaultToastConfig.create, "success", entityName);
 			setErrorMessage?.("");
-
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
 		},
 		onError: (error, _data, _context) => {
 			// Only handle side effects
 			handleToast(defaultToastConfig.create, "error", entityName, error);
 			setErrorMessage?.(error.message);
 
-			if (navigateBack) {
-				navigate({ to: navigateBack });
-			}
+			handleConditionalNavigation(navigate, router, navigateBack);
 		},
 	});
 }
@@ -714,8 +786,8 @@ export interface UseEntityMutationsOptions<
 	subject: "Task" | "User";
 	listKeys: QueryKey[];
 	detailKey: QueryKey | ((entityId: string) => QueryKey);
-	navigateTo: string;
-	navigateBack: string;
+	navigateTo?: string;
+	navigateBack?: string;
 	setErrorMessage?: (message: string) => void;
 	createOptimisticEntity?: (data: TData) => T;
 	entity?: T;
@@ -748,8 +820,8 @@ export function useEntityMutations<
 		subject,
 		listKeys,
 		detailKey,
-		navigateTo,
-		navigateBack,
+		...(navigateTo ? { navigateTo } : {}),
+		...(navigateBack ? { navigateBack } : {}),
 		setErrorMessage: setErrorMessage ?? (() => {}),
 		createOptimisticEntity:
 			createOptimisticEntity ??
@@ -765,8 +837,8 @@ export function useEntityMutations<
 		subject,
 		listKeys,
 		detailKey,
-		navigateTo,
-		navigateBack,
+		...(navigateTo ? { navigateTo } : {}),
+		...(navigateBack ? { navigateBack } : {}),
 		setErrorMessage: setErrorMessage ?? (() => {}),
 		createOptimisticEntity: (entity, data) => {
 			const optimisticEntity = {
@@ -790,8 +862,8 @@ export function useEntityMutations<
 		subject,
 		listKeys,
 		detailKey,
-		navigateTo,
-		navigateBack,
+		...(navigateTo ? { navigateTo } : {}),
+		...(navigateBack ? { navigateBack } : {}),
 		setErrorMessage: setErrorMessage ?? (() => {}),
 		pendingDeleteIds: pendingDeleteIds ?? new Set(),
 	});

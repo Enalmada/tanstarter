@@ -1,25 +1,24 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AdminUserForm, type UserFormData } from "~/components/admin/UserForm";
-import { Button, Card, Group, Stack } from "~/components/ui";
+import { Button } from "~/components/ui/Button";
+import { Card } from "~/components/ui/Card";
+import { Group } from "~/components/ui/Group";
+import { Stack } from "~/components/ui/Stack";
 import type { User } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
-import { adminQueries } from "~/utils/query/queries";
+import { queries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/admin/users/$userId")({
 	component: AdminEditUser,
 	loader: async ({ context, params }) => {
-		await context.queryClient.ensureQueryData(
-			adminQueries.adminUser.detail(params.userId),
-		);
+		await context.queryClient.ensureQueryData(queries.user.byId(params.userId));
 	},
 });
 
 function AdminEditUser() {
 	const { userId } = Route.useParams();
-	const { data: user } = useSuspenseQuery(
-		adminQueries.adminUser.detail(userId),
-	);
+	const { data: user } = useSuspenseQuery(queries.user.byId(userId));
 	const navigate = useNavigate();
 
 	const { updateMutation, deleteMutation } = useEntityMutations<
@@ -29,8 +28,8 @@ function AdminEditUser() {
 		entityName: "User",
 		entity: user,
 		subject: "User",
-		listKeys: [adminQueries.adminUser.list.queryKey],
-		detailKey: (id) => adminQueries.adminUser.detail(id).queryKey,
+		listKeys: [queries.user.list().queryKey],
+		detailKey: (id) => queries.user.byId(id).queryKey,
 		navigateTo: "/admin/users",
 		navigateBack: `/admin/users/${user.id}`,
 		createOptimisticEntity: (data: UserFormData) => ({

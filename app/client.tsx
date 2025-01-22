@@ -8,7 +8,8 @@
 import { StartClient } from "@tanstack/start";
 import { hydrateRoot } from "react-dom/client";
 import { env } from "~/env";
-import { MonitoringProvider, clientConfig } from "~/lib/monitoring";
+import { clientConfig } from "~/lib/monitoring";
+import { MonitoringProvider } from "~/lib/monitoring/MonitoringProvider";
 import {
 	DEFAULT_LANGUAGE,
 	activateLanguage,

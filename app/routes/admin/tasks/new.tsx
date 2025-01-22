@@ -1,9 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AdminTaskForm, type TaskFormData } from "~/components/admin/TaskForm";
-import { Button, Card, Group, Stack } from "~/components/ui";
+import { Button } from "~/components/ui/Button";
+import { Card } from "~/components/ui/Card";
+import { Group } from "~/components/ui/Group";
+import { Stack } from "~/components/ui/Stack";
 import type { Task } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
-import { adminQueries } from "~/utils/query/queries";
+import { queries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/admin/tasks/new")({
 	component: AdminNewTask,
@@ -19,10 +22,10 @@ function AdminNewTask() {
 	const { createMutation } = useEntityMutations<Task, TaskFormData>({
 		entityName: "Task",
 		subject: "Task",
-		listKeys: [adminQueries.adminTask.list.queryKey],
+		listKeys: [queries.task.list().queryKey],
 		navigateTo: "/admin/tasks",
 		navigateBack: "/admin/tasks/new",
-		detailKey: (id) => adminQueries.adminTask.detail(id).queryKey,
+		detailKey: (id) => queries.task.byId(id).queryKey,
 		createOptimisticEntity: (data: TaskFormData) => ({
 			...data,
 			id: `temp-${Date.now()}`,

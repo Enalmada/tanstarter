@@ -7,24 +7,45 @@ import { getSessionUser } from "~/routes/__root";
 import type { Task, User } from "~/server/db/schema";
 import { findFirst, findMany } from "~/server/services/base-service";
 
-export const queries = createQueryKeyStore({
-	task: {
-		list: (userId?: string) => ({
-			queryKey: [userId || "all"],
+/**
+ * Makes all properties of T optional and allows undefined values
+ * Similar to Partial<T> but handles exactOptionalPropertyTypes more strictly
+ * @example
+ * // With exactOptionalPropertyTypes: true
+ * type User = { name: string, age: number }
+ * type PartialUser = Partial<User> // { name?: string, age?: number }
+ * type UndefinedUser = AllowUndefined<User> // { name?: string | undefined, age?: number | undefined }
+ */
+type AllowUndefined<T> = { [P in keyof T]?: T[P] | undefined };
+
+/**
+ * Creates standard CRUD query configurations for a given entity type
+ * @param subject The entity type name as a string (e.g. "Task", "User")
+ * @returns Object containing list and detail query configurations
+ */
+function createCrudQueries<T extends { id: string }>(subject: string) {
+	return {
+		list: (filters?: AllowUndefined<T>) => ({
+			queryKey: [{ filters }] as const,
 			queryFn: () =>
-				findMany({ data: { where: { userId }, subject: "Task" } }) as Promise<
-					Task[]
-				>,
+				findMany({
+					data: { where: { ...filters }, subject },
+				}) as Promise<T[]>,
 		}),
-		detail: (id: string) => ({
-			queryKey: [id],
+		byId: (id: string) => ({
+			queryKey: [id] as const,
 			queryFn: () =>
 				findFirst({
-					data: { where: { id }, subject: "Task" },
-				}) as Promise<Task>,
+					data: { where: { id }, subject },
+				}) as Promise<T>,
 		}),
-	},
+	};
+}
+
+export const queries = createQueryKeyStore({
+	task: createCrudQueries<Task>("Task"),
 	user: {
+		...createCrudQueries<User>("User"),
 		session: {
 			queryKey: null,
 			queryFn: async () => {
@@ -36,32 +57,3 @@ export const queries = createQueryKeyStore({
 
 // Type inference helper
 export type QueryKeys = inferQueryKeyStore<typeof queries>;
-
-export const adminQueries = createQueryKeyStore({
-	adminTask: {
-		list: {
-			queryKey: null,
-			queryFn: () => findMany({ data: { subject: "Task" } }) as Promise<Task[]>,
-		},
-		detail: (id: string) => ({
-			queryKey: [id],
-			queryFn: () => findFirst({ data: { where: { id }, subject: "Task" } }),
-		}),
-	},
-	adminUser: {
-		list: {
-			queryKey: null,
-			queryFn: () => findMany({ data: { subject: "User" } }) as Promise<User[]>,
-		},
-		detail: (id: string) => ({
-			queryKey: [id],
-			queryFn: () =>
-				findFirst({
-					data: { where: { id }, subject: "User" },
-				}) as Promise<User>,
-		}),
-	},
-});
-
-// Type inference helper
-export type AdminQueryKeys = inferQueryKeyStore<typeof adminQueries>;

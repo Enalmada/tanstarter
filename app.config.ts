@@ -58,6 +58,7 @@ export default defineConfig({
 		// Only expose PUBLIC_ prefixed vars to client
 		envPrefix: ["PUBLIC_", "APP_", "CF_"],
 		define: {
+			// TODO - try getting rid of these now that we have envPrefix
 			// Explicitly expose specific environment variables to client
 			"process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN": JSON.stringify(
 				process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN,
@@ -73,6 +74,9 @@ export default defineConfig({
 			),
 			"process.env.CF_PAGES_COMMIT_SHA": JSON.stringify(
 				process.env.CF_PAGES_COMMIT_SHA,
+			),
+			"process.env.PUBLIC_POSTHOG_API_KEY": JSON.stringify(
+				process.env.PUBLIC_POSTHOG_API_KEY,
 			),
 		},
 		assetsInclude: ["**/*.po"],

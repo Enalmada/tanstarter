@@ -7,7 +7,10 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
-import { Button, Card, Group, Stack } from "~/components/ui";
+import { Button } from "~/components/ui/Button";
+import { Card } from "~/components/ui/Card";
+import { Group } from "~/components/ui/Group";
+import { Stack } from "~/components/ui/Stack";
 import type { Task, TaskStatusType } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
@@ -24,16 +27,14 @@ export const Route = createFileRoute("/tasks/$taskId")({
 	component: EditTask,
 	loader: async ({ context, params }) => {
 		const userId = context.user?.id;
-		await context.queryClient.ensureQueryData(
-			queries.task.detail(params.taskId),
-		);
+		await context.queryClient.ensureQueryData(queries.task.byId(params.taskId));
 		return { userId };
 	},
 });
 
 function EditTask() {
 	const { taskId } = Route.useParams();
-	const { data: task } = useSuspenseQuery(queries.task.detail(taskId));
+	const { data: task } = useSuspenseQuery(queries.task.byId(taskId));
 	const navigate = useNavigate();
 	const { userId } = Route.useLoaderData();
 
@@ -44,8 +45,8 @@ function EditTask() {
 		entityName: "Task",
 		entity: task,
 		subject: "Task",
-		listKeys: [queries.task.list(userId).queryKey],
-		detailKey: (id) => queries.task.detail(id).queryKey,
+		listKeys: [queries.task.list({ userId }).queryKey],
+		detailKey: (id) => queries.task.byId(id).queryKey,
 		navigateTo: "/tasks",
 		navigateBack: `/tasks/${task.id}`,
 		createOptimisticEntity: (data: TaskFormData) => ({

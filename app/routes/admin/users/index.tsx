@@ -5,7 +5,7 @@ import { EntityList } from "~/components/admin/EntityList";
 import type { User } from "~/server/db/schema";
 import type { TableDefinition } from "~/types/table";
 import { formatDate } from "~/utils/date";
-import { adminQueries } from "~/utils/query/queries";
+import { queries } from "~/utils/query/queries";
 
 const columns: TableDefinition<User> = [
 	{
@@ -69,12 +69,12 @@ const columns: TableDefinition<User> = [
 
 export const Route = createFileRoute("/admin/users/")({
 	loader: ({ context }) =>
-		context.queryClient.ensureQueryData(adminQueries.adminUser.list),
+		context.queryClient.ensureQueryData(queries.user.list()),
 	component: UsersComponent,
 });
 
 function UsersComponent() {
-	const { data: users = [] } = useSuspenseQuery(adminQueries.adminUser.list);
+	const { data: users = [] } = useSuspenseQuery(queries.user.list());
 	const navigate = useNavigate();
 
 	return (
@@ -82,7 +82,7 @@ function UsersComponent() {
 			title="Users"
 			data={users}
 			columns={columns}
-			onRowClick={(row: User) => navigate({ to: `/admin/users/${row.id}` })}
+			to="/admin/users/:id"
 		/>
 	);
 }

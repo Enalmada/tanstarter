@@ -1,25 +1,24 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AdminTaskForm, type TaskFormData } from "~/components/admin/TaskForm";
-import { Button, Card, Group, Stack } from "~/components/ui";
+import { Button } from "~/components/ui/Button";
+import { Card } from "~/components/ui/Card";
+import { Group } from "~/components/ui/Group";
+import { Stack } from "~/components/ui/Stack";
 import type { Task } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
-import { adminQueries } from "~/utils/query/queries";
+import { queries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/admin/tasks/$taskId")({
 	component: AdminEditTask,
 	loader: async ({ context, params }) => {
-		await context.queryClient.ensureQueryData(
-			adminQueries.adminTask.detail(params.taskId),
-		);
+		await context.queryClient.ensureQueryData(queries.task.byId(params.taskId));
 	},
 });
 
 function AdminEditTask() {
 	const { taskId } = Route.useParams();
-	const { data: task } = useSuspenseQuery(
-		adminQueries.adminTask.detail(taskId),
-	);
+	const { data: task } = useSuspenseQuery(queries.task.byId(taskId));
 	const navigate = useNavigate();
 
 	const { updateMutation, deleteMutation } = useEntityMutations<
@@ -29,8 +28,8 @@ function AdminEditTask() {
 		entityName: "Task",
 		entity: task,
 		subject: "Task",
-		listKeys: [adminQueries.adminTask.list.queryKey],
-		detailKey: (id) => adminQueries.adminTask.detail(id).queryKey,
+		listKeys: [queries.task.list().queryKey],
+		detailKey: (id) => queries.task.byId(id).queryKey,
 		navigateTo: "/admin/tasks",
 		navigateBack: `/admin/tasks/${task.id}`,
 		createOptimisticEntity: (data: TaskFormData) => ({

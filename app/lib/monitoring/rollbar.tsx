@@ -1,4 +1,4 @@
-import { Provider, ErrorBoundary as RollbarBoundary } from "@rollbar/react";
+import { ErrorBoundary as RollbarBoundary } from "@rollbar/react";
 import type { Configuration, LogArgument } from "rollbar";
 import Rollbar from "rollbar";
 import type { ErrorMonitor, MonitorUser, MonitoringConfig } from "./types";
@@ -137,5 +137,3 @@ export function ErrorBoundary({ children, fallback }: ErrorBoundaryProps) {
 		<RollbarBoundary fallbackUI={FallbackComponent}>{children}</RollbarBoundary>
 	);
 }
-
-export { Provider as MonitoringProvider };

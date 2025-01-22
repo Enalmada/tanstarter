@@ -12,7 +12,7 @@ import {
 } from "@tanstack/react-router";
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import type { ReactNode } from "react";
-import { Suspense, lazy, useLayoutEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { getWebRequest } from "vinxi/http";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
@@ -24,6 +24,7 @@ import { auth } from "~/server/auth/auth";
 import appCss from "~/styles/app.css?inline";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
+import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
 const ENABLE_SERVICE_WORKER = false;
 
@@ -35,59 +36,25 @@ const TanStackRouterDevtools = import.meta.env.PROD
 			})),
 		);
 
+const AnalyticsProvider = lazy(() =>
+	import("~/utils/analytics").then((mod) => ({
+		default: mod.AnalyticsProvider,
+	})),
+);
+
 export const getSessionUser = createServerFn({ method: "GET" }).handler(
 	async () => {
-		const { headers } = getWebRequest();
-
-		// In development, check for test tokens first
-		// TODO consider replacing this with email login
-		if (process.env.NODE_ENV === "development") {
-			const authHeader = headers.get("authorization");
-
-			if (authHeader === "playwright-test-token") {
-				return mockTestUser;
-			}
-			if (authHeader === "playwright-admin-test-token") {
-				return mockAdminUser;
-			}
+		const mockUser = checkPlaywrightTestAuth();
+		if (mockUser) {
+			return mockUser;
 		}
 
 		// Normal auth flow
+		const { headers } = getWebRequest();
 		const session = await auth.api.getSession({ headers });
 		return session?.user || null;
 	},
 );
-
-// Mock users for testing - keep in sync with auth-guard.ts
-const mockTestUser: SessionUser = {
-	id: "test-user-id",
-	email: "test@example.com",
-	name: "Test User",
-	role: "MEMBER",
-	image: null,
-	emailVerified: false,
-	createdAt: new Date(),
-	updatedAt: new Date(),
-};
-
-const mockAdminUser: SessionUser = {
-	...mockTestUser,
-	id: "test-admin-id",
-	email: "admin@example.com",
-	name: "Test Admin",
-	role: "ADMIN",
-};
-
-const isPlaywrightTest = () => {
-	try {
-		const { headers } = getWebRequest();
-		const isPlaywright = headers.get("x-playwright-test") === "true";
-		return isPlaywright;
-	} catch (e) {
-		// If getWebRequest fails, we're on the client
-		return false;
-	}
-};
 
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
@@ -199,7 +166,7 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
-	useLayoutEffect(() => {
+	useEffect(() => {
 		const loadSerwist = async () => {
 			if (ENABLE_SERVICE_WORKER && "serviceWorker" in navigator) {
 				try {
@@ -247,6 +214,9 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 					<TanStackRouterDevtools position="bottom-right" />
 				</Suspense>
 				<Scripts />
+				<Suspense fallback={null}>
+					<AnalyticsProvider />
+				</Suspense>
 			</body>
 		</html>
 	);

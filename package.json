@@ -70,6 +70,7 @@
 		"lucide-react": "^0.473.0",
 		"nanoid": "^5.0.9",
 		"postgres": "^3.4.5",
+		"posthog-js": "^1.207.0",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
 		"react-email": "^3.0.6",

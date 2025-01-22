@@ -11,7 +11,10 @@ import {
 	useMatch,
 	useRouter,
 } from "@tanstack/react-router";
-import { Button, Group, LinkButton, Stack } from "~/components/ui";
+import { Button } from "~/components/ui/Button";
+import { Group } from "~/components/ui/Group";
+import { LinkButton } from "~/components/ui/LinkButton";
+import { Stack } from "~/components/ui/Stack";
 
 export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 	const router = useRouter();

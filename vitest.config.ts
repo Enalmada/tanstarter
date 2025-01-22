@@ -13,13 +13,10 @@ export default defineConfig({
 	},
 	test: {
 		globals: true,
-		environment: "happy-dom",
+		environment: "node",
+		environmentMatchGlobs: [["**/components/**/*.test.{ts,tsx}", "happy-dom"]],
 		setupFiles: ["./app/test/setup.ts"],
-		exclude: [
-			"**/node_modules/**",
-			"**/dist/**",
-			"**/e2e/**",
-			"**/.{idea,git,cache,output,temp}/**",
-		],
+		include: ["app/**/*.{test,spec}.{ts,tsx}"],
+		exclude: ["**/e2e/**"],
 	},
 });
