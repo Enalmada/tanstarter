@@ -1,18 +1,17 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { posthog } from "~/utils/analytics";
 import authClient from "~/utils/auth-client";
 
 export const Route = createFileRoute("/signout")({
 	component: SignOutPage,
-	beforeLoad: async ({ preload }) => {
+	beforeLoad: async ({ context, preload }) => {
 		// Skip signout logic during preload/prefetch
 		if (preload) {
 			return null;
 		}
 
 		// Reset PostHog user identification
-		if (typeof window !== "undefined") {
+		if (posthog) {
 			posthog.reset();
 		}
 
@@ -20,8 +19,7 @@ export const Route = createFileRoute("/signout")({
 		await authClient.signOut();
 
 		// Clear React Query cache
-		const queryClient = useQueryClient();
-		queryClient.clear();
+		context.queryClient.clear();
 
 		// Redirect to home page
 		throw redirect({
