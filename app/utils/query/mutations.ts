@@ -1,3 +1,82 @@
+/**
+ * TanStack Start Optimistic Mutations
+ *
+ * This module provides a set of hooks and utilities for handling optimistic mutations
+ * in TanStack Start applications. It implements common patterns for creating, updating,
+ * and deleting entities with optimistic updates, cache management, navigation, and error handling.
+ *
+ * Key Features:
+ * - Optimistic updates for create/update/delete operations
+ * - Automatic cache management for lists and detail views
+ * - Consistent error handling and rollback mechanisms
+ * - Integrated navigation with duplicate prevention
+ * - Toast notifications for success/error states
+ *
+ * Core Patterns:
+ * 1. Cache Management:
+ *    - Lists and detail views are updated optimistically
+ *    - Previous cache state is preserved for rollback
+ *    - Cache is updated with server response on success
+ *    - Cache is restored from snapshot on error
+ *
+ * 2. Navigation Flow:
+ *    - Optimistic navigation on mutation start
+ *    - Navigation only occurs if target differs from current location
+ *    - Error navigation for returning to previous state
+ *
+ * 3. Error Handling:
+ *    - Consistent error messages via toast notifications
+ *    - Cache rollback on error
+ *    - Optional error message state management
+ *
+ * 4. Mutation Lifecycle:
+ *    - onMutate: Optimistic updates and navigation
+ *    - onSettled: Cache finalization (success or rollback)
+ *    - onSuccess: Success notifications and side effects
+ *    - onError: Error handling and navigation
+ *
+ * Usage Example:
+ * ```typescript
+ * const { createMutation, updateMutation, deleteMutation } = useEntityMutations<Task>({
+ *   entityName: "Task",
+ *   subject: "Task",
+ *   listKeys: [queries.task.list.queryKey],
+ *   detailKey: (id) => queries.task.detail(id).queryKey,
+ *   navigateTo: "/tasks",
+ *   navigateBack: "/tasks/new",
+ *   createOptimisticEntity: (data) => ({
+ *     ...data,
+ *     id: `temp-${Date.now()}`,
+ *     createdAt: new Date(),
+ *   })
+ * });
+ * ```
+ *
+ * Design Decisions:
+ * 1. Separate hooks for create/update/delete:
+ *    - Allows for specific optimistic update logic per operation
+ *    - Maintains type safety for operation-specific parameters
+ *    - Enables targeted cache updates based on operation
+ *
+ * 2. Combined hook (useEntityMutations):
+ *    - Provides convenient access to all operations
+ *    - Shares common configuration across operations
+ *    - Reduces boilerplate in consuming components
+ *
+ * 3. Helper functions:
+ *    - handleToast: Consistent toast notifications
+ *    - handleConditionalNavigation: Smart navigation with duplicate prevention
+ *    - handleCacheUpdate: Cache snapshot and cancellation
+ *    - updateListCachesWithEntity: List cache manipulation
+ *
+ * Future Considerations:
+ * - Support for batch operations
+ * - Configurable retry strategies
+ * - Custom cache update strategies
+ * - Extended navigation options
+ * - Additional mutation lifecycle hooks
+ */
+
 import {
 	type QueryKey,
 	useMutation,
