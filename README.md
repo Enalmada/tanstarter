@@ -88,12 +88,13 @@ The following items are still needed for full production readiness:
 - [ ] Nonce implementation (waiting on TanStack Start support)
 - [ ] SEO configuration
 - [ ] Bundle Analyzer (couldn't get it to work)
-- [ ] [posthog proxy](https://posthog.com/docs/libraries/posthog-js#proxy-mode)
 
 ## Future Considerations
 
 - [ ] event pipelines - Rudderstack
 - [ ] AI - Vercel AI SDK
+- [ ] [posthog proxy](https://posthog.com/docs/libraries/posthog-js#proxy-mode)
+
 
 ## Contributing
 
