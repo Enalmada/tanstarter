@@ -3,7 +3,7 @@ import {
 	useMutation,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { showToast } from "~/components/Toast";
 import {
 	createEntity,
@@ -73,6 +73,20 @@ const handleToast = (
 				: config[type].description(error),
 		type,
 	});
+};
+
+/**
+ * Helper function to handle conditional navigation
+ * Only navigates if target path is different from current location
+ */
+const handleConditionalNavigation = (
+	navigate: ReturnType<typeof useNavigate>,
+	router: ReturnType<typeof useRouter>,
+	targetPath?: string,
+) => {
+	if (targetPath && router.state.location.href !== targetPath) {
+		navigate({ to: targetPath });
+	}
 };
 
 const handleCacheUpdate = async <T>(
@@ -228,6 +242,7 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 }: UseDeleteEntityMutationOptions<T>) {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
+	const router = useRouter();
 
 	type MutationContext = {
 		previousLists: { key: QueryKey; data: T[] | undefined }[];
@@ -279,10 +294,8 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 			// Remove detail cache
 			queryClient.removeQueries({ queryKey: detailKey });
 
-			// Navigate optimistically if navigateTo is provided
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
+			// Navigate optimistically if navigateTo is provided and different from current path
+			handleConditionalNavigation(navigate, router, navigateTo);
 
 			return { previousLists, previousDetail, entityId: id, detailKey };
 		},
@@ -324,9 +337,7 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 			handleToast(defaultToastConfig.delete, "error", entityName, error);
 			setErrorMessage?.(error.message);
 
-			if (navigateBack) {
-				navigate({ to: navigateBack });
-			}
+			handleConditionalNavigation(navigate, router, navigateBack);
 		},
 	});
 }
@@ -399,6 +410,7 @@ export function useUpdateEntityMutation<
 }: UseUpdateEntityMutationOptions<T>) {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
+	const router = useRouter();
 
 	type MutationContext = {
 		previousLists: { key: QueryKey; data: T[] | undefined }[];
@@ -462,10 +474,8 @@ export function useUpdateEntityMutation<
 			// Update detail cache
 			queryClient.setQueryData(detailKey, optimisticEntity);
 
-			// Navigate optimistically if navigateTo is provided
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
+			// Navigate optimistically if navigateTo is provided and different from current path
+			handleConditionalNavigation(navigate, router, navigateTo);
 
 			return {
 				previousLists,
@@ -521,9 +531,7 @@ export function useUpdateEntityMutation<
 			handleToast(defaultToastConfig.update, "error", entityName, error);
 			setErrorMessage?.(error.message);
 
-			if (navigateBack) {
-				navigate({ to: navigateBack });
-			}
+			handleConditionalNavigation(navigate, router, navigateBack);
 		},
 	});
 }
@@ -590,6 +598,7 @@ export function useCreateEntityMutation<
 }: UseCreateEntityMutationOptions<T, TData>) {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
+	const router = useRouter();
 
 	type MutationContext = {
 		previousLists: { key: QueryKey; data: T[] | undefined }[];
@@ -633,10 +642,8 @@ export function useCreateEntityMutation<
 			// Update detail cache
 			queryClient.setQueryData(detailKey, optimisticEntity);
 
-			// Navigate optimistically if navigateTo is provided
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
+			// Navigate optimistically if navigateTo is provided and different from current path
+			handleConditionalNavigation(navigate, router, navigateTo);
 
 			return {
 				previousLists,
@@ -687,9 +694,7 @@ export function useCreateEntityMutation<
 			handleToast(defaultToastConfig.create, "error", entityName, error);
 			setErrorMessage?.(error.message);
 
-			if (navigateBack) {
-				navigate({ to: navigateBack });
-			}
+			handleConditionalNavigation(navigate, router, navigateBack);
 		},
 	});
 }
