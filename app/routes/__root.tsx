@@ -22,7 +22,6 @@ import {
 } from "~/components/providers/mantine-provider";
 import { auth } from "~/server/auth/auth";
 import appCss from "~/styles/app.css?inline";
-import { AnalyticsProvider } from "~/utils/analytics";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
 
@@ -35,6 +34,12 @@ const TanStackRouterDevtools = import.meta.env.PROD
 				default: res.TanStackRouterDevtools,
 			})),
 		);
+
+const AnalyticsProvider = lazy(() =>
+	import("~/utils/analytics").then((mod) => ({
+		default: mod.AnalyticsProvider,
+	})),
+);
 
 export const getSessionUser = createServerFn({ method: "GET" }).handler(
 	async () => {
@@ -248,7 +253,7 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 					<TanStackRouterDevtools position="bottom-right" />
 				</Suspense>
 				<Scripts />
-				<Suspense>
+				<Suspense fallback={null}>
 					<AnalyticsProvider />
 				</Suspense>
 			</body>

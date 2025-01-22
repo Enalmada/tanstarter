@@ -89,8 +89,8 @@ The following items are still needed for full production readiness:
 - [ ] SEO configuration
 - [ ] Bundle Analyzer
 - [ ] Github Actions
-- [ ] Analytics loading (partytown?)
 - [ ] AI - Vercel AI SDK
+- [ ] [posthog proxy](https://posthog.com/docs/libraries/posthog-js#proxy-mode)
 
 Please note that this is an opinionated test project used for minumum reproduction
 of issues and integration testing for a production site using the core technologies.
