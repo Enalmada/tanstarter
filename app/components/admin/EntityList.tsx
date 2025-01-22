@@ -1,4 +1,5 @@
 import { Table } from "@mantine/core";
+import { Link } from "@tanstack/react-router";
 import type { TableDefinition } from "~/types/table";
 
 export interface EntityListProps<TData extends { id: string }> {
@@ -7,6 +8,7 @@ export interface EntityListProps<TData extends { id: string }> {
 	columns: TableDefinition<TData>;
 	onRowClick?: (row: TData) => void;
 	onAdd?: () => void;
+	to?: string;
 }
 
 export function EntityList<TData extends { id: string }>({
@@ -15,6 +17,7 @@ export function EntityList<TData extends { id: string }>({
 	columns,
 	onRowClick,
 	onAdd,
+	to,
 }: EntityListProps<TData>) {
 	return (
 		<div className="container mx-auto flex flex-col gap-4 p-6">
@@ -42,19 +45,40 @@ export function EntityList<TData extends { id: string }>({
 					{data.map((row) => (
 						<Table.Tr
 							key={row.id as string}
-							onClick={() => onRowClick?.(row)}
-							className={onRowClick ? "cursor-pointer hover:bg-gray-50" : ""}
+							className={
+								to || onRowClick ? "cursor-pointer hover:bg-gray-50" : ""
+							}
 						>
-							{columns.map((column) => (
-								<Table.Td key={column.key as string}>
-									{column.render
-										? column.render({
-												value: row[column.key],
-												row,
-											})
-										: (row[column.key] as string)}
-								</Table.Td>
-							))}
+							{to ? (
+								<Link to={to.replace(":id", row.id)} className="contents">
+									{columns.map((column) => (
+										<Table.Td key={column.key as string}>
+											{column.render
+												? column.render({
+														value: row[column.key],
+														row,
+													})
+												: (row[column.key] as string)}
+										</Table.Td>
+									))}
+								</Link>
+							) : (
+								<>
+									{columns.map((column) => (
+										<Table.Td
+											key={column.key as string}
+											onClick={() => onRowClick?.(row)}
+										>
+											{column.render
+												? column.render({
+														value: row[column.key],
+														row,
+													})
+												: (row[column.key] as string)}
+										</Table.Td>
+									))}
+								</>
+							)}
 						</Table.Tr>
 					))}
 				</Table.Tbody>

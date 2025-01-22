@@ -82,7 +82,7 @@ function UsersComponent() {
 			title="Users"
 			data={users}
 			columns={columns}
-			onRowClick={(row: User) => navigate({ to: `/admin/users/${row.id}` })}
+			to="/admin/users/:id"
 		/>
 	);
 }
