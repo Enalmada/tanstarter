@@ -13,17 +13,10 @@ export default defineConfig({
 	},
 	test: {
 		globals: true,
-		environment: "node", // Default to node for maximum speed
-		environmentMatchGlobs: [
-			// Use happy-dom only for components and routes that need DOM
-			["**/components/**/*.test.{ts,tsx}", "happy-dom"],
-		],
+		environment: "node",
+		environmentMatchGlobs: [["**/components/**/*.test.{ts,tsx}", "happy-dom"]],
 		setupFiles: ["./app/test/setup.ts"],
-		exclude: [
-			"**/node_modules/**",
-			"**/dist/**",
-			"**/e2e/**",
-			"**/.{idea,git,cache,output,temp}/**",
-		],
+		include: ["app/**/*.{test,spec}.{ts,tsx}"],
+		exclude: ["**/e2e/**"],
 	},
 });
