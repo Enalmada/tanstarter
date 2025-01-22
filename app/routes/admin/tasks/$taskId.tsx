@@ -9,15 +9,13 @@ import { queries } from "~/utils/query/queries";
 export const Route = createFileRoute("/admin/tasks/$taskId")({
 	component: AdminEditTask,
 	loader: async ({ context, params }) => {
-		await context.queryClient.ensureQueryData(
-			queries.task.detail(params.taskId),
-		);
+		await context.queryClient.ensureQueryData(queries.task.byId(params.taskId));
 	},
 });
 
 function AdminEditTask() {
 	const { taskId } = Route.useParams();
-	const { data: task } = useSuspenseQuery(queries.task.detail(taskId));
+	const { data: task } = useSuspenseQuery(queries.task.byId(taskId));
 	const navigate = useNavigate();
 
 	const { updateMutation, deleteMutation } = useEntityMutations<
@@ -28,7 +26,7 @@ function AdminEditTask() {
 		entity: task,
 		subject: "Task",
 		listKeys: [queries.task.list().queryKey],
-		detailKey: (id) => queries.task.detail(id).queryKey,
+		detailKey: (id) => queries.task.byId(id).queryKey,
 		navigateTo: "/admin/tasks",
 		navigateBack: `/admin/tasks/${task.id}`,
 		createOptimisticEntity: (data: TaskFormData) => ({

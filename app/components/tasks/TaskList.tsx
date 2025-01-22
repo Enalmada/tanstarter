@@ -25,7 +25,7 @@ export function TaskList({
 		entityName: "Task",
 		subject: "Task",
 		listKeys: [queries.task.list({ userId }).queryKey],
-		detailKey: (id) => queries.task.detail(id).queryKey,
+		detailKey: (id) => queries.task.byId(id).queryKey,
 		setErrorMessage,
 	});
 

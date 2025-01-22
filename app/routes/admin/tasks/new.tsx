@@ -22,7 +22,7 @@ function AdminNewTask() {
 		listKeys: [queries.task.list().queryKey],
 		navigateTo: "/admin/tasks",
 		navigateBack: "/admin/tasks/new",
-		detailKey: (id) => queries.task.detail(id).queryKey,
+		detailKey: (id) => queries.task.byId(id).queryKey,
 		createOptimisticEntity: (data: TaskFormData) => ({
 			...data,
 			id: `temp-${Date.now()}`,

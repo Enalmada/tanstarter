@@ -18,38 +18,34 @@ import { findFirst, findMany } from "~/server/services/base-service";
  */
 type AllowUndefined<T> = { [P in keyof T]?: T[P] | undefined };
 
+/**
+ * Creates standard CRUD query configurations for a given entity type
+ * @param subject The entity type name as a string (e.g. "Task", "User")
+ * @returns Object containing list and detail query configurations
+ */
+function createCrudQueries<T extends { id: string }>(subject: string) {
+	return {
+		list: (filters?: AllowUndefined<T>) => ({
+			queryKey: [{ filters }] as const,
+			queryFn: () =>
+				findMany({
+					data: { where: { ...filters }, subject },
+				}) as Promise<T[]>,
+		}),
+		byId: (id: string) => ({
+			queryKey: [id] as const,
+			queryFn: () =>
+				findFirst({
+					data: { where: { id }, subject },
+				}) as Promise<T>,
+		}),
+	};
+}
+
 export const queries = createQueryKeyStore({
-	task: {
-		list: (filters?: AllowUndefined<Task>) => ({
-			queryKey: [{ filters }],
-			queryFn: () =>
-				findMany({
-					data: { where: { ...filters }, subject: "Task" },
-				}) as Promise<Task[]>,
-		}),
-		detail: (id: string) => ({
-			queryKey: [id],
-			queryFn: () =>
-				findFirst({
-					data: { where: { id }, subject: "Task" },
-				}) as Promise<Task>,
-		}),
-	},
+	task: createCrudQueries<Task>("Task"),
 	user: {
-		list: (filters?: Partial<User>) => ({
-			queryKey: [{ filters }],
-			queryFn: () =>
-				findMany({
-					data: { where: { ...filters }, subject: "User" },
-				}) as Promise<User[]>,
-		}),
-		detail: (id: string) => ({
-			queryKey: [id],
-			queryFn: () =>
-				findFirst({
-					data: { where: { id }, subject: "User" },
-				}) as Promise<User>,
-		}),
+		...createCrudQueries<User>("User"),
 		session: {
 			queryKey: null,
 			queryFn: async () => {

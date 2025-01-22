@@ -24,16 +24,14 @@ export const Route = createFileRoute("/tasks/$taskId")({
 	component: EditTask,
 	loader: async ({ context, params }) => {
 		const userId = context.user?.id;
-		await context.queryClient.ensureQueryData(
-			queries.task.detail(params.taskId),
-		);
+		await context.queryClient.ensureQueryData(queries.task.byId(params.taskId));
 		return { userId };
 	},
 });
 
 function EditTask() {
 	const { taskId } = Route.useParams();
-	const { data: task } = useSuspenseQuery(queries.task.detail(taskId));
+	const { data: task } = useSuspenseQuery(queries.task.byId(taskId));
 	const navigate = useNavigate();
 	const { userId } = Route.useLoaderData();
 
@@ -45,7 +43,7 @@ function EditTask() {
 		entity: task,
 		subject: "Task",
 		listKeys: [queries.task.list({ userId }).queryKey],
-		detailKey: (id) => queries.task.detail(id).queryKey,
+		detailKey: (id) => queries.task.byId(id).queryKey,
 		navigateTo: "/tasks",
 		navigateBack: `/tasks/${task.id}`,
 		createOptimisticEntity: (data: TaskFormData) => ({

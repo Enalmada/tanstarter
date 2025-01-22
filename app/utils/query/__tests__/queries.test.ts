@@ -37,8 +37,8 @@ describe("queries", () => {
 
 		it("should generate correct task detail query", () => {
 			const taskId = "123";
-			const query = queries.task.detail(taskId);
-			expect(query.queryKey).toEqual(["task", "detail", taskId]);
+			const query = queries.task.byId(taskId);
+			expect(query.queryKey).toEqual(["task", "byId", taskId]);
 			expect(typeof query.queryFn).toBe("function");
 		});
 
@@ -54,8 +54,8 @@ describe("queries", () => {
 
 			// Test detail query
 			const taskId = "123";
-			await queries.task.detail(taskId).queryFn({
-				queryKey: ["task", "detail", taskId] as const,
+			await queries.task.byId(taskId).queryFn({
+				queryKey: ["task", "byId", taskId] as const,
 				signal: mockSignal,
 				meta: undefined,
 			});
