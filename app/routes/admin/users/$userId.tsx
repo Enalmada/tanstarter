@@ -27,7 +27,7 @@ function AdminEditUser() {
 		entityName: "User",
 		entity: user,
 		subject: "User",
-		listKeys: [queries.user.list.queryKey],
+		listKeys: [queries.user.list().queryKey],
 		detailKey: (id) => queries.user.detail(id).queryKey,
 		navigateTo: "/admin/users",
 		navigateBack: `/admin/users/${user.id}`,

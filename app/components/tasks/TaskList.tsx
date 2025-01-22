@@ -24,7 +24,7 @@ export function TaskList({
 	const { updateMutation, deleteMutation } = useEntityMutations<Task>({
 		entityName: "Task",
 		subject: "Task",
-		listKeys: [queries.task.list(userId).queryKey],
+		listKeys: [queries.task.list({ userId }).queryKey],
 		detailKey: (id) => queries.task.detail(id).queryKey,
 		setErrorMessage,
 	});

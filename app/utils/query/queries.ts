@@ -7,14 +7,25 @@ import { getSessionUser } from "~/routes/__root";
 import type { Task, User } from "~/server/db/schema";
 import { findFirst, findMany } from "~/server/services/base-service";
 
+/**
+ * Makes all properties of T optional and allows undefined values
+ * Similar to Partial<T> but handles exactOptionalPropertyTypes more strictly
+ * @example
+ * // With exactOptionalPropertyTypes: true
+ * type User = { name: string, age: number }
+ * type PartialUser = Partial<User> // { name?: string, age?: number }
+ * type UndefinedUser = AllowUndefined<User> // { name?: string | undefined, age?: number | undefined }
+ */
+type AllowUndefined<T> = { [P in keyof T]?: T[P] | undefined };
+
 export const queries = createQueryKeyStore({
 	task: {
-		list: (userId?: string) => ({
-			queryKey: [userId || "all"],
+		list: (filters?: AllowUndefined<Task>) => ({
+			queryKey: [{ filters }],
 			queryFn: () =>
-				findMany({ data: { where: { userId }, subject: "Task" } }) as Promise<
-					Task[]
-				>,
+				findMany({
+					data: { where: { ...filters }, subject: "Task" },
+				}) as Promise<Task[]>,
 		}),
 		detail: (id: string) => ({
 			queryKey: [id],
@@ -25,10 +36,13 @@ export const queries = createQueryKeyStore({
 		}),
 	},
 	user: {
-		list: {
-			queryKey: null,
-			queryFn: () => findMany({ data: { subject: "User" } }) as Promise<User[]>,
-		},
+		list: (filters?: Partial<User>) => ({
+			queryKey: [{ filters }],
+			queryFn: () =>
+				findMany({
+					data: { where: { ...filters }, subject: "User" },
+				}) as Promise<User[]>,
+		}),
 		detail: (id: string) => ({
 			queryKey: [id],
 			queryFn: () =>

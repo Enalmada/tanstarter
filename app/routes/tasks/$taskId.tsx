@@ -44,7 +44,7 @@ function EditTask() {
 		entityName: "Task",
 		entity: task,
 		subject: "Task",
-		listKeys: [queries.task.list(userId).queryKey],
+		listKeys: [queries.task.list({ userId }).queryKey],
 		detailKey: (id) => queries.task.detail(id).queryKey,
 		navigateTo: "/tasks",
 		navigateBack: `/tasks/${task.id}`,

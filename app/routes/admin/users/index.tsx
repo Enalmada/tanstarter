@@ -69,12 +69,12 @@ const columns: TableDefinition<User> = [
 
 export const Route = createFileRoute("/admin/users/")({
 	loader: ({ context }) =>
-		context.queryClient.ensureQueryData(queries.user.list),
+		context.queryClient.ensureQueryData(queries.user.list()),
 	component: UsersComponent,
 });
 
 function UsersComponent() {
-	const { data: users = [] } = useSuspenseQuery(queries.user.list);
+	const { data: users = [] } = useSuspenseQuery(queries.user.list());
 	const navigate = useNavigate();
 
 	return (

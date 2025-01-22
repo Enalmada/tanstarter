@@ -20,14 +20,18 @@ vi.mock("~/server/services/base-service", () => ({
 describe("queries", () => {
 	describe("task queries", () => {
 		it("should generate correct task list query", () => {
-			const query = queries.task.list("123");
-			expect(query.queryKey).toEqual(["task", "list", "123"]);
+			const query = queries.task.list({ userId: "123" });
+			expect(query.queryKey).toEqual([
+				"task",
+				"list",
+				{ filters: { userId: "123" } },
+			]);
 			expect(typeof query.queryFn).toBe("function");
 		});
 
 		it("should generate correct task list query", () => {
 			const query = queries.task.list();
-			expect(query.queryKey).toEqual(["task", "list", "all"]);
+			expect(query.queryKey).toEqual(["task", "list", { filters: undefined }]);
 			expect(typeof query.queryFn).toBe("function");
 		});
 
@@ -41,8 +45,8 @@ describe("queries", () => {
 		it("should call correct service methods", async () => {
 			// Test list query
 			const mockSignal = new AbortController().signal;
-			await queries.task.list("123").queryFn({
-				queryKey: ["task", "list", "123"] as const,
+			await queries.task.list({ userId: "123" }).queryFn({
+				queryKey: ["task", "list", { filters: { userId: "123" } }] as const,
 				signal: mockSignal,
 				meta: undefined,
 			});
