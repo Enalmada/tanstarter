@@ -27,8 +27,6 @@ export function TaskList({
 		listKeys: [queries.task.list(userId).queryKey],
 		detailKey: (id) => queries.task.detail(id).queryKey,
 		setErrorMessage,
-		navigateTo: "/tasks",
-		navigateBack: "/tasks",
 	});
 
 	const handleTaskUpdate = (task: Task, status: keyof typeof TaskStatus) => {

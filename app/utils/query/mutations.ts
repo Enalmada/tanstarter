@@ -311,10 +311,6 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 			// Only handle side effects
 			handleToast(defaultToastConfig.delete, "success", entityName);
 			setErrorMessage?.("");
-
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
 		},
 		onError: (error, _config, _context) => {
 			// If entity not found, treat as success
@@ -357,17 +353,17 @@ interface UseUpdateEntityMutationOptions<T extends { id: string }> {
 	 * Where to navigate after successful update
 	 * Optional - if not provided, will stay on current page
 	 */
-	navigateTo: string;
+	navigateTo?: string;
 	/**
 	 * Where to navigate on error (usually the current entity detail page)
 	 * Optional - if not provided, will stay on current page
 	 */
-	navigateBack: string;
+	navigateBack?: string;
 	/**
 	 * Optional error message setter
 	 * If provided, will be called with error message on error
 	 */
-	setErrorMessage: (message: string) => void;
+	setErrorMessage?: (message: string) => void;
 	/**
 	 * The entity to update - used for id and optimistic updates
 	 * Optional if provided in mutate call
@@ -519,10 +515,6 @@ export function useUpdateEntityMutation<
 			// Only handle side effects
 			handleToast(defaultToastConfig.update, "success", entityName);
 			setErrorMessage?.("");
-
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
 		},
 		onError: (error, _variables, _context) => {
 			// Only handle side effects
@@ -689,10 +681,6 @@ export function useCreateEntityMutation<
 			// Only handle side effects
 			handleToast(defaultToastConfig.create, "success", entityName);
 			setErrorMessage?.("");
-
-			if (navigateTo) {
-				navigate({ to: navigateTo });
-			}
 		},
 		onError: (error, _data, _context) => {
 			// Only handle side effects
@@ -714,8 +702,8 @@ export interface UseEntityMutationsOptions<
 	subject: "Task" | "User";
 	listKeys: QueryKey[];
 	detailKey: QueryKey | ((entityId: string) => QueryKey);
-	navigateTo: string;
-	navigateBack: string;
+	navigateTo?: string;
+	navigateBack?: string;
 	setErrorMessage?: (message: string) => void;
 	createOptimisticEntity?: (data: TData) => T;
 	entity?: T;
@@ -748,8 +736,8 @@ export function useEntityMutations<
 		subject,
 		listKeys,
 		detailKey,
-		navigateTo,
-		navigateBack,
+		...(navigateTo ? { navigateTo } : {}),
+		...(navigateBack ? { navigateBack } : {}),
 		setErrorMessage: setErrorMessage ?? (() => {}),
 		createOptimisticEntity:
 			createOptimisticEntity ??
@@ -765,8 +753,8 @@ export function useEntityMutations<
 		subject,
 		listKeys,
 		detailKey,
-		navigateTo,
-		navigateBack,
+		...(navigateTo ? { navigateTo } : {}),
+		...(navigateBack ? { navigateBack } : {}),
 		setErrorMessage: setErrorMessage ?? (() => {}),
 		createOptimisticEntity: (entity, data) => {
 			const optimisticEntity = {
@@ -790,8 +778,8 @@ export function useEntityMutations<
 		subject,
 		listKeys,
 		detailKey,
-		navigateTo,
-		navigateBack,
+		...(navigateTo ? { navigateTo } : {}),
+		...(navigateBack ? { navigateBack } : {}),
 		setErrorMessage: setErrorMessage ?? (() => {}),
 		pendingDeleteIds: pendingDeleteIds ?? new Set(),
 	});
