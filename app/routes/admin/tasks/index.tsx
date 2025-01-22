@@ -5,7 +5,7 @@ import { EntityList } from "~/components/admin/EntityList";
 import type { Task } from "~/server/db/schema";
 import type { TableDefinition } from "~/types/table";
 import { formatDate } from "~/utils/date";
-import { adminQueries } from "~/utils/query/queries";
+import { queries } from "~/utils/query/queries";
 
 const columns: TableDefinition<Task> = [
 	{
@@ -73,12 +73,12 @@ const columns: TableDefinition<Task> = [
 
 export const Route = createFileRoute("/admin/tasks/")({
 	loader: ({ context }) =>
-		context.queryClient.ensureQueryData(adminQueries.adminTask.list),
+		context.queryClient.ensureQueryData(queries.task.list()),
 	component: TasksComponent,
 });
 
 function TasksComponent() {
-	const { data: tasks = [] } = useSuspenseQuery(adminQueries.adminTask.list);
+	const { data: tasks = [] } = useSuspenseQuery(queries.task.list());
 	const navigate = useNavigate();
 
 	return (

@@ -25,30 +25,6 @@ export const queries = createQueryKeyStore({
 		}),
 	},
 	user: {
-		session: {
-			queryKey: null,
-			queryFn: async () => {
-				return await getSessionUser();
-			},
-		},
-	},
-});
-
-// Type inference helper
-export type QueryKeys = inferQueryKeyStore<typeof queries>;
-
-export const adminQueries = createQueryKeyStore({
-	adminTask: {
-		list: {
-			queryKey: null,
-			queryFn: () => findMany({ data: { subject: "Task" } }) as Promise<Task[]>,
-		},
-		detail: (id: string) => ({
-			queryKey: [id],
-			queryFn: () => findFirst({ data: { where: { id }, subject: "Task" } }),
-		}),
-	},
-	adminUser: {
 		list: {
 			queryKey: null,
 			queryFn: () => findMany({ data: { subject: "User" } }) as Promise<User[]>,
@@ -60,8 +36,14 @@ export const adminQueries = createQueryKeyStore({
 					data: { where: { id }, subject: "User" },
 				}) as Promise<User>,
 		}),
+		session: {
+			queryKey: null,
+			queryFn: async () => {
+				return await getSessionUser();
+			},
+		},
 	},
 });
 
 // Type inference helper
-export type AdminQueryKeys = inferQueryKeyStore<typeof adminQueries>;
+export type QueryKeys = inferQueryKeyStore<typeof queries>;
