@@ -47,15 +47,10 @@ export function TaskList({
 				</Alert>
 			)}
 			<Group justify="space-between" className="h-[48px] min-h-[48px]">
-				<Text size="xl" fw={700} className="flex-shrink-0">
+				<Text size="xl" fw={700} className="shrink-0">
 					Tasks
 				</Text>
-				<Button
-					component={Link}
-					to="/tasks/new"
-					size="lg"
-					className="flex-shrink-0"
-				>
+				<Button component={Link} to="/tasks/new" size="lg" className="shrink-0">
 					New Task
 				</Button>
 			</Group>
@@ -63,8 +58,8 @@ export function TaskList({
 			<Stack gap="md" className="min-h-[50px]">
 				{tasks.map((task: Task) => (
 					<Card key={task.id} withBorder className="w-full min-h-[60px]">
-						<Group className="w-full justify-between">
-							<Group>
+						<Group className="w-full justify-between" wrap="nowrap">
+							<Group wrap="nowrap" className="flex-1 overflow-hidden">
 								<Checkbox
 									checked={task.status === TaskStatus.COMPLETED}
 									onChange={() =>
@@ -76,7 +71,7 @@ export function TaskList({
 										)
 									}
 								/>
-								<div className="flex flex-col gap-1 flex-1">
+								<div className="flex flex-col gap-1 min-w-0">
 									<Link
 										to="/tasks/$taskId"
 										params={{ taskId: task.id }}
@@ -84,14 +79,18 @@ export function TaskList({
 											task.status === TaskStatus.COMPLETED
 												? "text-gray-400 line-through"
 												: ""
-										}`}
+										} block overflow-hidden text-ellipsis whitespace-nowrap`}
 									>
 										<Text size="lg" fw={500}>
 											{task.title}
 										</Text>
 									</Link>
 									{task.description && (
-										<Text size="sm" c="dimmed">
+										<Text
+											size="sm"
+											c="dimmed"
+											className="overflow-hidden text-ellipsis whitespace-nowrap"
+										>
 											{task.description}
 										</Text>
 									)}
@@ -106,6 +105,7 @@ export function TaskList({
 								variant="subtle"
 								color="red"
 								onClick={() => deleteMutation.mutate({ entityId: task.id })}
+								className="shrink-0"
 							>
 								<Trash2 size={20} />
 							</Button>

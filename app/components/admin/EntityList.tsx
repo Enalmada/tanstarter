@@ -27,7 +27,7 @@ export function EntityList<TData extends { id: string }>({
 					<button
 						type="button"
 						onClick={onAdd}
-						className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+						className="rounded-sm bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
 					>
 						Add New
 					</button>
@@ -45,29 +45,15 @@ export function EntityList<TData extends { id: string }>({
 					{data.map((row) => (
 						<Table.Tr
 							key={row.id as string}
-							className={
-								to || onRowClick ? "cursor-pointer hover:bg-gray-50" : ""
-							}
+							className={to || onRowClick ? "hover:bg-gray-50" : ""}
+							onClick={() => !to && onRowClick?.(row)}
 						>
-							{to ? (
-								<Link to={to.replace(":id", row.id)} className="contents">
-									{columns.map((column) => (
-										<Table.Td key={column.key as string}>
-											{column.render
-												? column.render({
-														value: row[column.key],
-														row,
-													})
-												: (row[column.key] as string)}
-										</Table.Td>
-									))}
-								</Link>
-							) : (
-								<>
-									{columns.map((column) => (
-										<Table.Td
-											key={column.key as string}
-											onClick={() => onRowClick?.(row)}
+							{columns.map((column) => (
+								<Table.Td key={column.key as string}>
+									{to ? (
+										<Link
+											to={to.replace(":id", row.id)}
+											className="block w-full"
 										>
 											{column.render
 												? column.render({
@@ -75,10 +61,19 @@ export function EntityList<TData extends { id: string }>({
 														row,
 													})
 												: (row[column.key] as string)}
-										</Table.Td>
-									))}
-								</>
-							)}
+										</Link>
+									) : (
+										<>
+											{column.render
+												? column.render({
+														value: row[column.key],
+														row,
+													})
+												: (row[column.key] as string)}
+										</>
+									)}
+								</Table.Td>
+							))}
 						</Table.Tr>
 					))}
 				</Table.Tbody>
