@@ -32,7 +32,7 @@ describe("Card", () => {
 		expect(screen.getByTestId("test-card")).toBeInTheDocument();
 	});
 
-	it("applies shadow correctly", () => {
+	it("applies shadow-sm correctly", () => {
 		renderWithProvider(
 			<Card shadow="md" data-testid="test-card">
 				Card Content
