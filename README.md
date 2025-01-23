@@ -44,6 +44,8 @@ A production starter template for TanStack Start.
 - [LeftHook](https://lefthook.dev/) precommit checks
 - [Rollbar](https://rollbar.com/) error tracking and release monitoring
 
+### DevOps
+- [Cline Memory Bank](https://github.com/nickbaumann98/cline_docs/blob/main/prompting/custom%20instructions%20library/cline-memory-bank.md)
 
 ## Getting Started
 
