@@ -11,9 +11,11 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as TermsImport } from './routes/terms'
 import { Route as TasksImport } from './routes/tasks'
 import { Route as SignoutImport } from './routes/signout'
 import { Route as SigninImport } from './routes/signin'
+import { Route as PrivacyImport } from './routes/privacy'
 import { Route as AdminImport } from './routes/admin'
 import { Route as IndexImport } from './routes/index'
 import { Route as TasksIndexImport } from './routes/tasks/index'
@@ -30,6 +32,12 @@ import { Route as AdminEmailsWelcomeImport } from './routes/admin/emails/welcome
 
 // Create/Update Routes
 
+const TermsRoute = TermsImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const TasksRoute = TasksImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -45,6 +53,12 @@ const SignoutRoute = SignoutImport.update({
 const SigninRoute = SigninImport.update({
   id: '/signin',
   path: '/signin',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const PrivacyRoute = PrivacyImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -144,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImport
       parentRoute: typeof rootRoute
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyImport
+      parentRoute: typeof rootRoute
+    }
     '/signin': {
       id: '/signin'
       path: '/signin'
@@ -163,6 +184,13 @@ declare module '@tanstack/react-router' {
       path: '/tasks'
       fullPath: '/tasks'
       preLoaderRoute: typeof TasksImport
+      parentRoute: typeof rootRoute
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsImport
       parentRoute: typeof rootRoute
     }
     '/debug/monitoring': {
@@ -286,9 +314,11 @@ const TasksRouteWithChildren = TasksRoute._addFileChildren(TasksRouteChildren)
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/signin': typeof SigninRoute
   '/signout': typeof SignoutRoute
   '/tasks': typeof TasksRouteWithChildren
+  '/terms': typeof TermsRoute
   '/debug/monitoring': typeof DebugMonitoringRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
@@ -304,8 +334,10 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
   '/signin': typeof SigninRoute
   '/signout': typeof SignoutRoute
+  '/terms': typeof TermsRoute
   '/debug/monitoring': typeof DebugMonitoringRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
@@ -323,9 +355,11 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/signin': typeof SigninRoute
   '/signout': typeof SignoutRoute
   '/tasks': typeof TasksRouteWithChildren
+  '/terms': typeof TermsRoute
   '/debug/monitoring': typeof DebugMonitoringRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/new': typeof TasksNewRoute
@@ -344,9 +378,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/privacy'
     | '/signin'
     | '/signout'
     | '/tasks'
+    | '/terms'
     | '/debug/monitoring'
     | '/tasks/$taskId'
     | '/tasks/new'
@@ -361,8 +397,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/privacy'
     | '/signin'
     | '/signout'
+    | '/terms'
     | '/debug/monitoring'
     | '/tasks/$taskId'
     | '/tasks/new'
@@ -378,9 +416,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/privacy'
     | '/signin'
     | '/signout'
     | '/tasks'
+    | '/terms'
     | '/debug/monitoring'
     | '/tasks/$taskId'
     | '/tasks/new'
@@ -398,18 +438,22 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
   SigninRoute: typeof SigninRoute
   SignoutRoute: typeof SignoutRoute
   TasksRoute: typeof TasksRouteWithChildren
+  TermsRoute: typeof TermsRoute
   DebugMonitoringRoute: typeof DebugMonitoringRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
   SigninRoute: SigninRoute,
   SignoutRoute: SignoutRoute,
   TasksRoute: TasksRouteWithChildren,
+  TermsRoute: TermsRoute,
   DebugMonitoringRoute: DebugMonitoringRoute,
 }
 
@@ -425,9 +469,11 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/admin",
+        "/privacy",
         "/signin",
         "/signout",
         "/tasks",
+        "/terms",
         "/debug/monitoring"
       ]
     },
@@ -446,6 +492,9 @@ export const routeTree = rootRoute
         "/admin/users/"
       ]
     },
+    "/privacy": {
+      "filePath": "privacy.tsx"
+    },
     "/signin": {
       "filePath": "signin.tsx"
     },
@@ -459,6 +508,9 @@ export const routeTree = rootRoute
         "/tasks/new",
         "/tasks/"
       ]
+    },
+    "/terms": {
+      "filePath": "terms.tsx"
     },
     "/debug/monitoring": {
       "filePath": "debug/monitoring.tsx"
