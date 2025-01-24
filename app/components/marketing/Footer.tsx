@@ -1,35 +1,44 @@
+import { Box, Container, Text, useMantineColorScheme } from "@mantine/core";
 import { Link } from "@tanstack/react-router";
 
 export function Footer() {
-	return (
-		<footer className="@auto dark:bg-neutral-900 border-t mt-16">
-			<div className="container mx-auto px-4 py-8 grid grid-cols-2 md:grid-cols-4 gap-8">
-				<div>
-					<h3 className="text-lg font-semibold mb-4">Legal</h3>
-					<ul className="space-y-2">
-						<li>
-							<Link
-								to="/terms"
-								className="text-neutral-600 dark:text-neutral-300 hover:text-primary"
-							>
-								Terms
-							</Link>
-						</li>
-						<li>
-							<Link
-								to="/privacy"
-								className="text-neutral-600 dark:text-neutral-300 hover:text-primary"
-							>
-								Privacy
-							</Link>
-						</li>
-					</ul>
-				</div>
-			</div>
+	const { colorScheme } = useMantineColorScheme();
 
-			<div className="border-t py-4 text-center text-sm text-neutral-500">
-				© {new Date().getFullYear()} TodoApp. All rights reserved.
-			</div>
-		</footer>
+	return (
+		<Box
+			component="footer"
+			bg={colorScheme === "dark" ? "dark.7" : "gray.0"}
+			py="xl"
+		>
+			<Container>
+				<Box
+					style={{
+						display: "flex",
+						justifyContent: "center",
+						gap: "2xl",
+						marginBottom: "xl",
+					}}
+				>
+					<Link to="/terms" style={{ marginRight: "1rem" }}>
+						Terms
+					</Link>
+					<Link to="/privacy" style={{ marginLeft: "1rem" }}>
+						Privacy
+					</Link>
+				</Box>
+
+				<Text
+					mt="xl"
+					pt="md"
+					style={{
+						borderTop: `1px solid ${colorScheme === "dark" ? "dark.4" : "gray.2"}`,
+						textAlign: "center",
+						color: colorScheme === "dark" ? "gray.5" : "gray.7",
+					}}
+				>
+					© {new Date().getFullYear()} TodoApp. All rights reserved.
+				</Text>
+			</Container>
+		</Box>
 	);
 }
