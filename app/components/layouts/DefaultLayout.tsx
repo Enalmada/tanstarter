@@ -1,7 +1,8 @@
-import { AppShell } from "@mantine/core";
+import { AppShell, Box } from "@mantine/core";
 import { Outlet } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Navbar } from "~/components/Navbar";
+import { Footer } from "~/components/marketing/Footer";
 import type { SessionUser } from "~/utils/auth-client";
 
 interface DefaultLayoutProps {
@@ -15,7 +16,12 @@ export function DefaultLayout({ user, children }: DefaultLayoutProps) {
 			<AppShell.Header>
 				<Navbar user={user} />
 			</AppShell.Header>
-			<AppShell.Main>{children ?? <Outlet />}</AppShell.Main>
+			<AppShell.Main style={{ flex: 1, paddingBottom: 0 }}>
+				<Box style={{ minHeight: "calc(100vh - 222px)" }}>
+					{children ?? <Outlet />}
+				</Box>
+				<Footer />
+			</AppShell.Main>
 		</AppShell>
 	);
 }

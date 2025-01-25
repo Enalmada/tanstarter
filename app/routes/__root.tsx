@@ -3,7 +3,6 @@ import mantineCoreCss from "@mantine/core/styles.css?inline";
 import mantineDatesCss from "@mantine/dates/styles.css?inline";
 import mantineNotificationsCss from "@mantine/notifications/styles.css?inline";
 import type { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
 	Outlet,
 	ScrollRestoration,
@@ -209,10 +208,13 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 			<body>
 				<MantineProvider>{children}</MantineProvider>
 				<ScrollRestoration />
+				{/*}
 				<ReactQueryDevtools buttonPosition="bottom-left" />
+
 				<Suspense>
 					<TanStackRouterDevtools position="bottom-right" />
 				</Suspense>
+				*/}
 				<Scripts />
 				<Suspense fallback={null}>
 					<AnalyticsProvider />
