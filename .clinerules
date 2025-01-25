@@ -1,0 +1,95 @@
+# Roo's Enhanced Project Conventions
+# Structured for AI collaboration and maintainability
+
+[development_process]
+planning_requirements = [
+  "Validate approach against framework_preferences first",
+  "Break tasks into atomic changes with individual validation",
+  "Type-driven development patterns required",
+  "Testing pyramid enforcement",
+  "Don't read or edit .env"
+]
+
+implementation_phases = [
+  { phase: 1, name: "Architecture", focus: "Component/routing" },
+  { phase: 2, name: "Types", focus: "Interface contracts" },
+  { phase: 3, name: "Core", focus: "Business logic" },
+  { phase: 4, name: "Validation", focus: "Error handling" },
+  { phase: 5, name: "Optimization", focus: "Performance" }
+]
+
+[ai_guidance]
+required_checks = [
+  "TanStack pattern compliance",
+  "Drizzle ORM validation",
+  "TypeScript strictness",
+  "Error boundary existence"
+]
+
+error_patterns = [
+  "Route-level boundaries",
+  "Type-safe error propagation",
+  "Automatic Rollbar integration",
+  "User-friendly fallbacks"
+]
+
+documentation_rules = [
+  "Component: TS interface docs",
+  "Service: Error matrix",
+  "Route: Data flow comments"
+]
+
+[validation]
+type_safety = [
+  "Strict null checks",
+  "Explicit returns",
+  "No implicit any",
+  "Typed errors"
+]
+
+schema_strategy = [
+  "Drizzle-derived schemas",
+  "Client/server reuse",
+  "Form/API type inference"
+]
+
+[testing]
+workflow = [
+  "Unit: Vitest + happy-dom",
+  "Integration: Testing Library",
+  "E2E: Playwright roles",
+  "Snapshot: Storybook"
+]
+
+coverage_requirements = [
+  "1 test/error case",
+  "3 happy path variants", 
+  "1 edge case minimum"
+]
+
+# Preserved original rules below
+[framework_preferences]
+tanstack = [
+  "Router: File-system routing",
+  "State: Context UI / Query server",
+  "Forms: TanStack + Valibot",
+  "Tables: TanStack patterns"
+]
+
+ui_components = [
+  "Mantine",
+  "Lucide Icons",
+  "Tailwind CSS version 4"
+]
+
+data_layer = [
+  "Drizzle ORM",
+  "Drizzle-valibot schemas",
+  "PostgreSQL via Neon",
+  "TanStack Server Functions"
+]
+
+[code_style]
+indent_style = "tab"
+quote_style = "double"
+lint_rules = "biome.json"

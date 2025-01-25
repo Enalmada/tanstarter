@@ -269,3 +269,5 @@
 - Component tests with happy-dom
 - Route tests for page components
   </testing_workflow>
+
+Don't read or edit .env
