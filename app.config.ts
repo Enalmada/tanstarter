@@ -1,5 +1,6 @@
 import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "@tanstack/start/config";
 import react from "@vitejs/plugin-react";
 import { config } from "dotenv";
@@ -23,6 +24,7 @@ const getBuildRelease = () => {
 export default defineConfig({
 	vite: {
 		plugins: [
+			tailwindcss(),
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
 			}),

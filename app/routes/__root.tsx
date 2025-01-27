@@ -14,7 +14,7 @@ import { getWebRequest } from "vinxi/http";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import { auth } from "~/server/auth/auth";
-import appCss from "~/styles/app.css?inline";
+import appStyles from "~/styles/app.css?inline";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
 import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
@@ -147,6 +147,19 @@ export const Route = createRootRouteWithContext<{
 				href: "/icon512_maskable.png",
 				sizes: "512x512",
 			},
+			{
+				rel: "preconnect",
+				href: "https://fonts.googleapis.com",
+			},
+			{
+				rel: "preconnect",
+				href: "https://fonts.gstatic.com",
+				crossOrigin: "",
+			},
+			{
+				rel: "stylesheet",
+				href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+			},
 		],
 	}),
 	component: RootComponent,
@@ -189,8 +202,8 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 		<html suppressHydrationWarning lang="en">
 			<head>
 				<Meta />
-				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
-				<style dangerouslySetInnerHTML={{ __html: appCss }} />
+				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: Required for SSR styles */}
+				<style id="app-css" dangerouslySetInnerHTML={{ __html: appStyles }} />
 			</head>
 			<body>
 				{children}
