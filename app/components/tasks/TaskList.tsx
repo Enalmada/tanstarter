@@ -53,18 +53,20 @@ export function TaskList({
 				{tasks.map((task: Task) => (
 					<Card key={task.id}>
 						<CardContent className="flex items-center justify-between gap-4 p-4">
-							<div className="flex flex-1 items-start gap-4 overflow-hidden">
-								<Checkbox
-									checked={task.status === TaskStatus.COMPLETED}
-									onCheckedChange={() =>
-										handleTaskUpdate(
-											task,
-											task.status === TaskStatus.ACTIVE
-												? TaskStatus.COMPLETED
-												: TaskStatus.ACTIVE,
-										)
-									}
-								/>
+							<div className="flex flex-1 items-center gap-4 overflow-hidden">
+								<div className="flex items-center">
+									<Checkbox
+										checked={task.status === TaskStatus.COMPLETED}
+										onCheckedChange={() =>
+											handleTaskUpdate(
+												task,
+												task.status === TaskStatus.ACTIVE
+													? TaskStatus.COMPLETED
+													: TaskStatus.ACTIVE,
+											)
+										}
+									/>
+								</div>
 								<div className="min-w-0 flex-1">
 									<Link
 										to="/tasks/$taskId"
