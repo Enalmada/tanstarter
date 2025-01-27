@@ -128,6 +128,7 @@ export default defineConfig({
 				"@casl/ability",
 				"@rollbar/react",
 				"rollbar",
+				"next-themes",
 			],
 		},
 		build: {

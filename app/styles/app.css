@@ -4,7 +4,7 @@
 
 @plugin "tailwindcss-animate";
 
-@theme inline {
+@theme {
 	--font-sans: "Inter", system-ui, sans-serif;
 	--color-background: hsl(var(--background));
 	--color-foreground: hsl(var(--foreground));
