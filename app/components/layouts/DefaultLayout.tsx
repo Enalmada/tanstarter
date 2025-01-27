@@ -13,7 +13,7 @@ interface DefaultLayoutProps {
 export function DefaultLayout({ user, children }: DefaultLayoutProps) {
 	return (
 		<div className="relative min-h-screen flex flex-col">
-			<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+			<header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 				<div className="h-[60px]">
 					<Navbar user={user} />
 				</div>

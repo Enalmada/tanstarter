@@ -26,7 +26,7 @@ export function Navbar({ user }: NavbarProps) {
 	const navigate = useNavigate();
 
 	return (
-		<div className="flex h-14 items-center justify-between border-b px-4">
+		<div className="flex h-14 items-center justify-between border-0 border-b px-4">
 			<Link to="/" className="text-2xl font-bold">
 				TanStarter
 			</Link>
