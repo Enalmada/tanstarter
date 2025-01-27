@@ -6,8 +6,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { TaskForm } from "~/components/TaskForm";
-import { Card } from "~/components/ui/Card";
-import { Stack } from "~/components/ui/Stack";
+import { Card, CardContent } from "~/components/ui/card";
 import type { Task, TaskStatusType } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
@@ -49,15 +48,15 @@ function NewTask() {
 	});
 
 	return (
-		<div className="container mx-auto flex flex-col gap-4 p-6">
-			<Card withBorder>
-				<Stack gap="md" p="md">
+		<div className="container mx-auto space-y-4 p-6">
+			<Card>
+				<CardContent className="pt-6 space-y-4">
 					<TaskForm
 						onSubmit={createMutation.mutate}
 						isSubmitting={createMutation.isPending}
 						userId={userId ?? ""}
 					/>
-				</Stack>
+				</CardContent>
 			</Card>
 		</div>
 	);

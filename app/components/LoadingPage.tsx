@@ -3,14 +3,15 @@
  * Used as a fallback during route transitions
  */
 
-import { Center, Loader } from "@mantine/core";
-
 export function LoadingPage() {
 	return (
-		<div className="container mx-auto p-6">
-			<Center>
-				<Loader size="md" role="progressbar" />
-			</Center>
+		<div className="container flex min-h-[400px] items-center justify-center">
+			<output
+				className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"
+				aria-label="Loading"
+			>
+				<span className="sr-only">Loading...</span>
+			</output>
 		</div>
 	);
 }

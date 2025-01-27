@@ -8,17 +8,16 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { TaskStatus } from "~/server/db/schema";
 import { mockUserId } from "~/server/services/__tests__/base-service.test";
-import { TestWrapper } from "~/test/TestWrapper";
 import { TaskForm } from "../TaskForm";
 
 describe("TaskForm", () => {
 	it("should render empty form", () => {
-		render(<TaskForm userId={mockUserId} onSubmit={() => {}} />, {
-			wrapper: TestWrapper,
-		});
+		render(<TaskForm userId={mockUserId} onSubmit={() => {}} />);
 
 		// Check for form fields
-		expect(screen.getByRole("textbox", { name: "Title" })).toBeInTheDocument();
+		expect(
+			screen.getByRole("textbox", { name: "Title *" }),
+		).toBeInTheDocument();
 		expect(
 			screen.getByRole("textbox", { name: "Description" }),
 		).toBeInTheDocument();
@@ -47,13 +46,10 @@ describe("TaskForm", () => {
 				defaultValues={defaultValues}
 				onSubmit={() => {}}
 			/>,
-			{
-				wrapper: TestWrapper,
-			},
 		);
 
 		// Check field values
-		expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue(
+		expect(screen.getByRole("textbox", { name: "Title *" })).toHaveValue(
 			defaultValues.title,
 		);
 		expect(screen.getByRole("textbox", { name: "Description" })).toHaveValue(
@@ -71,18 +67,18 @@ describe("TaskForm", () => {
 
 	it("should handle form submission", async () => {
 		const onSubmit = vi.fn();
-		render(<TaskForm userId={mockUserId} onSubmit={onSubmit} />, {
-			wrapper: TestWrapper,
-		});
+		render(<TaskForm userId={mockUserId} onSubmit={onSubmit} />);
 
 		// Fill out form
 		await act(async () => {
-			fireEvent.change(screen.getByRole("textbox", { name: "Title" }), {
+			fireEvent.change(screen.getByRole("textbox", { name: "Title *" }), {
 				target: { value: "New Task" },
 			});
 			fireEvent.change(screen.getByRole("textbox", { name: "Description" }), {
 				target: { value: "New Description" },
 			});
+
+			// Toggle status checkbox to completed
 			fireEvent.click(screen.getByRole("checkbox", { name: "Completed" }));
 		});
 
@@ -105,23 +101,19 @@ describe("TaskForm", () => {
 	});
 
 	it("should show loading state", () => {
-		render(<TaskForm userId={mockUserId} onSubmit={() => {}} isSubmitting />, {
-			wrapper: TestWrapper,
-		});
+		render(<TaskForm userId={mockUserId} onSubmit={() => {}} isSubmitting />);
 
 		// Check if submit button is disabled and shows loading state
-		const submitButton = screen.getByRole("button", { name: "Create Task" });
+		const submitButton = screen.getByRole("button", { name: /Processing/i });
 		expect(submitButton).toBeDisabled();
 	});
 
 	it("should validate required fields", async () => {
 		const onSubmit = vi.fn();
-		render(<TaskForm userId={mockUserId} onSubmit={onSubmit} />, {
-			wrapper: TestWrapper,
-		});
+		render(<TaskForm userId={mockUserId} onSubmit={onSubmit} />);
 
 		// Get the title input
-		const titleInput = screen.getByRole("textbox", { name: "Title" });
+		const titleInput = screen.getByRole("textbox", { name: "Title *" });
 
 		// Submit empty form
 		await act(async () => {
@@ -132,11 +124,12 @@ describe("TaskForm", () => {
 		await act(async () => {
 			fireEvent.change(titleInput, { target: { value: "test" } });
 			fireEvent.change(titleInput, { target: { value: "" } });
+			fireEvent.blur(titleInput);
 		});
 
 		// Wait for validation error
 		await waitFor(() => {
-			expect(titleInput).toHaveAttribute("data-error", "Title is required");
+			expect(screen.getByText("Title is required")).toBeInTheDocument();
 		});
 
 		// Check that onSubmit was not called
@@ -148,7 +141,7 @@ describe("TaskForm", () => {
 		});
 
 		// Check error is still there
-		expect(titleInput).toHaveAttribute("data-error", "Title is required");
+		expect(screen.getByText("Title is required")).toBeInTheDocument();
 		expect(onSubmit).not.toHaveBeenCalled();
 	});
 });

@@ -1,7 +1,7 @@
-import { Badge, Text } from "@mantine/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { EntityList } from "~/components/admin/EntityList";
+import { Badge } from "~/components/ui/badge";
 import type { User } from "~/server/db/schema";
 import type { TableDefinition } from "~/types/table";
 import { formatDate } from "~/utils/date";
@@ -21,13 +21,9 @@ const columns: TableDefinition<User> = [
 		header: "Email",
 		render: ({ value, row }) => (
 			<div>
-				<Text size="sm" fw={500}>
-					{String(value)}
-				</Text>
+				<p className="text-sm font-medium">{String(value)}</p>
 				{row.name && (
-					<Text size="xs" c="dimmed">
-						{row.name}
-					</Text>
+					<p className="text-xs text-muted-foreground">{row.name}</p>
 				)}
 			</div>
 		),
@@ -36,7 +32,9 @@ const columns: TableDefinition<User> = [
 		key: "role",
 		header: "Role",
 		render: ({ value }) => (
-			<Badge color={value === "ADMIN" ? "red" : "blue"}>{String(value)}</Badge>
+			<Badge variant={value === "ADMIN" ? "destructive" : "default"}>
+				{String(value)}
+			</Badge>
 		),
 	},
 	{
@@ -46,9 +44,7 @@ const columns: TableDefinition<User> = [
 			if (typeof value === "boolean") return null;
 			const formatted = formatDate(value);
 			return formatted ? (
-				<Text size="sm" c="dimmed">
-					{formatted}
-				</Text>
+				<p className="text-sm text-muted-foreground">{formatted}</p>
 			) : null;
 		},
 	},
@@ -58,31 +54,29 @@ const columns: TableDefinition<User> = [
 		render: ({ value }: { value: string | number | Date | boolean | null }) => {
 			if (typeof value === "boolean") return null;
 			const formatted = formatDate(value);
-			return (
-				<Text size="sm" c="dimmed">
-					{formatted}
-				</Text>
-			);
+			return formatted ? (
+				<p className="text-sm text-muted-foreground">{formatted}</p>
+			) : null;
 		},
 	},
 ];
 
 export const Route = createFileRoute("/admin/users/")({
-	loader: ({ context }) =>
-		context.queryClient.ensureQueryData(queries.user.list()),
-	component: UsersComponent,
+	component: UsersPage,
+	loader: ({ context: { queryClient } }) =>
+		queryClient.ensureQueryData(queries.user.list()),
 });
 
-function UsersComponent() {
-	const { data: users = [] } = useSuspenseQuery(queries.user.list());
+function UsersPage() {
 	const navigate = useNavigate();
+	const { data: users } = useSuspenseQuery(queries.user.list());
 
 	return (
 		<EntityList
 			title="Users"
 			data={users}
 			columns={columns}
-			to="/admin/users/:id"
+			onRowClick={(item) => navigate({ to: `/admin/users/${item.id}` })}
 		/>
 	);
 }

@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { TestWrapper } from "~/test/TestWrapper";
 import { NotFound } from "../NotFound";
 
 // Mock router hooks
@@ -12,7 +11,7 @@ vi.mock("@tanstack/react-router", () => ({
 
 describe("NotFound", () => {
 	it("should render not found message", () => {
-		render(<NotFound />, { wrapper: TestWrapper });
+		render(<NotFound />);
 
 		// Check for not found message
 		expect(

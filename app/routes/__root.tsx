@@ -1,7 +1,4 @@
 import { getSerwist } from "virtual:serwist";
-import mantineCoreCss from "@mantine/core/styles.css?inline";
-import mantineDatesCss from "@mantine/dates/styles.css?inline";
-import mantineNotificationsCss from "@mantine/notifications/styles.css?inline";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
@@ -12,13 +9,10 @@ import {
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import type { ReactNode } from "react";
 import { Suspense, lazy, useEffect } from "react";
+import { Toaster } from "sonner";
 import { getWebRequest } from "vinxi/http";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
-import {
-	ColorSchemeScript,
-	MantineProvider,
-} from "~/components/providers/mantine-provider";
 import { auth } from "~/server/auth/auth";
 import appCss from "~/styles/app.css?inline";
 import type { SessionUser } from "~/utils/auth-client";
@@ -195,19 +189,13 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 		<html suppressHydrationWarning lang="en">
 			<head>
 				<Meta />
-				<ColorSchemeScript />
-				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
-				<style dangerouslySetInnerHTML={{ __html: mantineCoreCss }} />
-				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
-				<style dangerouslySetInnerHTML={{ __html: mantineNotificationsCss }} />
-				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
-				<style dangerouslySetInnerHTML={{ __html: mantineDatesCss }} />
 				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
 				<style dangerouslySetInnerHTML={{ __html: appCss }} />
 			</head>
 			<body>
-				<MantineProvider>{children}</MantineProvider>
+				{children}
 				<ScrollRestoration />
+				<Toaster richColors position="top-right" />
 				{/*}
 				<ReactQueryDevtools buttonPosition="bottom-left" />
 

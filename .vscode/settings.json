@@ -90,5 +90,6 @@
     "showTrace": true,
     "showScreenshot": true
   },
-  "dbcode.connections": []
+  "dbcode.connections": [],
+  "testing.automaticallyOpenTestResults": "openOnTestStart"
 }

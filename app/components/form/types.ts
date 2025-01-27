@@ -1,4 +1,3 @@
-import type { MantineSize } from "@mantine/core";
 import type { BaseIssue, BaseSchema } from "valibot";
 
 export type FormFieldType =
@@ -17,7 +16,6 @@ export interface BaseFieldConfig<T> {
 	required?: boolean;
 	disabled?: boolean;
 	placeholder?: string;
-	size?: MantineSize;
 	validation?: BaseSchema<unknown, unknown, BaseIssue<unknown>>;
 }
 

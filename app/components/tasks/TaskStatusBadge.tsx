@@ -1,4 +1,4 @@
-import { Badge } from "@mantine/core";
+import { Badge } from "~/components/ui/badge";
 import { TaskStatus } from "~/server/db/schema";
 
 interface TaskStatusBadgeProps {
@@ -9,19 +9,27 @@ export function TaskStatusBadge({ status }: TaskStatusBadgeProps) {
 	switch (status) {
 		case TaskStatus.ACTIVE:
 			return (
-				<Badge color="blue" data-test-color="blue">
+				<Badge
+					variant="default"
+					className="bg-blue-500 hover:bg-blue-600"
+					data-test-color="blue"
+				>
 					Active
 				</Badge>
 			);
 		case TaskStatus.COMPLETED:
 			return (
-				<Badge color="green" data-test-color="green">
+				<Badge
+					variant="default"
+					className="bg-green-500 hover:bg-green-600"
+					data-test-color="green"
+				>
 					Completed
 				</Badge>
 			);
 		default:
 			return (
-				<Badge color="gray" data-test-color="gray">
+				<Badge variant="secondary" data-test-color="gray">
 					Unknown
 				</Badge>
 			);

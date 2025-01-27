@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
 	resolve: {
 		alias: {
+			"@": path.resolve(__dirname, "./app"),
 			"~": path.resolve(__dirname, "./app"),
 			"virtual:serwist": path.resolve(
 				__dirname,

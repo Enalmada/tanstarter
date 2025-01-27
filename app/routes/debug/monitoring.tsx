@@ -1,6 +1,6 @@
-import { Button, Container, Stack, Text, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { Button } from "~/components/ui/button";
 import { useMonitor } from "~/lib/monitoring/hooks";
 import { ErrorBoundary } from "~/lib/monitoring/rollbar";
 import type { MonitorUser } from "~/lib/monitoring/types";
@@ -13,14 +13,14 @@ function BuggyComponent() {
 	}
 
 	return (
-		<Button onClick={() => setShouldError(true)} color="red">
+		<Button onClick={() => setShouldError(true)} variant="destructive">
 			Trigger Error Boundary
 		</Button>
 	);
 }
 
 function ErrorFallback() {
-	return <Text c="red">Error boundary caught an error!</Text>;
+	return <p className="text-destructive">Error boundary caught an error!</p>;
 }
 
 export const Route = createFileRoute("/debug/monitoring")({
@@ -101,75 +101,70 @@ function MonitoringDebug() {
 	};
 
 	return (
-		<Container size="sm">
-			<Stack gap="xl">
-				<Title>Monitoring Debug</Title>
+		<div className="container max-w-2xl mx-auto py-8">
+			<div className="flex flex-col gap-8">
+				<h1 className="text-3xl font-bold tracking-tight">Monitoring Debug</h1>
 
-				<Stack>
-					<Text fw={700}>User Context Test</Text>
+				<div className="flex flex-col gap-4">
+					<h2 className="font-bold">User Context Test</h2>
 					<Button
 						onClick={() => setTestUser(0)}
-						color="blue"
-						variant={currentUserIndex === 0 ? "filled" : "light"}
+						variant={currentUserIndex === 0 ? "default" : "secondary"}
 					>
 						Set Regular User
 					</Button>
 					<Button
 						onClick={() => setTestUser(1)}
-						color="blue"
-						variant={currentUserIndex === 1 ? "filled" : "light"}
+						variant={currentUserIndex === 1 ? "default" : "secondary"}
 					>
 						Set Admin User
 					</Button>
 					<Button
 						onClick={() => setTestUser(null)}
-						color="gray"
-						variant={currentUserIndex === null ? "filled" : "light"}
+						variant={currentUserIndex === null ? "default" : "secondary"}
 					>
 						Clear User
 					</Button>
-				</Stack>
+				</div>
 
-				<Stack>
-					<Text fw={700}>Breadcrumb Test</Text>
-					<Button onClick={addBreadcrumb} color="green">
+				<div className="flex flex-col gap-4">
+					<h2 className="font-bold">Breadcrumb Test</h2>
+					<Button onClick={addBreadcrumb}>
 						Add Breadcrumb ({breadcrumbCount})
 					</Button>
-				</Stack>
+				</div>
 
-				<Stack>
-					<Text fw={700}>Error Boundary Test</Text>
+				<div className="flex flex-col gap-4">
+					<h2 className="font-bold">Error Boundary Test</h2>
 					<ErrorBoundary fallback={<ErrorFallback />}>
 						<BuggyComponent />
 					</ErrorBoundary>
-				</Stack>
+				</div>
 
-				<Stack>
-					<Text fw={700}>Direct Error Tests</Text>
-					<Button onClick={triggerError} color="red">
+				<div className="flex flex-col gap-4">
+					<h2 className="font-bold">Direct Error Tests</h2>
+					<Button onClick={triggerError} variant="destructive">
 						Trigger Uncaught Error
 					</Button>
-					<Button onClick={triggerAsyncError} color="red">
+					<Button onClick={triggerAsyncError} variant="destructive">
 						Trigger Async Error
 					</Button>
-					<Button onClick={triggerApiError} color="red">
+					<Button onClick={triggerApiError} variant="destructive">
 						Trigger API Error
 					</Button>
-				</Stack>
+				</div>
 
-				<Stack>
-					<Text fw={700}>Monitor Message Tests</Text>
-					<Button onClick={triggerMonitorError} color="red">
+				<div className="flex flex-col gap-4">
+					<h2 className="font-bold">Monitor Message Tests</h2>
+					<Button onClick={triggerMonitorError} variant="destructive">
 						Send Error Message
 					</Button>
-					<Button onClick={triggerMonitorWarning} color="yellow">
+					<Button onClick={triggerMonitorWarning} variant="outline">
 						Send Warning Message
 					</Button>
-					<Button onClick={triggerMonitorInfo} color="blue">
-						Send Info Message
-					</Button>
-				</Stack>
-			</Stack>
-		</Container>
+					<Button onClick={triggerMonitorInfo}>Send Info Message</Button>
+				</div>
+			</div>
+		</div>
 	);
 }

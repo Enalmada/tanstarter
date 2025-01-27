@@ -1,5 +1,15 @@
-import { Table } from "@mantine/core";
 import { Link } from "@tanstack/react-router";
+import { Button } from "~/components/ui/button";
+import { Container } from "~/components/ui/container";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "~/components/ui/table";
+import { Title } from "~/components/ui/title";
 import type { TableDefinition } from "~/types/table";
 
 export interface EntityListProps<TData extends { id: string }> {
@@ -20,36 +30,28 @@ export function EntityList<TData extends { id: string }>({
 	to,
 }: EntityListProps<TData>) {
 	return (
-		<div className="container mx-auto flex flex-col gap-4 p-6">
+		<Container className="flex flex-col gap-4 py-6">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-bold">{title}</h1>
-				{onAdd && (
-					<button
-						type="button"
-						onClick={onAdd}
-						className="rounded-sm bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-					>
-						Add New
-					</button>
-				)}
+				<Title>{title}</Title>
+				{onAdd && <Button onClick={onAdd}>Add New</Button>}
 			</div>
 			<Table>
-				<Table.Thead>
-					<Table.Tr>
+				<TableHeader>
+					<TableRow>
 						{columns.map((column) => (
-							<Table.Th key={column.key as string}>{column.header}</Table.Th>
+							<TableHead key={column.key as string}>{column.header}</TableHead>
 						))}
-					</Table.Tr>
-				</Table.Thead>
-				<Table.Tbody>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
 					{data.map((row) => (
-						<Table.Tr
+						<TableRow
 							key={row.id as string}
-							className={to || onRowClick ? "hover:bg-gray-50" : ""}
 							onClick={() => !to && onRowClick?.(row)}
+							className={to || onRowClick ? "cursor-pointer" : ""}
 						>
 							{columns.map((column) => (
-								<Table.Td key={column.key as string}>
+								<TableCell key={column.key as string}>
 									{to ? (
 										<Link
 											to={to.replace(":id", row.id)}
@@ -72,12 +74,12 @@ export function EntityList<TData extends { id: string }>({
 												: (row[column.key] as string)}
 										</>
 									)}
-								</Table.Td>
+								</TableCell>
 							))}
-						</Table.Tr>
+						</TableRow>
 					))}
-				</Table.Tbody>
+				</TableBody>
 			</Table>
-		</div>
+		</Container>
 	);
 }

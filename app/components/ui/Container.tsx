@@ -1,20 +1,27 @@
-import {
-	Container as MantineContainer,
-	type ContainerProps as MantineContainerProps,
-} from "@mantine/core";
-import { forwardRef } from "react";
+import { cn } from "@/lib/utils";
+import { type ComponentPropsWithoutRef, forwardRef } from "react";
 
-export type ContainerProps = MantineContainerProps;
+export interface ContainerProps extends ComponentPropsWithoutRef<"div"> {
+	size?: "xs" | "sm" | "md" | "lg" | "xl";
+}
+
+const sizeMap = {
+	xs: "max-w-screen-sm",
+	sm: "max-w-screen-md",
+	md: "max-w-screen-lg",
+	lg: "max-w-screen-xl",
+	xl: "max-w-screen-2xl",
+};
 
 export const Container = forwardRef<HTMLDivElement, ContainerProps>(
-	({ className, children, ...props }, ref) => (
-		<MantineContainer
+	({ className, size = "md", children, ...props }, ref) => (
+		<div
 			ref={ref}
-			{...(className ? { className } : {})}
+			className={cn("mx-auto w-full px-4", sizeMap[size], className)}
 			{...props}
 		>
 			{children}
-		</MantineContainer>
+		</div>
 	),
 );
 

@@ -4,22 +4,21 @@
  * Includes navigation back to home
  */
 
-import { Button } from "~/components/ui/Button";
-import { Group } from "~/components/ui/Group";
-import { LinkButton } from "~/components/ui/LinkButton";
-import { Stack } from "~/components/ui/Stack";
-import { Text } from "~/components/ui/Text";
+import { Link } from "@tanstack/react-router";
+import { Button } from "~/components/ui/button";
 
 export function NotFound() {
 	return (
-		<Stack className="p-4" gap="sm">
-			<Text>The page you are looking for does not exist.</Text>
-			<Group>
+		<div className="flex flex-col gap-4 p-4">
+			<p className="text-muted-foreground">
+				The page you are looking for does not exist.
+			</p>
+			<div className="flex gap-4">
 				<Button onClick={() => window.history.back()}>Go back</Button>
-				<LinkButton to="/" variant="outline">
-					Home
-				</LinkButton>
-			</Group>
-		</Stack>
+				<Button variant="outline" asChild>
+					<Link to="/">Home</Link>
+				</Button>
+			</div>
+		</div>
 	);
 }

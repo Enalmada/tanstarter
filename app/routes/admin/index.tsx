@@ -1,6 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Container } from "~/components/ui/Container";
-import { Title } from "~/components/ui/Title";
 
 export const Route = createFileRoute("/admin/")({
 	component: AdminIndexComponent,
@@ -8,9 +6,13 @@ export const Route = createFileRoute("/admin/")({
 
 function AdminIndexComponent() {
 	return (
-		<Container>
-			<Title>Welcome to Admin Dashboard</Title>
-			<p>Select a section from the sidebar to get started.</p>
-		</Container>
+		<div className="container mx-auto p-6">
+			<h1 className="text-3xl font-bold tracking-tight">
+				Welcome to Admin Dashboard
+			</h1>
+			<p className="text-muted-foreground mt-2">
+				Select a section from the sidebar to get started.
+			</p>
+		</div>
 	);
 }

@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Image } from "@unpic/react";
 import { DefaultLayout } from "~/components/layouts/DefaultLayout";
-import { Anchor } from "~/components/ui/Anchor";
-import { Card } from "~/components/ui/Card";
-import { Container } from "~/components/ui/Container";
-import { Group } from "~/components/ui/Group";
-import { LinkButton } from "~/components/ui/LinkButton";
-import { Stack } from "~/components/ui/Stack";
-import { Text } from "~/components/ui/Text";
-import { Title } from "~/components/ui/Title";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Container } from "~/components/ui/container";
 
 export const Route = createFileRoute("/")({
 	component: HomeLayout,
@@ -29,106 +25,112 @@ function HomeLayout() {
 function Home() {
 	return (
 		<Container size="lg">
-			<Stack gap="xl" py="xl">
+			<div className="flex flex-col gap-12 py-12">
 				{/* Hero Section */}
-				<Stack ta="center" gap="md">
-					<Title size="h1">TanStarter Todo</Title>
-					<Text c="dimmed" size="xl" maw={600} mx="auto">
+				<div className="flex flex-col items-center gap-4 text-center">
+					<h1 className="text-4xl font-bold tracking-tight">TanStarter Todo</h1>
+					<p className="text-xl text-muted-foreground max-w-[600px] mx-auto">
 						A modern, type-safe todo application built with TanStack Start.
-					</Text>
-					<Group justify="center" mt="md">
-						<LinkButton to="/tasks" size="lg">
-							Get Started
-						</LinkButton>
-						<Anchor
-							href="https://github.com/dotnize/tanstarter"
-							target="_blank"
+					</p>
+					<div className="flex gap-4 mt-4">
+						<Button asChild size="lg">
+							<Link to="/tasks">Get Started</Link>
+						</Button>
+						<Button
+							asChild
+							variant="outline"
 							size="lg"
-							className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+							className="bg-accent/10 hover:bg-accent/20"
 						>
-							View on GitHub
-						</Anchor>
-					</Group>
-				</Stack>
+							<a
+								href="https://github.com/dotnize/tanstarter"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								View on GitHub
+							</a>
+						</Button>
+					</div>
+				</div>
 
 				{/* Features Section */}
-				<Stack gap="lg" mt="xl">
-					<Title order={2} ta="center">
+				<div className="flex flex-col gap-8">
+					<h2 className="text-3xl font-bold tracking-tight text-center">
 						Features
-					</Title>
-					<Group grow>
-						<Card withBorder>
-							<Stack>
-								<Title order={3} size="h4">
-									Type Safety
-								</Title>
-								<Text c="dimmed">
+					</h2>
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<Card>
+							<CardHeader>
+								<CardTitle>Type Safety</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<p className="text-muted-foreground">
 									End-to-end type safety with TypeScript, Drizzle ORM, and
 									Valibot validation.
-								</Text>
-							</Stack>
+								</p>
+							</CardContent>
 						</Card>
-						<Card withBorder>
-							<Stack>
-								<Title order={3} size="h4">
-									Modern Stack
-								</Title>
-								<Text c="dimmed">
+						<Card>
+							<CardHeader>
+								<CardTitle>Modern Stack</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<p className="text-muted-foreground">
 									Built with TanStack Start, TanStack Query, TanStack Table, and
-									Mantine UI components.
-								</Text>
-							</Stack>
+									shadcn/ui components.
+								</p>
+							</CardContent>
 						</Card>
-						<Card withBorder>
-							<Stack>
-								<Title order={3} size="h4">
-									Great DX
-								</Title>
-								<Text c="dimmed">
+						<Card>
+							<CardHeader>
+								<CardTitle>Great DX</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<p className="text-muted-foreground">
 									Fast refresh, automatic type generation, and error handling.
-								</Text>
-							</Stack>
+								</p>
+							</CardContent>
 						</Card>
-					</Group>
-				</Stack>
+					</div>
+				</div>
 
 				{/* Tech Stack Section */}
-				<Stack gap="lg" mt="xl">
-					<Title order={2} ta="center">
+				<div className="flex flex-col gap-8">
+					<h2 className="text-3xl font-bold tracking-tight text-center">
 						Tech Stack
-					</Title>
-					<Group grow>
-						<Card withBorder>
-							<Stack>
-								<Title order={3} size="h4">
-									Frontend
-								</Title>
-								<Text c="dimmed">
-									React, TanStack Router, TanStack Query, Mantine UI with
-									modals, Tailwind CSS, and Lingui i18n
-								</Text>
-							</Stack>
+					</h2>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<Card>
+							<CardHeader>
+								<CardTitle>Frontend</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<p className="text-muted-foreground">
+									React, TanStack Router, TanStack Query, shadcn/ui with modals,
+									Tailwind CSS, and Lingui i18n
+								</p>
+							</CardContent>
 						</Card>
-						<Card withBorder>
-							<Stack>
-								<Title order={3} size="h4">
-									Backend
-								</Title>
-								<Text c="dimmed">
+						<Card>
+							<CardHeader>
+								<CardTitle>Backend</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<p className="text-muted-foreground">
 									TanStack Start, Drizzle ORM, PostgreSQL, Better Auth, and CASL
 									authorization
-								</Text>
-							</Stack>
+								</p>
+							</CardContent>
 						</Card>
-					</Group>
-				</Stack>
+					</div>
+				</div>
 
 				{/* Image Optimization Demo Section */}
-				<Stack gap="lg" mt="xl">
-					<Title order={2} ta="center">
+				<div className="flex flex-col gap-8">
+					<h2 className="text-3xl font-bold tracking-tight text-center">
 						Image Optimization Demo
-					</Title>
-					<Card withBorder mx="auto" p="xl">
+					</h2>
+					<Card className="mx-auto p-8">
 						<Image
 							src="https://images.unsplash.com/photo-1682687220742-aba13b6e50ba"
 							layout="constrained"
@@ -141,32 +143,32 @@ function Home() {
 							breakpoints={[320, 640, 960, 1280]}
 							className="rounded-lg"
 						/>
-						<Text size="sm" c="dimmed" ta="center" mt="md">
+						<p className="text-sm text-muted-foreground text-center mt-4">
 							Image optimized with Unpic - Responsive, lazy-loaded, and
 							CDN-powered
-						</Text>
+						</p>
 					</Card>
-				</Stack>
+				</div>
 
 				{/* Error Monitoring Section */}
-				<Stack gap="lg" mt="xl">
-					<Title order={2} ta="center">
+				<div className="flex flex-col gap-8">
+					<h2 className="text-3xl font-bold tracking-tight text-center">
 						Error Monitoring
-					</Title>
-					<Card withBorder>
-						<Stack align="center" gap="md">
-							<Text c="dimmed" ta="center">
+					</h2>
+					<Card>
+						<CardContent className="flex flex-col items-center gap-4 pt-6">
+							<p className="text-muted-foreground text-center">
 								Test the error monitoring system with various scenarios
 								including error boundaries, uncaught errors, async errors, and
 								user context tracking.
-							</Text>
-							<LinkButton to="/debug/monitoring" size="md">
-								Test Error Monitoring
-							</LinkButton>
-						</Stack>
+							</p>
+							<Button asChild>
+								<Link to="/debug/monitoring">Test Error Monitoring</Link>
+							</Button>
+						</CardContent>
 					</Card>
-				</Stack>
-			</Stack>
+				</div>
+			</div>
 		</Container>
 	);
 }
