@@ -1,4 +1,5 @@
 import { getSerwist } from "virtual:serwist";
+import { Toaster } from "@/components/ui/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
@@ -9,7 +10,6 @@ import {
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
 import type { ReactNode } from "react";
 import { Suspense, lazy, useEffect } from "react";
-import { Toaster } from "sonner";
 import { getWebRequest } from "vinxi/http";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
@@ -195,7 +195,7 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 			<body>
 				{children}
 				<ScrollRestoration />
-				<Toaster richColors position="top-right" />
+				<Toaster position="bottom-right" />
 				{/*}
 				<ReactQueryDevtools buttonPosition="bottom-left" />
 

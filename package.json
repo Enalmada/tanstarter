@@ -76,6 +76,7 @@
 		"drizzle-valibot": "^0.3.1",
 		"lucide-react": "^0.474.0",
 		"nanoid": "^5.0.9",
+		"next-themes": "^0.4.4",
 		"postgres": "^3.4.5",
 		"posthog-js": "^1.207.0",
 		"react": "^19.0.0",
