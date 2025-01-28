@@ -90,6 +90,7 @@ export default defineConfig({
 				"drizzle-orm/pg-core",
 				"drizzle-valibot",
 			],
+			/*
 			include: [
 				"@radix-ui/react-scroll-area",
 				"@radix-ui/react-slot",
@@ -111,7 +112,7 @@ export default defineConfig({
 				"@tanstack/react-table",
 				"@tanstack/react-form",
 				"@tanstack/start",
-				"@tanstack/start/client-runtime",
+				"@tanstack/start/client",
 				"@tanstack/react-router-with-query",
 				"@tanstack/router-devtools",
 				"@serwist/window",
@@ -130,6 +131,7 @@ export default defineConfig({
 				"rollbar",
 				"next-themes",
 			],
+			*/
 		},
 		build: {
 			// Source map configuration

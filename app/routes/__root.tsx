@@ -8,13 +8,13 @@ import {
 	redirect,
 } from "@tanstack/react-router";
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
+import { getWebRequest } from "@tanstack/start/server";
 import type { ReactNode } from "react";
 import { Suspense, lazy, useEffect } from "react";
-import { getWebRequest } from "vinxi/http";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import { auth } from "~/server/auth/auth";
-import appStyles from "~/styles/app.css?inline";
+import appStyles from "~/styles/app.css?url";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
 import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
@@ -43,8 +43,12 @@ export const getSessionUser = createServerFn({ method: "GET" }).handler(
 		}
 
 		// Normal auth flow
-		const { headers } = getWebRequest();
-		const session = await auth.api.getSession({ headers });
+		const request = getWebRequest();
+		if (!request) {
+			return null;
+		}
+
+		const session = await auth.api.getSession({ headers: request.headers });
 		return session?.user || null;
 	},
 );
@@ -160,6 +164,11 @@ export const Route = createRootRouteWithContext<{
 				rel: "stylesheet",
 				href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
 			},
+			{
+				// TODO research if inline is better for web vitals - it was causing hydration errors
+				rel: "stylesheet",
+				href: appStyles,
+			},
 		],
 	}),
 	component: RootComponent,
@@ -202,8 +211,6 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 		<html suppressHydrationWarning lang="en">
 			<head>
 				<Meta />
-				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: Required for SSR styles */}
-				<style id="app-css" dangerouslySetInnerHTML={{ __html: appStyles }} />
 			</head>
 			<body>
 				{children}
