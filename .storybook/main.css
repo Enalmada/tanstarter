@@ -1,3 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Add any Storybook-specific styles here */
+#storybook-root {
+	padding: 1rem;
+}

@@ -1,7 +1,13 @@
+import path from "node:path";
 import type { StorybookConfig } from "@storybook/react-vite";
+import { mergeConfig } from "vite";
 
 const config: StorybookConfig = {
-	stories: ["../app/**/*.mdx", "../app/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
+	stories: [
+		"../app/**/*.mdx",
+		"../app/**/*.stories.@(js|jsx|mjs|ts|tsx)",
+		"../app/components/ui/**/*.stories.@(js|jsx|mjs|ts|tsx)",
+	],
 	addons: [
 		"@storybook/addon-links",
 		"@storybook/addon-essentials",
@@ -10,7 +16,10 @@ const config: StorybookConfig = {
 		"@storybook/addon-coverage",
 		"@storybook/addon-themes",
 	],
-	framework: "@storybook/react-vite",
+	framework: {
+		name: "@storybook/react-vite",
+		options: {},
+	},
 	core: {
 		builder: "@storybook/builder-vite",
 		disableTelemetry: true,
@@ -23,14 +32,27 @@ const config: StorybookConfig = {
 		reactDocgen: "react-docgen",
 		check: false,
 	},
-	viteFinal: async (config) => {
-		return {
-			...config,
+	async viteFinal(config) {
+		const { default: tailwind } = await import("@tailwindcss/vite");
+
+		return mergeConfig(config, {
 			define: {
-				...config.define,
 				"process.env": {},
 			},
-		};
+			plugins: [...(config.plugins || []), tailwind()],
+			resolve: {
+				alias: {
+					"~": path.resolve(__dirname, "../app"),
+					"@": path.resolve(__dirname, "../app"),
+				},
+			},
+			optimizeDeps: {
+				include: [
+					"@storybook/addon-interactions/preview",
+					"react/jsx-dev-runtime",
+				],
+			},
+		});
 	},
 };
 

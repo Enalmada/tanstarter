@@ -1,11 +1,6 @@
-import "@mantine/core/styles.css";
+import "../app/styles/app.css";
 import "./main.css";
-import { MantineProvider, createTheme } from "@mantine/core";
 import type { Preview } from "@storybook/react";
-
-const theme = createTheme({
-	// Add your theme customizations here
-});
 
 const preview: Preview = {
 	parameters: {
@@ -20,18 +15,16 @@ const preview: Preview = {
 		themes: {
 			default: "light",
 			list: [
-				{ name: "light", class: "light", color: "#ffffff" },
+				{ name: "light", class: "", color: "#ffffff" },
 				{ name: "dark", class: "dark", color: "#000000" },
 			],
 		},
 	},
 	decorators: [
 		(Story) => (
-			<MantineProvider theme={theme}>
-				<div className="p-4">
-					<Story />
-				</div>
-			</MantineProvider>
+			<div className="min-h-screen p-4 antialiased">
+				<Story />
+			</div>
 		),
 	],
 };
