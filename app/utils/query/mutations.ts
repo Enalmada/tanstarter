@@ -88,7 +88,7 @@ import {
 	createEntity,
 	deleteEntity,
 	updateEntity,
-} from "~/server/services/base-service";
+} from "~/functions/base-service";
 
 // Toast configuration for consistent messaging
 interface ToastConfig {

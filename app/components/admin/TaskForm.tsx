@@ -1,5 +1,6 @@
 import type { Task, TaskStatusType } from "~/server/db/schema";
-import { TaskStatus, taskFormSchema } from "~/server/db/schema";
+import { TaskStatus } from "~/server/db/schema";
+import { taskFormSchema } from "~/types/validation";
 import { FormGenerator } from "../form/FormGenerator";
 import type { FormFieldConfig } from "../form/types";
 

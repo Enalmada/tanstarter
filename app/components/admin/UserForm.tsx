@@ -1,5 +1,6 @@
 import type { User, UserRoleType } from "~/server/db/schema";
 import { UserRole } from "~/server/db/schema";
+import { userFormSchema } from "~/types/validation";
 import { FormGenerator } from "../form/FormGenerator";
 import type { FormFieldConfig } from "../form/types";
 
@@ -61,6 +62,7 @@ export function AdminUserForm({
 			}}
 			onSubmit={onSubmit}
 			isSubmitting={isSubmitting}
+			schema={userFormSchema}
 		/>
 	);
 }

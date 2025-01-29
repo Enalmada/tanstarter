@@ -3,13 +3,10 @@ import { eq } from "drizzle-orm";
 import type { ExtractTablesWithRelations } from "drizzle-orm";
 import { any, object, optional, picklist, safeParse, string } from "valibot";
 import { authMiddleware } from "~/middleware/auth-guard";
+import { ENTITY_TYPES } from "~/server/access/ability";
+import { accessCheck } from "~/server/access/check";
+import db from "~/server/db";
 import { buildWhereClause } from "~/server/db/DrizzleOrm";
-import { logger } from "~/utils/logger";
-import type { SubjectType } from "../access/ability";
-import { ENTITY_TYPES } from "../access/ability";
-import { accessCheck } from "../access/check";
-import db from "../db";
-import type * as schema from "../db/schema";
 import {
 	TaskTable,
 	UserTable,
@@ -19,7 +16,9 @@ import {
 	userInsertSchema,
 	userSelectSchema,
 	userUpdateSchema,
-} from "../db/schema";
+} from "~/server/db/schema";
+import type * as schema from "~/server/db/schema";
+import { logger } from "~/utils/logger";
 
 type DbSchema = ExtractTablesWithRelations<typeof schema>;
 
@@ -129,7 +128,7 @@ export const deleteEntity = createServerFn({ method: "POST" })
 			throw new Error(`${subject} ${id} not found`);
 		}
 
-		accessCheck(context.user, "delete", subject as SubjectType, entity);
+		accessCheck(context.user, "delete", subject, entity);
 
 		const [result] = await db.delete(table).where(eq(table.id, id)).returning();
 
@@ -190,7 +189,7 @@ export const createEntity = createServerFn({ method: "POST" })
 			version: 1,
 		};
 
-		accessCheck(context.user, "create", subject as SubjectType, createWith);
+		accessCheck(context.user, "create", subject, createWith);
 
 		const [result] = await db.insert(table).values(createWith).returning();
 
@@ -374,3 +373,54 @@ export const findMany = createServerFn({ method: "GET" })
 
 		return result;
 	});
+
+/**
+ * Generic CRUD Service Implementation
+ *
+ * This service provides a type-safe, generic CRUD API for entities in the system.
+ * It handles common operations like create, read, update, delete with:
+ * - Type safety through TypeScript and Valibot schemas
+ * - Access control checks
+ * - Consistent error handling
+ * - Optimistic concurrency control via version numbers
+ *
+ * Usage:
+ * ```ts
+ * // Create
+ * const task = await createEntity({
+ *   data: {
+ *     subject: "Task",
+ *     data: { title: "New Task" }
+ *   },
+ *   context: { user }
+ * });
+ *
+ * // Read
+ * const tasks = await findMany({
+ *   data: {
+ *     subject: "Task",
+ *     where: { userId: user.id }
+ *   },
+ *   context: { user }
+ * });
+ *
+ * // Update
+ * const updated = await updateEntity({
+ *   data: {
+ *     subject: "Task",
+ *     id: "task_1",
+ *     data: { title: "Updated" }
+ *   },
+ *   context: { user }
+ * });
+ *
+ * // Delete
+ * const deleted = await deleteEntity({
+ *   data: {
+ *     subject: "Task",
+ *     id: "task_1"
+ *   },
+ *   context: { user }
+ * });
+ * ```
+ */

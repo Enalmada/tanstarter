@@ -7,7 +7,8 @@ import {
 } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { TaskStatus } from "~/server/db/schema";
-import { mockUserId } from "~/server/services/__tests__/base-service.test";
+
+import { mockUserId } from "~/test/setup";
 import { TaskForm } from "../TaskForm";
 
 describe("TaskForm", () => {

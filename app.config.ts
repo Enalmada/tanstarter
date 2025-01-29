@@ -9,6 +9,7 @@ import viteRollbar from "vite-plugin-rollbar";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { cspRules } from "./app/lib/security/cspRules";
 import { generateSecurityHeaders } from "./app/lib/security/generate";
+// import { serverGuard } from "./app/lib/vite/server-guard";
 
 // Load environment variables early for build plugins
 config();
@@ -24,18 +25,23 @@ const getBuildRelease = () => {
 export default defineConfig({
 	vite: {
 		plugins: [
+			// serverGuard(),
 			tailwindcss(),
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
 			}),
 			// Upload source maps to Rollbar after build
-			viteRollbar({
-				accessToken: process.env.ROLLBAR_SERVER_TOKEN || "",
-				version: getBuildRelease(),
-				baseUrl: process.env.CF_PAGES_URL || "http://localhost:3000",
-				ignoreUploadErrors: true,
-				silent: false,
-			}),
+			...(process.env.ROLLBAR_SERVER_TOKEN
+				? [
+						viteRollbar({
+							accessToken: process.env.ROLLBAR_SERVER_TOKEN,
+							version: getBuildRelease(),
+							baseUrl: process.env.CF_PAGES_URL || "http://localhost:3000",
+							ignoreUploadErrors: true,
+							silent: false,
+						}),
+					]
+				: []),
 			serwist({
 				base: "/",
 				scope: "/",
@@ -90,10 +96,11 @@ export default defineConfig({
 				"drizzle-orm/pg-core",
 				"drizzle-valibot",
 				"better-auth",
-				"better-auth/adapters/drizzle",
+				"better-auth/adapters/*",
+				"better-auth/server",
+				"better-auth/dist/server",
 				"@neondatabase/serverless",
 			],
-
 			include: [
 				"@radix-ui/react-scroll-area",
 				"@radix-ui/react-slot",
@@ -138,6 +145,7 @@ export default defineConfig({
 				"@tanstack/start/server",
 			],
 		},
+		// TODO confirm we need this build section.
 		build: {
 			// Source map configuration
 			sourcemap: true,
@@ -147,6 +155,23 @@ export default defineConfig({
 					// In production, source maps are uploaded to Rollbar
 					sourcemap: process.env.NODE_ENV === "development",
 				},
+				external: [
+					// Mark server-only packages as external to exclude from client bundle
+					"better-auth",
+					"better-auth/adapters/*",
+					"better-auth/server",
+					"better-auth/dist/server",
+					"drizzle-orm",
+					"drizzle-orm/pg-core",
+					"drizzle-valibot",
+					"@neondatabase/serverless",
+					// Node.js built-in modules
+					"node:stream",
+					"node:stream/web",
+					"node:async_hooks",
+					// Exclude server directory from bundle
+					"~/server/*",
+				],
 			},
 		},
 	},

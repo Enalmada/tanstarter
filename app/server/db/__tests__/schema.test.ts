@@ -1,6 +1,6 @@
 import { safeParse } from "valibot";
 import { describe, expect, it } from "vitest";
-import { mockUserId } from "~/server/services/__tests__/base-service.test";
+import { mockUserId } from "~/test/setup";
 import {
 	TaskStatus,
 	UserRole,
@@ -112,7 +112,7 @@ describe("schema validation", () => {
 					title: "Test Task",
 					description: "Test Description",
 					status: TaskStatus.ACTIVE,
-					userId: "usr_123",
+					userId: mockUserId,
 					dueDate: new Date(),
 					version: 1,
 				};

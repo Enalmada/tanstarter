@@ -62,7 +62,6 @@ export const UserTable = pgTable("user", {
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	name: text(),
 	image: text("image"),
-	// Additional fields
 	role: UserRolesEnum("role")
 		.default(UserRole.MEMBER)
 		.$type<UserRole>()
@@ -169,22 +168,19 @@ export const VerificationTable = pgTable("verification", {
 });
 
 // Task Schema
-export const TaskStatus = {
-	ACTIVE: "ACTIVE",
-	COMPLETED: "COMPLETED",
-} as const;
+export enum TaskStatus {
+	ACTIVE = "ACTIVE",
+	COMPLETED = "COMPLETED",
+}
 
 export type TaskStatusType = (typeof TaskStatus)[keyof typeof TaskStatus];
-
-// Valibot schema for TaskStatus
-export const taskStatusSchema = enum_(TaskStatus);
 
 export const TaskTable = pgTable("task", {
 	id: generateIdField("tsk"),
 	title: varchar("title", { length: 256 }).notNull(),
 	description: varchar("description", { length: 1024 }),
 	status: text("status")
-		.$type<TaskStatusType>()
+		.$type<TaskStatus>()
 		.default(TaskStatus.ACTIVE)
 		.notNull(),
 	dueDate: timestamp("due_date", { mode: "date" }),
@@ -215,6 +211,9 @@ export type ClientTask = Pick<
 	| "createdAt"
 	| "updatedAt"
 >;
+
+// Valibot schema for TaskStatus
+export const taskStatusSchema = enum_(TaskStatus);
 
 // Valibot schemas with proper enum handling
 export const taskSelectSchema = createSelectSchema(TaskTable, {
