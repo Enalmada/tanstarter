@@ -3,7 +3,7 @@ import {
 	createQueryKeyStore,
 	type inferQueryKeyStore,
 } from "@lukemorales/query-key-factory";
-import { getSessionUser } from "~/routes/__root";
+import { getSessionUser } from "~/server/auth/session";
 import type { Task, User } from "~/server/db/schema";
 import { findFirst, findMany } from "~/server/services/base-service";
 

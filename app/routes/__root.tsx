@@ -7,17 +7,14 @@ import {
 	createRootRouteWithContext,
 	redirect,
 } from "@tanstack/react-router";
-import { Meta, Scripts, createServerFn } from "@tanstack/start";
-import { getWebRequest } from "@tanstack/start/server";
+import { Meta, Scripts } from "@tanstack/start";
 import type { ReactNode } from "react";
 import { Suspense, lazy, useEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
-import { auth } from "~/server/auth/auth";
 import appStyles from "~/styles/app.css?url";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
-import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
 const ENABLE_SERVICE_WORKER = false;
 
@@ -33,24 +30,6 @@ const AnalyticsProvider = lazy(() =>
 	import("~/utils/analytics").then((mod) => ({
 		default: mod.AnalyticsProvider,
 	})),
-);
-
-export const getSessionUser = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const mockUser = checkPlaywrightTestAuth();
-		if (mockUser) {
-			return mockUser;
-		}
-
-		// Normal auth flow
-		const request = getWebRequest();
-		if (!request) {
-			return null;
-		}
-
-		const session = await auth.api.getSession({ headers: request.headers });
-		return session?.user || null;
-	},
 );
 
 export const Route = createRootRouteWithContext<{

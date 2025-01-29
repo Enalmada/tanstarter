@@ -2,6 +2,11 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
+// Type definition for server function handlers
+export type ServerFnHandler = <TInput, TOutput>(
+	fn: (input: TInput) => Promise<TOutput>,
+) => (input: TInput) => Promise<TOutput>;
+
 // Mock virtual:serwist
 vi.mock("virtual:serwist", () => ({
 	getSerwist: () => ({

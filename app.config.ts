@@ -89,8 +89,11 @@ export default defineConfig({
 				"drizzle-orm",
 				"drizzle-orm/pg-core",
 				"drizzle-valibot",
+				"better-auth",
+				"better-auth/adapters/drizzle",
+				"@neondatabase/serverless",
 			],
-			/*
+
 			include: [
 				"@radix-ui/react-scroll-area",
 				"@radix-ui/react-slot",
@@ -100,6 +103,7 @@ export default defineConfig({
 				"@radix-ui/react-label",
 				"@radix-ui/react-radio-group",
 				"@radix-ui/react-select",
+				"@radix-ui/react-popover",
 				"class-variance-authority",
 				"sonner",
 				"clsx",
@@ -130,8 +134,9 @@ export default defineConfig({
 				"@rollbar/react",
 				"rollbar",
 				"next-themes",
+				"@tanstack/start/server-functions-client",
+				"@tanstack/start/server",
 			],
-			*/
 		},
 		build: {
 			// Source map configuration
