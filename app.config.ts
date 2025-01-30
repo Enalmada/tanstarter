@@ -55,7 +55,9 @@ export default defineConfig({
 			react({
 				babel: {
 					plugins: [
-						["babel-plugin-react-compiler", { target: "19" }],
+						...(process.env.NODE_ENV === "production"
+							? [["babel-plugin-react-compiler", { target: "19" }]]
+							: []),
 						"@lingui/babel-plugin-lingui-macro",
 					],
 				},
@@ -189,7 +191,12 @@ export default defineConfig({
 	},
 	react: {
 		babel: {
-			plugins: ["@lingui/babel-plugin-lingui-macro"],
+			plugins: [
+				...(process.env.NODE_ENV === "production"
+					? [["babel-plugin-react-compiler", { target: "19" }]]
+					: []),
+				"@lingui/babel-plugin-lingui-macro",
+			],
 		},
 	},
 });

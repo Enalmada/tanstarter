@@ -3,7 +3,6 @@ import { Toaster } from "@/components/ui/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
-	ScrollRestoration,
 	createRootRouteWithContext,
 	redirect,
 } from "@tanstack/react-router";
@@ -144,7 +143,6 @@ export const Route = createRootRouteWithContext<{
 				href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
 			},
 			{
-				// TODO research if inline is better for web vitals - it was causing hydration errors
 				rel: "stylesheet",
 				href: appStyles,
 			},
@@ -193,7 +191,6 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 			</head>
 			<body>
 				{children}
-				<ScrollRestoration />
 				<Toaster position="bottom-right" />
 				{/*}
 				<ReactQueryDevtools buttonPosition="bottom-left" />
