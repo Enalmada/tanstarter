@@ -1,3 +1,4 @@
+// import { serverGuard } from "./app/lib/vite/server-guard";
 import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
 import tailwindcss from "@tailwindcss/vite";
@@ -8,8 +9,6 @@ import viteRollbar from "vite-plugin-rollbar";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { cspRules } from "./app/lib/security/cspRules";
 import { generateSecurityHeaders } from "./app/lib/security/generate";
-// import { serverGuard } from "./app/lib/vite/server-guard";
-
 // Load environment variables early for build plugins
 config();
 
@@ -67,6 +66,11 @@ export default defineConfig({
 
 			lingui(),
 		],
+		resolve: {
+			alias: {
+				"~": "./app",
+			},
+		},
 		// Only expose PUBLIC_ prefixed vars to client
 		envPrefix: ["PUBLIC_", "APP_", "CF_"],
 		define: {
@@ -173,8 +177,6 @@ export default defineConfig({
 					"node:stream",
 					"node:stream/web",
 					"node:async_hooks",
-					// Exclude server directory from bundle
-					"~/server/*",
 				],
 			},
 		},

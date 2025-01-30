@@ -1,8 +1,8 @@
-import { cn } from "@/lib/utils";
 import { Outlet } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Navbar } from "~/components/Navbar";
 import { Footer } from "~/components/marketing/Footer";
+import { cn } from "~/lib/utils";
 import type { SessionUser } from "~/utils/auth-client";
 
 interface DefaultLayoutProps {

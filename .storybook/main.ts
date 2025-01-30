@@ -43,7 +43,6 @@ const config: StorybookConfig = {
 			resolve: {
 				alias: {
 					"~": path.resolve(__dirname, "../app"),
-					"@": path.resolve(__dirname, "../app"),
 				},
 			},
 			optimizeDeps: {

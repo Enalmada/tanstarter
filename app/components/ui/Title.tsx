@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
 import { type ComponentPropsWithoutRef, forwardRef } from "react";
+import { cn } from "~/lib/utils";
 
 export interface TitleProps extends ComponentPropsWithoutRef<"h1"> {
 	order?: 1 | 2 | 3 | 4 | 5 | 6;

@@ -1,5 +1,4 @@
 import { getSerwist } from "virtual:serwist";
-import { Toaster } from "@/components/ui/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
@@ -11,6 +10,7 @@ import type { ReactNode } from "react";
 import { Suspense, lazy, useEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
+import { Toaster } from "~/components/ui/sonner";
 import appStyles from "~/styles/app.css?url";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";

@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
 import { type ComponentPropsWithoutRef, forwardRef } from "react";
+import { cn } from "~/lib/utils";
 
 export interface ContainerProps extends ComponentPropsWithoutRef<"div"> {
 	size?: "xs" | "sm" | "md" | "lg" | "xl";
