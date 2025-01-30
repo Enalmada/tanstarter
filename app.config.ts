@@ -2,7 +2,6 @@ import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "@tanstack/start/config";
-import react from "@vitejs/plugin-react";
 import { config } from "dotenv";
 import { cloudflare } from "unenv";
 import viteRollbar from "vite-plugin-rollbar";
@@ -52,7 +51,9 @@ export default defineConfig({
 				rollupFormat: "iife",
 			}),
 
+			/*
 			react({
+				// Force inclusion of React refresh preamble
 				babel: {
 					plugins: [
 						...(process.env.NODE_ENV === "production"
@@ -62,6 +63,7 @@ export default defineConfig({
 					],
 				},
 			}),
+			*/
 
 			lingui(),
 		],

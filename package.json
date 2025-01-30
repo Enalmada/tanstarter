@@ -142,8 +142,5 @@
 		"lefthook",
 		"sharp"
 	],
-	"type": "module",
-	"patchedDependencies": {
-		"@tanstack/start-config@1.98.2": "patches/@tanstack%2Fstart-config@1.98.2.patch"
-	}
+	"type": "module"
 }

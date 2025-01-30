@@ -18,12 +18,29 @@ import {
 } from "~/components/ui/dropdown-menu";
 import type { SessionUser } from "~/utils/auth-client";
 
+// Move this outside component to ensure consistent hash generation
+function getGravatarUrl(email: string) {
+	// Use a more consistent way to generate hash for Gravatar
+	const hash = email
+		.trim()
+		.toLowerCase()
+		.split("")
+		.map((char) => char.charCodeAt(0).toString(16))
+		.join("");
+
+	return `https://www.gravatar.com/avatar/${hash}?d=mp`;
+}
+
 interface NavbarProps {
 	user: SessionUser | null;
 }
 
 export function Navbar({ user }: NavbarProps) {
 	const navigate = useNavigate();
+
+	// Pre-compute the avatar URL
+	const avatarUrl =
+		user?.image ?? (user?.email ? getGravatarUrl(user.email) : undefined);
 
 	return (
 		<div className="flex h-14 items-center justify-between border-0 border-b px-4">
@@ -36,14 +53,8 @@ export function Navbar({ user }: NavbarProps) {
 					<>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Avatar className="cursor-pointer">
-									<AvatarImage
-										src={
-											user.image ??
-											`https://www.gravatar.com/avatar/${btoa(user.email)}?d=mp`
-										}
-										alt={user.name ?? ""}
-									/>
+								<Avatar id="user-avatar" className="cursor-pointer">
+									<AvatarImage src={avatarUrl} alt={user.name ?? ""} />
 									<AvatarFallback>
 										{user.name?.[0]?.toUpperCase() ?? "U"}
 									</AvatarFallback>
