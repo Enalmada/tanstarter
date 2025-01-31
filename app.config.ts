@@ -19,13 +19,6 @@ const getBuildRelease = () => {
 	return "development";
 };
 
-const getBasePath = () => {
-	if (process.env.CF_PAGES) {
-		return "/opt/buildhome/repo/app";
-	}
-	return "./app";
-};
-
 export default defineConfig({
 	vite: {
 		plugins: [
@@ -77,12 +70,9 @@ export default defineConfig({
 			lingui(),
 		],
 		resolve: {
-			alias: [
-				{
-					find: /^~\/(.*)/,
-					replacement: `${getBasePath()}/$1`,
-				},
-			],
+			alias: {
+				"~": "./app",
+			},
 		},
 		// Only expose PUBLIC_ prefixed vars to client
 		envPrefix: ["PUBLIC_", "APP_", "CF_"],
