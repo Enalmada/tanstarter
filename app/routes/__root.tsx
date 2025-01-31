@@ -1,4 +1,4 @@
-import { getSerwist } from "virtual:serwist";
+// import { getSerwist } from "virtual:serwist";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { Meta, Scripts } from "@tanstack/start";
 import type { ReactNode } from "react";
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import { Toaster } from "~/components/ui/sonner";
@@ -158,6 +158,7 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
+	/*
 	useEffect(() => {
 		const loadSerwist = async () => {
 			if (ENABLE_SERVICE_WORKER && "serviceWorker" in navigator) {
@@ -175,6 +176,7 @@ function RootComponent() {
 
 		loadSerwist();
 	}, []);
+	*/
 
 	return (
 		<RootDocument>
