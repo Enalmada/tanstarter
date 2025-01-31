@@ -161,21 +161,6 @@ export default defineConfig({
 					// In production, source maps are uploaded to Rollbar
 					sourcemap: process.env.NODE_ENV === "development",
 				},
-				external: [
-					// Mark server-only packages as external to exclude from client bundle
-					"better-auth",
-					"better-auth/adapters/*",
-					"better-auth/server",
-					"better-auth/dist/server",
-					"drizzle-orm",
-					"drizzle-orm/pg-core",
-					"drizzle-valibot",
-					"@neondatabase/serverless",
-					// Node.js built-in modules
-					"node:stream",
-					"node:stream/web",
-					"node:async_hooks",
-				],
 			},
 		},
 	},
