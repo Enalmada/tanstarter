@@ -1,5 +1,6 @@
 // import { serverGuard } from "./app/lib/vite/server-guard";
 import { lingui } from "@lingui/vite-plugin";
+import { serwist } from "@serwist/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "@tanstack/start/config";
 import { config } from "dotenv";
@@ -8,7 +9,6 @@ import viteRollbar from "vite-plugin-rollbar";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { cspRules } from "./app/lib/security/cspRules";
 import { generateSecurityHeaders } from "./app/lib/security/generate";
-// Load environment variables early for build plugins
 config();
 
 // Get release info for build time
@@ -41,7 +41,7 @@ export default defineConfig({
 				: []),
 			// TODO - serwist having trouble on cloudflare pages
 			// "~": process.env.CF_PAGES ? "/opt/buildhome/repo/app"  : "./app",
-			/*
+
 			serwist({
 				base: "/",
 				scope: "/",
@@ -51,7 +51,6 @@ export default defineConfig({
 				globDirectory: "dist",
 				rollupFormat: "iife",
 			}),
-			*/
 
 			/*
 			react({
