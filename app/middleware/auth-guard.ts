@@ -1,5 +1,5 @@
 import { createMiddleware } from "@tanstack/start";
-import { getWebRequest, setResponseStatus } from "@tanstack/start/server";
+import { getWebRequest, setResponseStatus } from "vinxi/http";
 import { auth } from "~/server/auth/auth";
 import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 

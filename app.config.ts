@@ -1,14 +1,15 @@
 // import { serverGuard } from "./app/lib/vite/server-guard";
 import { lingui } from "@lingui/vite-plugin";
-// import { serwist } from "@serwist/vite";
-import tailwindcss from "@tailwindcss/vite";
+import { serwist } from "@serwist/vite";
 import { defineConfig } from "@tanstack/start/config";
+import react from "@vitejs/plugin-react";
 import { config } from "dotenv";
 import { cloudflare } from "unenv";
-// import viteRollbar from "vite-plugin-rollbar";
+import viteRollbar from "vite-plugin-rollbar";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { cspRules } from "./app/lib/security/cspRules";
 import { generateSecurityHeaders } from "./app/lib/security/generate";
+
 config();
 
 // Get release info for build time
@@ -26,9 +27,8 @@ export default defineConfig({
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
 			}),
-			tailwindcss(),
 			// Upload source maps to Rollbar after build
-			/* 			...(process.env.ROLLBAR_SERVER_TOKEN
+			...(process.env.ROLLBAR_SERVER_TOKEN
 				? [
 						viteRollbar({
 							accessToken: process.env.ROLLBAR_SERVER_TOKEN,
@@ -38,10 +38,7 @@ export default defineConfig({
 							silent: false,
 						}),
 					]
-				: []), */
-			// TODO - serwist having trouble on cloudflare pages
-			// "~": process.env.CF_PAGES ? "/opt/buildhome/repo/app"  : "./app",
-			/*
+				: []),
 			serwist({
 				base: "/",
 				scope: "/",
@@ -51,9 +48,7 @@ export default defineConfig({
 				globDirectory: "dist",
 				rollupFormat: "iife",
 			}),
-*/
 
-			/*
 			react({
 				// Force inclusion of React refresh preamble
 				babel: {
@@ -65,15 +60,9 @@ export default defineConfig({
 					],
 				},
 			}),
-			*/
 
 			lingui(),
 		],
-		resolve: {
-			alias: {
-				"~": "./app",
-			},
-		},
 		// Only expose PUBLIC_ prefixed vars to client
 		envPrefix: ["PUBLIC_", "APP_", "CF_"],
 		define: {
@@ -112,6 +101,7 @@ export default defineConfig({
 				"better-auth/dist/server",
 				"@neondatabase/serverless",
 			],
+
 			include: [
 				"@radix-ui/react-scroll-area",
 				"@radix-ui/react-slot",
@@ -134,7 +124,8 @@ export default defineConfig({
 				"@tanstack/react-table",
 				"@tanstack/react-form",
 				"@tanstack/start",
-				"@tanstack/start/client",
+				// "@tanstack/start/client",
+				"@tanstack/start/client-runtime", // old
 				"@tanstack/react-router-with-query",
 				"@tanstack/router-devtools",
 				"@serwist/window",
@@ -152,7 +143,7 @@ export default defineConfig({
 				"@rollbar/react",
 				"rollbar",
 				"next-themes",
-				"@tanstack/start/server-functions-client",
+				// "@tanstack/start/server-functions-client",
 				"@tanstack/start/server",
 			],
 		},

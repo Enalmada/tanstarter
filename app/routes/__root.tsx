@@ -1,17 +1,18 @@
-// import { getSerwist } from "virtual:serwist";
+import { getSerwist } from "virtual:serwist";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
+	ScrollRestoration,
 	createRootRouteWithContext,
 	redirect,
 } from "@tanstack/react-router";
 import { Meta, Scripts } from "@tanstack/start";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import { Suspense, lazy } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import { Toaster } from "~/components/ui/sonner";
-import appStyles from "~/styles/app.css?url";
+import appCss from "~/styles/app.css?url";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
 
@@ -144,7 +145,7 @@ export const Route = createRootRouteWithContext<{
 			},
 			{
 				rel: "stylesheet",
-				href: appStyles,
+				href: appCss,
 			},
 		],
 	}),
@@ -158,7 +159,6 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
-	/*
 	useEffect(() => {
 		const loadSerwist = async () => {
 			if (ENABLE_SERVICE_WORKER && "serviceWorker" in navigator) {
@@ -176,7 +176,6 @@ function RootComponent() {
 
 		loadSerwist();
 	}, []);
-	*/
 
 	return (
 		<RootDocument>
@@ -194,6 +193,7 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 			<body>
 				{children}
 				<Toaster position="bottom-right" />
+				<ScrollRestoration />
 				{/*}
 				<ReactQueryDevtools buttonPosition="bottom-left" />
 

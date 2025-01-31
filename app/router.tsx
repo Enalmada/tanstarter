@@ -39,7 +39,6 @@ export function createRouter() {
 
 	return routerWithQueryClient(
 		createTanStackRouter({
-			scrollRestoration: true,
 			routeTree,
 			context: { queryClient, user: undefined } as RouterContext,
 			// Preload on hover/focus, but respect 5-minute stale time
