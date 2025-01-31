@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"scripts": {
 		"build": "vinxi build",
-		"build:prod": "bun install && bun run build && bun run drizzle:migrate && bun run scripts/post-build.ts",
+		"build:prod": "bun run build && bun run drizzle:migrate && bun run scripts/post-build.ts",
 		"check-types": "tsc --noEmit",
 		"compile": "lingui compile",
 		"db": "drizzle-kit",
