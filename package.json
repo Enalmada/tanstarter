@@ -84,15 +84,13 @@
 		"react-dom": "^19.0.0",
 		"react-email": "^3.0.6",
 		"react-error-boundary": "^5.0.0",
-		"react-hook-form": "^7.54.2",
 		"rollbar": "^2.26.4",
 		"sonner": "^1.7.3",
 		"tailwind-merge": "^3.0.1",
 		"tailwindcss-animate": "^1.0.7",
 		"unenv": "^1.10.0",
 		"valibot": "^1.0.0-beta.14",
-		"vinxi": "^0.5.1",
-		"zod": "^3.24.1"
+		"vinxi": "^0.5.1"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
@@ -132,7 +130,7 @@
 	"description": "production ready boilerplate for Tanstack Starter",
 	"private": true,
 	"main": "",
-	"packageManager": "bun@1.2.1",
+	"packageManager": "bun@1.1.45",
 	"trustedDependencies": [
 		"@biomejs/biome",
 		"@parcel/watcher",
