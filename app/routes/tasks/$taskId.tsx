@@ -6,20 +6,12 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { TaskForm } from "~/components/TaskForm";
+import { TaskForm, type TaskFormData } from "~/components/TaskForm";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import type { Task, TaskStatusType } from "~/server/db/schema";
+import type { Task } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
-
-export type TaskFormData = {
-	title: string;
-	description: string | null;
-	dueDate: Date | null;
-	status: TaskStatusType;
-	userId: string;
-};
 
 export const Route = createFileRoute("/tasks/$taskId")({
 	component: EditTask,
@@ -73,7 +65,10 @@ function EditTask() {
 			<Card>
 				<CardContent className="pt-6 space-y-4">
 					<TaskForm
-						defaultValues={task}
+						defaultValues={{
+							...task,
+							userId: userId ?? "",
+						}}
 						onSubmit={(values) =>
 							updateMutation.mutate({
 								data: values,

@@ -38,6 +38,7 @@ const config: PlaywrightTestConfig = {
 
 	// Built-in development server management
 	webServer: {
+		reuseExistingServer: true,
 		command: "vinxi dev",
 		port: 3000,
 		stdout: "pipe",
