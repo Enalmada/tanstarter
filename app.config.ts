@@ -102,6 +102,7 @@ export default defineConfig({
 				"@neondatabase/serverless",
 			],
 
+			/*
 			include: [
 				"@radix-ui/react-scroll-area",
 				"@radix-ui/react-slot",
@@ -144,8 +145,9 @@ export default defineConfig({
 				"rollbar",
 				"next-themes",
 				// "@tanstack/start/server-functions-client",
-				"@tanstack/start/server",
+				// "@tanstack/start/server",
 			],
+			*/
 		},
 		// TODO confirm we need this build section.
 		build: {
