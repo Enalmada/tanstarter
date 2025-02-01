@@ -1,3 +1,5 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 // import { serverGuard } from "./app/lib/vite/server-guard";
 import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
@@ -11,6 +13,9 @@ import { cspRules } from "./app/lib/security/cspRules";
 import { generateSecurityHeaders } from "./app/lib/security/generate";
 
 config();
+
+// Get the directory name of the current module
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Get release info for build time
 const getBuildRelease = () => {
@@ -66,7 +71,8 @@ export default defineConfig({
 		],
 		resolve: {
 			alias: {
-				"~": "./app",
+				// Use absolute path resolution
+				"~": resolve(__dirname, "app"),
 			},
 		},
 		// Only expose PUBLIC_ prefixed vars to client
