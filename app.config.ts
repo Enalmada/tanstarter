@@ -1,9 +1,13 @@
 import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
+
 import { defineConfig } from "@tanstack/start/config";
 import { config } from "dotenv";
+import { cloudflare } from "unenv";
 import viteRollbar from "vite-plugin-rollbar";
 import tsConfigPaths from "vite-tsconfig-paths";
+import { cspRules } from "./app/lib/security/cspRules";
+import { generateSecurityHeaders } from "./app/lib/security/generate";
 
 // Load environment variables early for build plugins
 config();
