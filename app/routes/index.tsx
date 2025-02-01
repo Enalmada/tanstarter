@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Image } from "@unpic/react";
 import { DefaultLayout } from "~/components/layouts/DefaultLayout";
-import { Container } from "~/components/ui/Container";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Container } from "~/components/ui/container";
 
 export const Route = createFileRoute("/")({
 	component: HomeLayout,

@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Container } from "~/components/ui/Container";
-import { Title } from "~/components/ui/Title";
 import { Button } from "~/components/ui/button";
+import { Container } from "~/components/ui/container";
 import {
 	Table,
 	TableBody,
@@ -10,6 +9,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "~/components/ui/table";
+import { Title } from "~/components/ui/title";
 import type { TableDefinition } from "~/types/table";
 
 export interface EntityListProps<TData extends { id: string }> {
