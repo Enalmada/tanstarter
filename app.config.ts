@@ -78,6 +78,7 @@ export default defineConfig({
 				"drizzle-orm/pg-core",
 				"drizzle-valibot",
 			],
+
 			/*
 			include: [
 				"@casl/ability",
@@ -125,7 +126,7 @@ export default defineConfig({
 					// In production, source maps are uploaded to Rollbar
 					sourcemap: process.env.NODE_ENV === "development",
 				},
-				/*
+
 				external: [
 					// Mark server-only packages as external to exclude from client bundle
 					"better-auth",
@@ -136,8 +137,10 @@ export default defineConfig({
 					"drizzle-orm/pg-core",
 					"drizzle-valibot",
 					"@neondatabase/serverless",
+					"node:stream",
+					"node:stream/web",
+					"node:async_hooks",
 				],
-				*/
 			},
 		},
 	},
