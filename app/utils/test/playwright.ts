@@ -1,4 +1,4 @@
-import { getWebRequest } from "vinxi/http";
+import { getWebRequest } from "@tanstack/start/server";
 import type { SessionUser } from "~/utils/auth-client";
 
 // Mock users for testing - keep in sync with auth-guard.ts
@@ -30,8 +30,12 @@ export const checkPlaywrightTestAuth = () => {
 		return null;
 	}
 
-	const { headers } = getWebRequest();
-	const authHeader = headers.get("authorization");
+	const request = getWebRequest();
+	if (!request) {
+		return null;
+	}
+
+	const authHeader = request.headers.get("authorization");
 
 	if (authHeader === "playwright-test-token") {
 		return mockTestUser;

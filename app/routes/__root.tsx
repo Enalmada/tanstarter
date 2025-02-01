@@ -5,14 +5,13 @@ import mantineNotificationsCss from "@mantine/notifications/styles.css?inline";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
-	ScrollRestoration,
 	createRootRouteWithContext,
 	redirect,
 } from "@tanstack/react-router";
 import { Meta, Scripts, createServerFn } from "@tanstack/start";
+import { getWebRequest } from "@tanstack/start/server";
 import type { ReactNode } from "react";
 import { Suspense, lazy, useEffect } from "react";
-import { getWebRequest } from "vinxi/http";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import {
@@ -49,8 +48,12 @@ export const getSessionUser = createServerFn({ method: "GET" }).handler(
 		}
 
 		// Normal auth flow
-		const { headers } = getWebRequest();
-		const session = await auth.api.getSession({ headers });
+		const request = getWebRequest();
+		if (!request) {
+			return null;
+		}
+
+		const session = await auth.api.getSession({ headers: request.headers });
 		return session?.user || null;
 	},
 );
@@ -207,7 +210,6 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 			</head>
 			<body>
 				<MantineProvider>{children}</MantineProvider>
-				<ScrollRestoration />
 				{/*}
 				<ReactQueryDevtools buttonPosition="bottom-left" />
 

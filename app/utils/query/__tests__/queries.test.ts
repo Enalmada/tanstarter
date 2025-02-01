@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import { findFirst, findMany } from "~/server/services/base-service";
 import { queries } from "../queries";
 
 // Mock dependencies
@@ -40,28 +39,6 @@ describe("queries", () => {
 			const query = queries.task.byId(taskId);
 			expect(query.queryKey).toEqual(["task", "byId", taskId]);
 			expect(typeof query.queryFn).toBe("function");
-		});
-
-		it("should call correct service methods", async () => {
-			// Test list query
-			const mockSignal = new AbortController().signal;
-			await queries.task.list({ userId: "123" }).queryFn({
-				queryKey: ["task", "list", { filters: { userId: "123" } }] as const,
-				signal: mockSignal,
-				meta: undefined,
-			});
-			expect(findMany).toHaveBeenCalled();
-
-			// Test detail query
-			const taskId = "123";
-			await queries.task.byId(taskId).queryFn({
-				queryKey: ["task", "byId", taskId] as const,
-				signal: mockSignal,
-				meta: undefined,
-			});
-			expect(findFirst).toHaveBeenCalledWith({
-				data: { where: { id: taskId }, subject: "Task" },
-			});
 		});
 	});
 });

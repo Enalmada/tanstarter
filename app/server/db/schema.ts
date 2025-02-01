@@ -20,15 +20,7 @@ import {
 	createUpdateSchema,
 } from "drizzle-valibot";
 import { nanoid } from "nanoid/non-secure";
-import {
-	date,
-	enum_,
-	nullable,
-	number,
-	pipe,
-	transform,
-	undefined_,
-} from "valibot";
+import { date, enum_, nullable, number, pipe, transform } from "valibot";
 
 // Parameterized insert don't seem to respect defaultFn
 export const nanoString = (prefix: string) => `${prefix}_${nanoid()}`;
@@ -98,19 +90,22 @@ export const userUpdateSchema = createUpdateSchema(UserTable, {
 });
 
 // Form-specific schema that excludes server-side fields
-export const userFormSchema = createInsertSchema(UserTable, {
-	// Override server-managed fields to be undefined
-	id: undefined_(),
-	emailVerified: undefined_(),
-	image: undefined_(),
-	createdAt: undefined_(),
-	updatedAt: undefined_(),
-	createdById: undefined_(),
-	updatedById: undefined_(),
-	// Override specific field types
-	role: userRoleSchema,
-	version: nullable(number()),
-});
+export const userFormSchema = pipe(
+	createInsertSchema(UserTable, {
+		role: userRoleSchema,
+		version: nullable(number()),
+	}),
+	transform((input) => ({
+		...input,
+		id: undefined,
+		emailVerified: undefined,
+		image: undefined,
+		createdAt: undefined,
+		updatedAt: undefined,
+		createdById: undefined,
+		updatedById: undefined,
+	})),
+);
 
 // Session Schema
 export const SessionTable = pgTable("session", {
@@ -235,18 +230,20 @@ export const taskUpdateSchema = createUpdateSchema(TaskTable, {
 });
 
 // Form-specific schema that excludes server-side fields
-export const taskFormSchema = createInsertSchema(TaskTable, {
-	// Override server-managed fields to be undefined
-	id: undefined_(),
-	createdAt: undefined_(),
-	updatedAt: undefined_(),
-	createdById: undefined_(),
-	updatedById: undefined_(),
-	// Override specific field types
-	status: taskStatusSchema,
-	dueDate: pipe(
-		nullable(date()),
-		transform((input) => (input ? new Date(input) : null)),
-	),
-	version: nullable(number()),
-});
+export const taskFormSchema = pipe(
+	createInsertSchema(TaskTable, {
+		status: taskStatusSchema,
+		dueDate: pipe(
+			nullable(date()),
+			transform((input) => (input ? new Date(input) : null)),
+		),
+	}),
+	transform((input) => ({
+		...input,
+		id: undefined,
+		createdAt: undefined,
+		updatedAt: undefined,
+		createdById: undefined,
+		updatedById: undefined,
+	})),
+);

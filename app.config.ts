@@ -1,13 +1,9 @@
 import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
 import { defineConfig } from "@tanstack/start/config";
-import react from "@vitejs/plugin-react";
 import { config } from "dotenv";
-import { cloudflare } from "unenv";
 import viteRollbar from "vite-plugin-rollbar";
 import tsConfigPaths from "vite-tsconfig-paths";
-import { cspRules } from "./app/lib/security/cspRules";
-import { generateSecurityHeaders } from "./app/lib/security/generate";
 
 // Load environment variables early for build plugins
 config();
@@ -43,16 +39,6 @@ export default defineConfig({
 				globDirectory: "dist",
 				rollupFormat: "iife",
 			}),
-
-			react({
-				babel: {
-					plugins: [
-						["babel-plugin-react-compiler", { target: "19" }],
-						"@lingui/babel-plugin-lingui-macro",
-					],
-				},
-			}),
-
 			lingui(),
 		],
 		// Only expose PUBLIC_ prefixed vars to client
@@ -88,36 +74,43 @@ export default defineConfig({
 				"drizzle-orm/pg-core",
 				"drizzle-valibot",
 			],
+			/*
 			include: [
+				"@casl/ability",
+				"@lingui/core",
+				"@lukemorales/query-key-factory",
 				"@mantine/core",
-				"@mantine/hooks",
-				"@mantine/notifications",
 				"@mantine/dates",
+				"@mantine/hooks",
 				"@mantine/modals",
+				"@mantine/notifications",
+				"@neondatabase/serverless",
+				"@rollbar/react",
+				"@serwist/window",
+				"@tanstack/react-form",
 				"@tanstack/react-query",
 				"@tanstack/react-query-devtools",
 				"@tanstack/react-router",
-				"@tanstack/react-table",
-				"@tanstack/react-form",
-				"@tanstack/start",
-				"@tanstack/start/client-runtime",
 				"@tanstack/react-router-with-query",
+				"@tanstack/react-table",
 				"@tanstack/router-devtools",
-				"@serwist/window",
-				"@lukemorales/query-key-factory",
-				"@lingui/core",
-				"valibot",
-				"nanoid/non-secure",
-				"react-dom/client",
+				"@tanstack/start",
+				"@tanstack/start/server",
+				"@tanstack/start/server-functions-client",
+				"@unpic/react",
+				"better-auth",
+				"better-auth/adapters/drizzle",
 				"better-auth/client/plugins",
 				"better-auth/react",
-				"lucide-react",
 				"date-fns",
-				"@unpic/react",
-				"@casl/ability",
-				"@rollbar/react",
+				"lucide-react",
+				"nanoid/non-secure",
+				"posthog-js",
+				"react-dom/client",
 				"rollbar",
+				"valibot",
 			],
+			*/
 		},
 		build: {
 			// Source map configuration
@@ -128,6 +121,19 @@ export default defineConfig({
 					// In production, source maps are uploaded to Rollbar
 					sourcemap: process.env.NODE_ENV === "development",
 				},
+				/*
+				external: [
+					// Mark server-only packages as external to exclude from client bundle
+					"better-auth",
+					"better-auth/adapters/*",
+					"better-auth/server",
+					"better-auth/dist/server",
+					"drizzle-orm",
+					"drizzle-orm/pg-core",
+					"drizzle-valibot",
+					"@neondatabase/serverless",
+				],
+				*/
 			},
 		},
 	},
@@ -145,7 +151,10 @@ export default defineConfig({
 	},
 	react: {
 		babel: {
-			plugins: ["@lingui/babel-plugin-lingui-macro"],
+			plugins: [
+				["babel-plugin-react-compiler", { target: "19" }],
+				"@lingui/babel-plugin-lingui-macro",
+			],
 		},
 	},
 });

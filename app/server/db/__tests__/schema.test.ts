@@ -44,6 +44,12 @@ describe("schema validation", () => {
 				};
 
 				const result = safeParse(taskFormSchema, validTask);
+				if (!result.success) {
+					console.error("Task validation failed:", {
+						input: validTask,
+						issues: result.issues,
+					});
+				}
 				expect(result.success).toBe(true);
 				if (result.success) {
 					expect(result.output).toMatchObject({
@@ -67,6 +73,12 @@ describe("schema validation", () => {
 				};
 
 				const result = safeParse(taskFormSchema, minimalTask);
+				if (!result.success) {
+					console.error("Task validation failed:", {
+						input: minimalTask,
+						issues: result.issues,
+					});
+				}
 				expect(result.success).toBe(true);
 				if (result.success) {
 					expect(result.output).toMatchObject({
@@ -100,7 +112,7 @@ describe("schema validation", () => {
 					title: "Test Task",
 					description: "Test Description",
 					status: TaskStatus.ACTIVE,
-					userId: "usr_123",
+					userId: mockUserId,
 					dueDate: new Date(),
 					version: 1,
 				};
@@ -113,9 +125,21 @@ describe("schema validation", () => {
 		describe("taskUpdateSchema", () => {
 			it("should validate partial updates", () => {
 				const validUpdates = [
-					{ title: "Updated Title", status: TaskStatus.ACTIVE },
-					{ description: null, status: TaskStatus.COMPLETED },
-					{ dueDate: new Date(), status: TaskStatus.ACTIVE },
+					{
+						title: "Updated Title",
+						status: TaskStatus.ACTIVE,
+						userId: mockUserId,
+					},
+					{
+						description: null,
+						status: TaskStatus.COMPLETED,
+						userId: mockUserId,
+					},
+					{
+						dueDate: new Date(),
+						status: TaskStatus.ACTIVE,
+						userId: mockUserId,
+					},
 				];
 
 				for (const update of validUpdates) {
@@ -149,6 +173,13 @@ describe("schema validation", () => {
 				};
 
 				const result = safeParse(userFormSchema, validUser);
+				if (!result.success) {
+					console.error("User validation failed:", {
+						input: validUser,
+						issues: result.issues,
+						schema: userFormSchema,
+					});
+				}
 				expect(result.success).toBe(true);
 				if (result.success) {
 					expect(result.output).toMatchObject(validUser);
@@ -164,6 +195,13 @@ describe("schema validation", () => {
 				};
 
 				const result = safeParse(userFormSchema, minimalUser);
+				if (!result.success) {
+					console.error("User validation failed:", {
+						input: minimalUser,
+						issues: result.issues,
+						schema: userFormSchema,
+					});
+				}
 				expect(result.success).toBe(true);
 				if (result.success) {
 					expect(result.output).toMatchObject({

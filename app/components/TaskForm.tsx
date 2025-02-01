@@ -37,6 +37,7 @@ export function TaskForm({
 			key: "userId",
 			type: "hidden",
 			disabled: true,
+			validation: pipe(string(), minLength(1, "User ID is required")),
 		},
 		{
 			key: "title",
@@ -98,7 +99,7 @@ export function TaskForm({
 					? new Date(defaultValues.dueDate)
 					: null,
 				status: defaultValues?.status ?? TaskStatus.ACTIVE,
-				userId,
+				userId: defaultValues?.userId ?? userId,
 				version: defaultValues ? defaultValues.version : 1,
 			}}
 			onSubmit={onSubmit}

@@ -1,5 +1,5 @@
 import { createMiddleware } from "@tanstack/start";
-import { getWebRequest, setResponseStatus } from "vinxi/http";
+import { getWebRequest, setResponseStatus } from "@tanstack/start/server";
 import { auth } from "~/server/auth/auth";
 import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
@@ -13,8 +13,13 @@ export const authMiddleware = createMiddleware().server(async ({ next }) => {
 	}
 
 	// Normal auth flow
-	const { headers } = getWebRequest();
-	const session = await auth.api.getSession({ headers });
+	const request = getWebRequest();
+	if (!request) {
+		setResponseStatus(500);
+		throw new Error("No web request available");
+	}
+
+	const session = await auth.api.getSession({ headers: request.headers });
 
 	if (!session) {
 		setResponseStatus(401);
