@@ -1,5 +1,3 @@
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 // import { serverGuard } from "./app/lib/vite/server-guard";
 import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
@@ -13,9 +11,6 @@ import { cspRules } from "./app/lib/security/cspRules";
 import { generateSecurityHeaders } from "./app/lib/security/generate";
 
 config();
-
-// Get the directory name of the current module
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Get release info for build time
 const getBuildRelease = () => {
@@ -31,7 +26,6 @@ export default defineConfig({
 			// serverGuard(),
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
-				loose: true,
 			}),
 			// Upload source maps to Rollbar after build
 			...(process.env.ROLLBAR_SERVER_TOKEN
@@ -69,12 +63,6 @@ export default defineConfig({
 
 			lingui(),
 		],
-		resolve: {
-			alias: {
-				// Use absolute path resolution
-				"~": resolve(__dirname, "app"),
-			},
-		},
 		// Only expose PUBLIC_ prefixed vars to client
 		envPrefix: ["PUBLIC_", "APP_", "CF_"],
 		define: {
