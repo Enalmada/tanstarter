@@ -124,7 +124,7 @@
 	"description": "production ready boilerplate for Tanstack Starter",
 	"private": true,
 	"main": "",
-	"packageManager": "bun@1.2.1",
+	"packageManager": "bun@1.1.45",
 	"trustedDependencies": [
 		"@biomejs/biome",
 		"@parcel/watcher",
