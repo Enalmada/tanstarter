@@ -26,6 +26,7 @@ export default defineConfig({
 			// serverGuard(),
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
+				loose: true,
 			}),
 			// Upload source maps to Rollbar after build
 			...(process.env.ROLLBAR_SERVER_TOKEN
@@ -63,6 +64,11 @@ export default defineConfig({
 
 			lingui(),
 		],
+		resolve: {
+			alias: {
+				"~": "./app",
+			},
+		},
 		// Only expose PUBLIC_ prefixed vars to client
 		envPrefix: ["PUBLIC_", "APP_", "CF_"],
 		define: {
