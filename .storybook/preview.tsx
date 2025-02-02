@@ -1,6 +1,6 @@
+import type { Preview } from "@storybook/react";
 import "../app/styles/app.css";
 import "./main.css";
-import type { Preview } from "@storybook/react";
 
 const preview: Preview = {
 	parameters: {
@@ -18,6 +18,19 @@ const preview: Preview = {
 				{ name: "light", class: "", color: "#ffffff" },
 				{ name: "dark", class: "dark", color: "#000000" },
 			],
+		},
+		// Cloudflare Pages specific configurations
+		docs: {
+			source: {
+				transform: (code: string) =>
+					code.replace(/\/sb-addons\//g, "/sb-addons/"),
+			},
+		},
+		server: {
+			url:
+				typeof window !== "undefined"
+					? window.location.origin
+					: "http://localhost:6006",
 		},
 	},
 	decorators: [

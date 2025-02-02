@@ -22,6 +22,15 @@ const config: StorybookConfig = {
 					"~": path.resolve(__dirname, "../app"),
 				},
 			},
+			build: {
+				sourcemap: false,
+				minify: "terser",
+				terserOptions: {
+					format: {
+						comments: false,
+					},
+				},
+			},
 		});
 	},
 };
