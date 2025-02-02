@@ -15,9 +15,10 @@ const config: StorybookConfig = {
 	],
 	addons: [
 		"@storybook/addon-essentials",
-		"@storybook/addon-interactions",
-		"@storybook/addon-a11y",
-		"@storybook/addon-themes",
+		// Temporarily commenting out other addons to test
+		// "@storybook/addon-interactions",
+		// "@storybook/addon-a11y",
+		// "@storybook/addon-themes",
 	],
 	framework: {
 		name: "@storybook/react-vite",
