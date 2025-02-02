@@ -1,10 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AdminUserForm, type UserFormData } from "~/components/admin/UserForm";
-import { Button } from "~/components/ui/Button";
-import { Card } from "~/components/ui/Card";
-import { Group } from "~/components/ui/Group";
-import { Stack } from "~/components/ui/Stack";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
 import type { User } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
@@ -42,25 +40,25 @@ function AdminEditUser() {
 
 	return (
 		<div className="container mx-auto flex flex-col gap-4 p-6">
-			<Group justify="space-between">
+			<div className="flex items-center justify-between">
 				<Button
-					variant="subtle"
+					variant="ghost"
 					onClick={() => navigate({ to: "/admin/users" })}
 				>
 					← Back to Users
 				</Button>
 				<Button
-					color="red"
-					variant="subtle"
+					variant="ghost"
+					className="text-destructive hover:bg-destructive/10 hover:text-destructive"
 					onClick={() => deleteMutation.mutate({ entityId: user.id })}
-					loading={deleteMutation.isPending}
+					disabled={deleteMutation.isPending}
 				>
 					Delete User
 				</Button>
-			</Group>
+			</div>
 
-			<Card withBorder>
-				<Stack gap="md" p="md">
+			<Card className="border">
+				<CardContent className="flex flex-col gap-4 p-6">
 					<AdminUserForm
 						defaultValues={user}
 						onSubmit={(values) =>
@@ -70,7 +68,7 @@ function AdminEditUser() {
 						}
 						isSubmitting={updateMutation.isPending}
 					/>
-				</Stack>
+				</CardContent>
 			</Card>
 		</div>
 	);

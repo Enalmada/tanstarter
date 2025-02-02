@@ -3,9 +3,9 @@ import {
 	createQueryKeyStore,
 	type inferQueryKeyStore,
 } from "@lukemorales/query-key-factory";
-import { getSessionUser } from "~/routes/__root";
+import { findFirst, findMany } from "~/functions/base-service";
+import { getSessionUser } from "~/functions/session";
 import type { Task, User } from "~/server/db/schema";
-import { findFirst, findMany } from "~/server/services/base-service";
 
 /**
  * Makes all properties of T optional and allows undefined values

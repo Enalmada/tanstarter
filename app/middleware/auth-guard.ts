@@ -13,8 +13,13 @@ export const authMiddleware = createMiddleware().server(async ({ next }) => {
 	}
 
 	// Normal auth flow
-	const { headers } = getWebRequest();
-	const session = await auth.api.getSession({ headers });
+	const request = getWebRequest();
+	if (!request) {
+		setResponseStatus(500);
+		throw new Error("No web request available");
+	}
+
+	const session = await auth.api.getSession({ headers: request.headers });
 
 	if (!session) {
 		setResponseStatus(401);

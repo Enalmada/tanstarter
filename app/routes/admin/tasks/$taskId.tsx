@@ -1,10 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AdminTaskForm, type TaskFormData } from "~/components/admin/TaskForm";
-import { Button } from "~/components/ui/Button";
-import { Card } from "~/components/ui/Card";
-import { Group } from "~/components/ui/Group";
-import { Stack } from "~/components/ui/Stack";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
 import type { Task } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
@@ -41,26 +39,25 @@ function AdminEditTask() {
 	});
 
 	return (
-		<div className="container mx-auto flex flex-col gap-4 p-6">
-			<Group justify="space-between">
+		<div className="container mx-auto space-y-4 p-6">
+			<div className="flex justify-between items-center">
 				<Button
-					variant="subtle"
+					variant="ghost"
 					onClick={() => navigate({ to: "/admin/tasks" })}
 				>
 					← Back to Tasks
 				</Button>
 				<Button
-					variant="subtle"
-					color="red"
+					variant="destructive"
 					onClick={() => deleteMutation.mutate({ entityId: task.id })}
-					loading={deleteMutation.isPending}
+					disabled={deleteMutation.isPending}
 				>
 					Delete Task
 				</Button>
-			</Group>
+			</div>
 
-			<Card withBorder>
-				<Stack gap="md" p="md">
+			<Card>
+				<CardContent className="pt-6 space-y-4">
 					<AdminTaskForm
 						defaultValues={task}
 						onSubmit={(values) =>
@@ -70,7 +67,7 @@ function AdminEditTask() {
 						}
 						isSubmitting={updateMutation.isPending}
 					/>
-				</Stack>
+				</CardContent>
 			</Card>
 		</div>
 	);

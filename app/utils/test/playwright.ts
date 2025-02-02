@@ -30,8 +30,12 @@ export const checkPlaywrightTestAuth = () => {
 		return null;
 	}
 
-	const { headers } = getWebRequest();
-	const authHeader = headers.get("authorization");
+	const request = getWebRequest();
+	if (!request) {
+		return null;
+	}
+
+	const authHeader = request.headers.get("authorization");
 
 	if (authHeader === "playwright-test-token") {
 		return mockTestUser;

@@ -1,8 +1,8 @@
-import { Button, Stack } from "@mantine/core";
 import type { FieldValidators } from "@tanstack/form-core";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { ValiError, parse } from "valibot";
+import { Button } from "~/components/ui/button";
 import { FormField } from "./FormField";
 import type { CheckboxFieldConfig, FormConfig, FormFieldConfig } from "./types";
 
@@ -100,8 +100,9 @@ export function FormGenerator<TData extends Record<string, unknown>>({
 				e.stopPropagation();
 				void form.handleSubmit();
 			}}
+			className="space-y-6"
 		>
-			<Stack gap="md">
+			<div className="space-y-4">
 				{fields.map((fieldConfig) => {
 					// biome-ignore lint/suspicious/noExplicitAny: TanStack Form has complex type constraints that are difficult to satisfy
 					const validators: FieldValidators<TData, any> = fieldConfig.validation
@@ -133,17 +134,28 @@ export function FormGenerator<TData extends Record<string, unknown>>({
 						</form.Field>
 					);
 				})}
+			</div>
 
-				{error && <div className="text-red-500 text-sm">{error}</div>}
+			{error && (
+				<div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+					{error}
+				</div>
+			)}
 
-				<Button
-					type="submit"
-					loading={isSubmitting}
-					disabled={isSubmitting || form.state.isSubmitting}
-				>
-					{submitText}
-				</Button>
-			</Stack>
+			<Button
+				type="submit"
+				className="w-full"
+				disabled={isSubmitting || form.state.isSubmitting}
+			>
+				{isSubmitting || form.state.isSubmitting ? (
+					<>
+						<div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+						<span className="ml-2">Processing...</span>
+					</>
+				) : (
+					submitText
+				)}
+			</Button>
 		</form>
 	);
 }

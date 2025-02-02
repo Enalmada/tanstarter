@@ -119,9 +119,12 @@
 
 2. UI Components:
 
-- Mantine (@mantine/core)
+- shadcn/ui components
 - Lucide Icons
-- Tailwind CSS
+- Tailwind CSS v4 (CSS-first configuration, no tailwind.config.js)
+  - All configuration in CSS using @tailwind directives
+  - Font families and other theme options defined in CSS variables
+  - No JavaScript configuration file needed
 
 3. Data Layer:
 

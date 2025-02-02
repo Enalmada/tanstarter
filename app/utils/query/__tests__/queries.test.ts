@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { findFirst, findMany } from "~/server/services/base-service";
+import { findFirst, findMany } from "~/functions/base-service";
+import { mockTaskId, mockUserId } from "~/test/setup";
 import { queries } from "../queries";
 
 // Mock dependencies
@@ -9,7 +10,7 @@ vi.mock("~/server/auth/auth", () => ({
 }));
 */
 
-vi.mock("~/server/services/base-service", () => ({
+vi.mock("~/functions/base-service", () => ({
 	findFirst: vi.fn(),
 	findMany: vi.fn(),
 	createEntity: vi.fn(),
@@ -20,11 +21,11 @@ vi.mock("~/server/services/base-service", () => ({
 describe("queries", () => {
 	describe("task queries", () => {
 		it("should generate correct task list query", () => {
-			const query = queries.task.list({ userId: "123" });
+			const query = queries.task.list({ userId: mockUserId });
 			expect(query.queryKey).toEqual([
 				"task",
 				"list",
-				{ filters: { userId: "123" } },
+				{ filters: { userId: mockUserId } },
 			]);
 			expect(typeof query.queryFn).toBe("function");
 		});
@@ -36,31 +37,41 @@ describe("queries", () => {
 		});
 
 		it("should generate correct task detail query", () => {
-			const taskId = "123";
-			const query = queries.task.byId(taskId);
-			expect(query.queryKey).toEqual(["task", "byId", taskId]);
+			const query = queries.task.byId(mockTaskId);
+			expect(query.queryKey).toEqual(["task", "byId", mockTaskId]);
 			expect(typeof query.queryFn).toBe("function");
 		});
 
 		it("should call correct service methods", async () => {
+			const mockFindMany = vi.fn();
+			const mockFindFirst = vi.fn();
+
+			vi.mocked(findMany).mockImplementation(mockFindMany);
+			vi.mocked(findFirst).mockImplementation(mockFindFirst);
+
 			// Test list query
 			const mockSignal = new AbortController().signal;
-			await queries.task.list({ userId: "123" }).queryFn({
-				queryKey: ["task", "list", { filters: { userId: "123" } }] as const,
+			await queries.task.list({ userId: mockUserId }).queryFn({
+				queryKey: [
+					"task",
+					"list",
+					{ filters: { userId: mockUserId } },
+				] as const,
 				signal: mockSignal,
 				meta: undefined,
 			});
-			expect(findMany).toHaveBeenCalled();
+			expect(mockFindMany).toHaveBeenCalledWith({
+				data: { where: { userId: mockUserId }, subject: "Task" },
+			});
 
 			// Test detail query
-			const taskId = "123";
-			await queries.task.byId(taskId).queryFn({
-				queryKey: ["task", "byId", taskId] as const,
+			await queries.task.byId(mockTaskId).queryFn({
+				queryKey: ["task", "byId", mockTaskId] as const,
 				signal: mockSignal,
 				meta: undefined,
 			});
-			expect(findFirst).toHaveBeenCalledWith({
-				data: { where: { id: taskId }, subject: "Task" },
+			expect(mockFindFirst).toHaveBeenCalledWith({
+				data: { where: { id: mockTaskId }, subject: "Task" },
 			});
 		});
 	});

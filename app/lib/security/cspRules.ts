@@ -65,4 +65,10 @@ export const cspRules: CspRule[] = [
 		"connect-src": "https://*.posthog.com",
 		source: "/:path*",
 	},
+	{
+		description: "google-fonts",
+		"style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
+		"font-src": "'self' https://fonts.gstatic.com",
+		source: "/:path*",
+	},
 ];

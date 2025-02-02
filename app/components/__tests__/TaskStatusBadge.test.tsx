@@ -1,14 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { TaskStatus } from "~/server/db/schema";
-import { TestWrapper } from "~/test/TestWrapper";
 import { TaskStatusBadge } from "../tasks/TaskStatusBadge";
 
 describe("TaskStatusBadge", () => {
 	it("should render active status", () => {
-		render(<TaskStatusBadge status={TaskStatus.ACTIVE} />, {
-			wrapper: TestWrapper,
-		});
+		render(<TaskStatusBadge status={TaskStatus.ACTIVE} />, {});
 
 		const badge = screen.getByText("Active");
 		expect(badge).toBeInTheDocument();
@@ -16,9 +13,7 @@ describe("TaskStatusBadge", () => {
 	});
 
 	it("should render completed status", () => {
-		render(<TaskStatusBadge status={TaskStatus.COMPLETED} />, {
-			wrapper: TestWrapper,
-		});
+		render(<TaskStatusBadge status={TaskStatus.COMPLETED} />, {});
 
 		const badge = screen.getByText("Completed");
 		expect(badge).toBeInTheDocument();
@@ -30,9 +25,7 @@ describe("TaskStatusBadge", () => {
 			<TaskStatusBadge
 				status={"UNKNOWN" as (typeof TaskStatus)[keyof typeof TaskStatus]}
 			/>,
-			{
-				wrapper: TestWrapper,
-			},
+			{},
 		);
 
 		const badge = screen.getByText("Unknown");

@@ -6,22 +6,12 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { TaskForm } from "~/components/TaskForm";
-import { Button } from "~/components/ui/Button";
-import { Card } from "~/components/ui/Card";
-import { Group } from "~/components/ui/Group";
-import { Stack } from "~/components/ui/Stack";
-import type { Task, TaskStatusType } from "~/server/db/schema";
+import { TaskForm, type TaskFormData } from "~/components/TaskForm";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
+import type { Task } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
-
-export type TaskFormData = {
-	title: string;
-	description: string | null;
-	dueDate: Date | null;
-	status: TaskStatusType;
-	userId: string;
-};
 
 export const Route = createFileRoute("/tasks/$taskId")({
 	component: EditTask,
@@ -58,25 +48,27 @@ function EditTask() {
 	});
 
 	return (
-		<div className="container mx-auto flex flex-col gap-4 p-6">
-			<Group justify="space-between">
-				<Button variant="subtle" onClick={() => navigate({ to: "/tasks" })}>
+		<div className="container mx-auto space-y-4 p-6">
+			<div className="flex justify-between items-center">
+				<Button variant="ghost" onClick={() => navigate({ to: "/tasks" })}>
 					← Back to Tasks
 				</Button>
 				<Button
-					color="red"
-					variant="subtle"
+					variant="destructive"
 					onClick={() => deleteMutation.mutate({ entityId: task.id })}
-					loading={deleteMutation.isPending}
+					disabled={deleteMutation.isPending}
 				>
 					Delete Task
 				</Button>
-			</Group>
+			</div>
 
-			<Card withBorder>
-				<Stack gap="md" p="md">
+			<Card>
+				<CardContent className="pt-6 space-y-4">
 					<TaskForm
-						defaultValues={task}
+						defaultValues={{
+							...task,
+							userId: userId ?? "",
+						}}
 						onSubmit={(values) =>
 							updateMutation.mutate({
 								data: values,
@@ -85,7 +77,7 @@ function EditTask() {
 						isSubmitting={updateMutation.isPending}
 						userId={userId ?? ""}
 					/>
-				</Stack>
+				</CardContent>
 			</Card>
 		</div>
 	);

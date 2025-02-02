@@ -1,15 +1,10 @@
-import {
-	Alert,
-	Button,
-	Card,
-	Checkbox,
-	Group,
-	Stack,
-	Text,
-} from "@mantine/core";
 import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
+import { Checkbox } from "~/components/ui/checkbox";
 import type { Task } from "~/server/db/schema";
 import { TaskStatus } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
@@ -42,85 +37,80 @@ export function TaskList({
 	return (
 		<div className="container mx-auto flex flex-col gap-4 p-6">
 			{errorMessage && (
-				<Alert color="red" title="Error">
-					{errorMessage}
+				<Alert variant="destructive">
+					<AlertTitle>Error</AlertTitle>
+					<AlertDescription>{errorMessage}</AlertDescription>
 				</Alert>
 			)}
-			<Group justify="space-between" className="h-[48px] min-h-[48px]">
-				<Text size="xl" fw={700} className="shrink-0">
-					Tasks
-				</Text>
-				<Button component={Link} to="/tasks/new" size="lg" className="shrink-0">
-					New Task
+			<div className="flex h-12 items-center justify-between">
+				<h1 className="text-2xl font-bold">Tasks</h1>
+				<Button asChild size="lg">
+					<Link to="/tasks/new">New Task</Link>
 				</Button>
-			</Group>
+			</div>
 
-			<Stack gap="md" className="min-h-[50px]">
+			<div className="flex min-h-[50px] flex-col gap-4">
 				{tasks.map((task: Task) => (
-					<Card key={task.id} withBorder className="w-full min-h-[60px]">
-						<Group className="w-full justify-between" wrap="nowrap">
-							<Group wrap="nowrap" className="flex-1 overflow-hidden">
-								<Checkbox
-									checked={task.status === TaskStatus.COMPLETED}
-									onChange={() =>
-										handleTaskUpdate(
-											task,
-											task.status === TaskStatus.ACTIVE
-												? TaskStatus.COMPLETED
-												: TaskStatus.ACTIVE,
-										)
-									}
-								/>
-								<div className="flex flex-col gap-1 min-w-0">
+					<Card key={task.id}>
+						<CardContent className="flex items-center justify-between gap-4 p-4">
+							<div className="flex flex-1 items-center gap-4 overflow-hidden">
+								<div className="flex items-center">
+									<Checkbox
+										checked={task.status === TaskStatus.COMPLETED}
+										onCheckedChange={() =>
+											handleTaskUpdate(
+												task,
+												task.status === TaskStatus.ACTIVE
+													? TaskStatus.COMPLETED
+													: TaskStatus.ACTIVE,
+											)
+										}
+									/>
+								</div>
+								<div className="min-w-0 flex-1">
 									<Link
 										to="/tasks/$taskId"
 										params={{ taskId: task.id }}
-										className={`${
+										className={`block overflow-hidden text-ellipsis whitespace-nowrap ${
 											task.status === TaskStatus.COMPLETED
-												? "text-gray-400 line-through"
+												? "text-muted-foreground line-through"
 												: ""
-										} block overflow-hidden text-ellipsis whitespace-nowrap`}
+										}`}
 									>
-										<Text size="lg" fw={500}>
-											{task.title}
-										</Text>
+										<span className="text-lg font-medium">{task.title}</span>
 									</Link>
 									{task.description && (
-										<Text
-											size="sm"
-											c="dimmed"
-											className="overflow-hidden text-ellipsis whitespace-nowrap"
-										>
+										<p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm text-muted-foreground">
 											{task.description}
-										</Text>
+										</p>
 									)}
 									{task.dueDate && (
-										<Text size="xs" c="dimmed">
+										<p className="text-xs text-muted-foreground">
 											Due: {new Date(task.dueDate).toLocaleDateString()}
-										</Text>
+										</p>
 									)}
 								</div>
-							</Group>
+							</div>
 							<Button
-								variant="subtle"
-								color="red"
+								variant="ghost"
+								size="icon"
 								onClick={() => deleteMutation.mutate({ entityId: task.id })}
 								className="shrink-0"
 							>
-								<Trash2 size={20} />
+								<Trash2 className="h-5 w-5" />
 							</Button>
-						</Group>
+						</CardContent>
 					</Card>
 				))}
 
 				{tasks.length === 0 && (
-					<Card withBorder>
-						<Text ta="center" c="dimmed">
+					<Card>
+						<CardContent className="p-4 text-center text-muted-foreground">
 							No tasks yet. Create one to get started!
-						</Text>
+						</CardContent>
 					</Card>
 				)}
-			</Stack>
+			</div>
 		</div>
 	);
 }

@@ -1,13 +1,7 @@
-import {
-	Button,
-	type ButtonProps,
-	Container,
-	Paper,
-	Text,
-	Title,
-} from "@mantine/core";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
+import { Button } from "~/components/ui/button";
+import { Card } from "~/components/ui/card";
 import authClient from "~/utils/auth-client";
 
 function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -16,7 +10,7 @@ function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
 			xmlns="http://www.w3.org/2000/svg"
 			preserveAspectRatio="xMidYMid"
 			viewBox="0 0 256 262"
-			style={{ width: 14, height: 14 }}
+			className="w-4 h-4"
 			role="img"
 			aria-labelledby="google-icon-title"
 			{...props}
@@ -42,10 +36,13 @@ function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
 	);
 }
 
-function GoogleButton(
-	props: ButtonProps & React.ComponentPropsWithoutRef<"button">,
-) {
-	return <Button leftSection={<GoogleIcon />} variant="default" {...props} />;
+function GoogleButton(props: React.ComponentPropsWithoutRef<"button">) {
+	return (
+		<Button variant="outline" {...props}>
+			<GoogleIcon className="mr-2" />
+			{props.children}
+		</Button>
+	);
 }
 
 export const Route = createFileRoute("/signin")({
@@ -71,21 +68,18 @@ function AuthPage() {
 	const [isLoading, setIsLoading] = useState(false);
 
 	return (
-		<Container size={420}>
-			<Title ta="center" fw={900}>
-				Welcome back!
-			</Title>
-			<Text c="dimmed" size="sm" ta="center" mt={5}>
-				Sign in to access your tasks
-			</Text>
+		<div className="container max-w-md mx-auto px-4">
+			<div className="text-center">
+				<h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
+				<p className="text-sm text-muted-foreground mt-2">
+					Sign in to access your tasks
+				</p>
+			</div>
 
-			<Paper withBorder shadow="md" p={30} mt={30} radius="md">
+			<Card className="mt-8 p-6">
 				<GoogleButton
-					size="lg"
-					radius="md"
-					fullWidth
+					className="w-full h-11"
 					type="submit"
-					loading={isLoading}
 					disabled={isLoading}
 					onClick={async () => {
 						try {
@@ -101,9 +95,9 @@ function AuthPage() {
 						}
 					}}
 				>
-					Continue with Google
+					{isLoading ? "Loading..." : "Continue with Google"}
 				</GoogleButton>
-			</Paper>
-		</Container>
+			</Card>
+		</div>
 	);
 }

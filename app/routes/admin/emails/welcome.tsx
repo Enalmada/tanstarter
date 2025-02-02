@@ -1,8 +1,11 @@
-import { Button, Card, Stack, TextInput, Title } from "@mantine/core";
 import { render } from "@react-email/render";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, useState } from "react";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import WelcomeEmail from "~/emails/WelcomeEmail";
 
 const emailQueries = {
@@ -22,11 +25,7 @@ function EmailPreview() {
 		<iframe
 			title="Email Preview"
 			srcDoc={emailHtml}
-			style={{
-				width: "100%",
-				height: "600px",
-				border: "none",
-			}}
+			className="w-full h-[600px] border-none"
 		/>
 	);
 }
@@ -42,36 +41,52 @@ function WelcomeEmailPreview() {
 	const [sending, setSending] = useState(false);
 
 	return (
-		<Stack gap="lg">
-			<Title order={2}>Welcome Email Template</Title>
+		<div className="flex flex-col gap-8">
+			<h2 className="text-3xl font-bold tracking-tight">
+				Welcome Email Template
+			</h2>
 
-			<Card withBorder>
+			<Card>
 				<Suspense fallback={<div>Loading email preview...</div>}>
 					<EmailPreview />
 				</Suspense>
 			</Card>
 
-			<Card withBorder>
-				<Stack gap="md">
-					<Title order={3}>Test Email</Title>
-					<TextInput
-						label="Email Address"
-						placeholder="Enter email to test"
-						value={testEmail}
-						onChange={(e) => setTestEmail(e.currentTarget.value)}
-					/>
+			<Card>
+				<CardHeader>
+					<CardTitle>Test Email</CardTitle>
+				</CardHeader>
+				<CardContent className="flex flex-col gap-4">
+					<div className="grid w-full max-w-sm items-center gap-1.5">
+						<Label htmlFor="email">Email Address</Label>
+						<Input
+							type="email"
+							id="email"
+							placeholder="Enter email to test"
+							value={testEmail}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+								setTestEmail(e.target.value)
+							}
+						/>
+					</div>
 					<Button
-						loading={sending}
-						disabled={!testEmail}
+						disabled={!testEmail || sending}
 						onClick={() => {
 							// TODO: Implement email sending
 							alert("Email sending will be implemented in the next step");
 						}}
 					>
-						Send Test Email
+						{sending ? (
+							<>
+								<div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+								<span className="ml-2">Sending...</span>
+							</>
+						) : (
+							"Send Test Email"
+						)}
 					</Button>
-				</Stack>
+				</CardContent>
 			</Card>
-		</Stack>
+		</div>
 	);
 }

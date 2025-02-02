@@ -1,22 +1,18 @@
 import type { FallbackProps } from "react-error-boundary";
-import { Button } from "~/components/ui/Button";
-import { Card } from "~/components/ui/Card";
-import { Stack } from "~/components/ui/Stack";
-import { Text } from "~/components/ui/Text";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
 
 export function TaskListError({ error, resetErrorBoundary }: FallbackProps) {
 	return (
 		<div className="container mx-auto p-6">
-			<Card withBorder>
-				<Stack align="center">
-					<Text size="lg" fw={500} c="red">
+			<Card>
+				<CardContent className="flex flex-col items-center gap-4 p-6">
+					<p className="text-lg font-medium text-destructive">
 						Error Loading Tasks
-					</Text>
-					<Text size="sm" c="dimmed" mb="md">
-						{error.message}
-					</Text>
+					</p>
+					<p className="text-sm text-muted-foreground">{error.message}</p>
 					<Button onClick={() => resetErrorBoundary()}>Try Again</Button>
-				</Stack>
+				</CardContent>
 			</Card>
 		</div>
 	);

@@ -38,9 +38,9 @@ const config: PlaywrightTestConfig = {
 
 	// Built-in development server management
 	webServer: {
+		reuseExistingServer: true,
 		command: "vinxi dev",
-		url: "http://localhost:3000",
-		reuseExistingServer: !process.env.CI,
+		port: 3000,
 		stdout: "pipe",
 		stderr: "pipe",
 		timeout: 120000, // 2 minutes

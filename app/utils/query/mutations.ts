@@ -83,12 +83,12 @@ import {
 	useQueryClient,
 } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { showToast } from "~/components/Toast";
+import { toast } from "sonner";
 import {
 	createEntity,
 	deleteEntity,
 	updateEntity,
-} from "~/server/services/base-service";
+} from "~/functions/base-service";
 
 // Toast configuration for consistent messaging
 interface ToastConfig {
@@ -144,13 +144,11 @@ const handleToast = (
 	entityName: string,
 	error: Error = new Error("Unknown error"),
 ) => {
-	showToast({
-		title: config[type].title,
+	toast[type](config[type].title, {
 		description:
 			type === "success"
 				? config[type].description(entityName)
 				: config[type].description(error),
-		type,
 	});
 };
 

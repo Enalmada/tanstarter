@@ -20,15 +20,7 @@ import {
 	createUpdateSchema,
 } from "drizzle-valibot";
 import { nanoid } from "nanoid/non-secure";
-import {
-	date,
-	enum_,
-	nullable,
-	number,
-	pipe,
-	transform,
-	undefined_,
-} from "valibot";
+import { date, enum_, nullable, number, pipe, transform } from "valibot";
 
 // Parameterized insert don't seem to respect defaultFn
 export const nanoString = (prefix: string) => `${prefix}_${nanoid()}`;
@@ -70,7 +62,6 @@ export const UserTable = pgTable("user", {
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	name: text(),
 	image: text("image"),
-	// Additional fields
 	role: UserRolesEnum("role")
 		.default(UserRole.MEMBER)
 		.$type<UserRole>()
@@ -98,19 +89,22 @@ export const userUpdateSchema = createUpdateSchema(UserTable, {
 });
 
 // Form-specific schema that excludes server-side fields
-export const userFormSchema = createInsertSchema(UserTable, {
-	// Override server-managed fields to be undefined
-	id: undefined_(),
-	emailVerified: undefined_(),
-	image: undefined_(),
-	createdAt: undefined_(),
-	updatedAt: undefined_(),
-	createdById: undefined_(),
-	updatedById: undefined_(),
-	// Override specific field types
-	role: userRoleSchema,
-	version: nullable(number()),
-});
+export const userFormSchema = pipe(
+	createInsertSchema(UserTable, {
+		role: userRoleSchema,
+		version: nullable(number()),
+	}),
+	transform((input) => ({
+		...input,
+		id: undefined,
+		emailVerified: undefined,
+		image: undefined,
+		createdAt: undefined,
+		updatedAt: undefined,
+		createdById: undefined,
+		updatedById: undefined,
+	})),
+);
 
 // Session Schema
 export const SessionTable = pgTable("session", {
@@ -174,22 +168,19 @@ export const VerificationTable = pgTable("verification", {
 });
 
 // Task Schema
-export const TaskStatus = {
-	ACTIVE: "ACTIVE",
-	COMPLETED: "COMPLETED",
-} as const;
+export enum TaskStatus {
+	ACTIVE = "ACTIVE",
+	COMPLETED = "COMPLETED",
+}
 
 export type TaskStatusType = (typeof TaskStatus)[keyof typeof TaskStatus];
-
-// Valibot schema for TaskStatus
-export const taskStatusSchema = enum_(TaskStatus);
 
 export const TaskTable = pgTable("task", {
 	id: generateIdField("tsk"),
 	title: varchar("title", { length: 256 }).notNull(),
 	description: varchar("description", { length: 1024 }),
 	status: text("status")
-		.$type<TaskStatusType>()
+		.$type<TaskStatus>()
 		.default(TaskStatus.ACTIVE)
 		.notNull(),
 	dueDate: timestamp("due_date", { mode: "date" }),
@@ -221,6 +212,9 @@ export type ClientTask = Pick<
 	| "updatedAt"
 >;
 
+// Valibot schema for TaskStatus
+export const taskStatusSchema = enum_(TaskStatus);
+
 // Valibot schemas with proper enum handling
 export const taskSelectSchema = createSelectSchema(TaskTable, {
 	status: taskStatusSchema,
@@ -235,18 +229,20 @@ export const taskUpdateSchema = createUpdateSchema(TaskTable, {
 });
 
 // Form-specific schema that excludes server-side fields
-export const taskFormSchema = createInsertSchema(TaskTable, {
-	// Override server-managed fields to be undefined
-	id: undefined_(),
-	createdAt: undefined_(),
-	updatedAt: undefined_(),
-	createdById: undefined_(),
-	updatedById: undefined_(),
-	// Override specific field types
-	status: taskStatusSchema,
-	dueDate: pipe(
-		nullable(date()),
-		transform((input) => (input ? new Date(input) : null)),
-	),
-	version: nullable(number()),
-});
+export const taskFormSchema = pipe(
+	createInsertSchema(TaskTable, {
+		status: taskStatusSchema,
+		dueDate: pipe(
+			nullable(date()),
+			transform((input) => (input ? new Date(input) : null)),
+		),
+	}),
+	transform((input) => ({
+		...input,
+		id: undefined,
+		createdAt: undefined,
+		updatedAt: undefined,
+		createdById: undefined,
+		updatedById: undefined,
+	})),
+);

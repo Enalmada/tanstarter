@@ -12,7 +12,7 @@ A production starter template for TanStack Start.
   - [Query](https://tanstack.com/query/latest) -[@lukemorales/query-key-factory](https://github.com/lukemorales/query-key-factory)
   - [Form](https://tanstack.com/form/latest)
   - [Table](https://tanstack.com/table/latest)
-- [Mantine](https://mantine.dev/) UI components with modals and notifications
+- [shadcn/ui](https://ui.shadcn.com/) UI components with modals and notifications
 - [Tailwind CSS](https://tailwindcss.com/) styling
 - [Lingui](https://lingui.dev/) localization
 - [CSP Headers](https://csp.withgoogle.com/)
@@ -26,7 +26,6 @@ A production starter template for TanStack Start.
 - [Casl](https://casl.js.org/) authorization
 - [React-Email](https://react.email/) email templates
 - [Axiom](https://axiom.co/) logging integration
-
 
 ### Testing & Quality
 
@@ -45,6 +44,7 @@ A production starter template for TanStack Start.
 - [Rollbar](https://rollbar.com/) error tracking and release monitoring
 
 ### DevOps
+
 - [Cline Memory Bank](https://github.com/nickbaumann98/cline_docs/blob/main/prompting/custom%20instructions%20library/cline-memory-bank.md)
 
 ## Getting Started
@@ -96,7 +96,7 @@ The following items are still needed for full production readiness:
 - [ ] event pipelines - Rudderstack
 - [ ] AI - Vercel AI SDK
 - [ ] [posthog proxy](https://posthog.com/docs/libraries/posthog-js#proxy-mode)
-
+- [ ] [storybook test runner](<[https://storybook.js.org/](https://storybook.js.org/docs/writing-tests/test-runner)>)
 
 ## Contributing
 
@@ -109,3 +109,17 @@ Not all requests and PRs will be accepted.
 - https://github.com/dotnize/tanstarter thanks so much for this great starter!
 - [nekochan0122/tanstack-boilerplate](https://github.com/nekochan0122/tanstack-boilerplate) - A batteries-included TanStack Start boilerplate that inspired some patterns in this template. If you're looking for a more feature-rich starter, check it out!
 - [AlexGaudon/tanstarter-better-auth](https://github.com/AlexGaudon/tanstarter-better-auth) for his own better-auth implementation.
+
+# Shadcn UI
+
+Initialize:
+`bun x --bun shadcn@latest init`
+
+and to add a component, use this command:
+`bun x --bun shadcn@latest add button`
+
+~ [docs](https://github.com/shadcn-ui/ui/issues/3090)
+
+Storybook
+[text](https://www.reddit.com/r/Frontend/comments/1hgb1np/ever_used_shadcn_and_storybook_loving_it_and/)
+[Grab stories](https://github.com/shadcn-ui/ui/pull/1561/files#diff-adc6de2bf831e1f1a074f423698ffe043a0161805eeb0df967d8e91c25f84d83)

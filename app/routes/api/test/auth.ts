@@ -27,8 +27,12 @@ export const testAuth = createServerFn({ method: "GET" }).handler(async () => {
 		throw new Error("Test auth only available in development");
 	}
 
-	const { headers } = getWebRequest();
-	const authHeader = headers.get("authorization");
+	const request = getWebRequest();
+	if (!request) {
+		throw new Error("No web request available");
+	}
+
+	const authHeader = request.headers.get("authorization");
 
 	if (authHeader === "playwright-test-token") {
 		return { user: mockTestUser };

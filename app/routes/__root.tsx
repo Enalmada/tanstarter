@@ -1,7 +1,4 @@
 import { getSerwist } from "virtual:serwist";
-import mantineCoreCss from "@mantine/core/styles.css?inline";
-import mantineDatesCss from "@mantine/dates/styles.css?inline";
-import mantineNotificationsCss from "@mantine/notifications/styles.css?inline";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
@@ -9,21 +6,15 @@ import {
 	createRootRouteWithContext,
 	redirect,
 } from "@tanstack/react-router";
-import { Meta, Scripts, createServerFn } from "@tanstack/start";
-import type { ReactNode } from "react";
-import { Suspense, lazy, useEffect } from "react";
-import { getWebRequest } from "vinxi/http";
+import { Meta, Scripts } from "@tanstack/start";
+import { type ReactNode, useEffect } from "react";
+import { Suspense, lazy } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
-import {
-	ColorSchemeScript,
-	MantineProvider,
-} from "~/components/providers/mantine-provider";
-import { auth } from "~/server/auth/auth";
-import appCss from "~/styles/app.css?inline";
+import { Toaster } from "~/components/ui/sonner";
+import appCss from "~/styles/app.css?url";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
-import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
 const ENABLE_SERVICE_WORKER = false;
 
@@ -39,20 +30,6 @@ const AnalyticsProvider = lazy(() =>
 	import("~/utils/analytics").then((mod) => ({
 		default: mod.AnalyticsProvider,
 	})),
-);
-
-export const getSessionUser = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const mockUser = checkPlaywrightTestAuth();
-		if (mockUser) {
-			return mockUser;
-		}
-
-		// Normal auth flow
-		const { headers } = getWebRequest();
-		const session = await auth.api.getSession({ headers });
-		return session?.user || null;
-	},
 );
 
 export const Route = createRootRouteWithContext<{
@@ -153,6 +130,23 @@ export const Route = createRootRouteWithContext<{
 				href: "/icon512_maskable.png",
 				sizes: "512x512",
 			},
+			{
+				rel: "preconnect",
+				href: "https://fonts.googleapis.com",
+			},
+			{
+				rel: "preconnect",
+				href: "https://fonts.gstatic.com",
+				crossOrigin: "",
+			},
+			{
+				rel: "stylesheet",
+				href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+			},
+			{
+				rel: "stylesheet",
+				href: appCss,
+			},
 		],
 	}),
 	component: RootComponent,
@@ -195,18 +189,10 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 		<html suppressHydrationWarning lang="en">
 			<head>
 				<Meta />
-				<ColorSchemeScript />
-				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
-				<style dangerouslySetInnerHTML={{ __html: mantineCoreCss }} />
-				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
-				<style dangerouslySetInnerHTML={{ __html: mantineNotificationsCss }} />
-				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
-				<style dangerouslySetInnerHTML={{ __html: mantineDatesCss }} />
-				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
-				<style dangerouslySetInnerHTML={{ __html: appCss }} />
 			</head>
 			<body>
-				<MantineProvider>{children}</MantineProvider>
+				{children}
+				<Toaster position="bottom-right" />
 				<ScrollRestoration />
 				{/*}
 				<ReactQueryDevtools buttonPosition="bottom-left" />

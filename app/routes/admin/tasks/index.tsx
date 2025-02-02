@@ -1,7 +1,13 @@
-import { Badge, Text } from "@mantine/core";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Info } from "lucide-react";
 import { EntityList } from "~/components/admin/EntityList";
+import { Badge } from "~/components/ui/badge";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "~/components/ui/popover";
 import type { Task } from "~/server/db/schema";
 import type { TableDefinition } from "~/types/table";
 import { formatDate } from "~/utils/date";
@@ -13,13 +19,21 @@ const columns: TableDefinition<Task> = [
 		header: "Title",
 		render: ({ value, row }) => (
 			<div>
-				<Text size="sm" fw={500}>
-					{String(value)}
-				</Text>
+				<div className="flex items-center gap-2">
+					<p className="text-sm font-medium">{String(value)}</p>
+					<Popover>
+						<PopoverTrigger className="hover:text-accent-foreground">
+							<Info className="h-4 w-4" />
+						</PopoverTrigger>
+						<PopoverContent className="w-auto p-2">
+							<p className="text-xs font-mono">ID: {row.id}</p>
+						</PopoverContent>
+					</Popover>
+				</div>
 				{row.description && (
-					<Text size="xs" c="dimmed" lineClamp={2}>
+					<p className="text-xs text-muted-foreground line-clamp-2">
 						{row.description}
-					</Text>
+					</p>
 				)}
 			</div>
 		),
@@ -28,7 +42,7 @@ const columns: TableDefinition<Task> = [
 		key: "status",
 		header: "Status",
 		render: ({ value }) => (
-			<Badge color={value === "ACTIVE" ? "blue" : "green"}>
+			<Badge variant={value === "ACTIVE" ? "default" : "secondary"}>
 				{String(value)}
 			</Badge>
 		),
@@ -39,9 +53,7 @@ const columns: TableDefinition<Task> = [
 		render: ({ value }: { value: string | number | Date | null }) => {
 			const formatted = formatDate(value);
 			return formatted ? (
-				<Text size="sm" c="dimmed">
-					{formatted}
-				</Text>
+				<p className="text-sm text-muted-foreground">{formatted}</p>
 			) : null;
 		},
 	},
@@ -51,9 +63,7 @@ const columns: TableDefinition<Task> = [
 		render: ({ value }: { value: string | number | Date | null }) => {
 			const formatted = formatDate(value);
 			return formatted ? (
-				<Text size="sm" c="dimmed">
-					{formatted}
-				</Text>
+				<p className="text-sm text-muted-foreground">{formatted}</p>
 			) : null;
 		},
 	},
@@ -63,30 +73,28 @@ const columns: TableDefinition<Task> = [
 		render: ({ value }: { value: string | number | Date | null }) => {
 			const formatted = formatDate(value);
 			return (
-				<Text size="sm" c="dimmed">
-					{formatted || "Never"}
-				</Text>
+				<p className="text-sm text-muted-foreground">{formatted || "Never"}</p>
 			);
 		},
 	},
 ];
 
 export const Route = createFileRoute("/admin/tasks/")({
-	loader: ({ context }) =>
-		context.queryClient.ensureQueryData(queries.task.list()),
-	component: TasksComponent,
+	component: TasksPage,
+	loader: ({ context: { queryClient } }) =>
+		queryClient.ensureQueryData(queries.task.list()),
 });
 
-function TasksComponent() {
-	const { data: tasks = [] } = useSuspenseQuery(queries.task.list());
+function TasksPage() {
 	const navigate = useNavigate();
+	const { data: tasks } = useSuspenseQuery(queries.task.list());
 
 	return (
 		<EntityList
 			title="Tasks"
 			data={tasks}
 			columns={columns}
-			to="/admin/tasks/:id"
+			onRowClick={(item) => navigate({ to: `/admin/tasks/${item.id}` })}
 			onAdd={() => navigate({ to: "/admin/tasks/new" })}
 		/>
 	);

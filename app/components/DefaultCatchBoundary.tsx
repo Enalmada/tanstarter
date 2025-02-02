@@ -11,10 +11,8 @@ import {
 	useMatch,
 	useRouter,
 } from "@tanstack/react-router";
-import { Button } from "~/components/ui/Button";
-import { Group } from "~/components/ui/Group";
-import { LinkButton } from "~/components/ui/LinkButton";
-import { Stack } from "~/components/ui/Stack";
+import { Link } from "@tanstack/react-router";
+import { Button } from "~/components/ui/button";
 
 export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 	const router = useRouter();
@@ -24,9 +22,9 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 	});
 
 	return (
-		<Stack className="min-w-0 flex-1 items-center justify-center gap-6 p-4">
+		<div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-6 p-4">
 			<ErrorComponent error={error} />
-			<Group>
+			<div className="flex gap-4">
 				<Button
 					onClick={() => {
 						router.invalidate();
@@ -35,9 +33,9 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 					Try Again
 				</Button>
 				{isRoot ? (
-					<LinkButton to="/" variant="outline">
-						Home
-					</LinkButton>
+					<Button asChild variant="outline">
+						<Link to="/">Home</Link>
+					</Button>
 				) : (
 					<Button
 						variant="outline"
@@ -48,7 +46,7 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 						Go Back
 					</Button>
 				)}
-			</Group>
-		</Stack>
+			</div>
+		</div>
 	);
 }
