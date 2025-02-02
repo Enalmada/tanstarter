@@ -1,0 +1,22 @@
+<script>
+  // Handle module loading errors gracefully
+  window.addEventListener(
+    "error",
+    function (e) {
+      if (e.target && (e.target.src || e.target.href)) {
+        // Prevent the error from causing a page reload
+        e.preventDefault();
+        e.stopPropagation();
+
+        // If it's a module, try to load it again without modulepreload
+        if (e.target.rel === "modulepreload") {
+          const script = document.createElement("script");
+          script.type = "module";
+          script.src = e.target.href;
+          document.head.appendChild(script);
+        }
+      }
+    },
+    true,
+  );
+</script>

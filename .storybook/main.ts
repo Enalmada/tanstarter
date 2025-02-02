@@ -55,16 +55,15 @@ const config: StorybookConfig = {
 				],
 			},
 			build: {
+				modulePreload: false,
 				rollupOptions: {
 					output: {
 						manualChunks: undefined,
+						inlineDynamicImports: true,
 					},
 				},
 				target: "esnext",
 				assetsInlineLimit: 0,
-				modulePreload: {
-					polyfill: false,
-				},
 			},
 		});
 	},
