@@ -38,6 +38,7 @@ const config: StorybookConfig = {
 			define: {
 				"process.env": {},
 			},
+			base: "./",
 			resolve: {
 				alias: {
 					"~": path.resolve(__dirname, "../app"),
@@ -55,6 +56,9 @@ const config: StorybookConfig = {
 						manualChunks: undefined,
 					},
 				},
+				assetsDir: "assets",
+				manifest: true,
+				sourcemap: true,
 			},
 		});
 	},
