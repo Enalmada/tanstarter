@@ -32,6 +32,7 @@ const config: StorybookConfig = {
 		reactDocgen: "react-docgen",
 		check: false,
 	},
+	staticDirs: ["./static"],
 	async viteFinal(config) {
 		return mergeConfig(config, {
 			define: {
@@ -47,6 +48,13 @@ const config: StorybookConfig = {
 					"@storybook/addon-interactions/preview",
 					"react/jsx-dev-runtime",
 				],
+			},
+			build: {
+				rollupOptions: {
+					output: {
+						manualChunks: undefined,
+					},
+				},
 			},
 		});
 	},
