@@ -9,11 +9,9 @@ const config: StorybookConfig = {
 		"../app/components/ui/**/*.stories.@(js|jsx|mjs|ts|tsx)",
 	],
 	addons: [
-		"@storybook/addon-links",
 		"@storybook/addon-essentials",
 		"@storybook/addon-interactions",
 		"@storybook/addon-a11y",
-		"@storybook/addon-coverage",
 		"@storybook/addon-themes",
 	],
 	framework: {
@@ -23,6 +21,7 @@ const config: StorybookConfig = {
 	core: {
 		builder: "@storybook/builder-vite",
 		disableTelemetry: true,
+		enableCrashReports: false,
 	},
 	docs: {
 		autodocs: "tag",
@@ -53,11 +52,12 @@ const config: StorybookConfig = {
 				rollupOptions: {
 					output: {
 						manualChunks: undefined,
-						format: "es",
-						entryFileNames: "[name].js",
-						chunkFileNames: "[name].js",
-						assetFileNames: "[name][extname]",
 					},
+				},
+				target: "esnext",
+				assetsInlineLimit: 0,
+				modulePreload: {
+					polyfill: false,
 				},
 			},
 		});
