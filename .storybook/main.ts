@@ -33,13 +33,10 @@ const config: StorybookConfig = {
 		check: false,
 	},
 	async viteFinal(config) {
-		const { default: tailwind } = await import("@tailwindcss/vite");
-
 		return mergeConfig(config, {
 			define: {
 				"process.env": {},
 			},
-			plugins: [...(config.plugins || []), tailwind()],
 			resolve: {
 				alias: {
 					"~": path.resolve(__dirname, "../app"),

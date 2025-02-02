@@ -6,7 +6,7 @@
 - React
 - Drizzle ORM
 - PostgreSQL via Neon
-- Mantine UI
+- Shadcn/ui
 
 ## Development Setup
 - Bun runtime
