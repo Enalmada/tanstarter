@@ -4,9 +4,14 @@ import { mergeConfig } from "vite";
 
 const config: StorybookConfig = {
 	stories: [
-		"../app/**/*.mdx",
-		"../app/**/*.stories.@(js|jsx|mjs|ts|tsx)",
-		"../app/components/ui/**/*.stories.@(js|jsx|mjs|ts|tsx)",
+		{
+			directory: "../app",
+			files: "**/*.mdx",
+		},
+		{
+			directory: "../app",
+			files: "**/*.stories.@(js|jsx|mjs|ts|tsx)",
+		},
 	],
 	addons: [
 		"@storybook/addon-essentials",
@@ -32,6 +37,7 @@ const config: StorybookConfig = {
 		check: false,
 	},
 	staticDirs: ["./static"],
+	logLevel: "error",
 	async viteFinal(config) {
 		return mergeConfig(config, {
 			define: {
