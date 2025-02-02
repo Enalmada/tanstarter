@@ -2,14 +2,20 @@
 	"version": 1,
 	"include": ["/*"],
 	"exclude": [
+		"/_assets/*",
+		"/assets/*",
 		"/sb-preview/*",
 		"/sb-addons/*",
 		"/sb-manager/*",
-		"/iframe.html",
+		"/static/*",
 		"/*.js",
 		"/*.css",
 		"/*.map",
-		"/*.json"
+		"/*.json",
+		"/*.ico",
+		"/*.png",
+		"/favicon.ico",
+		"/iframe.html"
 	],
 	"platform": "static"
 }

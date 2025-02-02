@@ -21,7 +21,9 @@ const config: StorybookConfig = {
 	],
 	framework: {
 		name: "@storybook/react-vite",
-		options: {},
+		options: {
+			strictMode: true,
+		},
 	},
 	core: {
 		builder: "@storybook/builder-vite",
@@ -40,7 +42,7 @@ const config: StorybookConfig = {
 	async viteFinal(config) {
 		return mergeConfig(config, {
 			define: {
-				"process.env": {},
+				"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
 			},
 			resolve: {
 				alias: {
@@ -53,6 +55,15 @@ const config: StorybookConfig = {
 					output: {
 						manualChunks: undefined,
 					},
+				},
+				sourcemap: true,
+			},
+			server: {
+				fs: {
+					strict: false,
+				},
+				hmr: {
+					overlay: false,
 				},
 			},
 		});
