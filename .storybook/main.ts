@@ -38,7 +38,6 @@ const config: StorybookConfig = {
 			define: {
 				"process.env": {},
 			},
-			base: "./",
 			resolve: {
 				alias: {
 					"~": path.resolve(__dirname, "../app"),
@@ -54,6 +53,10 @@ const config: StorybookConfig = {
 				rollupOptions: {
 					output: {
 						manualChunks: undefined,
+						format: "es",
+						entryFileNames: "[name].js",
+						chunkFileNames: "[name].js",
+						assetFileNames: "[name][extname]",
 					},
 				},
 			},

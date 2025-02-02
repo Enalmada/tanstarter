@@ -1,12 +1,16 @@
 /*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=31536000
   X-Content-Type-Options: nosniff
-  Referrer-Policy: no-referrer-when-downgrade
 
 /*.js
   Content-Type: application/javascript
+  Cache-Control: public, max-age=31536000
 
 /*.mjs
   Content-Type: application/javascript
+  Cache-Control: public, max-age=31536000
 
 /*.js.map
-  Content-Type: application/json 
+  Content-Type: application/json
+  Cache-Control: public, max-age=31536000 
