@@ -5,30 +5,20 @@
   X-Frame-Options: SAMEORIGIN
   Cache-Control: no-cache, no-store, must-revalidate
 
-/iframe.html
-  Cache-Control: no-cache, no-store, must-revalidate
-
 /*.js
-  Content-Type: application/javascript
-  Cache-Control: public, max-age=31536000
-
-/*.mjs
-  Content-Type: application/javascript
-  Cache-Control: public, max-age=31536000
+  Content-Type: application/javascript; charset=utf-8
 
 /*.css
   Content-Type: text/css
-  Cache-Control: public, max-age=31536000
 
 /*.js.map
-  Content-Type: application/json
-  Cache-Control: public, max-age=31536000
+  Content-Type: application/json; charset=utf-8
+
+/iframe.html
+  Cache-Control: no-cache, no-store, must-revalidate
 
 /sb-preview/*
   Cache-Control: no-cache, no-store, must-revalidate
 
 /sb-addons/*
   Cache-Control: no-cache, no-store, must-revalidate
-
-/sb-manager/*
-  Cache-Control: no-cache, no-store, must-revalidate 
