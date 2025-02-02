@@ -56,9 +56,6 @@ const config: StorybookConfig = {
 						manualChunks: undefined,
 					},
 				},
-				assetsDir: "assets",
-				manifest: true,
-				sourcemap: true,
 			},
 		});
 	},
