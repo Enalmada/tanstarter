@@ -3,10 +3,13 @@
 	"include": ["/*"],
 	"exclude": [
 		"/_assets/*",
-		"/sb-preview/*",
-		"/sb-addons/*",
-		"/sb-manager/*",
+		"/build/*",
+		"/static/*",
 		"/*.js",
-		"/*.json"
-	]
+		"/*.css",
+		"/*.map",
+		"/sb-*/*"
+	],
+	"runtimeJS": true,
+	"platform": "static"
 }
