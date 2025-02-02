@@ -37,7 +37,6 @@ const config: StorybookConfig = {
 		check: false,
 	},
 	staticDirs: ["./static"],
-	logLevel: "error",
 	async viteFinal(config) {
 		return mergeConfig(config, {
 			define: {
@@ -48,22 +47,13 @@ const config: StorybookConfig = {
 					"~": path.resolve(__dirname, "../app"),
 				},
 			},
-			optimizeDeps: {
-				include: [
-					"@storybook/addon-interactions/preview",
-					"react/jsx-dev-runtime",
-				],
-			},
 			build: {
 				modulePreload: false,
 				rollupOptions: {
 					output: {
 						manualChunks: undefined,
-						inlineDynamicImports: true,
 					},
 				},
-				target: "esnext",
-				assetsInlineLimit: 0,
 			},
 		});
 	},

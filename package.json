@@ -135,6 +135,7 @@
 	"trustedDependencies": [
 		"@biomejs/biome",
 		"@parcel/watcher",
+		"@swc/core",
 		"bufferutil",
 		"core-js",
 		"esbuild",
