@@ -2,14 +2,14 @@
 	"version": 1,
 	"include": ["/*"],
 	"exclude": [
-		"/_assets/*",
-		"/build/*",
-		"/static/*",
+		"/sb-preview/*",
+		"/sb-addons/*",
+		"/sb-manager/*",
+		"/iframe.html",
 		"/*.js",
 		"/*.css",
 		"/*.map",
-		"/sb-*/*"
+		"/*.json"
 	],
-	"runtimeJS": true,
 	"platform": "static"
 }

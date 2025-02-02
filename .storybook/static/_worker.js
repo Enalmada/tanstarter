@@ -7,6 +7,18 @@ export default {
 			return env.ASSETS.fetch(request);
 		}
 
+		// Handle Storybook specific paths
+		if (url.pathname.includes("/sb-")) {
+			// Remove any duplicate sb-addons paths
+			const cleanPath = url.pathname
+				.replace(/\/sb-addons\/.*?\/sb-addons\//g, "/sb-addons/")
+				.replace(/\/sb-preview\/.*?\/sb-preview\//g, "/sb-preview/");
+
+			if (cleanPath !== url.pathname) {
+				return Response.redirect(new URL(cleanPath, request.url), 307);
+			}
+		}
+
 		try {
 			// Try to serve the exact file
 			const response = await env.ASSETS.fetch(request);
