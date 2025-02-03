@@ -1,10 +1,9 @@
+import type { Preview } from "@storybook/react";
 import "../app/styles/app.css";
 import "./main.css";
-import type { Preview } from "@storybook/react";
 
 const preview: Preview = {
 	parameters: {
-		actions: { argTypesRegex: "^on[A-Z].*" },
 		controls: {
 			matchers: {
 				color: /(background|color)$/i,
@@ -19,7 +18,21 @@ const preview: Preview = {
 				{ name: "dark", class: "dark", color: "#000000" },
 			],
 		},
+		// Cloudflare Pages specific configurations
+		docs: {
+			source: {
+				transform: (code: string) =>
+					code.replace(/\/sb-addons\//g, "/sb-addons/"),
+			},
+		},
+		server: {
+			url:
+				typeof window !== "undefined"
+					? window.location.origin
+					: "http://localhost:6006",
+		},
 	},
+
 	decorators: [
 		(Story) => (
 			<div className="min-h-screen p-4 antialiased">
@@ -27,6 +40,8 @@ const preview: Preview = {
 			</div>
 		),
 	],
+
+	tags: ["autodocs"],
 };
 
 export default preview;

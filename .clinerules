@@ -77,7 +77,7 @@ tanstack = [
 ]
 
 ui_components = [
-  "Mantine",
+  "Shadcn/ui",
   "Lucide Icons",
   "Tailwind CSS version 4"
 ]

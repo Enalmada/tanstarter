@@ -35,3 +35,6 @@ test-results/
 
 
 app.config.timestamp*
+
+storybook-static
+coverage

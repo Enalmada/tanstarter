@@ -8,6 +8,8 @@
 	"files": {
 		"ignoreUnknown": false,
 		"ignore": [
+			"storybook-static/**",
+			"coverage/**",
 			".turbo/**",
 			".output/**",
 			".vinxi/**",

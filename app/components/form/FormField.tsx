@@ -1,12 +1,12 @@
 /**
  * FormField Component
  *
- * A type-safe form field component that integrates Mantine UI components with TanStack Form.
+ * A type-safe form field component that integrates Shadcn/ui components with TanStack Form.
  * This component is designed to be used with the FormGenerator for declarative form creation.
  *
  * Key Features:
  * - Type-safe field handling using TanStack Form's field API
- * - Integration with Mantine UI components
+ * - Integration with Shadcn UI components
  * - Support for various field types (text, textarea, date, select, etc.)
  * - Validation integration with valibot
  *

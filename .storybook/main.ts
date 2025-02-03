@@ -1,58 +1,44 @@
+import { dirname, join } from "node:path";
 import path from "node:path";
 import type { StorybookConfig } from "@storybook/react-vite";
 import { mergeConfig } from "vite";
 
 const config: StorybookConfig = {
-	stories: [
-		"../app/**/*.mdx",
-		"../app/**/*.stories.@(js|jsx|mjs|ts|tsx)",
-		"../app/components/ui/**/*.stories.@(js|jsx|mjs|ts|tsx)",
-	],
-	addons: [
-		"@storybook/addon-links",
-		"@storybook/addon-essentials",
-		"@storybook/addon-interactions",
-		"@storybook/addon-a11y",
-		"@storybook/addon-coverage",
-		"@storybook/addon-themes",
-	],
+	stories: ["../app/components/ui/**/*.stories.@(js|jsx|ts|tsx)"],
+	addons: [getAbsolutePath("@storybook/addon-essentials")],
+
 	framework: {
-		name: "@storybook/react-vite",
-		options: {},
+		name: getAbsolutePath("@storybook/react-vite"),
+		options: {
+			strictMode: true,
+		},
 	},
+
 	core: {
-		builder: "@storybook/builder-vite",
 		disableTelemetry: true,
 	},
-	docs: {
-		autodocs: "tag",
-		defaultName: "Documentation",
-	},
-	typescript: {
-		reactDocgen: "react-docgen",
-		check: false,
-	},
-	async viteFinal(config) {
-		const { default: tailwind } = await import("@tailwindcss/vite");
 
+	staticDirs: ["./static"],
+
+	async viteFinal(config) {
 		return mergeConfig(config, {
-			define: {
-				"process.env": {},
-			},
-			plugins: [...(config.plugins || []), tailwind()],
 			resolve: {
 				alias: {
 					"~": path.resolve(__dirname, "../app"),
 				},
 			},
-			optimizeDeps: {
-				include: [
-					"@storybook/addon-interactions/preview",
-					"react/jsx-dev-runtime",
-				],
+			build: {
+				sourcemap: true,
+				minify: false,
 			},
 		});
 	},
+
+	docs: {},
 };
 
 export default config;
+
+function getAbsolutePath(value: string) {
+	return dirname(require.resolve(join(value, "package.json")));
+}
