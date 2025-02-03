@@ -2,7 +2,7 @@
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
 		"types": ["@serwist/vite/typings", "@types/react"],
-		"verbatimModuleSyntax": false
+		"verbatimModuleSyntax": true
 	},
 	"include": [
 		"../app/**/*.stories.tsx",

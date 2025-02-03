@@ -4,7 +4,6 @@ import "./main.css";
 
 const preview: Preview = {
 	parameters: {
-		actions: { argTypesRegex: "^on[A-Z].*" },
 		controls: {
 			matchers: {
 				color: /(background|color)$/i,
@@ -33,6 +32,7 @@ const preview: Preview = {
 					: "http://localhost:6006",
 		},
 	},
+
 	decorators: [
 		(Story) => (
 			<div className="min-h-screen p-4 antialiased">
@@ -40,6 +40,8 @@ const preview: Preview = {
 			</div>
 		),
 	],
+
+	tags: ["autodocs"],
 };
 
 export default preview;
