@@ -27,6 +27,10 @@
 			"app.config.timestamp*"
 		]
 	},
+	"css": {
+		"formatter": { "enabled": false },
+		"linter": { "enabled": false }
+	},
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab"

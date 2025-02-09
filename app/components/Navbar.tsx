@@ -5,6 +5,7 @@
  */
 
 import { Link, useNavigate } from "@tanstack/react-router";
+import ThemeToggle from "~/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {
@@ -43,12 +44,14 @@ export function Navbar({ user }: NavbarProps) {
 		user?.image ?? (user?.email ? getGravatarUrl(user.email) : undefined);
 
 	return (
-		<div className="flex h-14 items-center justify-between border-0 border-b px-4">
+		<div className="flex h-14 items-center justify-between border-0 border-b px-4 bg-white dark:bg-background">
 			<Link to="/" className="text-2xl font-bold">
 				TanStarter
 			</Link>
 
 			<div className="flex items-center gap-4">
+				<ThemeToggle />
+
 				{user ? (
 					<>
 						<DropdownMenu>

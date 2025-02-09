@@ -58,7 +58,7 @@ export const Route = createFileRoute("/signin")({
 
 function SigninLayout() {
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-50">
+		<div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background">
 			<AuthPage />
 		</div>
 	);
@@ -76,7 +76,7 @@ function AuthPage() {
 				</p>
 			</div>
 
-			<Card className="mt-8 p-6">
+			<Card className="mt-8 p-6 border-0 bg-white dark:bg-gray-800 shadow-md">
 				<GoogleButton
 					className="w-full h-11"
 					type="submit"

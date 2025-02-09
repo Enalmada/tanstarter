@@ -2,6 +2,7 @@ import { getSerwist } from "virtual:serwist";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
+	ScriptOnce,
 	ScrollRestoration,
 	createRootRouteWithContext,
 	redirect,
@@ -191,6 +192,12 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 				<Meta />
 			</head>
 			<body>
+				<ScriptOnce>
+					{`document.documentElement.classList.toggle(
+						'dark',
+						localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+					)`}
+				</ScriptOnce>
 				{children}
 				<Toaster position="bottom-right" />
 				<ScrollRestoration />
