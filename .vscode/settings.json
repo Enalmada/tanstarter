@@ -97,5 +97,11 @@
     "showScreenshot": true
   },
   "dbcode.connections": [],
-  "testing.automaticallyOpenTestResults": "openOnTestStart"
+  "testing.automaticallyOpenTestResults": "openOnTestStart",
+
+  "tailwindCSS.experimental.configFile": "app/styles/app.css",
+
+  // Configure the built-in CSS linter to ignore tailwind plugin validation
+  "css.validate": true,
+  "css.lint.unknownAtRules": "ignore"
 }
