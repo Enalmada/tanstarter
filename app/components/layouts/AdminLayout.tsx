@@ -1,6 +1,7 @@
 import { Link, Outlet } from "@tanstack/react-router";
 import { ListTodo, Mail, Menu, Users } from "lucide-react";
 import { useState } from "react";
+import ThemeToggle from "~/components/ThemeToggle";
 import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
@@ -48,9 +49,13 @@ export function AdminLayout() {
 					</Sheet>
 					<div className="flex flex-1 items-center justify-between">
 						<div className="font-medium">Admin Dashboard</div>
-						<Button variant="ghost" asChild>
-							<Link to="/tasks">App</Link>
-						</Button>
+						<div>
+							<ThemeToggle />
+
+							<Button variant="ghost" asChild>
+								<Link to="/tasks">App</Link>
+							</Button>
+						</div>
 					</div>
 				</div>
 			</header>

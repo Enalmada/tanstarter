@@ -21,7 +21,7 @@
 		"storybook": "cross-env NODE_OPTIONS=--no-warnings storybook dev -p 6006",
 		"build-storybook": "cross-env NODE_OPTIONS=--no-warnings storybook build",
 		"test-storybook": "cross-env NODE_OPTIONS=--no-warnings test-storybook --coverage",
-		"ui": "pnpm dlx shadcn@latest",
+		"ui": "pnpm dlx shadcn@canary",
 		"test:unit": "cross-env NODE_ENV=test dotenv -o -e .env.test.local -e .env.test -- bunx vitest run",
 		"test:unit:coverage": "cross-env NODE_ENV=test dotenv -e .env.test.local -e .env.test -- vitest --coverage",
 		"test:unit:watch": "cross-env NODE_ENV=test dotenv -o -e .env.test.local -e .env.test -- vitest watch",
