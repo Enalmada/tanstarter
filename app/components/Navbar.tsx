@@ -44,7 +44,7 @@ export function Navbar({ user }: NavbarProps) {
 		user?.image ?? (user?.email ? getGravatarUrl(user.email) : undefined);
 
 	return (
-		<div className="flex h-14 items-center justify-between border-0 border-b px-4">
+		<div className="flex h-14 items-center justify-between border-0 border-b px-4 bg-white dark:bg-background">
 			<Link to="/" className="text-2xl font-bold">
 				TanStarter
 			</Link>
