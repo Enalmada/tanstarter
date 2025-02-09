@@ -1,5 +1,5 @@
 import { createMiddleware } from "@tanstack/start";
-import { getWebRequest, setResponseStatus } from "vinxi/http";
+import { getWebRequest, setResponseStatus } from "@tanstack/start/server";
 import { auth } from "~/server/auth/auth";
 import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
@@ -19,7 +19,14 @@ export const authMiddleware = createMiddleware().server(async ({ next }) => {
 		throw new Error("No web request available");
 	}
 
-	const session = await auth.api.getSession({ headers: request.headers });
+	const session = await auth.api.getSession({
+		headers: request.headers,
+		query: {
+			// ensure session is fresh
+			// https://www.better-auth.com/docs/concepts/session-management#session-caching
+			disableCookieCache: true,
+		},
+	});
 
 	if (!session) {
 		setResponseStatus(401);

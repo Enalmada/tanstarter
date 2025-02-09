@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/start";
-import { getWebRequest } from "vinxi/http";
+import { getWebRequest } from "@tanstack/start/server";
 import { auth } from "~/server/auth/auth";
 import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 

@@ -2,7 +2,6 @@
 import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
 import { defineConfig } from "@tanstack/start/config";
-import react from "@vitejs/plugin-react";
 import { config } from "dotenv";
 import { cloudflare } from "unenv";
 import viteRollbar from "vite-plugin-rollbar";
@@ -48,19 +47,6 @@ export default defineConfig({
 				globDirectory: "dist",
 				rollupFormat: "iife",
 			}),
-
-			react({
-				// Force inclusion of React refresh preamble
-				babel: {
-					plugins: [
-						...(process.env.NODE_ENV === "production"
-							? [["babel-plugin-react-compiler", { target: "19" }]]
-							: []),
-						"@lingui/babel-plugin-lingui-macro",
-					],
-				},
-			}),
-
 			lingui(),
 		],
 		// Only expose PUBLIC_ prefixed vars to client
@@ -100,9 +86,37 @@ export default defineConfig({
 				"better-auth/server",
 				"better-auth/dist/server",
 				"@neondatabase/serverless",
+				/*
+				"@tanstack/start/server",
+				"@tanstack/start/server-functions",
+				"@tanstack/start/server-functions-client",
+				"@tanstack/start/api",
+				"@tanstack/start/router-manifest",
+				"node:async_hooks",
+				"node:stream",
+				"node:stream/web",
+				"node:buffer",
+				"node:util",
+				"node:url",
+				"node:net",
+				"node:http",
+				"node:https",
+				"node:events",
+				"node:assert",
+				"node:child_process",
+				"node:crypto",
+				"node:fs",
+				"node:module",
+				"node:os",
+				"node:path",
+				"node:process",
+				"node:querystring",
+				"node:readline",
+				"node:tls",
+				"node:zlib",
+				*/
 			],
 
-			/*
 			include: [
 				"@radix-ui/react-scroll-area",
 				"@radix-ui/react-slot",
@@ -125,8 +139,10 @@ export default defineConfig({
 				"@tanstack/react-table",
 				"@tanstack/react-form",
 				"@tanstack/start",
-				// "@tanstack/start/client",
-				"@tanstack/start/client-runtime", // old
+				"@tanstack/start/client",
+				"@tanstack/start/server-functions-client",
+				"@tanstack/start/server",
+				//"@tanstack/start/client-runtime", // old
 				"@tanstack/react-router-with-query",
 				"@tanstack/router-devtools",
 				"@serwist/window",
@@ -144,10 +160,10 @@ export default defineConfig({
 				"@rollbar/react",
 				"rollbar",
 				"next-themes",
-				// "@tanstack/start/server-functions-client",
-				// "@tanstack/start/server",
+
+				"@react-email/render",
+				"@react-email/components",
 			],
-			*/
 		},
 		// TODO confirm we need this build section.
 		build: {
@@ -159,7 +175,9 @@ export default defineConfig({
 					// In production, source maps are uploaded to Rollbar
 					sourcemap: process.env.NODE_ENV === "development",
 				},
-				/* 				external: [
+				/*
+				external: [
+					
 					// Mark server-only packages as external to exclude from client bundle
 					"better-auth",
 					"better-auth/adapters/*",
@@ -169,11 +187,36 @@ export default defineConfig({
 					"drizzle-orm/pg-core",
 					"drizzle-valibot",
 					"@neondatabase/serverless",
-					// Node.js built-in modules
+					"@tanstack/start/server",
+					"@tanstack/start/server-functions",
+					"@tanstack/start/server-functions-client",
+					"@tanstack/start/api",
+					"@tanstack/start/router-manifest",
+					// Node.js built-in modules that should not be bundled
+					"node:async_hooks",
 					"node:stream",
 					"node:stream/web",
-					"node:async_hooks",
-				], */
+					"node:buffer",
+					"node:util",
+					"node:url",
+					"node:net",
+					"node:http",
+					"node:https",
+					"node:events",
+					"node:assert",
+					"node:child_process",
+					"node:crypto",
+					"node:fs",
+					"node:module",
+					"node:os",
+					"node:path",
+					"node:process",
+					"node:querystring",
+					"node:readline",
+					"node:tls",
+					"node:zlib",
+				],
+				*/
 			},
 		},
 	},
