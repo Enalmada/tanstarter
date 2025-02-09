@@ -175,9 +175,7 @@ export default defineConfig({
 					// In production, source maps are uploaded to Rollbar
 					sourcemap: process.env.NODE_ENV === "development",
 				},
-				/*
 				external: [
-					
 					// Mark server-only packages as external to exclude from client bundle
 					"better-auth",
 					"better-auth/adapters/*",
@@ -187,11 +185,7 @@ export default defineConfig({
 					"drizzle-orm/pg-core",
 					"drizzle-valibot",
 					"@neondatabase/serverless",
-					"@tanstack/start/server",
-					"@tanstack/start/server-functions",
-					"@tanstack/start/server-functions-client",
-					"@tanstack/start/api",
-					"@tanstack/start/router-manifest",
+					// replaced vinxi/http with @tanstack/start/server but that may have been a mistake
 					// Node.js built-in modules that should not be bundled
 					"node:async_hooks",
 					"node:stream",
@@ -216,7 +210,6 @@ export default defineConfig({
 					"node:tls",
 					"node:zlib",
 				],
-				*/
 			},
 		},
 	},
