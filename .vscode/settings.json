@@ -103,5 +103,11 @@
 
   // Configure the built-in CSS linter to ignore tailwind plugin validation
   "css.validate": true,
-  "css.lint.unknownAtRules": "ignore"
+  "css.lint.unknownAtRules": "ignore",
+
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "tsconfig.json": "tsconfig.*.json, env.d.ts",
+    "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, bun.lock*, .fixpackrc"
+  },
 }
