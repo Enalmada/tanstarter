@@ -1,4 +1,3 @@
-// import { serverGuard } from "./app/lib/vite/server-guard";
 import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
 import { defineConfig } from "@tanstack/start/config";
@@ -8,6 +7,8 @@ import viteRollbar from "vite-plugin-rollbar";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { cspRules } from "./app/lib/security/cspRules";
 import { generateSecurityHeaders } from "./app/lib/security/generate";
+import { serverGuard } from "./app/lib/vite/server-guard";
+import { serverGuardConfig } from "./app/lib/vite/server-guard-config";
 
 config();
 
@@ -22,7 +23,7 @@ const getBuildRelease = () => {
 export default defineConfig({
 	vite: {
 		plugins: [
-			// serverGuard(),
+			serverGuard(serverGuardConfig),
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
 			}),
@@ -171,14 +172,16 @@ export default defineConfig({
 					sourcemap: process.env.NODE_ENV === "development",
 				},
 				external: [
-					// Mark server-only packages as external to exclude from client bundle
+					// Be more specific about better-auth externals
 					"better-auth/server",
 					"better-auth/dist/server",
 					"better-auth/adapters/*",
-					"drizzle-orm",
-					"drizzle-orm/pg-core",
-					"drizzle-valibot",
-					"@neondatabase/serverless",
+					"better-auth/adapters/drizzle",
+					"better-auth/core/server",
+					"better-auth/core/init",
+					// Keep your server auth paths
+					"~/server/auth/auth",
+					"app/server/auth/auth",
 					// replaced vinxi/http with @tanstack/start/server but that may have been a mistake
 					// Node.js built-in modules that should not be bundled
 					"node:async_hooks",
