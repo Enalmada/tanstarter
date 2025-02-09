@@ -6,11 +6,11 @@ export interface ContainerProps extends ComponentPropsWithoutRef<"div"> {
 }
 
 const sizeMap = {
-	xs: "max-w-screen-sm",
-	sm: "max-w-screen-md",
-	md: "max-w-screen-lg",
-	lg: "max-w-screen-xl",
-	xl: "max-w-screen-2xl",
+	xs: "max-w-(--breakpoint-sm)",
+	sm: "max-w-(--breakpoint-md)",
+	md: "max-w-(--breakpoint-lg)",
+	lg: "max-w-(--breakpoint-xl)",
+	xl: "max-w-(--breakpoint-2xl)",
 };
 
 export const Container = forwardRef<HTMLDivElement, ContainerProps>(

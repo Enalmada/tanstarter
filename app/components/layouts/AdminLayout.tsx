@@ -30,7 +30,7 @@ export function AdminLayout() {
 	return (
 		<div className="relative flex min-h-screen flex-col">
 			{/* Header */}
-			<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+			<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
 				<div className="container flex h-14 items-center">
 					<Sheet open={open} onOpenChange={setOpen}>
 						<SheetTrigger asChild>
@@ -101,7 +101,7 @@ function SideNav() {
 					variant="ghost"
 					className={cn(
 						"w-full justify-start",
-						"[&[data-active]]:bg-accent [&[data-active]]:text-accent-foreground",
+						"data-active:bg-accent data-active:text-accent-foreground",
 					)}
 					asChild
 				>
