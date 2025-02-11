@@ -7,8 +7,6 @@ import viteRollbar from "vite-plugin-rollbar";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { cspRules } from "./app/lib/security/cspRules";
 import { generateSecurityHeaders } from "./app/lib/security/generate";
-import { serverGuard } from "./app/lib/vite/server-guard";
-import { serverGuardConfig } from "./app/lib/vite/server-guard-config";
 
 config();
 
@@ -23,7 +21,7 @@ const getBuildRelease = () => {
 export default defineConfig({
 	vite: {
 		plugins: [
-			serverGuard(serverGuardConfig),
+			// serverGuard(serverGuardConfig),
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
 			}),

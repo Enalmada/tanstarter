@@ -49,15 +49,20 @@
  * ```
  */
 
+import { getWebRequest, setResponseStatus } from "@tanstack/start/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteEntity } from "~/functions/base-service";
 import { validateId } from "~/functions/helpers";
 import { accessCheck } from "~/server/access/check";
+import { auth } from "~/server/auth/auth";
 import DB from "~/server/db";
+import { UserRole } from "~/server/db/schema";
 import {
 	createMockContext,
+	fixedDate,
 	mockTask,
 	mockUser,
+	mockUserId,
 	setupDBMocks,
 } from "~/test/setup";
 
@@ -127,8 +132,59 @@ describe("base-service", () => {
 	});
 
 	describe("deleteEntity", () => {
-		// Reset access check mock before each test
 		beforeEach(() => {
+			vi.clearAllMocks();
+
+			// Ensure web request mock returns something
+			vi.mocked(getWebRequest).mockReturnValue({
+				headers: new Headers(),
+				cache: "default",
+				credentials: "same-origin",
+				destination: "" as RequestDestination,
+				integrity: "",
+				method: "GET",
+				mode: "cors",
+				redirect: "follow",
+				referrer: "",
+				referrerPolicy: "no-referrer",
+				body: null,
+				bodyUsed: false,
+				keepalive: false,
+				signal: new AbortController().signal,
+				url: "http://localhost:3000",
+				clone: () => new Request("http://localhost:3000"),
+				arrayBuffer: async () => new ArrayBuffer(0),
+				blob: async () => new Blob(),
+				formData: async () => new FormData(),
+				json: async () => ({}),
+				text: async () => "",
+			} as Request);
+
+			// Ensure auth session returns a user with all required fields
+			vi.mocked(auth.api.getSession).mockResolvedValue({
+				session: {
+					id: "sess_123",
+					createdAt: fixedDate,
+					updatedAt: fixedDate,
+					userId: mockUserId,
+					expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // expires in 24h
+					token: "mock_token",
+					ipAddress: "127.0.0.1",
+					userAgent: "test-agent",
+				},
+				user: {
+					id: mockUserId,
+					role: UserRole.MEMBER,
+					email: "test@example.com",
+					name: "Test User",
+					emailVerified: false,
+					createdAt: fixedDate,
+					updatedAt: fixedDate,
+					image: null,
+				},
+			});
+
+			// Reset access check mock
 			vi.mocked(accessCheck).mockReset();
 		});
 
@@ -199,7 +255,7 @@ describe("base-service", () => {
 			// Explicitly show that task belongs to the user
 			const ownedTask = {
 				...mockTask,
-				userId: mockContext.user.id, // Ensure task belongs to user
+				userId: mockUserId, // Using mockUserId to match the mocked auth user
 			};
 
 			const { select, delete: del } = setupDBMocks(DB);
@@ -230,6 +286,28 @@ describe("base-service", () => {
 			]);
 
 			await expect(deleteEntity(input)).rejects.toThrow();
+		});
+
+		// Add test for auth failure
+		it("should throw error when user is not authenticated", async () => {
+			// Mock auth to return no session
+			vi.mocked(auth.api.getSession).mockResolvedValueOnce(null);
+
+			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow(
+				"Unauthorized",
+			);
+			expect(setResponseStatus).toHaveBeenCalledWith(401);
+		});
+
+		// Update the web request mock for this test
+		it("should throw error when web request is not available", async () => {
+			// Mock getWebRequest to return undefined instead of null
+			vi.mocked(getWebRequest).mockReturnValueOnce(undefined);
+
+			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow(
+				"No web request available",
+			);
+			expect(setResponseStatus).toHaveBeenCalledWith(500);
 		});
 	});
 });

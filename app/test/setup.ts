@@ -88,6 +88,12 @@ export const createMockContext = (userId = mockUserId) => ({
 	user: {
 		id: userId,
 		role: UserRole.MEMBER,
+		email: "test@example.com",
+		name: "Test User",
+		emailVerified: false,
+		createdAt: fixedDate,
+		updatedAt: fixedDate,
+		image: null,
 	},
 });
 
@@ -226,8 +232,8 @@ vi.mock("@tanstack/start", () => {
 						email: "test@example.com",
 						name: "Test User",
 						emailVerified: false,
-						createdAt: new Date(),
-						updatedAt: new Date(),
+						createdAt: fixedDate,
+						updatedAt: fixedDate,
 					},
 				},
 			};
@@ -240,30 +246,27 @@ vi.mock("@tanstack/start", () => {
 			handler: mockHandler,
 			// biome-ignore lint/suspicious/noExplicitAny: Schema types are inherently any
 			validator: (schema: any) => ({
-				middleware: () => ({
-					handler:
-						(
-							handler: (params: {
-								data: unknown;
-								context: unknown;
-							}) => Promise<unknown>,
-						) =>
-						async (input: { data: unknown; context: unknown }) => {
-							// Handle specific schema validations
-							if (schema?.name === "validateDeleteEntity") {
-								const { subject } = input.data as { subject: string };
-								if (subject !== "Task" && subject !== "User") {
-									throw new Error("Invalid input");
-								}
+				handler:
+					(
+						handler: (params: {
+							data: unknown;
+							context: unknown;
+						}) => Promise<unknown>,
+					) =>
+					async (input: { data: unknown; context: unknown }) => {
+						// Handle specific schema validations
+						if (schema?.name === "validateDeleteEntity") {
+							const { subject } = input.data as { subject: string };
+							if (subject !== "Task" && subject !== "User") {
+								throw new Error("Invalid input");
 							}
-							// Always include context with user
-							const inputWithContext = {
-								...input,
-								context: createMockContext(),
-							};
-							return handler(inputWithContext);
-						},
-				}),
+						}
+						// Always include context with user
+						const inputWithContext = {
+							...input,
+						};
+						return handler(inputWithContext);
+					},
 			}),
 		})),
 		createMiddleware: () => ({
@@ -277,6 +280,44 @@ vi.mock("@tanstack/start", () => {
 		}),
 	};
 });
+
+// Add auth mock near the other global mocks
+vi.mock("~/server/auth/auth", () => ({
+	auth: {
+		api: {
+			getSession: vi.fn().mockResolvedValue({
+				session: {
+					id: "sess_123",
+					createdAt: fixedDate,
+					updatedAt: fixedDate,
+					userId: mockUserId,
+					expiresAt: fixedDate,
+					token: "mock_token",
+					ipAddress: "127.0.0.1",
+					userAgent: "test-agent",
+				},
+				user: {
+					id: mockUserId,
+					role: UserRole.MEMBER,
+					email: "test@example.com",
+					name: "Test User",
+					emailVerified: false,
+					createdAt: fixedDate,
+					updatedAt: fixedDate,
+					image: null,
+				},
+			}),
+		},
+	},
+}));
+
+// Add web request mock
+vi.mock("@tanstack/start/server", () => ({
+	getWebRequest: vi.fn().mockReturnValue({
+		headers: new Headers(),
+	}),
+	setResponseStatus: vi.fn(),
+}));
 
 // ==================
 // Cleanup
