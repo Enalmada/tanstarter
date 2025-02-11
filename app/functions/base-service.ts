@@ -1,10 +1,12 @@
 import { createServerFn } from "@tanstack/start";
+import { setResponseStatus } from "@tanstack/start/server";
+import { getWebRequest } from "@tanstack/start/server";
 import { eq } from "drizzle-orm";
 import type { ExtractTablesWithRelations } from "drizzle-orm";
 import { any, object, optional, picklist, safeParse, string } from "valibot";
-import { authMiddleware } from "~/middleware/auth-guard";
 import { ENTITY_TYPES } from "~/server/access/ability";
 import { accessCheck } from "~/server/access/check";
+import { type SessionUser, auth } from "~/server/auth/auth";
 import db from "~/server/db";
 import { buildWhereClause } from "~/server/db/DrizzleOrm";
 import {
@@ -19,6 +21,7 @@ import {
 } from "~/server/db/schema";
 import type * as schema from "~/server/db/schema";
 import { logger } from "~/utils/logger";
+import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
 type DbSchema = ExtractTablesWithRelations<typeof schema>;
 
@@ -91,6 +94,36 @@ interface FindEntityPayload extends BaseEntityPayload {
 	};
 }
 
+const getUser = async (): Promise<SessionUser> => {
+	const mockUser = checkPlaywrightTestAuth();
+	if (mockUser) {
+		return mockUser;
+	}
+
+	// Normal auth flow
+	const request = getWebRequest();
+	if (!request) {
+		setResponseStatus(500);
+		throw new Error("No web request available");
+	}
+
+	const session = await auth.api.getSession({
+		headers: request.headers,
+		query: {
+			// ensure session is fresh
+			// https://www.better-auth.com/docs/concepts/session-management#session-caching
+			disableCookieCache: true,
+		},
+	});
+
+	if (!session) {
+		setResponseStatus(401);
+		throw new Error("Unauthorized");
+	}
+
+	return session.user;
+};
+
 const handleValidationError = (error: unknown, subject: string) => {
 	if (error && typeof error === "object" && "issues" in error) {
 		const issues = (
@@ -116,9 +149,9 @@ export const validateDeleteEntity = object({
 
 export const deleteEntity = createServerFn({ method: "POST" })
 	.validator(validateDeleteEntity)
-	.middleware([authMiddleware])
 	.handler(async ({ data: { subject, id }, context }) => {
-		logger.info("deleteEntity", { subject, id, userId: context.user.id });
+		const user = await getUser();
+		logger.info("deleteEntity", { subject, id, userId: user.id });
 
 		const table = entityConfig[subject as EntityType].table;
 
@@ -128,7 +161,7 @@ export const deleteEntity = createServerFn({ method: "POST" })
 			throw new Error(`${subject} ${id} not found`);
 		}
 
-		accessCheck(context.user, "delete", subject, entity);
+		accessCheck(user, "delete", subject, entity);
 
 		const [result] = await db.delete(table).where(eq(table.id, id)).returning();
 
@@ -174,9 +207,10 @@ export const createEntity = createServerFn({ method: "POST" })
 			data: dataResult.output as Record<string, unknown>,
 		} as const;
 	})
-	.middleware([authMiddleware])
 	.handler(async ({ data, context }) => {
-		logger.info("createEntity", { data, userId: context.user.id });
+		const user = await getUser();
+
+		logger.info("createEntity", { data, userId: user.id });
 
 		const { subject, data: entityData } = data as CreateEntityPayload;
 
@@ -184,12 +218,12 @@ export const createEntity = createServerFn({ method: "POST" })
 
 		const createWith = {
 			...(entityData as Record<string, unknown>),
-			createdById: context.user.id,
-			updatedById: context.user.id,
+			createdById: user.id,
+			updatedById: user.id,
 			version: 1,
 		};
 
-		accessCheck(context.user, "create", subject, createWith);
+		accessCheck(user, "create", subject, createWith);
 
 		const [result] = await db.insert(table).values(createWith).returning();
 
@@ -229,9 +263,10 @@ export const updateEntity = createServerFn({ method: "POST" })
 			data: dataResult.output as Record<string, unknown>,
 		};
 	})
-	.middleware([authMiddleware])
 	.handler(async ({ data, context }) => {
-		logger.info("updateEntity", { data, userId: context.user.id });
+		const user = await getUser();
+
+		logger.info("updateEntity", { data, userId: user.id });
 
 		const { subject, id, data: entityData } = data as UpdateEntityPayload;
 
@@ -256,12 +291,12 @@ export const updateEntity = createServerFn({ method: "POST" })
 			);
 		}
 
-		accessCheck(context.user, "update", subject, entity);
+		accessCheck(user, "update", subject, entity);
 
 		const updateWith = {
 			...(entityData as Record<string, unknown>),
 			updatedAt: new Date(),
-			updatedById: context.user.id,
+			updatedById: user.id,
 			version: entity.version + 1,
 		};
 
@@ -303,9 +338,10 @@ export const findFirst = createServerFn({ method: "GET" })
 
 		return { subject, where, with: withRelations };
 	})
-	.middleware([authMiddleware])
 	.handler(async ({ data, context }) => {
-		logger.info("findFirst", { data, userId: context.user.id });
+		const user = await getUser();
+
+		logger.info("findFirst", { data, userId: user.id });
 
 		const { subject, where, with: withRelations } = data as FindEntityPayload;
 
@@ -321,7 +357,7 @@ export const findFirst = createServerFn({ method: "GET" })
 			throw new Error(`${subject} ${where?.id ?? "record"} not found`);
 		}
 
-		accessCheck(context.user, "read", subject, result);
+		accessCheck(user, "read", subject, result);
 
 		return result;
 	});
@@ -355,16 +391,17 @@ export const findMany = createServerFn({ method: "GET" })
 
 		return { subject, where, with: withRelations };
 	})
-	.middleware([authMiddleware])
 	.handler(async ({ data, context }) => {
-		logger.info("findMany", { data, userId: context.user.id });
+		const user = await getUser();
+
+		logger.info("findMany", { data, userId: user.id });
 
 		const { subject, where, with: withRelations } = data as FindEntityPayload;
 
 		const { table, query } = entityConfig[subject as EntityType];
 		const whereList = buildWhereClause(table, where);
 
-		accessCheck(context.user, "list", subject, where);
+		accessCheck(user, "list", subject, where);
 
 		const result = await query.findMany({
 			where: whereList,

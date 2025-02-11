@@ -3,7 +3,6 @@ import type { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
 	ScriptOnce,
-	ScrollRestoration,
 	createRootRouteWithContext,
 	redirect,
 } from "@tanstack/react-router";
@@ -200,7 +199,6 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 				</ScriptOnce>
 				{children}
 				<Toaster position="bottom-right" />
-				<ScrollRestoration />
 				{/*}
 				<ReactQueryDevtools buttonPosition="bottom-left" />
 

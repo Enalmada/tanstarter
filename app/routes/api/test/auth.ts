@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/start";
-import { getWebRequest } from "vinxi/http";
+import { getWebRequest } from "@tanstack/start/server";
 
 // Mock users for testing - keep in sync with auth-guard.ts
 const mockTestUser = {
