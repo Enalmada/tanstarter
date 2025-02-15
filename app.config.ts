@@ -1,5 +1,6 @@
 import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "@tanstack/start/config";
 import { config } from "dotenv";
 import { cloudflare } from "unenv";
@@ -25,6 +26,7 @@ export default defineConfig({
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
 			}),
+			tailwindcss(),
 			// Upload source maps to Rollbar after build
 			...(process.env.ROLLBAR_SERVER_TOKEN
 				? [
