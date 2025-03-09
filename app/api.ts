@@ -7,7 +7,7 @@
 import {
 	createStartAPIHandler,
 	defaultAPIFileRouteHandler,
-} from "@tanstack/start/api";
+} from "@tanstack/react-start/api";
 import { monitor } from "~/lib/monitoring";
 
 // Wrap the default handler with error logging

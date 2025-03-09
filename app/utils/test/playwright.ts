@@ -1,4 +1,4 @@
-import { getWebRequest } from "@tanstack/start/server";
+import { getWebRequest } from "@tanstack/react-start/server";
 import type { SessionUser } from "~/utils/auth-client";
 
 // Mock users for testing - keep in sync with auth-guard.ts

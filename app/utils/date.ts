@@ -1,4 +1,5 @@
-import { formatDistanceToNow, isValid } from "date-fns";
+import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
+import { isValid } from "date-fns/isValid";
 
 export const formatDate = (
 	value: string | number | Date | null,

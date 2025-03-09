@@ -1,12 +1,13 @@
 import { getSerwist } from "virtual:serwist";
 import type { QueryClient } from "@tanstack/react-query";
 import {
+	HeadContent,
 	Outlet,
 	ScriptOnce,
+	Scripts,
 	createRootRouteWithContext,
 	redirect,
 } from "@tanstack/react-router";
-import { Meta, Scripts } from "@tanstack/start";
 import { type ReactNode, useEffect } from "react";
 import { Suspense, lazy } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
@@ -188,7 +189,7 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 	return (
 		<html suppressHydrationWarning lang="en">
 			<head>
-				<Meta />
+				<HeadContent />
 			</head>
 			<body>
 				<ScriptOnce>

@@ -5,11 +5,11 @@
  */
 
 /// <reference types="vinxi/types/client" />
-import { StartClient } from "@tanstack/start";
+import { StartClient } from "@tanstack/react-start";
+import { StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { env } from "~/env";
-import { clientConfig } from "~/lib/monitoring";
-import { MonitoringProvider } from "~/lib/monitoring/MonitoringProvider";
+// import { MonitoringProvider } from "~/lib/monitoring/MonitoringProvider";
 import {
 	DEFAULT_LANGUAGE,
 	activateLanguage,
@@ -35,9 +35,11 @@ const hasToken = Boolean(env.PUBLIC_ROLLBAR_ACCESS_TOKEN);
 
 hydrateRoot(
 	document,
-	<MonitoringProvider
-		config={{ ...clientConfig, enabled: isClient && hasToken }}
-	>
+	<StrictMode>
+		{/* <MonitoringProvider
+			config={{ ...clientConfig, enabled: isClient && hasToken }}
+		> */}
 		<StartClient router={router} />
-	</MonitoringProvider>,
+		{/* </MonitoringProvider> */}
+	</StrictMode>,
 );

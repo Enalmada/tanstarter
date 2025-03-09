@@ -1,0 +1,55 @@
+# flyctl launch added from .codebuddy\.gitignore
+.codebuddy\**\db
+
+# flyctl launch added from .gitignore
+**\node_modules
+**\package-lock.json
+**\yarn.lock
+
+**\.DS_Store
+**\.cache
+**\.env
+
+**\.vercel
+**\.output
+**\.vinxi
+**\.wrangler
+**\.netlify
+**\dist
+build
+api
+server\build
+public\build
+
+**\.codebuddy
+**\.turbo
+
+# Serwist
+**\public\sw*
+**\public\swe-worker*
+
+**\.swc
+**\*.tsbuildinfo
+
+# Playwright
+playwright
+!**\playwright.config.ts
+**\playwright-report
+**\test-results
+
+
+**\app.config.timestamp*
+
+**\storybook-static
+**\coverage
+
+# flyctl launch added from .idea\.gitignore
+# Default ignored files
+.idea\shelf
+.idea\workspace.xml
+# Editor-based HTTP Client requests
+.idea\httpRequests
+# Datasource local storage ignored files
+.idea\dataSources
+.idea\dataSources.local.xml
+fly.toml

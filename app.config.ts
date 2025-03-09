@@ -1,9 +1,9 @@
 import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "@tanstack/start/config";
+import { defineConfig } from "@tanstack/react-start/config";
 import { config } from "dotenv";
-import { cloudflare } from "unenv";
+import type { PluginOption } from "vite";
 import viteRollbar from "vite-plugin-rollbar";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { cspRules } from "./app/lib/security/cspRules";
@@ -49,7 +49,7 @@ export default defineConfig({
 				rollupFormat: "iife",
 			}),
 			lingui(),
-		],
+		] as PluginOption[],
 		// Only expose PUBLIC_ prefixed vars to client
 		envPrefix: ["PUBLIC_", "APP_", "CF_"],
 		define: {
@@ -83,12 +83,14 @@ export default defineConfig({
 				"drizzle-orm/pg-core",
 				"drizzle-valibot",
 				"@neondatabase/serverless",
+				"@react-email/render",
+				"rollbar",
 				/*
-				"@tanstack/start/server",
-				"@tanstack/start/server-functions",
-				"@tanstack/start/server-functions-client",
-				"@tanstack/start/api",
-				"@tanstack/start/router-manifest",
+				"@tanstack/react-start/server",
+				"@tanstack/react-start/server-functions",
+				"@tanstack/react-start/server-functions-client",
+				"@tanstack/react-start/api",
+				"@tanstack/react-start/router-manifest",
 				"node:async_hooks",
 				"node:stream",
 				"node:stream/web",
@@ -128,18 +130,16 @@ export default defineConfig({
 				"@radix-ui/react-select",
 				"@radix-ui/react-popover",
 				"@radix-ui/react-dialog",
-				"@react-email/components",
-				"@react-email/render",
 				"@rollbar/react",
 				"@tanstack/react-form",
 				"@tanstack/react-query",
 				"@tanstack/react-query-devtools",
 				"@tanstack/react-router",
 				"@tanstack/react-table",
-				"@tanstack/start",
-				"@tanstack/start/client",
-				"@tanstack/start/server-functions-client",
-				"@tanstack/start/server",
+				"@tanstack/react-start",
+				"@tanstack/react-start/client",
+				"@tanstack/react-start/server-functions-client",
+				"@tanstack/react-start/server",
 				"@tanstack/react-router-with-query",
 				"@tanstack/router-devtools",
 				"@unpic/react",
@@ -154,7 +154,6 @@ export default defineConfig({
 				"next-themes",
 				"posthog-js",
 				"react-dom/client",
-				"rollbar",
 				"sonner",
 				"tailwind-merge",
 				"@serwist/window",
@@ -175,6 +174,19 @@ export default defineConfig({
 		},
 	},
 	server: {
+		preset: "bun",
+		serveStatic: "node",
+		routeRules: {
+			"/**": {
+				headers: {
+					...generateSecurityHeaders(cspRules),
+					"Service-Worker-Allowed": "/",
+				},
+			},
+		},
+	},
+	/*
+	server: {
 		preset: "cloudflare-pages",
 		unenv: cloudflare,
 		routeRules: {
@@ -186,6 +198,7 @@ export default defineConfig({
 			},
 		},
 	},
+	*/
 	react: {
 		babel: {
 			plugins: [

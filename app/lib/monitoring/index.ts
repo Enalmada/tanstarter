@@ -35,8 +35,21 @@ export const monitoringConfig: Configuration = {
 
 // Server-side monitor instance
 export const monitor: ErrorMonitor = (() => {
-	// Delay creation until first use
-	let instance: ErrorMonitor | null = null;
+	// Only create the RollbarMonitor instance on the server
+	if (!isServer) {
+		// Return a no-op monitor for the client
+		return {
+			error: () => {},
+			warn: () => {},
+			info: () => {},
+			debug: () => {},
+			setUser: () => {},
+			breadcrumb: () => {},
+		};
+	}
+
+	let instance: ErrorMonitor | null = null; // Keep the instance nullable
+
 	return {
 		error: (message: string | Error, extra?: unknown) => {
 			if (!instance) instance = new RollbarMonitor(baseConfig);
