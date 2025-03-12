@@ -143,6 +143,8 @@ export default defineConfig({
 				"@tanstack/react-router-with-query",
 				"@tanstack/router-devtools",
 				"@unpic/react",
+				"better-auth",
+				"better-auth/adapters/drizzle",
 				"better-auth/client",
 				"better-auth/react",
 				"better-auth/client/plugins",

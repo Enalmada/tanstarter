@@ -1,16 +1,16 @@
-FROM oven/bun:1.1.45 AS base
+FROM oven/bun:1.2.5 AS base
 WORKDIR /app
 
 # Install dependencies into temp directory for better caching
 FROM base AS install
 # Create separate directories for dev and prod dependencies
 RUN mkdir -p /temp/dev /temp/prod
-COPY package.json bun.lockb /temp/dev/
+COPY package.json bun.lock /temp/dev/
 # Install dev dependencies with scripts disabled
 RUN cd /temp/dev && bun install --ignore-scripts
 
 # Install production dependencies only (no dev dependencies)
-COPY package.json bun.lockb /temp/prod/
+COPY package.json bun.lock /temp/prod/
 RUN cd /temp/prod && bun install --ignore-scripts --production
 
 # Build stage with dev dependencies
@@ -31,7 +31,7 @@ ENV NODE_ENV=production
 COPY --from=install /temp/prod/node_modules node_modules
 # Copy built application files
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/bun.lockb ./bun.lockb
+COPY --from=builder /app/bun.lock ./bun.lock
 COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/public ./public
 
