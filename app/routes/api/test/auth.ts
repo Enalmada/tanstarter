@@ -1,5 +1,5 @@
-import { createServerFn } from "@tanstack/start";
-import { getWebRequest } from "@tanstack/start/server";
+import { createServerFn } from "@tanstack/react-start";
+import { getWebRequest } from "@tanstack/react-start/server";
 
 // Mock users for testing - keep in sync with auth-guard.ts
 const mockTestUser = {

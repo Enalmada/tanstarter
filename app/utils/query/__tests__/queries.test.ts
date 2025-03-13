@@ -1,7 +1,11 @@
+import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 import { findFirst, findMany } from "~/functions/base-service";
-import { mockTaskId, mockUserId } from "~/test/setup";
-import { queries } from "../queries";
+import { queries } from "~/utils/query/queries"; // Adjust this import path if needed
+
+// Mock variables
+const mockUserId = "usr_1";
+const mockTaskId = "tsk_1";
 
 // Mock dependencies
 /*
@@ -19,6 +23,9 @@ vi.mock("~/functions/base-service", () => ({
 }));
 
 describe("queries", () => {
+	// Add a mock QueryClient at the top of the test
+	const mockQueryClient = new QueryClient();
+
 	describe("task queries", () => {
 		it("should generate correct task list query", () => {
 			const query = queries.task.list({ userId: mockUserId });
@@ -59,6 +66,7 @@ describe("queries", () => {
 				] as const,
 				signal: mockSignal,
 				meta: undefined,
+				client: mockQueryClient,
 			});
 			expect(mockFindMany).toHaveBeenCalledWith({
 				data: { where: { userId: mockUserId }, subject: "Task" },
@@ -69,10 +77,37 @@ describe("queries", () => {
 				queryKey: ["task", "byId", mockTaskId] as const,
 				signal: mockSignal,
 				meta: undefined,
+				client: mockQueryClient,
 			});
 			expect(mockFindFirst).toHaveBeenCalledWith({
 				data: { where: { id: mockTaskId }, subject: "Task" },
 			});
+		});
+
+		it("should fetch tasks list", async () => {
+			// ... existing code ...
+			await queries.task.list({ userId: mockUserId }).queryFn({
+				queryKey: [
+					"task",
+					"list",
+					{ filters: { userId: mockUserId } },
+				] as const,
+				signal: new AbortController().signal,
+				meta: undefined,
+				client: mockQueryClient,
+			});
+			// ... existing code ...
+		});
+
+		it("should fetch task by id", async () => {
+			// ... existing code ...
+			await queries.task.byId(mockTaskId).queryFn({
+				queryKey: ["task", "byId", mockTaskId] as const,
+				signal: new AbortController().signal,
+				meta: undefined,
+				client: mockQueryClient,
+			});
+			// ... existing code ...
 		});
 	});
 });

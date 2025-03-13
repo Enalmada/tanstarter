@@ -220,7 +220,7 @@ vi.mock("virtual:serwist", () => ({
 }));
 
 // Mock server functions with a more complete implementation
-vi.mock("@tanstack/start", () => {
+vi.mock("@tanstack/react-start", () => {
 	const mockHandler = vi.fn().mockImplementation((fn) => {
 		return async (input: Record<string, unknown>) => {
 			const contextWithUser = {
@@ -312,7 +312,7 @@ vi.mock("~/server/auth/auth", () => ({
 }));
 
 // Add web request mock
-vi.mock("@tanstack/start/server", () => ({
+vi.mock("@tanstack/react-start/server", () => ({
 	getWebRequest: vi.fn().mockReturnValue({
 		headers: new Headers(),
 	}),

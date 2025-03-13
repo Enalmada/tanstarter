@@ -22,11 +22,12 @@ async function updateTanstack() {
 		console.info("✓ Removed patchedDependencies from package.json");
 
 		// Run initial patch command
-		execSync("bun patch @tanstack/start-config", { stdio: "inherit" });
+		execSync("bun patch @tanstack/react-start-config", { stdio: "inherit" });
 		console.info("✓ Created initial patch");
 
 		// Modify the config file
-		const configPath = "node_modules/@tanstack/start-config/dist/index.js";
+		const configPath =
+			"node_modules/@tanstack/react-start-config/dist/index.js";
 		let configContent = await fs.readFile(configPath, "utf8");
 		configContent = configContent.replace(
 			/(.*viteReact\(opts\.react\),.*)/,
@@ -36,7 +37,9 @@ async function updateTanstack() {
 		console.info("✓ Modified config file");
 
 		// Commit the patch
-		execSync("bun patch --commit @tanstack/start-config", { stdio: "inherit" });
+		execSync("bun patch --commit @tanstack/react-start-config", {
+			stdio: "inherit",
+		});
 		console.info("✓ Committed patch");
 
 		console.info("\n✨ TanStack patch update completed successfully!");

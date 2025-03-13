@@ -1,4 +1,4 @@
-import type { FieldValidators } from "@tanstack/form-core";
+import type { AnyFieldApi } from "@tanstack/react-form";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { ValiError, parse } from "valibot";
@@ -31,9 +31,9 @@ export function FormGenerator<TData extends Record<string, unknown>>({
 }: FormGeneratorProps<TData>) {
 	const [error, setError] = useState<string | null>(null);
 
-	const form = useForm<TData>({
+	const form = useForm({
 		defaultValues: defaultValues as TData,
-		onSubmit: async ({ value }) => {
+		onSubmit: async ({ value }: { value: TData }) => {
 			try {
 				// Transform any field values if needed
 				const transformedValue = Object.fromEntries(
@@ -74,12 +74,12 @@ export function FormGenerator<TData extends Record<string, unknown>>({
 			}
 		},
 		validators: {
-			onSubmit: ({ value }) => {
+			onSubmit: ({ value }: { value: TData }) => {
 				try {
 					// Validate each field with its validation schema
 					for (const field of fields) {
 						if (field.validation) {
-							parse(field.validation, value[field.key]);
+							parse(field.validation, value[field.key as keyof typeof value]);
 						}
 					}
 					return;
@@ -104,10 +104,11 @@ export function FormGenerator<TData extends Record<string, unknown>>({
 		>
 			<div className="space-y-4">
 				{fields.map((fieldConfig) => {
-					// biome-ignore lint/suspicious/noExplicitAny: TanStack Form has complex type constraints that are difficult to satisfy
-					const validators: FieldValidators<TData, any> = fieldConfig.validation
+					// Use a simple validators object with type annotation for onChange
+					// biome-ignore lint/suspicious/noExplicitAny: Required for compatibility
+					const validators: any = fieldConfig.validation
 						? {
-								onChange: ({ value }) => {
+								onChange: ({ value }: { value: unknown }) => {
 									try {
 										if (fieldConfig.validation) {
 											parse(fieldConfig.validation, value);
@@ -126,11 +127,12 @@ export function FormGenerator<TData extends Record<string, unknown>>({
 					return (
 						<form.Field
 							key={fieldConfig.key}
-							// biome-ignore lint/suspicious/noExplicitAny: TanStack Form has complex type constraints that are difficult to satisfy
-							name={fieldConfig.key as any}
+							name={fieldConfig.key}
 							validators={validators}
 						>
-							{(field) => <FormField field={field} config={fieldConfig} />}
+							{(field: AnyFieldApi) => (
+								<FormField field={field} config={fieldConfig} />
+							)}
 						</form.Field>
 					);
 				})}

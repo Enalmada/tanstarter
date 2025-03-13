@@ -39,12 +39,12 @@
  *    - Uses TanStack Form's field API for type-safe value handling
  *    - Config types ensure correct props for each field type
  *
- * Note: We use `any` for the FieldApi type parameters due to complex type constraints
+ * Note: We use a simplified type for FieldApi due to complex type constraints
  * in TanStack Form that are difficult to satisfy without compromising the component's
  * flexibility. The component still works correctly at runtime.
  */
 
-import type { FieldApi } from "@tanstack/react-form";
+import type { AnyFieldApi } from "@tanstack/react-form";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -66,8 +66,8 @@ import type {
 } from "./types";
 
 interface FormFieldProps<TData extends Record<string, unknown>> {
-	// biome-ignore lint/suspicious/noExplicitAny: TanStack Form has complex type constraints that are difficult to satisfy without compromising component flexibility
-	field: FieldApi<TData, any, any, any>;
+	// Update to use AnyFieldApi which doesn't require all type parameters
+	field: AnyFieldApi;
 	config: FormFieldConfig<TData>;
 }
 

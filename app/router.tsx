@@ -31,6 +31,8 @@ export function createRouter() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: {
+				// TODO: confirm this is the best approach
+				refetchOnWindowFocus: false,
 				staleTime: 1000 * 60 * 5, // 5 minutes
 				gcTime: 1000 * 60 * 60 * 24, // 24 hours
 			},
@@ -44,6 +46,9 @@ export function createRouter() {
 			context: { queryClient, user: undefined } as RouterContext,
 			// Preload on hover/focus, but respect 5-minute stale time
 			defaultPreload: "intent" as const,
+			// TODO: confirm this is the best approach
+			// react-query will handle data fetching & caching
+			// https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#passing-all-loader-events-to-an-external-cache
 			defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
 			defaultErrorComponent: DefaultCatchBoundary,
 			defaultNotFoundComponent: NotFound,

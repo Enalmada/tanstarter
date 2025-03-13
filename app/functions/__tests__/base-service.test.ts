@@ -49,7 +49,7 @@
  * ```
  */
 
-import { getWebRequest, setResponseStatus } from "@tanstack/start/server";
+import { getWebRequest, setResponseStatus } from "@tanstack/react-start/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteEntity } from "~/functions/base-service";
 import { validateId } from "~/functions/helpers";
