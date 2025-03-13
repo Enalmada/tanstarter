@@ -1,0 +1,100 @@
+name: Deploy PR Environment
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: read
+  deployments: write
+  pull-requests: write
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  FLY_REGION: iad
+  FLY_ORG: personal
+  NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+  NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+  FLY_APP_NAME: pr-${{ github.event.number }}-tanstarter
+
+jobs:
+  # CREATE RESOURCES (when PR is opened/updated)
+  create_environment:
+    if: |
+      github.event.action != 'closed' && 
+      github.head_ref != 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      api_url: ${{ steps.deploy_app.outputs.url }}
+    concurrency:
+      group: pr-${{ github.event.number }}
+
+    environment:
+      name: pr-${{ github.event.number }}
+      url: ${{ steps.deploy_app.outputs.url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Create Neon Database Branch
+        id: create_db
+        uses: neondatabase/create-branch-action@v5
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch_name: pr-${{ github.event.number }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          username: ${{ vars.DATABASE_OWNER}}
+          database: ${{ vars.DATABASE_NAME}}
+
+      - name: Deploy Fly.io app
+        id: deploy_app
+        uses: superfly/fly-pr-review-apps@1.5.0
+        with:
+          name: ${{ env.FLY_APP_NAME }}
+          config: fly.toml
+          secrets: |
+            APP_ENV=${{ vars.APP_ENV }}
+            AXIOM_DATASET_NAME=${{ vars.AXIOM_DATASET_NAME }}
+            AXIOM_TOKEN=${{ secrets.AXIOM_TOKEN }}
+            BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
+            DATABASE_URL=${{ steps.create_db.outputs.db_url }}
+            GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            NODE_ENV=production
+            PUBLIC_ROLLBAR_ACCESS_TOKEN=${{ vars.PUBLIC_ROLLBAR_ACCESS_TOKEN }}
+            ROLLBAR_SERVER_TOKEN=${{ secrets.ROLLBAR_SERVER_TOKEN }}
+
+  # DESTROY RESOURCES (when PR is closed)
+  destroy_environment:
+    if: |
+      github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Destroy Neon Database Branch
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch: pr-${{ github.event.number }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
+      - name: Destroy Fly.io app
+        uses: superfly/fly-pr-review-apps@1.5.0
+        with:
+          name: ${{ env.FLY_APP_NAME }}
+          config: fly.toml
+
+      - name: Clean up GitHub environment
+        uses: strumwolf/delete-deployment-environment@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: pr-${{ github.event.number }}
