@@ -9,10 +9,23 @@ jobs:
   deploy:
     name: Deploy app
     runs-on: ubuntu-latest
-    concurrency: deploy-group    # optional: ensure only one action runs at a time
+    concurrency: deploy-group
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
+      - name: Deploy to Fly.io
+        run: |
+          # Try deployment up to 3 times to handle temporary API issues
+          for i in 1 2 3; do
+            echo "Deployment attempt $i of 3"
+            if flyctl deploy --app tanstarter --remote-only; then
+              echo "Deployment successful!"
+              exit 0
+            fi
+            echo "Deployment attempt $i failed, waiting 10 seconds before retry..."
+            sleep 10
+          done
+          echo "All deployment attempts failed"
+          exit 1
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
