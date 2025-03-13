@@ -1,57 +1,57 @@
-# flyctl launch added from .codebuddy\.gitignore
-.codebuddy\**\db
+# flyctl launch added from .codebuddy/.gitignore
+.codebuddy/**/db
 
 # flyctl launch added from .gitignore
-**\node_modules
-**\package-lock.json
-**\yarn.lock
+**/node_modules
+**/package-lock.json
+**/yarn.lock
 
-**\.DS_Store
-**\.cache
-**\.env
+**/.DS_Store
+**/.cache
+**/.env
 
-**\.vercel
-**\.output
-**\.vinxi
-**\.wrangler
-**\.netlify
-**\dist
+**/.vercel
+**/.output
+**/.vinxi
+**/.wrangler
+**/.netlify
+**/dist
 build
 api
-server\build
-public\build
+server/build
+public/build
 
-**\.codebuddy
-**\.turbo
+**/.codebuddy
+**/.turbo
 
 # Serwist
-**\public\sw*
-**\public\swe-worker*
+**/public/sw*
+**/public/swe-worker*
 
-**\.swc
-**\*.tsbuildinfo
+**/.swc
+**/*.tsbuildinfo
 
 # Playwright
 playwright
-!**\playwright.config.ts
-**\playwright-report
-**\test-results
+!**/playwright.config.ts
+**/playwright-report
+**/test-results
 
 
-**\app.config.timestamp*
+**/app.config.timestamp*
 
-**\storybook-static
-**\coverage
+**/storybook-static
+**/coverage
 
-# flyctl launch added from .idea\.gitignore
+# flyctl launch added from .idea/.gitignore
 # Default ignored files
-.idea\shelf
-.idea\workspace.xml
+.idea/shelf
+.idea/workspace.xml
 # Editor-based HTTP Client requests
-.idea\httpRequests
+.idea/httpRequests
 # Datasource local storage ignored files
-.idea\dataSources
-.idea\dataSources.local.xml
+.idea/dataSources
+.idea/dataSources.local.xml
 fly.toml
 
 # Node modules and dependencies
