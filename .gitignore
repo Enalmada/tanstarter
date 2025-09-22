@@ -40,5 +40,6 @@ test-results/
 app.config.timestamp*
 
 storybook-static
+debug-storybook.log
 coverage
 docs/sessions

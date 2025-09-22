@@ -1,10 +1,11 @@
 {
 	"$schema": "https://turbo.build/schema.json",
 	"globalDependencies": ["**/.env.*local"],
+	"ui": "tui",
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
-			"outputs": ["dist/**"]
+			"outputs": [".output/**"]
 		},
 		"check-types": {
 			"dependsOn": ["^check-types"]
@@ -14,13 +15,17 @@
 			"outputLogs": "new-only"
 		},
 		"drizzle:migrate": {
-			"inputs": ["drizzle.config.ts", "app/server/db/migrations/**"],
-			"outputs": ["app/server/db/migrations/meta/_journal.json"],
+			"inputs": ["drizzle.config.ts", "src/server/db/migrations/**"],
+			"outputs": ["src/server/db/migrations/meta/_journal.json"],
 			"dependsOn": ["dev:install"],
 			"outputLogs": "new-only"
 		},
-		"dev:vinxi": {
+		"dev:vite": {
 			"dependsOn": ["dev:install", "drizzle:migrate"],
+			"persistent": true,
+			"cache": false
+		},
+		"storybook": {
 			"persistent": true,
 			"cache": false
 		},
@@ -29,6 +34,25 @@
 		},
 		"lint": {
 			"dependsOn": ["^lint"]
+		},
+		"check-stories": {
+			"inputs": ["src/components/**/*", "src/routes/**/*", "src/emails/**/*", "scripts/check-component-coverage.cjs"],
+			"outputs": []
+		},
+		"test:unit": {
+			"inputs": ["src/**/*", "vitest.unit.config.ts", ".env.test*"],
+			"outputs": []
+		},
+		"test:e2e": {
+			"inputs": ["src/**/*", "playwright.config.ts", "tests/**/*", ".env*"],
+			"outputs": ["playwright-report/**", "test-results/**"]
+		},
+		"test-storybook": {
+			"inputs": ["src/**/*", "vitest.workspace.ts", ".storybook/**/*"],
+			"outputs": []
+		},
+		"check": {
+			"dependsOn": ["lint", "check-types", "check-stories", "test:unit", "test-storybook", "test:e2e"]
 		}
 	}
 }
