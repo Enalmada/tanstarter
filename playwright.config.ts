@@ -50,6 +50,10 @@ const config: PlaywrightTestConfig = {
 			DB_PROXY_PORT: process.env.DB_PROXY_PORT || "4444",
 			DB_RETRY_INTERVAL: process.env.DB_RETRY_INTERVAL || "2000",
 			DB_MAX_RETRIES: process.env.DB_MAX_RETRIES || "15",
+			GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "test-client-id",
+			GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || "test-client-secret",
+			BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || "test-auth-secret",
+			APP_ENV: process.env.APP_ENV || "development",
 		},
 	},
 
