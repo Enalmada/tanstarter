@@ -44,12 +44,13 @@ import type { Task, User } from "~/server/db/schema";
  */
 // biome-ignore lint/suspicious/noExplicitAny: Server functions need flexible typing for compatibility
 function useContextAwareServerFn<T extends (...args: any[]) => any>(serverFn: T) {
-	try {
-		// Try to use useServerFn - this will throw if not in a React component
-		// biome-ignore lint/correctness/useHookAtTopLevel: This is intentionally conditional - falls back to raw server function
+	// Check if we're in a browser environment (React component context)
+	// In server/loader/test context, window is undefined
+	if (typeof window !== "undefined") {
+		// biome-ignore lint/correctness/useHookAtTopLevel: This is safe - we've verified we're in browser context
 		return useServerFn(serverFn);
-	} catch {
-		// Not in React context (e.g., route loader), use raw server function
+	} else {
+		// Server context (route loader, test environment, etc.) - use raw server function
 		return serverFn;
 	}
 }
