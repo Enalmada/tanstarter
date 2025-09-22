@@ -20,7 +20,7 @@ process.env.NODE_ENV = "development";
  * - public/ - Public page tests (no auth required)
  */
 const config: PlaywrightTestConfig = {
-	testDir: "./app/e2e",
+	testDir: "./src/e2e",
 	// Enable parallel execution for faster test runs
 	// Tests must be independent since they run in parallel
 	fullyParallel: true,
@@ -85,7 +85,7 @@ const config: PlaywrightTestConfig = {
 		// Member test suite - uses member.json auth state
 		{
 			name: "member",
-			testDir: "./app/e2e/member",
+			testDir: "./src/e2e/member",
 			use: {
 				...devices["Desktop Chrome"],
 				storageState: "playwright/.auth/member.json",
@@ -96,7 +96,7 @@ const config: PlaywrightTestConfig = {
 		// Admin test suite - uses admin.json auth state
 		{
 			name: "admin",
-			testDir: "./app/e2e/admin",
+			testDir: "./src/e2e/admin",
 			use: {
 				...devices["Desktop Chrome"],
 				storageState: "playwright/.auth/admin.json",
@@ -107,7 +107,7 @@ const config: PlaywrightTestConfig = {
 		// Public pages - no auth required
 		{
 			name: "public",
-			testDir: "./app/e2e/public",
+			testDir: "./src/e2e/public",
 			use: { ...devices["Desktop Chrome"] },
 		},
 	],

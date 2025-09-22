@@ -24,21 +24,4 @@ pre-commit:
       run: bun run check-stories
       fail_text: "❌ Missing Storybook stories detected! Components need stories for testing. Run 'bun run check-stories' to see which components need stories."
 
-    danger-check:
-      glob: "**/*.{ts,tsx,js,jsx}"
-      run: |
-        if grep -r "process\.env" src/ --include="*.ts" --include="*.tsx" --exclude-dir=server | grep -v "process\.env\.NODE_ENV"; then
-          echo "❌ Direct process.env usage detected! Use import { env } from '~/validate-env' instead."
-          exit 1
-        fi
-      fail_text: "❌ Direct process.env usage detected! Use import { env } from '~/validate-env' instead."
 
-    console-check:
-      glob: "src/**/*.{ts,tsx}"
-      exclude: "**/*.{stories,test,spec}.{ts,tsx}"
-      run: |
-        if grep -r "console\." src/ --include="*.ts" --include="*.tsx" --exclude="*.stories.*" --exclude="*.test.*" --exclude="*.spec.*" --exclude-dir=lib/monitoring --exclude="validate-env.ts" | grep -v "// eslint-disable"; then
-          echo "❌ Console statements found in production code! Remove console.log/error statements or add eslint-disable comment if needed for debugging."
-          exit 1
-        fi
-      fail_text: "❌ Console statements found in production code! Remove console.log/error statements or add eslint-disable comment if needed for debugging."

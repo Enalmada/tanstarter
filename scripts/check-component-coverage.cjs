@@ -259,15 +259,23 @@ const itemType = process.argv.includes("--include-routes")
 	? "components/pages/emails"
 	: "components/emails";
 
-console.log(
-	`\n📊 Storybook Coverage: ${stats.covered}/${stats.total} ${itemType} (${coverage}%)`,
-);
+// Check for --quiet flag to suppress success output
+const isQuiet = process.argv.includes("--quiet");
 
 if (stats.missing > 0) {
+	console.log(
+		`\n📊 Storybook Coverage: ${stats.covered}/${stats.total} ${itemType} (${coverage}%)`,
+	);
 	console.log(`\n❌ ${stats.missing} ${itemType} missing story coverage`);
 	// Exit with error when stories are missing
 	process.exit(1);
 } else {
-	console.log(`\n✅ All ${itemType} have story coverage!`);
+	// Only show detailed output if not in quiet mode
+	if (!isQuiet) {
+		console.log(
+			`\n📊 Storybook Coverage: ${stats.covered}/${stats.total} ${itemType} (${coverage}%)`,
+		);
+		console.log(`\n✅ All ${itemType} have story coverage!`);
+	}
 	process.exit(0);
 }
