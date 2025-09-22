@@ -8,6 +8,7 @@ yarn.lock
 
 .vercel
 .output
+.nitro
 .vinxi
 .wrangler
 .netlify
@@ -19,6 +20,8 @@ dist
 
 .codebuddy
 .turbo
+.serena
+.tanstack
 
 # Serwist
 public/sw*
@@ -37,4 +40,6 @@ test-results/
 app.config.timestamp*
 
 storybook-static
+debug-storybook.log
 coverage
+docs/sessions

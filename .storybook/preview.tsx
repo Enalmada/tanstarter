@@ -1,6 +1,11 @@
-import type { Preview } from "@storybook/react";
-import "../app/styles/app.css";
+import type { Preview } from "@storybook/react-vite";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { createMockQueryClient } from "../src/storybook/mockQueries";
+import "../src/styles/app.css";
 import "./main.css";
+
+// Create a mock query client for Storybook
+const queryClient = createMockQueryClient();
 
 const preview: Preview = {
 	parameters: {
@@ -21,23 +26,21 @@ const preview: Preview = {
 		// Cloudflare Pages specific configurations
 		docs: {
 			source: {
-				transform: (code: string) =>
-					code.replace(/\/sb-addons\//g, "/sb-addons/"),
+				transform: (code: string) => code.replace(/\/sb-addons\//g, "/sb-addons/"),
 			},
 		},
 		server: {
-			url:
-				typeof window !== "undefined"
-					? window.location.origin
-					: "http://localhost:6006",
+			url: typeof window !== "undefined" ? window.location.origin : "http://localhost:6006",
 		},
 	},
 
 	decorators: [
 		(Story) => (
-			<div className="min-h-screen p-4 antialiased">
-				<Story />
-			</div>
+			<QueryClientProvider client={queryClient}>
+				<div className="min-h-screen p-4 antialiased">
+					<Story />
+				</div>
+			</QueryClientProvider>
 		),
 	],
 

@@ -1,28 +1,45 @@
 {
 	"include": ["**/*.ts", "**/*.tsx"],
+	"exclude": ["src/scala", "playwright", "src/functions/__tests__/**", "src/utils/query/__tests__/**"],
 	"compilerOptions": {
-		"incremental": false,
-		"assumeChangesOnlyAffectDirectDependencies": true,
-		"strict": true,
-		"esModuleInterop": true,
-		"jsx": "react-jsx",
+		// Enable latest features
+		"lib": ["DOM", "DOM.Iterable", "ESNext", "webworker"],
+		"target": "ESNext",
 		"module": "ESNext",
-		"moduleResolution": "Bundler",
-		"lib": ["DOM", "DOM.Iterable", "ES2022", "webworker"],
+		"jsx": "react-jsx",
 		"types": ["@serwist/vite/typings"],
+
+		// Bundler mode
+		"moduleResolution": "Bundler",
+		"allowImportingTsExtensions": true,
+		"verbatimModuleSyntax": true,
+		"noEmit": true,
 		"isolatedModules": true,
 		"resolveJsonModule": true,
-		"skipLibCheck": true,
-		"target": "ES2022",
-		"allowJs": true,
-		"forceConsistentCasingInFileNames": true,
+
+		// Path configuration
 		"baseUrl": ".",
 		"paths": {
-			"~/*": ["./app/*"]
+			"~/*": ["./src/*"]
 		},
-		"noEmit": true,
+
+		// Build optimization
+		"incremental": false,
+		"assumeChangesOnlyAffectDirectDependencies": true,
+
+		// Best practices
+		"strict": true,
 		"strictNullChecks": true,
-		"exactOptionalPropertyTypes": true,
-		"verbatimModuleSyntax": true
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"allowJs": true,
+		"noFallthroughCasesInSwitch": true,
+
+		// Stricter flags
+		"exactOptionalPropertyTypes": true
+		// "noUnusedLocals": true,
+		// "noUnusedParameters": true,
+		// "noPropertyAccessFromIndexSignature": true
 	}
 }

@@ -1,0 +1,86 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
+	"vcs": {
+		"enabled": false,
+		"clientKind": "git",
+		"useIgnoreFile": false
+	},
+	"files": {
+		"ignoreUnknown": true,
+		"includes": [
+			"**",
+			"!.nitro",
+			"!.tanstack",
+			"!.tanstack-start",
+			"!.turbo",
+			"!.output",
+			"!.vinxi",
+			"!.codebuddy",
+			"!.idea",
+			"!.vscode",
+			"!node_modules",
+			"!build",
+			"!dist",
+			"!out",
+			"!coverage",
+			"!storybook-static",
+			"!test-results",
+			"!src/server/db/migrations",
+			"!src/routeTree.gen.ts",
+			"!tanstack-start.d.ts",
+			"!*.tsbuildinfo",
+			"!playwright/.artifacts",
+			"!playwright/artifacts",
+			"!playwright/report",
+			"!playwright/results",
+			"!playwright/test-results",
+			"!app.config.timestamp*",
+			"!src/styles/app.css"
+		]
+	},
+	"css": {
+		"formatter": { "enabled": false },
+		"linter": { "enabled": false }
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"lineWidth": 120
+	},
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"suspicious": {
+				"noConsole": { "level": "error", "fix": "safe" },
+				"noDebugger": "error"
+			},
+			"correctness": {
+				"noUnusedImports": "error",
+				"noUnusedFunctionParameters": "off"
+			},
+			"performance": {
+				"noBarrelFile": "error"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double",
+			"trailingCommas": "all"
+		}
+	},
+	"json": {
+		"formatter": {
+			"trailingCommas": "none"
+		}
+	}
+}

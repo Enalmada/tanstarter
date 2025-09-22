@@ -1,13 +1,27 @@
 pre-commit:
   parallel: true
   commands:
+
     type-check:
       glob: "**/*.{ts,tsx}"
       run: bun run check-types
+      fail_text: "❌ TypeScript errors found! Run 'bun run check-types' to see details. TypeScript errors cannot ship to production."
+
     lint:
       glob: "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
       run: bun run lint
       stage_fixed: true
+      fail_text: "❌ Linting errors found! Most have been auto-fixed. Please review the changes and commit again."
+
     drizzle-check:
-      glob: "app/server/db/schema.ts"
+      glob: "src/server/db/schema/**/*.{ts,tsx}"
       run: bun drizzle:generate
+      fail_text: "❌ Database schema changed! Generated new migration. Please review the migration file before committing."
+
+    storybook-coverage:
+      glob: "src/**/*.{tsx,ts}"
+      exclude: "**/*.{test,spec,stories}.{ts,tsx}"
+      run: bun run check-stories
+      fail_text: "❌ Missing Storybook stories detected! Components need stories for testing. Run 'bun run check-stories' to see which components need stories."
+
+

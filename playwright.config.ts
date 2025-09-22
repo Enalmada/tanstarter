@@ -1,5 +1,5 @@
-import { defineConfig, devices } from "@playwright/test";
 import type { PlaywrightTestConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 
 // Set NODE_ENV for tests - required for test tokens to work in auth.ts
 process.env.NODE_ENV = "development";
@@ -20,7 +20,7 @@ process.env.NODE_ENV = "development";
  * - public/ - Public page tests (no auth required)
  */
 const config: PlaywrightTestConfig = {
-	testDir: "./app/e2e",
+	testDir: "./src/e2e",
 	// Enable parallel execution for faster test runs
 	// Tests must be independent since they run in parallel
 	fullyParallel: true,
@@ -39,20 +39,12 @@ const config: PlaywrightTestConfig = {
 	// Built-in development server management
 	webServer: {
 		reuseExistingServer: true,
-		command: "vinxi dev",
+		command:
+			"bun run docker:up && sh scripts/wait-for.sh && cross-env GOOGLE_CLIENT_ID=test-client-id GOOGLE_CLIENT_SECRET=test-client-secret BETTER_AUTH_SECRET=test-auth-secret APP_ENV=development bun run dev:vite",
 		port: 3000,
 		stdout: "pipe",
 		stderr: "pipe",
 		timeout: 120000, // 2 minutes
-		env: {
-			NODE_ENV: "development",
-			DATABASE_URL:
-				process.env.DATABASE_URL ||
-				"postgres://postgres:postgres@db.localtest.me:5434/tanstarter",
-			DB_PROXY_PORT: process.env.DB_PROXY_PORT || "4444",
-			DB_RETRY_INTERVAL: process.env.DB_RETRY_INTERVAL || "2000",
-			DB_MAX_RETRIES: process.env.DB_MAX_RETRIES || "15",
-		},
 	},
 
 	reporter: [
@@ -85,7 +77,7 @@ const config: PlaywrightTestConfig = {
 		// Member test suite - uses member.json auth state
 		{
 			name: "member",
-			testDir: "./app/e2e/member",
+			testDir: "./src/e2e/member",
 			use: {
 				...devices["Desktop Chrome"],
 				storageState: "playwright/.auth/member.json",
@@ -96,7 +88,7 @@ const config: PlaywrightTestConfig = {
 		// Admin test suite - uses admin.json auth state
 		{
 			name: "admin",
-			testDir: "./app/e2e/admin",
+			testDir: "./src/e2e/admin",
 			use: {
 				...devices["Desktop Chrome"],
 				storageState: "playwright/.auth/admin.json",
@@ -107,7 +99,7 @@ const config: PlaywrightTestConfig = {
 		// Public pages - no auth required
 		{
 			name: "public",
-			testDir: "./app/e2e/public",
+			testDir: "./src/e2e/public",
 			use: { ...devices["Desktop Chrome"] },
 		},
 	],

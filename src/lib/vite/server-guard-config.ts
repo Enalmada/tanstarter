@@ -1,0 +1,27 @@
+export const serverGuardConfig = {
+	serverDirectory: [
+		"app/server",
+		"app/lib/auth",
+		"app/config",
+		"app/lib/email",
+		"better-auth/server",
+		"better-auth/dist/server",
+		"better-auth/adapters",
+		"~/server/auth",
+		"app/server/auth",
+		"app/utils/auth-server",
+		"better-auth/dist",
+		"better-auth/core",
+		"better-auth",
+	],
+	allowedImports: [
+		"app/types/models.ts",
+		"app/types/auth.ts",
+		"app/lib/validation",
+		"~/server/auth/auth.types",
+		"better-auth/client",
+		"better-auth/react",
+		"better-auth/client/plugins",
+	],
+	clientEntryPoints: ["app/client.tsx", "app/root.tsx", "app/router.tsx", "app/entry.client.tsx"],
+};
