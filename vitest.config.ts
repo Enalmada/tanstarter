@@ -13,10 +13,7 @@ export default defineConfig({
 				resolve: {
 					alias: {
 						"~": path.resolve(__dirname, "./src"),
-						"virtual:serwist": path.resolve(
-							__dirname,
-							"./src/utils/query/__tests__/mocks/virtual-serwist.ts",
-						),
+						"virtual:serwist": path.resolve(__dirname, "./src/utils/query/__tests__/mocks/virtual-serwist.ts"),
 					},
 				},
 				test: {
@@ -30,40 +27,17 @@ export default defineConfig({
 			},
 			// Storybook tests project
 			{
-				plugins: [
-					storybookTest({ configDir: path.join(__dirname, ".storybook") }),
-				],
+				plugins: [storybookTest({ configDir: path.join(__dirname, ".storybook") })],
 				resolve: {
 					alias: {
-						"~/functions/session": path.resolve(
-							__dirname,
-							"./src/storybook/MockServerFunctions.ts",
-						),
-						"~/functions/base-service": path.resolve(
-							__dirname,
-							"./src/storybook/MockServerFunctions.ts",
-						),
+						"~/functions/session": path.resolve(__dirname, "./src/storybook/MockServerFunctions.ts"),
+						"~/functions/base-service": path.resolve(__dirname, "./src/storybook/MockServerFunctions.ts"),
 						"~": path.resolve(__dirname, "./src"),
-						"@tanstack/react-router": path.resolve(
-							__dirname,
-							"./src/storybook/MockLink.tsx",
-						),
-						"@tanstack/react-start": path.resolve(
-							__dirname,
-							"./src/storybook/MockReactStart.ts",
-						),
-						"@tanstack/react-start/server": path.resolve(
-							__dirname,
-							"./src/storybook/MockSSRServer.ts",
-						),
-						"@tanstack/react-start-server": path.resolve(
-							__dirname,
-							"./src/storybook/MockSSRServer.ts",
-						),
-						"@tanstack/react-start-client": path.resolve(
-							__dirname,
-							"./src/storybook/MockReactStart.ts",
-						),
+						"@tanstack/react-router": path.resolve(__dirname, "./src/storybook/MockLink.tsx"),
+						"@tanstack/react-start": path.resolve(__dirname, "./src/storybook/MockReactStart.ts"),
+						"@tanstack/react-start/server": path.resolve(__dirname, "./src/storybook/MockSSRServer.ts"),
+						"@tanstack/react-start-server": path.resolve(__dirname, "./src/storybook/MockSSRServer.ts"),
+						"@tanstack/react-start-client": path.resolve(__dirname, "./src/storybook/MockReactStart.ts"),
 						"tanstack-start-route-tree:v": path.resolve(
 							__dirname,
 							"./src/utils/query/__tests__/mocks/tanstack-start-route-tree.ts",
@@ -93,11 +67,7 @@ export default defineConfig({
 						"@radix-ui/react-slot",
 						"class-variance-authority",
 					],
-					exclude: [
-						"@tanstack/react-start",
-						"@tanstack/react-start-server",
-						"@tanstack/react-start-client",
-					],
+					exclude: ["@tanstack/react-start", "@tanstack/react-start-server", "@tanstack/react-start-client"],
 				},
 				test: {
 					name: "storybook",

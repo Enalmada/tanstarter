@@ -1,13 +1,6 @@
 import { getSerwist } from "virtual:serwist";
 import type { QueryClient } from "@tanstack/react-query";
-import {
-	createRootRouteWithContext,
-	HeadContent,
-	Outlet,
-	redirect,
-	ScriptOnce,
-	Scripts,
-} from "@tanstack/react-router";
+import { createRootRouteWithContext, HeadContent, Outlet, redirect, ScriptOnce, Scripts } from "@tanstack/react-router";
 import { lazy, type ReactNode, Suspense, useEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
@@ -51,9 +44,7 @@ export const Route = createRootRouteWithContext<{
 		queryClient.setQueryData(queries.user.session.queryKey, user);
 
 		// Check if this is a protected route
-		const isProtectedRoute =
-			location.pathname.startsWith("/tasks") ||
-			location.pathname.startsWith("/admin");
+		const isProtectedRoute = location.pathname.startsWith("/tasks") || location.pathname.startsWith("/admin");
 
 		if (isProtectedRoute && !user) {
 			throw redirect({ to: "/signin" });

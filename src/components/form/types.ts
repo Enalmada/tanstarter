@@ -1,13 +1,6 @@
 import type { BaseIssue, BaseSchema } from "valibot";
 
-export type FormFieldType =
-	| "text"
-	| "textarea"
-	| "date"
-	| "select"
-	| "checkbox"
-	| "radio"
-	| "hidden";
+export type FormFieldType = "text" | "textarea" | "date" | "select" | "checkbox" | "radio" | "hidden";
 
 export interface BaseFieldConfig<T> {
 	key: keyof T & string;

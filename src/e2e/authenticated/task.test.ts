@@ -76,12 +76,7 @@ test.describe("Task operations", () => {
 		await page.getByRole("button", { name: /create/i }).click();
 
 		// Mark Task 1 as completed
-		await page
-			.getByText("Task 1")
-			.locator("..")
-			.locator("..")
-			.getByRole("checkbox")
-			.check();
+		await page.getByText("Task 1").locator("..").locator("..").getByRole("checkbox").check();
 
 		// Filter by completed tasks
 		await page.getByRole("button", { name: /completed/i }).click();

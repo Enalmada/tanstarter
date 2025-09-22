@@ -39,16 +39,14 @@ const config: PlaywrightTestConfig = {
 	// Built-in development server management
 	webServer: {
 		reuseExistingServer: true,
-		command: "vinxi dev",
+		command: "bun run dev",
 		port: 3000,
 		stdout: "pipe",
 		stderr: "pipe",
 		timeout: 120000, // 2 minutes
 		env: {
 			NODE_ENV: "development",
-			DATABASE_URL:
-				process.env.DATABASE_URL ||
-				"postgres://postgres:postgres@db.localtest.me:5434/tanstarter",
+			DATABASE_URL: process.env.DATABASE_URL || "postgres://postgres:postgres@db.localtest.me:5434/tanstarter",
 			DB_PROXY_PORT: process.env.DB_PROXY_PORT || "4444",
 			DB_RETRY_INTERVAL: process.env.DB_RETRY_INTERVAL || "2000",
 			DB_MAX_RETRIES: process.env.DB_MAX_RETRIES || "15",

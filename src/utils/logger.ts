@@ -8,11 +8,7 @@ const isDevelopment = process.env.NODE_ENV === "development";
 
 type LogLevel = "debug" | "info" | "error";
 
-const consoleLog = (
-	level: LogLevel,
-	_message: string,
-	data?: Record<string, unknown>,
-) => {
+const consoleLog = (level: LogLevel, _message: string, data?: Record<string, unknown>) => {
 	const _timestamp = new Date().toISOString();
 	const _logData = data ? `\n${JSON.stringify(data, null, 2)}` : "";
 
@@ -26,11 +22,7 @@ const consoleLog = (
 	}
 };
 
-const logToAxiom = async (
-	level: LogLevel,
-	message: string,
-	data?: Record<string, unknown>,
-) => {
+const logToAxiom = async (level: LogLevel, message: string, data?: Record<string, unknown>) => {
 	if (!axiom) return;
 
 	try {

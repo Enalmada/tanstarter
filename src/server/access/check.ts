@@ -25,8 +25,6 @@ export function accessCheck(
 	const subjectData = { ...criteria, __caslSubjectType__: subjectType };
 
 	if (ability.cannot(action, subjectData, field)) {
-		throw new NotAuthorizedError(
-			`You do not have permission to ${action} ${subjectType}.`,
-		);
+		throw new NotAuthorizedError(`You do not have permission to ${action} ${subjectType}.`);
 	}
 }

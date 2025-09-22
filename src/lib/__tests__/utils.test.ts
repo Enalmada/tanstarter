@@ -8,9 +8,7 @@ describe("utils", () => {
 		});
 
 		it("should handle conditional classes", () => {
-			expect(cn("foo", undefined, "bar", null, false, "baz")).toBe(
-				"foo bar baz",
-			);
+			expect(cn("foo", undefined, "bar", null, false, "baz")).toBe("foo bar baz");
 		});
 
 		it("should handle arrays of classes", () => {
@@ -19,9 +17,7 @@ describe("utils", () => {
 
 		it("should merge Tailwind classes correctly", () => {
 			expect(cn("p-4 bg-red-500", "p-6")).toBe("bg-red-500 p-6");
-			expect(cn("text-sm text-gray-500", "text-lg")).toBe(
-				"text-gray-500 text-lg",
-			);
+			expect(cn("text-sm text-gray-500", "text-lg")).toBe("text-gray-500 text-lg");
 		});
 
 		it("should handle complex combinations", () => {
@@ -35,9 +31,7 @@ describe("utils", () => {
 				undefined,
 				null,
 			);
-			expect(result).toBe(
-				"base-class conditional-true array-class-1 array-class-2",
-			);
+			expect(result).toBe("base-class conditional-true array-class-1 array-class-2");
 		});
 	});
 });

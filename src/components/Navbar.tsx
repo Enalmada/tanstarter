@@ -42,8 +42,7 @@ export function Navbar({ user }: NavbarProps) {
 	const avatarId = useId();
 
 	// Pre-compute the avatar URL
-	const avatarUrl =
-		user?.image ?? (user?.email ? getGravatarUrl(user.email) : undefined);
+	const avatarUrl = user?.image ?? (user?.email ? getGravatarUrl(user.email) : undefined);
 
 	return (
 		<div className="flex h-14 items-center justify-between border-0 border-b px-4 bg-white dark:bg-background">
@@ -60,17 +59,13 @@ export function Navbar({ user }: NavbarProps) {
 							<DropdownMenuTrigger asChild>
 								<Avatar id={avatarId} className="cursor-pointer">
 									<AvatarImage src={avatarUrl} alt={user.name ?? ""} />
-									<AvatarFallback>
-										{user.name?.[0]?.toUpperCase() ?? "U"}
-									</AvatarFallback>
+									<AvatarFallback>{user.name?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
 								</Avatar>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" className="w-56">
 								<DropdownMenuLabel>
 									<div className="font-medium">{user.name}</div>
-									<div className="text-xs text-muted-foreground">
-										{user.email}
-									</div>
+									<div className="text-xs text-muted-foreground">{user.email}</div>
 								</DropdownMenuLabel>
 								<DropdownMenuSeparator />
 								<DropdownMenuGroup>

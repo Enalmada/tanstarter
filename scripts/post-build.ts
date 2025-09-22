@@ -8,10 +8,7 @@
  * It's configured to run via the build:prod script in package.json
  */
 
-import {
-	isSourceMapUploadConfigured,
-	notifyRollbarDeploy,
-} from "../src/lib/monitoring/deploy";
+import { isSourceMapUploadConfigured, notifyRollbarDeploy } from "../src/lib/monitoring/deploy";
 
 async function postBuild() {
 	if (!isSourceMapUploadConfigured()) {

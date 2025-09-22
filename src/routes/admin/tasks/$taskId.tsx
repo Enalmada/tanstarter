@@ -1,30 +1,29 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AdminTaskForm, type TaskFormData } from "~/components/admin/TaskForm";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import type { Task } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
-import { queries } from "~/utils/query/queries";
+import { preloadQueries, queries, useSuspenseQueries } from "~/utils/query/queries";
+
+function getRouteQueries(taskId: string) {
+	return [queries.task.byId(taskId)] as const;
+}
 
 export const Route = createFileRoute("/admin/tasks/$taskId")({
 	component: AdminEditTask,
 	loader: async ({ context, params }) => {
-		// @ts-expect-error - React Query type conflicts from version mismatches
-		await context.queryClient.ensureQueryData(queries.task.byId(params.taskId));
+		await preloadQueries(context.queryClient, getRouteQueries(params.taskId));
 	},
 });
 
 function AdminEditTask() {
 	const { taskId } = Route.useParams();
-	// @ts-expect-error - React Query type conflicts from version mismatches
-	const { data: task } = useSuspenseQuery(queries.task.byId(taskId));
 	const navigate = useNavigate();
 
-	const { updateMutation, deleteMutation } = useEntityMutations<
-		Task,
-		TaskFormData
-	>({
+	const [task] = useSuspenseQueries(getRouteQueries(taskId));
+
+	const { updateMutation, deleteMutation } = useEntityMutations<Task, TaskFormData>({
 		entityName: "Task",
 		entity: task,
 		subject: "Task",
@@ -43,10 +42,7 @@ function AdminEditTask() {
 	return (
 		<div className="container mx-auto space-y-4 p-6">
 			<div className="flex justify-between items-center">
-				<Button
-					variant="ghost"
-					onClick={() => navigate({ to: "/admin/tasks" })}
-				>
+				<Button variant="ghost" onClick={() => navigate({ to: "/admin/tasks" })}>
 					← Back to Tasks
 				</Button>
 				<Button

@@ -1,11 +1,6 @@
 {
 	"include": ["**/*.ts", "**/*.tsx"],
-	"exclude": [
-		"src/scala",
-		"playwright",
-		"src/functions/__tests__/**",
-		"src/utils/query/__tests__/**"
-	],
+	"exclude": ["src/scala", "playwright", "src/functions/__tests__/**", "src/utils/query/__tests__/**"],
 	"compilerOptions": {
 		// Enable latest features
 		"lib": ["DOM", "DOM.Iterable", "ESNext", "webworker"],

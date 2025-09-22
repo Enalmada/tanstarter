@@ -10,7 +10,5 @@ declare module "vite-plugin-rollbar" {
 		outputDir?: string;
 	}
 
-	export default function rollbarSourcemaps(
-		options: RollbarPluginOptions,
-	): import("vite").Plugin;
+	export default function rollbarSourcemaps(options: RollbarPluginOptions): import("vite").Plugin;
 }

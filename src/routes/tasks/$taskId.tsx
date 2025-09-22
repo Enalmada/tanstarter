@@ -1,43 +1,45 @@
 /**
- * Task edit route component
- * Handles task updates and manages task data fetching
- * Includes navigation back to task list and form state management
+ * Task edit route component - demonstrates new routeQueries pattern
+ * Shows how to define queries once and use them in both loaders and components
+ * with automatic useServerFn wrapping for proper error handling
  */
 
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { TaskForm, type TaskFormData } from "~/components/TaskForm";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import type { Task } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
-import { queries } from "~/utils/query/queries";
+import { preloadQueries, queries, useSuspenseQueries } from "~/utils/query/queries";
+
+/**
+ * Route queries definition - single source of truth
+ * Used by both loader (raw) and component (useServerFn wrapped)
+ */
+function getRouteQueries(taskId: string) {
+	return [queries.task.byId(taskId), queries.user.session] as const;
+}
 
 export const Route = createFileRoute("/tasks/$taskId")({
 	component: EditTask,
 	loader: async ({ context, params }) => {
-		const userId = context.user?.id;
-		// @ts-expect-error - React Query type conflicts from version mismatches
-		await context.queryClient.ensureQueryData(queries.task.byId(params.taskId));
-		return { userId };
+		// Preload queries for server-side rendering
+		await preloadQueries(context.queryClient, getRouteQueries(params.taskId));
 	},
 });
 
 function EditTask() {
 	const { taskId } = Route.useParams();
-	// @ts-expect-error - React Query type conflicts from version mismatches
-	const { data: task } = useSuspenseQuery(queries.task.byId(taskId));
 	const navigate = useNavigate();
-	const { userId } = Route.useLoaderData();
 
-	const { updateMutation, deleteMutation } = useEntityMutations<
-		Task,
-		TaskFormData
-	>({
+	// Same queries as loader, automatically wrapped with useServerFn
+	const [task, user] = useSuspenseQueries(getRouteQueries(taskId));
+
+	const { updateMutation, deleteMutation } = useEntityMutations<Task, TaskFormData>({
 		entityName: "Task",
 		entity: task,
 		subject: "Task",
-		listKeys: [queries.task.list({ userId }).queryKey],
+		listKeys: [queries.task.list({ userId: user?.id }).queryKey],
 		detailKey: (id) => queries.task.byId(id).queryKey,
 		navigateTo: "/tasks",
 		navigateBack: `/tasks/${task.id}`,
@@ -69,7 +71,7 @@ function EditTask() {
 					<TaskForm
 						defaultValues={{
 							...task,
-							userId: userId ?? "",
+							userId: user?.id ?? "",
 						}}
 						onSubmit={(values) =>
 							updateMutation.mutate({
@@ -77,7 +79,7 @@ function EditTask() {
 							})
 						}
 						isSubmitting={updateMutation.isPending}
-						userId={userId ?? ""}
+						userId={user?.id ?? ""}
 					/>
 				</CardContent>
 			</Card>

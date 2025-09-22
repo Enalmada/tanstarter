@@ -107,31 +107,20 @@ function MonitoringDebug() {
 
 				<div className="flex flex-col gap-4">
 					<h2 className="font-bold">User Context Test</h2>
-					<Button
-						onClick={() => setTestUser(0)}
-						variant={currentUserIndex === 0 ? "default" : "secondary"}
-					>
+					<Button onClick={() => setTestUser(0)} variant={currentUserIndex === 0 ? "default" : "secondary"}>
 						Set Regular User
 					</Button>
-					<Button
-						onClick={() => setTestUser(1)}
-						variant={currentUserIndex === 1 ? "default" : "secondary"}
-					>
+					<Button onClick={() => setTestUser(1)} variant={currentUserIndex === 1 ? "default" : "secondary"}>
 						Set Admin User
 					</Button>
-					<Button
-						onClick={() => setTestUser(null)}
-						variant={currentUserIndex === null ? "default" : "secondary"}
-					>
+					<Button onClick={() => setTestUser(null)} variant={currentUserIndex === null ? "default" : "secondary"}>
 						Clear User
 					</Button>
 				</div>
 
 				<div className="flex flex-col gap-4">
 					<h2 className="font-bold">Breadcrumb Test</h2>
-					<Button onClick={addBreadcrumb}>
-						Add Breadcrumb ({breadcrumbCount})
-					</Button>
+					<Button onClick={addBreadcrumb}>Add Breadcrumb ({breadcrumbCount})</Button>
 				</div>
 
 				<div className="flex flex-col gap-4">

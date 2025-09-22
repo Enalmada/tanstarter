@@ -9,29 +9,21 @@ describe("accessCheck", () => {
 
 	describe("when user is a member", () => {
 		it("allows access to own resources", () => {
-			expect(() =>
-				accessCheck(user, "read", "Task", { userId: user.id }),
-			).not.toThrow();
+			expect(() => accessCheck(user, "read", "Task", { userId: user.id })).not.toThrow();
 		});
 
 		it("denies access to other resources", () => {
-			expect(() =>
-				accessCheck(user, "read", "Task", { userId: "other_id" }),
-			).toThrow(NotAuthorizedError);
+			expect(() => accessCheck(user, "read", "Task", { userId: "other_id" })).toThrow(NotAuthorizedError);
 		});
 
 		it("denies access to admin actions", () => {
-			expect(() => accessCheck(user, "manage", "all")).toThrow(
-				NotAuthorizedError,
-			);
+			expect(() => accessCheck(user, "manage", "all")).toThrow(NotAuthorizedError);
 		});
 	});
 
 	describe("when user is an admin", () => {
 		it("allows access to any resource", () => {
-			expect(() =>
-				accessCheck(admin, "read", "Task", { userId: "any_id" }),
-			).not.toThrow();
+			expect(() => accessCheck(admin, "read", "Task", { userId: "any_id" })).not.toThrow();
 		});
 
 		it("allows admin actions", () => {
@@ -41,15 +33,11 @@ describe("accessCheck", () => {
 
 	describe("when user is undefined", () => {
 		it("denies access to any resource", () => {
-			expect(() =>
-				accessCheck(undefined, "read", "Task", { userId: "any_id" }),
-			).toThrow(NotAuthorizedError);
+			expect(() => accessCheck(undefined, "read", "Task", { userId: "any_id" })).toThrow(NotAuthorizedError);
 		});
 
 		it("denies admin actions", () => {
-			expect(() => accessCheck(undefined, "manage", "all")).toThrow(
-				NotAuthorizedError,
-			);
+			expect(() => accessCheck(undefined, "manage", "all")).toThrow(NotAuthorizedError);
 		});
 	});
 });

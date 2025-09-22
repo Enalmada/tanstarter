@@ -15,11 +15,7 @@ const mockRouterContext = {
 
 export function Link({ children, className, to, ...props }: SimpleLinkProps) {
 	return (
-		<a
-			href={typeof to === "string" ? to : to.toString()}
-			className={className}
-			{...props}
-		>
+		<a href={typeof to === "string" ? to : to.toString()} className={className} {...props}>
 			{children}
 		</a>
 	);
@@ -39,13 +35,9 @@ export function useRouter() {
 }
 
 // Mock other exports that might be needed
-export const RouterProvider = ({ children }: { children: React.ReactNode }) => (
-	<>{children}</>
-);
+export const RouterProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
-export const Outlet = ({ children }: { children?: React.ReactNode }) => (
-	<>{children}</>
-);
+export const Outlet = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
 
 type MockRouteProps = {
 	children?: React.ReactNode;
@@ -133,19 +125,13 @@ export const DefaultErrorComponent = ErrorComponent;
 export const CatchBoundary = ErrorComponent;
 
 // Head content component for managing document head
-export const HeadContent = ({ children }: { children?: React.ReactNode }) => (
-	<>{children}</>
-);
+export const HeadContent = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
 
 // Scripts component for managing scripts in document
-export const Scripts = ({ children }: { children?: React.ReactNode }) => (
-	<>{children}</>
-);
+export const Scripts = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
 
 // TanStack Start specific components
-export const ScriptOnce = ({ children }: { children?: React.ReactNode }) => (
-	<>{children}</>
-);
+export const ScriptOnce = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
 
 export const Await = ({
 	promise: _promise,
@@ -159,9 +145,7 @@ export const Await = ({
 	fallback?: React.ReactNode;
 }) => <>{fallback || "Loading..."}</>;
 
-export const Meta = ({ children }: { children?: React.ReactNode }) => (
-	<>{children}</>
-);
+export const Meta = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
 
 // Additional router exports that might be needed
 export const createRootRouteWithContext = () => {

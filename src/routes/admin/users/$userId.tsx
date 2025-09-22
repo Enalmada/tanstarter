@@ -1,30 +1,29 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AdminUserForm, type UserFormData } from "~/components/admin/UserForm";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import type { User } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
-import { queries } from "~/utils/query/queries";
+import { preloadQueries, queries, useSuspenseQueries } from "~/utils/query/queries";
+
+function getRouteQueries(userId: string) {
+	return [queries.user.byId(userId)] as const;
+}
 
 export const Route = createFileRoute("/admin/users/$userId")({
 	component: AdminEditUser,
 	loader: async ({ context, params }) => {
-		// @ts-expect-error - React Query type conflicts from version mismatches
-		await context.queryClient.ensureQueryData(queries.user.byId(params.userId));
+		await preloadQueries(context.queryClient, getRouteQueries(params.userId));
 	},
 });
 
 function AdminEditUser() {
 	const { userId } = Route.useParams();
-	// @ts-expect-error - React Query type conflicts from version mismatches
-	const { data: user } = useSuspenseQuery(queries.user.byId(userId));
 	const navigate = useNavigate();
 
-	const { updateMutation, deleteMutation } = useEntityMutations<
-		User,
-		UserFormData
-	>({
+	const [user] = useSuspenseQueries(getRouteQueries(userId));
+
+	const { updateMutation, deleteMutation } = useEntityMutations<User, UserFormData>({
 		entityName: "User",
 		entity: user,
 		subject: "User",
@@ -43,10 +42,7 @@ function AdminEditUser() {
 	return (
 		<div className="container mx-auto flex flex-col gap-4 p-6">
 			<div className="flex items-center justify-between">
-				<Button
-					variant="ghost"
-					onClick={() => navigate({ to: "/admin/users" })}
-				>
+				<Button variant="ghost" onClick={() => navigate({ to: "/admin/users" })}>
 					← Back to Users
 				</Button>
 				<Button

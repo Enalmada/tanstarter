@@ -19,8 +19,7 @@ type DB = ReturnType<typeof drizzle<typeof schema>>;
 // Use build-time env check for global context
 if (buildEnv.isDev) {
 	neonConfig.fetchEndpoint = (host) => {
-		const [protocol, port] =
-			host === "db.localtest.me" ? ["http", 4444] : ["https", 443];
+		const [protocol, port] = host === "db.localtest.me" ? ["http", 4444] : ["https", 443];
 		return `${protocol}://${host}:${port}/sql`;
 	};
 }
@@ -52,9 +51,7 @@ export default db;
 
 // Generic transaction wrapper
 export async function withTransaction<T>(
-	operation: (
-		db: ReturnType<typeof drizzleServerless<typeof schema>>,
-	) => Promise<T>,
+	operation: (db: ReturnType<typeof drizzleServerless<typeof schema>>) => Promise<T>,
 ): Promise<T> {
 	let pool: Pool | undefined;
 	try {

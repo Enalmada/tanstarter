@@ -21,12 +21,7 @@ interface TaskFormProps {
 	userId: string;
 }
 
-export function TaskForm({
-	defaultValues,
-	onSubmit,
-	isSubmitting = false,
-	userId,
-}: TaskFormProps) {
+export function TaskForm({ defaultValues, onSubmit, isSubmitting = false, userId }: TaskFormProps) {
 	const fields: FormFieldConfig<TaskFormData>[] = [
 		{
 			key: "version",
@@ -94,9 +89,7 @@ export function TaskForm({
 			defaultValues={{
 				title: defaultValues?.title ?? "",
 				description: defaultValues?.description ?? null,
-				dueDate: defaultValues?.dueDate
-					? new Date(defaultValues.dueDate)
-					: null,
+				dueDate: defaultValues?.dueDate ? new Date(defaultValues.dueDate) : null,
 				status: defaultValues?.status ?? TaskStatus.ACTIVE,
 				userId,
 				version: defaultValues ? defaultValues.version : 1,

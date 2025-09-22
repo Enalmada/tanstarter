@@ -57,14 +57,7 @@ import { accessCheck } from "~/server/access/check";
 import { auth } from "~/server/auth/auth";
 import DB from "~/server/db";
 import { UserRole } from "~/server/db/schema";
-import {
-	createMockContext,
-	fixedDate,
-	mockTask,
-	mockUser,
-	mockUserId,
-	setupDBMocks,
-} from "~/test/setup";
+import { createMockContext, fixedDate, mockTask, mockUser, mockUserId, setupDBMocks } from "~/test/setup";
 
 const mockContext = createMockContext();
 
@@ -214,9 +207,7 @@ describe("base-service", () => {
 			const { select } = setupDBMocks(DB);
 			select.where.mockResolvedValue([]);
 
-			await expect(deleteEntity(input)).rejects.toThrow(
-				"Task non-existent not found",
-			);
+			await expect(deleteEntity(input)).rejects.toThrow("Task non-existent not found");
 		});
 
 		// 3. Fix access check test
@@ -228,12 +219,7 @@ describe("base-service", () => {
 			await deleteEntity(mockDeleteTaskInput);
 
 			// Now accessCheck is properly mocked
-			expect(vi.mocked(accessCheck)).toHaveBeenCalledWith(
-				mockContext.user,
-				"delete",
-				"Task",
-				mockTask,
-			);
+			expect(vi.mocked(accessCheck)).toHaveBeenCalledWith(mockContext.user, "delete", "Task", mockTask);
 		});
 
 		it("should throw error when access check fails", async () => {
@@ -245,9 +231,7 @@ describe("base-service", () => {
 				throw new Error("Access denied");
 			});
 
-			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow(
-				"Access denied",
-			);
+			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow("Access denied");
 			expect(DB.delete).not.toHaveBeenCalled();
 		});
 
@@ -293,9 +277,7 @@ describe("base-service", () => {
 			// Mock auth to return no session
 			vi.mocked(auth.api.getSession).mockResolvedValueOnce(null);
 
-			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow(
-				"Unauthorized",
-			);
+			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow("Unauthorized");
 			expect(setResponseStatus).toHaveBeenCalledWith(401);
 		});
 
@@ -304,9 +286,7 @@ describe("base-service", () => {
 			// Mock getWebRequest to return undefined instead of null
 			vi.mocked(getWebRequest).mockReturnValueOnce(undefined);
 
-			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow(
-				"No web request available",
-			);
+			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow("No web request available");
 			expect(setResponseStatus).toHaveBeenCalledWith(500);
 		});
 	});

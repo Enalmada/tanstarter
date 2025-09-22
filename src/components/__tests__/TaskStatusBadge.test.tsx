@@ -21,12 +21,7 @@ describe("TaskStatusBadge", () => {
 	});
 
 	it("should handle unknown status", () => {
-		render(
-			<TaskStatusBadge
-				status={"UNKNOWN" as (typeof TaskStatus)[keyof typeof TaskStatus]}
-			/>,
-			{},
-		);
+		render(<TaskStatusBadge status={"UNKNOWN" as (typeof TaskStatus)[keyof typeof TaskStatus]} />, {});
 
 		const badge = screen.getByText("Unknown");
 		expect(badge).toBeInTheDocument();

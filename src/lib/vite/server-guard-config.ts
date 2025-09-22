@@ -23,10 +23,5 @@ export const serverGuardConfig = {
 		"better-auth/react",
 		"better-auth/client/plugins",
 	],
-	clientEntryPoints: [
-		"app/client.tsx",
-		"app/root.tsx",
-		"app/router.tsx",
-		"app/entry.client.tsx",
-	],
+	clientEntryPoints: ["app/client.tsx", "app/root.tsx", "app/router.tsx", "app/entry.client.tsx"],
 };

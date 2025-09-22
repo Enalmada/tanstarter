@@ -52,9 +52,7 @@ export function createRouter() {
 			defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
 			defaultErrorComponent: DefaultCatchBoundary,
 			defaultNotFoundComponent: NotFound,
-			Wrap: ({ children }: { children: ReactNode }) => (
-				<I18nProvider i18n={i18n}>{children}</I18nProvider>
-			),
+			Wrap: ({ children }: { children: ReactNode }) => <I18nProvider i18n={i18n}>{children}</I18nProvider>,
 		}),
 		queryClient,
 	);

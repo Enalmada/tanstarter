@@ -20,9 +20,7 @@ export function DefaultLayout({ user, children }: DefaultLayoutProps) {
 			</header>
 
 			<main className="flex-1">
-				<div className={cn("min-h-[calc(100vh-222px)]")}>
-					{children ?? <Outlet />}
-				</div>
+				<div className={cn("min-h-[calc(100vh-222px)]")}>{children ?? <Outlet />}</div>
 				<Footer />
 			</main>
 		</div>

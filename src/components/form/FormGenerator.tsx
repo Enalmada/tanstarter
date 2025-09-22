@@ -6,16 +6,13 @@ import { Button } from "~/components/ui/button";
 import { FormField } from "./FormField";
 import type { CheckboxFieldConfig, FormConfig, FormFieldConfig } from "./types";
 
-function hasTransform<T>(
-	field: FormFieldConfig<T>,
-): field is CheckboxFieldConfig<T> & {
+function hasTransform<T>(field: FormFieldConfig<T>): field is CheckboxFieldConfig<T> & {
 	transform: NonNullable<CheckboxFieldConfig<T>["transform"]>;
 } {
 	return "transform" in field && field.transform !== undefined;
 }
 
-interface FormGeneratorProps<TData extends Record<string, unknown>>
-	extends FormConfig<TData> {
+interface FormGeneratorProps<TData extends Record<string, unknown>> extends FormConfig<TData> {
 	// biome-ignore lint/suspicious/noExplicitAny: schema prop accepts any validation library
 	schema?: any;
 	submitText?: string;
@@ -59,17 +56,9 @@ export function FormGenerator<TData extends Record<string, unknown>>({
 				}
 			} catch (err) {
 				if (err instanceof ValiError) {
-					setError(
-						`Validation error: ${err.message}\nDetails: ${JSON.stringify(
-							err.issues,
-							null,
-							2,
-						)}`,
-					);
+					setError(`Validation error: ${err.message}\nDetails: ${JSON.stringify(err.issues, null, 2)}`);
 				} else {
-					setError(
-						`Unexpected error: ${err instanceof Error ? err.message : String(err)}`,
-					);
+					setError(`Unexpected error: ${err instanceof Error ? err.message : String(err)}`);
 				}
 			}
 		},
@@ -125,30 +114,16 @@ export function FormGenerator<TData extends Record<string, unknown>>({
 						: {};
 
 					return (
-						<form.Field
-							key={fieldConfig.key}
-							name={fieldConfig.key}
-							validators={validators}
-						>
-							{(field: AnyFieldApi) => (
-								<FormField field={field} config={fieldConfig} />
-							)}
+						<form.Field key={fieldConfig.key} name={fieldConfig.key} validators={validators}>
+							{(field: AnyFieldApi) => <FormField field={field} config={fieldConfig} />}
 						</form.Field>
 					);
 				})}
 			</div>
 
-			{error && (
-				<div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-					{error}
-				</div>
-			)}
+			{error && <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>}
 
-			<Button
-				type="submit"
-				className="w-full"
-				disabled={isSubmitting || form.state.isSubmitting}
-			>
+			<Button type="submit" className="w-full" disabled={isSubmitting || form.state.isSubmitting}>
 				{isSubmitting || form.state.isSubmitting ? (
 					<>
 						<div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

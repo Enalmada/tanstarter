@@ -20,9 +20,7 @@ export function normalizeLocale(locale: string): SupportedLanguage {
 	return isValidLanguage(baseLocale) ? baseLocale : DEFAULT_LANGUAGE;
 }
 
-export function isValidLanguage(
-	language: string | null | undefined,
-): language is SupportedLanguage {
+export function isValidLanguage(language: string | null | undefined): language is SupportedLanguage {
 	if (!language) return false;
 	return Object.keys(AVAILABLE_LANGUAGES).includes(language);
 }

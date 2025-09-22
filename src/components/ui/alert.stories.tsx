@@ -18,9 +18,7 @@ export const Default: Story = {
 	render: () => (
 		<Alert>
 			<AlertTitle>Heads up!</AlertTitle>
-			<AlertDescription>
-				You can add components to your app using the cli.
-			</AlertDescription>
+			<AlertDescription>You can add components to your app using the cli.</AlertDescription>
 		</Alert>
 	),
 };
@@ -30,9 +28,7 @@ export const WithIcon: Story = {
 		<Alert>
 			<Terminal className="size-4" />
 			<AlertTitle>Heads up!</AlertTitle>
-			<AlertDescription>
-				You can add components to your app using the cli.
-			</AlertDescription>
+			<AlertDescription>You can add components to your app using the cli.</AlertDescription>
 		</Alert>
 	),
 };
@@ -42,9 +38,7 @@ export const Destructive: Story = {
 		<Alert variant="destructive">
 			<Terminal className="size-4" />
 			<AlertTitle>Error</AlertTitle>
-			<AlertDescription>
-				Your session has expired. Please log in again.
-			</AlertDescription>
+			<AlertDescription>Your session has expired. Please log in again.</AlertDescription>
 		</Alert>
 	),
 };
@@ -52,9 +46,7 @@ export const Destructive: Story = {
 export const NoTitle: Story = {
 	render: () => (
 		<Alert>
-			<AlertDescription>
-				You can add components to your app using the cli.
-			</AlertDescription>
+			<AlertDescription>You can add components to your app using the cli.</AlertDescription>
 		</Alert>
 	),
 };

@@ -127,11 +127,5 @@ function FallbackComponent({ fallback }: { fallback?: React.ReactNode }) {
 }
 
 export function ErrorBoundary({ children, fallback }: ErrorBoundaryProps) {
-	return (
-		<RollbarBoundary
-			fallbackUI={() => <FallbackComponent fallback={fallback} />}
-		>
-			{children}
-		</RollbarBoundary>
-	);
+	return <RollbarBoundary fallbackUI={() => <FallbackComponent fallback={fallback} />}>{children}</RollbarBoundary>;
 }

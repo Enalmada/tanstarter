@@ -31,17 +31,9 @@ test.describe("Member Tasks", () => {
 		await page.goto("/tasks");
 
 		// Check for empty state text
-		const emptyStatePatterns = [
-			/no tasks/i,
-			/create.*first task/i,
-			/get started/i,
-			/nothing here/i,
-			/empty/i,
-		];
+		const emptyStatePatterns = [/no tasks/i, /create.*first task/i, /get started/i, /nothing here/i, /empty/i];
 
-		const emptyText = page.getByText(
-			new RegExp(emptyStatePatterns.map((p) => p.source).join("|"), "i"),
-		);
+		const emptyText = page.getByText(new RegExp(emptyStatePatterns.map((p) => p.source).join("|"), "i"));
 		await expect(emptyText).toBeVisible();
 	});
 
@@ -50,9 +42,7 @@ test.describe("Member Tasks", () => {
 
 		// Check for form elements
 		await expect(page.getByLabel("Title")).toBeVisible();
-		await expect(
-			page.getByRole("button", { name: /create task/i }),
-		).toBeVisible();
+		await expect(page.getByRole("button", { name: /create task/i })).toBeVisible();
 	});
 
 	test("shows all form fields", async ({ page }) => {

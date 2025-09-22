@@ -1,11 +1,6 @@
 import { picklist, safeParse } from "valibot";
 
-const environments = [
-	"development",
-	"preview",
-	"staging",
-	"production",
-] as const;
+const environments = ["development", "preview", "staging", "production"] as const;
 export const AppEnvironment = picklist(environments);
 
 export type AppEnvironment = (typeof environments)[number];

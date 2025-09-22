@@ -28,9 +28,4 @@ export interface MonitorUser {
 	role?: string;
 }
 
-export type BreadcrumbLevel =
-	| "debug"
-	| "info"
-	| "warning"
-	| "error"
-	| "critical";
+export type BreadcrumbLevel = "debug" | "info" | "warning" | "error" | "critical";

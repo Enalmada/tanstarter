@@ -77,18 +77,10 @@
  * - Additional mutation lifecycle hooks
  */
 
-import {
-	type QueryKey,
-	useMutation,
-	useQueryClient,
-} from "@tanstack/react-query";
+import { type QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
-import {
-	createEntity,
-	deleteEntity,
-	updateEntity,
-} from "~/functions/base-service";
+import { createEntity, deleteEntity, updateEntity } from "~/functions/base-service";
 
 // Toast configuration for consistent messaging
 interface ToastConfig {
@@ -145,10 +137,7 @@ const handleToast = (
 	error: Error = new Error("Unknown error"),
 ) => {
 	toast[type](config[type].title, {
-		description:
-			type === "success"
-				? config[type].description(entityName)
-				: config[type].description(error),
+		description: type === "success" ? config[type].description(entityName) : config[type].description(error),
 	});
 };
 
@@ -170,9 +159,7 @@ const handleCacheUpdate = async <T>(
 	queryClient: ReturnType<typeof useQueryClient>,
 	keys: QueryKey[],
 ): Promise<{ key: QueryKey; data: T[] | undefined }[]> => {
-	await Promise.all(
-		keys.map((key) => queryClient.cancelQueries({ queryKey: key })),
-	);
+	await Promise.all(keys.map((key) => queryClient.cancelQueries({ queryKey: key })));
 	return keys.map((key) => ({
 		key,
 		data: queryClient.getQueryData<T[]>(key),
@@ -212,9 +199,7 @@ const removeFromListCaches = <T extends { id: string }>(
 	entityId: string,
 ) => {
 	for (const key of keys) {
-		queryClient.setQueryData<T[]>(key, (old = []) =>
-			old.filter((item) => item.id !== entityId),
-		);
+		queryClient.setQueryData<T[]>(key, (old = []) => old.filter((item) => item.id !== entityId));
 	}
 };
 
@@ -334,9 +319,7 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 		mutationFn: async (config) => {
 			const id = config?.entityId ?? defaultEntityId;
 			if (!id) {
-				throw new Error(
-					"entityId must be provided either in options or mutate config",
-				);
+				throw new Error("entityId must be provided either in options or mutate config");
 			}
 			const result = await deleteEntity({
 				data: { id, subject },
@@ -346,17 +329,13 @@ export function useDeleteEntityMutation<T extends { id: string }>({
 		onMutate: async (config) => {
 			const id = config?.entityId ?? defaultEntityId;
 			if (!id) {
-				throw new Error(
-					"entityId must be provided either in options or mutate config",
-				);
+				throw new Error("entityId must be provided either in options or mutate config");
 			}
 			setErrorMessage?.("");
 
 			const detailKey =
 				config?.detailKey ??
-				(typeof defaultDetailKeyOrFn === "function"
-					? defaultDetailKeyOrFn(id)
-					: defaultDetailKeyOrFn);
+				(typeof defaultDetailKeyOrFn === "function" ? defaultDetailKeyOrFn(id) : defaultDetailKeyOrFn);
 
 			pendingDeleteIds?.add(id);
 
@@ -461,10 +440,7 @@ interface UseUpdateEntityMutationOptions<T extends { id: string }> {
 	 * Function to create an optimistic entity from the update data
 	 * If not provided, will spread update data over existing entity
 	 */
-	createOptimisticEntity?: (
-		entity: T,
-		updateData: Record<string, unknown>,
-	) => T;
+	createOptimisticEntity?: (entity: T, updateData: Record<string, unknown>) => T;
 }
 
 /**
@@ -505,9 +481,7 @@ export function useUpdateEntityMutation<
 		mutationFn: async ({ entity, data }) => {
 			const targetEntity = entity ?? defaultEntity;
 			if (!targetEntity) {
-				throw new Error(
-					"entity must be provided either in options or mutate call",
-				);
+				throw new Error("entity must be provided either in options or mutate call");
 			}
 			const result = await updateEntity({
 				data: {
@@ -521,16 +495,12 @@ export function useUpdateEntityMutation<
 		onMutate: async ({ entity, data }) => {
 			const targetEntity = entity ?? defaultEntity;
 			if (!targetEntity) {
-				throw new Error(
-					"entity must be provided either in options or mutate call",
-				);
+				throw new Error("entity must be provided either in options or mutate call");
 			}
 			setErrorMessage?.("");
 
 			const detailKey =
-				typeof defaultDetailKeyOrFn === "function"
-					? defaultDetailKeyOrFn(targetEntity.id)
-					: defaultDetailKeyOrFn;
+				typeof defaultDetailKeyOrFn === "function" ? defaultDetailKeyOrFn(targetEntity.id) : defaultDetailKeyOrFn;
 
 			// Cancel queries and snapshot previous values
 			const previousLists = await handleCacheUpdate<T>(queryClient, listKeys);
@@ -577,19 +547,11 @@ export function useUpdateEntityMutation<
 			} else if (result) {
 				// On success, update both list and detail caches with server response
 				// Use entityId to ensure we replace the correct entry even if ID changed
-				updateListCachesWithEntity(
-					queryClient,
-					listKeys,
-					result,
-					false,
-					entityId,
-				);
+				updateListCachesWithEntity(queryClient, listKeys, result, false, entityId);
 
 				// Update detail cache with real entity
 				const realDetailKey =
-					typeof defaultDetailKeyOrFn === "function"
-						? defaultDetailKeyOrFn(result.id)
-						: defaultDetailKeyOrFn;
+					typeof defaultDetailKeyOrFn === "function" ? defaultDetailKeyOrFn(result.id) : defaultDetailKeyOrFn;
 				queryClient.setQueryData(realDetailKey, result);
 
 				// Remove the old detail cache if ID changed
@@ -704,9 +666,7 @@ export function useCreateEntityMutation<
 
 			// Get detail key
 			const detailKey =
-				typeof defaultDetailKeyOrFn === "function"
-					? defaultDetailKeyOrFn(tempId)
-					: defaultDetailKeyOrFn;
+				typeof defaultDetailKeyOrFn === "function" ? defaultDetailKeyOrFn(tempId) : defaultDetailKeyOrFn;
 
 			// Cancel queries and snapshot previous values
 			const previousLists = await handleCacheUpdate<T>(queryClient, listKeys);
@@ -750,9 +710,7 @@ export function useCreateEntityMutation<
 
 				// Update detail cache with real entity
 				const realDetailKey =
-					typeof defaultDetailKeyOrFn === "function"
-						? defaultDetailKeyOrFn(result.id)
-						: defaultDetailKeyOrFn;
+					typeof defaultDetailKeyOrFn === "function" ? defaultDetailKeyOrFn(result.id) : defaultDetailKeyOrFn;
 				queryClient.setQueryData(realDetailKey, result);
 
 				// Remove the temporary detail cache if different
@@ -824,9 +782,7 @@ export function useEntityMutations<
 		createOptimisticEntity:
 			createOptimisticEntity ??
 			(() => {
-				throw new Error(
-					"createOptimisticEntity is required for create mutation",
-				);
+				throw new Error("createOptimisticEntity is required for create mutation");
 			}),
 	});
 

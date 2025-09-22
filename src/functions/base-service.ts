@@ -180,8 +180,7 @@ export const createEntity = createServerFn({ method: "POST" })
 			handleValidationError(createEntityResult, "entity");
 		}
 
-		const { subject, data } =
-			createEntityResult.output as ValidateCreateEntityType;
+		const { subject, data } = createEntityResult.output as ValidateCreateEntityType;
 
 		// Get the schema for this subject type
 		const schema = entityConfig[subject as EntityType].schemas.insert;
@@ -238,8 +237,7 @@ export const updateEntity = createServerFn({ method: "POST" })
 			handleValidationError(updateEntityResult, "entity");
 		}
 
-		const { subject, id, data } =
-			updateEntityResult.output as UpdateEntityPayload;
+		const { subject, id, data } = updateEntityResult.output as UpdateEntityPayload;
 
 		// Get the schema for this subject type
 		const schema = entityConfig[subject as EntityType].schemas.update;
@@ -267,11 +265,7 @@ export const updateEntity = createServerFn({ method: "POST" })
 
 		const { table } = entityConfig[subject as EntityType];
 
-		const [entity] = await db
-			.select()
-			.from(table)
-			.where(eq(table.id, id))
-			.limit(1);
+		const [entity] = await db.select().from(table).where(eq(table.id, id)).limit(1);
 
 		if (!entity) {
 			throw new Error(`${subject} ${id} not found`);
@@ -279,9 +273,7 @@ export const updateEntity = createServerFn({ method: "POST" })
 
 		const version = (entityData as Record<string, unknown>).version;
 		if (entity.version && entity.version !== version) {
-			throw new Error(
-				`${subject} has changed since loading.  Please reload and try again.`,
-			);
+			throw new Error(`${subject} has changed since loading.  Please reload and try again.`);
 		}
 
 		accessCheck(user, "update", subject, entity);
@@ -293,11 +285,7 @@ export const updateEntity = createServerFn({ method: "POST" })
 			version: entity.version + 1,
 		};
 
-		const [result] = await db
-			.update(table)
-			.set(updateWith)
-			.where(eq(table.id, id))
-			.returning();
+		const [result] = await db.update(table).set(updateWith).where(eq(table.id, id)).returning();
 
 		return result;
 	});
@@ -315,11 +303,7 @@ export const findFirst = createServerFn({ method: "GET" })
 			handleValidationError(findFirstResult, "entity");
 		}
 
-		const {
-			subject,
-			where,
-			with: withRelations,
-		} = findFirstResult.output as FindEntityPayload;
+		const { subject, where, with: withRelations } = findFirstResult.output as FindEntityPayload;
 
 		if (where) {
 			const whereSchema = createWhereSchema(subject as EntityType);
@@ -368,11 +352,7 @@ export const findMany = createServerFn({ method: "GET" })
 			handleValidationError(findManyResult, "entity");
 		}
 
-		const {
-			subject,
-			where,
-			with: withRelations,
-		} = findManyResult.output as FindEntityPayload;
+		const { subject, where, with: withRelations } = findManyResult.output as FindEntityPayload;
 
 		if (where) {
 			const whereSchema = createWhereSchema(subject as EntityType);

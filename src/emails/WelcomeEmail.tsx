@@ -20,9 +20,7 @@ interface WelcomeEmailProps {
 export const WelcomeEmail: FC<WelcomeEmailProps> = ({ username = "there" }) => (
 	<Html>
 		<Head />
-		<Preview>
-			Welcome to our platform! Get started with your new account.
-		</Preview>
+		<Preview>Welcome to our platform! Get started with your new account.</Preview>
 		<Body style={main}>
 			<Container style={container}>
 				<Section style={logoSection}>
@@ -31,15 +29,12 @@ export const WelcomeEmail: FC<WelcomeEmailProps> = ({ username = "there" }) => (
 				<Section style={contentSection}>
 					<Heading style={h1}>Welcome {username}!</Heading>
 					<Text style={text}>
-						We're thrilled to have you on board. Your account has been
-						successfully created and you're ready to get started.
+						We're thrilled to have you on board. Your account has been successfully created and you're ready to get
+						started.
 					</Text>
 
 					<Section style={buttonContainer}>
-						<Button
-							style={button}
-							href="https://app.example.com/getting-started"
-						>
+						<Button style={button} href="https://app.example.com/getting-started">
 							Get Started
 						</Button>
 					</Section>

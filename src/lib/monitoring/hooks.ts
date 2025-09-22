@@ -23,14 +23,10 @@ export function useMonitor(): ErrorMonitor {
 		if (!rollbar) return noopMonitor;
 
 		return {
-			error: (message: string | Error, extra?: unknown) =>
-				rollbar.error(message, extra as LogArgument),
-			warn: (message: string | Error, extra?: unknown) =>
-				rollbar.warning(message, extra as LogArgument),
-			info: (message: string | Error, extra?: unknown) =>
-				rollbar.info(message, extra as LogArgument),
-			debug: (message: string | Error, extra?: unknown) =>
-				rollbar.debug(message, extra as LogArgument),
+			error: (message: string | Error, extra?: unknown) => rollbar.error(message, extra as LogArgument),
+			warn: (message: string | Error, extra?: unknown) => rollbar.warning(message, extra as LogArgument),
+			info: (message: string | Error, extra?: unknown) => rollbar.info(message, extra as LogArgument),
+			debug: (message: string | Error, extra?: unknown) => rollbar.debug(message, extra as LogArgument),
 			setUser: (user: MonitorUser | null) =>
 				user
 					? rollbar.configure({

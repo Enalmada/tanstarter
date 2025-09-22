@@ -25,9 +25,7 @@ describe("Permissions", () => {
 
 		describe("own resources", () => {
 			it("can read own profile", () => {
-				expect(ability.can("read", subject("User", { id: user.id }))).toBe(
-					true,
-				);
+				expect(ability.can("read", subject("User", { id: user.id }))).toBe(true);
 			});
 
 			it("can manage own tasks", () => {
@@ -41,9 +39,7 @@ describe("Permissions", () => {
 
 		describe("other resources", () => {
 			it("cannot read other profiles", () => {
-				expect(ability.can("read", subject("User", { id: otherUser.id }))).toBe(
-					false,
-				);
+				expect(ability.can("read", subject("User", { id: otherUser.id }))).toBe(false);
 			});
 
 			it("cannot manage other tasks", () => {

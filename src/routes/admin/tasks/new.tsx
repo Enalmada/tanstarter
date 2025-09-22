@@ -38,20 +38,14 @@ function AdminNewTask() {
 	return (
 		<div className="container mx-auto space-y-4 p-6">
 			<div className="flex justify-between items-center">
-				<Button
-					variant="ghost"
-					onClick={() => navigate({ to: "/admin/tasks" })}
-				>
+				<Button variant="ghost" onClick={() => navigate({ to: "/admin/tasks" })}>
 					← Back to Tasks
 				</Button>
 			</div>
 
 			<Card>
 				<CardContent className="pt-6 space-y-4">
-					<AdminTaskForm
-						onSubmit={createMutation.mutate}
-						isSubmitting={createMutation.isPending}
-					/>
+					<AdminTaskForm onSubmit={createMutation.mutate} isSubmitting={createMutation.isPending} />
 				</CardContent>
 			</Card>
 		</div>

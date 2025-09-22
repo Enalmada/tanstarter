@@ -9,21 +9,13 @@ export function TaskStatusBadge({ status }: TaskStatusBadgeProps) {
 	switch (status) {
 		case TaskStatus.ACTIVE:
 			return (
-				<Badge
-					variant="default"
-					className="bg-blue-500 hover:bg-blue-600"
-					data-test-color="blue"
-				>
+				<Badge variant="default" className="bg-blue-500 hover:bg-blue-600" data-test-color="blue">
 					Active
 				</Badge>
 			);
 		case TaskStatus.COMPLETED:
 			return (
-				<Badge
-					variant="default"
-					className="bg-green-500 hover:bg-green-600"
-					data-test-color="green"
-				>
+				<Badge variant="default" className="bg-green-500 hover:bg-green-600" data-test-color="green">
 					Completed
 				</Badge>
 			);

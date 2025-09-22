@@ -23,22 +23,10 @@ const weightMap = {
 };
 
 export const Title = forwardRef<HTMLHeadingElement, TitleProps>(
-	(
-		{ className, order = 1, size = "md", weight = "bold", children, ...props },
-		ref,
-	) => {
+	({ className, order = 1, size = "md", weight = "bold", children, ...props }, ref) => {
 		const Component = `h${order}` as const;
 		return (
-			<Component
-				ref={ref}
-				className={cn(
-					"tracking-tight",
-					sizeMap[size],
-					weightMap[weight],
-					className,
-				)}
-				{...props}
-			>
+			<Component ref={ref} className={cn("tracking-tight", sizeMap[size], weightMap[weight], className)} {...props}>
 				{children}
 			</Component>
 		);

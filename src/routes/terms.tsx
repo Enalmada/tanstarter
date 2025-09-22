@@ -15,10 +15,7 @@ function TermsOfService() {
 			<div className="@auto dark:bg-neutral-900 p-6 prose">
 				<h1>Terms of Service</h1>
 				<h2>1. Acceptance of Terms</h2>
-				<p>
-					By accessing our todo app, you agree to these terms. Our service
-					provides:
-				</p>
+				<p>By accessing our todo app, you agree to these terms. Our service provides:</p>
 				<ul>
 					<li>Task management capabilities</li>
 					<li>Collaborative features</li>

@@ -5,20 +5,8 @@
  */
 
 import { relations } from "drizzle-orm";
-import {
-	boolean,
-	integer,
-	pgEnum,
-	pgTable,
-	text,
-	timestamp,
-	varchar,
-} from "drizzle-orm/pg-core";
-import {
-	createInsertSchema,
-	createSelectSchema,
-	createUpdateSchema,
-} from "drizzle-valibot";
+import { boolean, integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-valibot";
 import { nanoid } from "nanoid/non-secure";
 import { date, enum_, nullable, number, pipe, transform } from "valibot";
 
@@ -47,10 +35,7 @@ export enum UserRole {
 	ADMIN = "ADMIN",
 }
 
-export const UserRolesEnum = pgEnum(
-	"role",
-	Object.values(UserRole) as [string, ...string[]],
-);
+export const UserRolesEnum = pgEnum("role", Object.values(UserRole) as [string, ...string[]]);
 
 export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
 
@@ -62,10 +47,7 @@ export const UserTable = pgTable("user", {
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	name: text(),
 	image: text("image"),
-	role: UserRolesEnum("role")
-		.default(UserRole.MEMBER)
-		.$type<UserRole>()
-		.notNull(),
+	role: UserRolesEnum("role").default(UserRole.MEMBER).$type<UserRole>().notNull(),
 	...generateAuditingFields(),
 });
 
@@ -179,10 +161,7 @@ export const TaskTable = pgTable("task", {
 	id: generateIdField("tsk"),
 	title: varchar("title", { length: 256 }).notNull(),
 	description: varchar("description", { length: 1024 }),
-	status: text("status")
-		.$type<TaskStatus>()
-		.default(TaskStatus.ACTIVE)
-		.notNull(),
+	status: text("status").$type<TaskStatus>().default(TaskStatus.ACTIVE).notNull(),
 	dueDate: timestamp("due_date", { mode: "date" }),
 	userId: varchar("user_id")
 		.notNull()
@@ -202,14 +181,7 @@ export type TaskInsert = typeof TaskTable.$inferInsert;
 
 export type ClientTask = Pick<
 	typeof TaskTable.$inferSelect,
-	| "id"
-	| "title"
-	| "description"
-	| "status"
-	| "dueDate"
-	| "userId"
-	| "createdAt"
-	| "updatedAt"
+	"id" | "title" | "description" | "status" | "dueDate" | "userId" | "createdAt" | "updatedAt"
 >;
 
 // Valibot schema for TaskStatus

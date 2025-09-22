@@ -17,12 +17,8 @@ describe("schema validation", () => {
 	describe("task schemas", () => {
 		describe("taskStatusSchema", () => {
 			it("should validate valid status values", () => {
-				expect(safeParse(taskStatusSchema, TaskStatus.ACTIVE).success).toBe(
-					true,
-				);
-				expect(safeParse(taskStatusSchema, TaskStatus.COMPLETED).success).toBe(
-					true,
-				);
+				expect(safeParse(taskStatusSchema, TaskStatus.ACTIVE).success).toBe(true);
+				expect(safeParse(taskStatusSchema, TaskStatus.COMPLETED).success).toBe(true);
 			});
 
 			it("should reject invalid status values", () => {

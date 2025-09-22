@@ -72,9 +72,7 @@ function AuthPage() {
 		<div className="container max-w-md mx-auto px-4">
 			<div className="text-center">
 				<h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
-				<p className="text-sm text-muted-foreground mt-2">
-					Sign in to access your tasks
-				</p>
+				<p className="text-sm text-muted-foreground mt-2">Sign in to access your tasks</p>
 			</div>
 
 			<Card className="mt-8 p-6 border-0 bg-white dark:bg-gray-800 shadow-md">

@@ -38,11 +38,8 @@ export const updateEntity = ({
 		updatedAt: new Date(),
 	});
 
-export const deleteEntity = ({
-	data,
-}: {
-	data: { id: string; subject: string };
-}) => Promise.resolve({ id: data.id, success: true });
+export const deleteEntity = ({ data }: { data: { id: string; subject: string } }) =>
+	Promise.resolve({ id: data.id, success: true });
 
 // Export default for any default imports
 export default {

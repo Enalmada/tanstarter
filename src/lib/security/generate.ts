@@ -4,31 +4,17 @@
  * Handles nonce generation and policy compilation
  */
 
-import {
-	type CspRule,
-	createSecurityHeaders,
-	type SecurityHeaders,
-	type SecurityOptions,
-} from "./types";
+import { type CspRule, createSecurityHeaders, type SecurityHeaders, type SecurityOptions } from "./types";
 
-export function generateSecurityHeaders(
-	rules: CspRule[] = [],
-	options: SecurityOptions = {},
-): SecurityHeaders {
-	const {
-		isDev = process.env.NODE_ENV !== "production",
-		nonce,
-		headerConfig,
-	} = options;
+export function generateSecurityHeaders(rules: CspRule[] = [], options: SecurityOptions = {}): SecurityHeaders {
+	const { isDev = process.env.NODE_ENV !== "production", nonce, headerConfig } = options;
 
 	// Base CSP directives with nonce support
 	const defaultCspDirectives = {
 		"default-src": ["'self'"],
 		"base-uri": ["'self'"],
 		"child-src": ["'none'"],
-		"connect-src": isDev
-			? ["'self'", "ws://localhost:*", "http://localhost:*"]
-			: ["'self'"],
+		"connect-src": isDev ? ["'self'", "ws://localhost:*", "http://localhost:*"] : ["'self'"],
 		"font-src": ["'self'"],
 		"form-action": ["'self'"],
 		"frame-ancestors": ["'none'"],
@@ -40,14 +26,9 @@ export function generateSecurityHeaders(
 		"script-src": [
 			"'self'",
 			...(isDev ? ["'unsafe-eval'"] : []),
-			...(nonce
-				? [`'nonce-${nonce}'`, "'strict-dynamic'"]
-				: ["'unsafe-inline'"]),
+			...(nonce ? [`'nonce-${nonce}'`, "'strict-dynamic'"] : ["'unsafe-inline'"]),
 		],
-		"style-src": [
-			"'self'",
-			...(nonce ? [`'nonce-${nonce}'`] : ["'unsafe-inline'"]),
-		],
+		"style-src": ["'self'", ...(nonce ? [`'nonce-${nonce}'`] : ["'unsafe-inline'"])],
 		"worker-src": ["'self'", "blob:"],
 	};
 
@@ -65,14 +46,10 @@ export function generateSecurityHeaders(
 				const directiveKey = key as keyof typeof defaultCspDirectives;
 				// If the directive doesn't exist yet, initialize it with default values if any
 				if (!mergedDirectives[directiveKey]) {
-					mergedDirectives[directiveKey] = new Set(
-						defaultCspDirectives[directiveKey] || ["'self'"],
-					);
+					mergedDirectives[directiveKey] = new Set(defaultCspDirectives[directiveKey] || ["'self'"]);
 				}
 				// Handle both array and string values
-				const values = Array.isArray(value)
-					? value
-					: value.split(" ").filter(Boolean);
+				const values = Array.isArray(value) ? value : value.split(" ").filter(Boolean);
 				for (const val of values) {
 					mergedDirectives[directiveKey].add(val);
 				}

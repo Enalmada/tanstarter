@@ -52,9 +52,7 @@ export interface SecurityHeaders {
 	"x-nonce"?: string;
 }
 
-export const defaultSecurityHeadersConfig: Required<
-	Omit<SecurityHeadersConfig, "X-Powered-By">
-> = {
+export const defaultSecurityHeadersConfig: Required<Omit<SecurityHeadersConfig, "X-Powered-By">> = {
 	// Prevent clickjacking
 	"X-Frame-Options": "DENY",
 	// Prevent MIME-sniffing
@@ -75,10 +73,7 @@ export interface CreateSecurityHeadersOptions {
 	nonce?: string;
 }
 
-export function createSecurityHeaders(
-	cspValue: string,
-	options: CreateSecurityHeadersOptions = {},
-): SecurityHeaders {
+export function createSecurityHeaders(cspValue: string, options: CreateSecurityHeadersOptions = {}): SecurityHeaders {
 	const { config = {}, nonce } = options;
 
 	// Merge default config with provided overrides and ensure required fields
@@ -90,31 +85,18 @@ export function createSecurityHeaders(
 	// Ensure all required fields have values
 	const headers: SecurityHeaders = {
 		"Content-Security-Policy": cspValue,
-		"X-Frame-Options":
-			finalConfig["X-Frame-Options"] ||
-			defaultSecurityHeadersConfig["X-Frame-Options"],
+		"X-Frame-Options": finalConfig["X-Frame-Options"] || defaultSecurityHeadersConfig["X-Frame-Options"],
 		"X-Content-Type-Options":
-			finalConfig["X-Content-Type-Options"] ||
-			defaultSecurityHeadersConfig["X-Content-Type-Options"],
-		"Referrer-Policy":
-			finalConfig["Referrer-Policy"] ||
-			defaultSecurityHeadersConfig["Referrer-Policy"],
-		"X-XSS-Protection":
-			finalConfig["X-XSS-Protection"] ||
-			defaultSecurityHeadersConfig["X-XSS-Protection"],
+			finalConfig["X-Content-Type-Options"] || defaultSecurityHeadersConfig["X-Content-Type-Options"],
+		"Referrer-Policy": finalConfig["Referrer-Policy"] || defaultSecurityHeadersConfig["Referrer-Policy"],
+		"X-XSS-Protection": finalConfig["X-XSS-Protection"] || defaultSecurityHeadersConfig["X-XSS-Protection"],
 		"Strict-Transport-Security":
-			finalConfig["Strict-Transport-Security"] ||
-			defaultSecurityHeadersConfig["Strict-Transport-Security"],
-		"Permissions-Policy":
-			finalConfig["Permissions-Policy"] ||
-			defaultSecurityHeadersConfig["Permissions-Policy"],
+			finalConfig["Strict-Transport-Security"] || defaultSecurityHeadersConfig["Strict-Transport-Security"],
+		"Permissions-Policy": finalConfig["Permissions-Policy"] || defaultSecurityHeadersConfig["Permissions-Policy"],
 	};
 
 	// Only add optional headers if they're explicitly set
-	if (
-		"X-Powered-By" in finalConfig &&
-		finalConfig["X-Powered-By"] !== undefined
-	) {
+	if ("X-Powered-By" in finalConfig && finalConfig["X-Powered-By"] !== undefined) {
 		headers["X-Powered-By"] = finalConfig["X-Powered-By"];
 	}
 

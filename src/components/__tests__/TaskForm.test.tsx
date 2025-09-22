@@ -1,10 +1,4 @@
-import {
-	act,
-	fireEvent,
-	render,
-	screen,
-	waitFor,
-} from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { TaskStatus } from "~/server/db/schema";
 
@@ -16,20 +10,12 @@ describe("TaskForm", () => {
 		render(<TaskForm userId={mockUserId} onSubmit={() => {}} />);
 
 		// Check for form fields
-		expect(
-			screen.getByRole("textbox", { name: "Title *" }),
-		).toBeInTheDocument();
-		expect(
-			screen.getByRole("textbox", { name: "Description" }),
-		).toBeInTheDocument();
-		expect(
-			screen.getByRole("checkbox", { name: "Completed" }),
-		).toBeInTheDocument();
+		expect(screen.getByRole("textbox", { name: "Title *" })).toBeInTheDocument();
+		expect(screen.getByRole("textbox", { name: "Description" })).toBeInTheDocument();
+		expect(screen.getByRole("checkbox", { name: "Completed" })).toBeInTheDocument();
 
 		// Check for submit button
-		expect(
-			screen.getByRole("button", { name: "Create Task" }),
-		).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Create Task" })).toBeInTheDocument();
 	});
 
 	it("should render form with default values", () => {
@@ -41,29 +27,15 @@ describe("TaskForm", () => {
 			version: 1,
 		};
 
-		render(
-			<TaskForm
-				userId={mockUserId}
-				defaultValues={defaultValues}
-				onSubmit={() => {}}
-			/>,
-		);
+		render(<TaskForm userId={mockUserId} defaultValues={defaultValues} onSubmit={() => {}} />);
 
 		// Check field values
-		expect(screen.getByRole("textbox", { name: "Title *" })).toHaveValue(
-			defaultValues.title,
-		);
-		expect(screen.getByRole("textbox", { name: "Description" })).toHaveValue(
-			defaultValues.description,
-		);
-		expect(
-			screen.getByRole("checkbox", { name: "Completed" }),
-		).not.toBeChecked();
+		expect(screen.getByRole("textbox", { name: "Title *" })).toHaveValue(defaultValues.title);
+		expect(screen.getByRole("textbox", { name: "Description" })).toHaveValue(defaultValues.description);
+		expect(screen.getByRole("checkbox", { name: "Completed" })).not.toBeChecked();
 
 		// Check for submit button
-		expect(
-			screen.getByRole("button", { name: "Update Task" }),
-		).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Update Task" })).toBeInTheDocument();
 	});
 
 	it("should handle form submission", async () => {

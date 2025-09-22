@@ -4,7 +4,7 @@
 	"scripts": {
 		"build": "vite build",
 		"build:prod": "bun run build && bun run drizzle:migrate && bun run scripts/post-build.ts",
-		"check": "turbo lint check-types check-stories test:unit test-storybook",
+		"check": "turbo lint check-types check-stories test:unit test-storybook test:e2e",
 		"check-stories": "bun scripts/check-component-coverage.cjs --quiet",
 		"check-types": "tsc --noEmit",
 		"compile": "lingui compile",

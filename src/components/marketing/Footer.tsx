@@ -5,16 +5,10 @@ export function Footer() {
 		<footer className="border-t bg-gray-200 dark:bg-gray-800">
 			<div className="container mx-auto flex flex-col items-center justify-center py-10">
 				<div className="mb-8 flex justify-center gap-8">
-					<Link
-						to="/terms"
-						className="text-sm text-muted-foreground hover:text-primary"
-					>
+					<Link to="/terms" className="text-sm text-muted-foreground hover:text-primary">
 						Terms
 					</Link>
-					<Link
-						to="/privacy"
-						className="text-sm text-muted-foreground hover:text-primary"
-					>
+					<Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary">
 						Privacy
 					</Link>
 				</div>

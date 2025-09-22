@@ -49,21 +49,10 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "~/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { cn } from "~/lib/utils";
-import type {
-	FormFieldConfig,
-	RadioFieldConfig,
-	SelectFieldConfig,
-	TextareaFieldConfig,
-} from "./types";
+import type { FormFieldConfig, RadioFieldConfig, SelectFieldConfig, TextareaFieldConfig } from "./types";
 
 interface FormFieldProps<TData extends Record<string, unknown>> {
 	// Update to use AnyFieldApi which doesn't require all type parameters
@@ -71,10 +60,7 @@ interface FormFieldProps<TData extends Record<string, unknown>> {
 	config: FormFieldConfig<TData>;
 }
 
-export function FormField<TData extends Record<string, unknown>>({
-	field,
-	config,
-}: FormFieldProps<TData>) {
+export function FormField<TData extends Record<string, unknown>>({ field, config }: FormFieldProps<TData>) {
 	const hasError = field.state.meta.errors.length > 0;
 	const errorMessage = field.state.meta.errors[0];
 
@@ -87,22 +73,15 @@ export function FormField<TData extends Record<string, unknown>>({
 				return (
 					<div className="grid w-full gap-1.5">
 						{config.label && (
-							<Label
-								htmlFor={config.key}
-								className={cn(hasError && "text-destructive")}
-							>
+							<Label htmlFor={config.key} className={cn(hasError && "text-destructive")}>
 								{config.label}
-								{config.required && (
-									<span className="text-destructive ml-1">*</span>
-								)}
+								{config.required && <span className="text-destructive ml-1">*</span>}
 							</Label>
 						)}
 						<Input
 							id={config.key}
 							value={String(field.state.value ?? "")}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-								setValue(e.target.value)
-							}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value)}
 							onBlur={field.handleBlur}
 							disabled={config.disabled ?? false}
 							placeholder={config.placeholder}
@@ -110,16 +89,9 @@ export function FormField<TData extends Record<string, unknown>>({
 							aria-invalid={hasError}
 							aria-errormessage={hasError ? `${config.key}-error` : undefined}
 						/>
-						{config.description && (
-							<p className="text-sm text-muted-foreground">
-								{config.description}
-							</p>
-						)}
+						{config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
 						{hasError && (
-							<p
-								className="text-sm text-destructive"
-								id={`${config.key}-error`}
-							>
+							<p className="text-sm text-destructive" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}
@@ -131,22 +103,15 @@ export function FormField<TData extends Record<string, unknown>>({
 				return (
 					<div className="grid w-full gap-1.5">
 						{config.label && (
-							<Label
-								htmlFor={config.key}
-								className={cn(hasError && "text-destructive")}
-							>
+							<Label htmlFor={config.key} className={cn(hasError && "text-destructive")}>
 								{config.label}
-								{config.required && (
-									<span className="text-destructive ml-1">*</span>
-								)}
+								{config.required && <span className="text-destructive ml-1">*</span>}
 							</Label>
 						)}
 						<Textarea
 							id={config.key}
 							value={String(field.state.value ?? "")}
-							onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-								setValue(e.target.value)
-							}
+							onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setValue(e.target.value)}
 							onBlur={field.handleBlur}
 							disabled={config.disabled ?? false}
 							placeholder={config.placeholder}
@@ -155,16 +120,9 @@ export function FormField<TData extends Record<string, unknown>>({
 							aria-invalid={hasError}
 							aria-errormessage={hasError ? `${config.key}-error` : undefined}
 						/>
-						{config.description && (
-							<p className="text-sm text-muted-foreground">
-								{config.description}
-							</p>
-						)}
+						{config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
 						{hasError && (
-							<p
-								className="text-sm text-destructive"
-								id={`${config.key}-error`}
-							>
+							<p className="text-sm text-destructive" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}
@@ -176,27 +134,17 @@ export function FormField<TData extends Record<string, unknown>>({
 				return (
 					<div className="grid w-full gap-1.5">
 						{config.label && (
-							<Label
-								htmlFor={config.key}
-								className={cn(hasError && "text-destructive")}
-							>
+							<Label htmlFor={config.key} className={cn(hasError && "text-destructive")}>
 								{config.label}
-								{config.required && (
-									<span className="text-destructive ml-1">*</span>
-								)}
+								{config.required && <span className="text-destructive ml-1">*</span>}
 							</Label>
 						)}
 						<Input
 							id={config.key}
 							type="date"
-							value={
-								field.state.value instanceof Date
-									? field.state.value.toISOString().split("T")[0]
-									: ""
-							}
+							value={field.state.value instanceof Date ? field.state.value.toISOString().split("T")[0] : ""}
 							onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-								const value =
-									e.target.value === "" ? null : new Date(e.target.value);
+								const value = e.target.value === "" ? null : new Date(e.target.value);
 								setValue(value);
 							}}
 							onBlur={field.handleBlur}
@@ -205,16 +153,9 @@ export function FormField<TData extends Record<string, unknown>>({
 							aria-invalid={hasError}
 							aria-errormessage={hasError ? `${config.key}-error` : undefined}
 						/>
-						{config.description && (
-							<p className="text-sm text-muted-foreground">
-								{config.description}
-							</p>
-						)}
+						{config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
 						{hasError && (
-							<p
-								className="text-sm text-destructive"
-								id={`${config.key}-error`}
-							>
+							<p className="text-sm text-destructive" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}
@@ -227,14 +168,9 @@ export function FormField<TData extends Record<string, unknown>>({
 				return (
 					<div className="grid w-full gap-1.5">
 						{config.label && (
-							<Label
-								htmlFor={config.key}
-								className={cn(hasError && "text-destructive")}
-							>
+							<Label htmlFor={config.key} className={cn(hasError && "text-destructive")}>
 								{config.label}
-								{config.required && (
-									<span className="text-destructive ml-1">*</span>
-								)}
+								{config.required && <span className="text-destructive ml-1">*</span>}
 							</Label>
 						)}
 						<Select
@@ -258,16 +194,9 @@ export function FormField<TData extends Record<string, unknown>>({
 								))}
 							</SelectContent>
 						</Select>
-						{config.description && (
-							<p className="text-sm text-muted-foreground">
-								{config.description}
-							</p>
-						)}
+						{config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
 						{hasError && (
-							<p
-								className="text-sm text-destructive"
-								id={`${config.key}-error`}
-							>
+							<p className="text-sm text-destructive" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}
@@ -281,14 +210,10 @@ export function FormField<TData extends Record<string, unknown>>({
 						<Checkbox
 							id={config.key}
 							checked={
-								config.transform
-									? config.transform.input(field.state.value ?? false)
-									: Boolean(field.state.value)
+								config.transform ? config.transform.input(field.state.value ?? false) : Boolean(field.state.value)
 							}
 							onCheckedChange={(checked: boolean) => {
-								setValue(
-									config.transform ? config.transform.output(checked) : checked,
-								);
+								setValue(config.transform ? config.transform.output(checked) : checked);
 							}}
 							disabled={config.disabled ?? false}
 							aria-invalid={hasError}
@@ -303,16 +228,11 @@ export function FormField<TData extends Record<string, unknown>>({
 								)}
 							>
 								{config.label}
-								{config.required && (
-									<span className="text-destructive ml-1">*</span>
-								)}
+								{config.required && <span className="text-destructive ml-1">*</span>}
 							</Label>
 						)}
 						{hasError && (
-							<p
-								className="text-sm text-destructive"
-								id={`${config.key}-error`}
-							>
+							<p className="text-sm text-destructive" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}
@@ -327,9 +247,7 @@ export function FormField<TData extends Record<string, unknown>>({
 						{config.label && (
 							<Label className={cn(hasError && "text-destructive")}>
 								{config.label}
-								{config.required && (
-									<span className="text-destructive ml-1">*</span>
-								)}
+								{config.required && <span className="text-destructive ml-1">*</span>}
 							</Label>
 						)}
 						<RadioGroup
@@ -342,29 +260,16 @@ export function FormField<TData extends Record<string, unknown>>({
 						>
 							{radioConfig.options.map((option) => (
 								<div key={option.value} className="flex items-center space-x-2">
-									<RadioGroupItem
-										value={option.value}
-										id={`${config.key}-${option.value}`}
-									/>
-									<Label
-										htmlFor={`${config.key}-${option.value}`}
-										className="text-sm font-normal"
-									>
+									<RadioGroupItem value={option.value} id={`${config.key}-${option.value}`} />
+									<Label htmlFor={`${config.key}-${option.value}`} className="text-sm font-normal">
 										{option.label}
 									</Label>
 								</div>
 							))}
 						</RadioGroup>
-						{config.description && (
-							<p className="text-sm text-muted-foreground">
-								{config.description}
-							</p>
-						)}
+						{config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
 						{hasError && (
-							<p
-								className="text-sm text-destructive"
-								id={`${config.key}-error`}
-							>
+							<p className="text-sm text-destructive" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}

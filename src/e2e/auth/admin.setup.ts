@@ -15,9 +15,7 @@ test("authenticate as admin", async ({ page, context }) => {
 
 	// Navigate to admin page
 	await page.goto("/admin");
-	await expect(
-		page.getByText("Admin Dashboard", { exact: true }),
-	).toBeVisible();
+	await expect(page.getByText("Admin Dashboard", { exact: true })).toBeVisible();
 
 	// Save signed-in state for other tests to use
 	await context.storageState({ path: "playwright/.auth/admin.json" });

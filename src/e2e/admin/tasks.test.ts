@@ -72,9 +72,7 @@ test.describe("Admin Tasks", () => {
 		await expect(page.getByRole("cell", { name: "Status" })).toBeVisible();
 		await expect(page.getByRole("cell", { name: "Due Date" })).toBeVisible();
 		await expect(page.getByRole("cell", { name: "Created" })).toBeVisible();
-		await expect(
-			page.getByRole("cell", { name: "Last Updated" }),
-		).toBeVisible();
+		await expect(page.getByRole("cell", { name: "Last Updated" })).toBeVisible();
 	});
 
 	test("shows admin task form page", async ({ page }) => {

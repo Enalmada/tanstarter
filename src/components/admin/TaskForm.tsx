@@ -19,11 +19,7 @@ interface AdminTaskFormProps {
 	isSubmitting?: boolean;
 }
 
-export function AdminTaskForm({
-	defaultValues,
-	onSubmit,
-	isSubmitting = false,
-}: AdminTaskFormProps) {
+export function AdminTaskForm({ defaultValues, onSubmit, isSubmitting = false }: AdminTaskFormProps) {
 	const fields: FormFieldConfig<TaskFormData>[] = [
 		{
 			key: "version",
@@ -71,9 +67,7 @@ export function AdminTaskForm({
 			defaultValues={{
 				title: defaultValues?.title ?? "",
 				description: defaultValues?.description ?? null,
-				dueDate: defaultValues?.dueDate
-					? new Date(defaultValues.dueDate)
-					: null,
+				dueDate: defaultValues?.dueDate ? new Date(defaultValues.dueDate) : null,
 				status: defaultValues?.status ?? TaskStatus.ACTIVE,
 				userId: defaultValues?.userId ?? "",
 				version: defaultValues?.version ?? 1,

@@ -15,11 +15,7 @@ const sizeMap = {
 
 export const Container = forwardRef<HTMLDivElement, ContainerProps>(
 	({ className, size = "md", children, ...props }, ref) => (
-		<div
-			ref={ref}
-			className={cn("mx-auto w-full px-4", sizeMap[size], className)}
-			{...props}
-		>
+		<div ref={ref} className={cn("mx-auto w-full px-4", sizeMap[size], className)} {...props}>
 			{children}
 		</div>
 	),

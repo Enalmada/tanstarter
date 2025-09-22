@@ -17,25 +17,15 @@ test.describe("Admin Tasks Page", () => {
 		});
 	});
 
-	test("should show admin tasks page with correct table structure", async ({
-		page,
-	}) => {
+	test("should show admin tasks page with correct table structure", async ({ page }) => {
 		// Verify we're on the admin tasks page
 		expect(page.url()).toContain("/admin/tasks");
 
 		// Verify page title
-		await expect(
-			page.getByRole("heading", { name: "Tasks", level: 1 }),
-		).toBeVisible({ timeout: 5000 });
+		await expect(page.getByRole("heading", { name: "Tasks", level: 1 })).toBeVisible({ timeout: 5000 });
 
 		// Verify table headers using th elements
-		const expectedHeaders = [
-			"Title",
-			"Status",
-			"Due Date",
-			"Created",
-			"Last Updated",
-		];
+		const expectedHeaders = ["Title", "Status", "Due Date", "Created", "Last Updated"];
 		for (const header of expectedHeaders) {
 			await expect(page.locator("th", { hasText: header })).toBeVisible({
 				timeout: 5000,
@@ -116,14 +106,10 @@ test.describe("Admin Tasks Page", () => {
 		});
 
 		// Verify back on list page
-		await expect(
-			page.getByRole("heading", { name: "Tasks", level: 1 }),
-		).toBeVisible({ timeout: 5000 });
+		await expect(page.getByRole("heading", { name: "Tasks", level: 1 })).toBeVisible({ timeout: 5000 });
 	});
 
-	test("should navigate to task details when clicking row", async ({
-		page,
-	}) => {
+	test("should navigate to task details when clicking row", async ({ page }) => {
 		// Create a task first
 		await page.getByRole("button", { name: "Add New" }).click();
 		await page.waitForURL("/admin/tasks/new");

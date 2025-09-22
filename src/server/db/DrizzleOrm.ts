@@ -31,10 +31,7 @@ export const buildWhereClause = <T>(
 					if (value === undefined) return undefined;
 					return eq(table[criteriaType], value);
 				})
-				.filter(
-					(condition): condition is NonNullable<typeof condition> =>
-						condition !== undefined,
-				)
+				.filter((condition): condition is NonNullable<typeof condition> => condition !== undefined)
 		: [];
 
 	if (conditions.length === 0) return undefined;
@@ -51,7 +48,5 @@ export const buildOrderByClause = (
 ) => {
 	if (!order?.sortBy) return undefined;
 
-	return order.sortOrder === "asc"
-		? table[order.sortBy].asc()
-		: table[order.sortBy].desc();
+	return order.sortOrder === "asc" ? table[order.sortBy].asc() : table[order.sortBy].desc();
 };

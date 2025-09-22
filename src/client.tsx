@@ -8,11 +8,7 @@ import { StartClient } from "@tanstack/react-start";
 import { hydrateRoot } from "react-dom/client";
 import { env } from "~/env";
 import { MonitoringProvider } from "~/lib/monitoring/MonitoringProvider";
-import {
-	activateLanguage,
-	DEFAULT_LANGUAGE,
-	normalizeLocale,
-} from "~/locales/locale";
+import { activateLanguage, DEFAULT_LANGUAGE, normalizeLocale } from "~/locales/locale";
 import { createRouter } from "./router";
 
 // Initialize i18n with browser language - avoid top-level await for hydration safety

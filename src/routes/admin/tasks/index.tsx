@@ -1,17 +1,12 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Info } from "lucide-react";
 import { EntityList } from "~/components/admin/EntityList";
 import { Badge } from "~/components/ui/badge";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "~/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import type { Task } from "~/server/db/schema";
 import type { TableDefinition } from "~/types/table";
 import { formatDate } from "~/utils/date";
-import { queries } from "~/utils/query/queries";
+import { preloadQueries, queries, useSuspenseQueries } from "~/utils/query/queries";
 
 const columns: TableDefinition<Task> = [
 	{
@@ -30,31 +25,21 @@ const columns: TableDefinition<Task> = [
 						</PopoverContent>
 					</Popover>
 				</div>
-				{row.description && (
-					<p className="text-xs text-muted-foreground line-clamp-2">
-						{row.description}
-					</p>
-				)}
+				{row.description && <p className="text-xs text-muted-foreground line-clamp-2">{row.description}</p>}
 			</div>
 		),
 	},
 	{
 		key: "status",
 		header: "Status",
-		render: ({ value }) => (
-			<Badge variant={value === "ACTIVE" ? "default" : "secondary"}>
-				{String(value)}
-			</Badge>
-		),
+		render: ({ value }) => <Badge variant={value === "ACTIVE" ? "default" : "secondary"}>{String(value)}</Badge>,
 	},
 	{
 		key: "dueDate",
 		header: "Due Date",
 		render: ({ value }: { value: string | number | Date | null }) => {
 			const formatted = formatDate(value);
-			return formatted ? (
-				<p className="text-sm text-muted-foreground">{formatted}</p>
-			) : null;
+			return formatted ? <p className="text-sm text-muted-foreground">{formatted}</p> : null;
 		},
 	},
 	{
@@ -62,9 +47,7 @@ const columns: TableDefinition<Task> = [
 		header: "Created",
 		render: ({ value }: { value: string | number | Date | null }) => {
 			const formatted = formatDate(value);
-			return formatted ? (
-				<p className="text-sm text-muted-foreground">{formatted}</p>
-			) : null;
+			return formatted ? <p className="text-sm text-muted-foreground">{formatted}</p> : null;
 		},
 	},
 	{
@@ -72,24 +55,25 @@ const columns: TableDefinition<Task> = [
 		header: "Last Updated",
 		render: ({ value }: { value: string | number | Date | null }) => {
 			const formatted = formatDate(value);
-			return (
-				<p className="text-sm text-muted-foreground">{formatted || "Never"}</p>
-			);
+			return <p className="text-sm text-muted-foreground">{formatted || "Never"}</p>;
 		},
 	},
 ];
 
+function getRouteQueries() {
+	return [queries.task.list()] as const;
+}
+
 export const Route = createFileRoute("/admin/tasks/")({
 	component: TasksPage,
-	loader: ({ context: { queryClient } }) =>
-		// @ts-expect-error - React Query type conflicts from version mismatches
-		queryClient.ensureQueryData(queries.task.list()),
+	loader: async ({ context: { queryClient } }) => {
+		await preloadQueries(queryClient, getRouteQueries());
+	},
 });
 
 function TasksPage() {
 	const navigate = useNavigate();
-	// @ts-expect-error - React Query type conflicts from version mismatches
-	const { data: tasks } = useSuspenseQuery(queries.task.list());
+	const [tasks] = useSuspenseQueries(getRouteQueries());
 
 	return (
 		<EntityList

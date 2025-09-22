@@ -80,12 +80,7 @@ function MobileNav() {
 		<ScrollArea className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
 			<div className="flex flex-col space-y-2">
 				{navItems.map((item) => (
-					<Button
-						key={item.to}
-						variant="ghost"
-						className="w-full justify-start"
-						asChild
-					>
+					<Button key={item.to} variant="ghost" className="w-full justify-start" asChild>
 						<Link to={item.to}>
 							<item.icon className="mr-2 h-4 w-4" />
 							{item.label}
@@ -104,10 +99,7 @@ function SideNav() {
 				<Button
 					key={item.to}
 					variant="ghost"
-					className={cn(
-						"w-full justify-start",
-						"data-active:bg-accent data-active:text-accent-foreground",
-					)}
+					className={cn("w-full justify-start", "data-active:bg-accent data-active:text-accent-foreground")}
 					asChild
 				>
 					<Link to={item.to}>

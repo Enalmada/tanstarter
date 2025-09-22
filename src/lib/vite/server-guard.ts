@@ -19,12 +19,8 @@ export function serverGuard(options: ServerGuardOptions = {}): Plugin {
 		clientEntryPoints = ["app/client.tsx", "app/root.tsx"],
 	} = options;
 
-	const serverDirs = serverDirectory.map((dir) =>
-		path.resolve(process.cwd(), dir),
-	);
-	const resolvedClientEntryPoints = clientEntryPoints.map((entry) =>
-		path.resolve(process.cwd(), entry),
-	);
+	const serverDirs = serverDirectory.map((dir) => path.resolve(process.cwd(), dir));
+	const resolvedClientEntryPoints = clientEntryPoints.map((entry) => path.resolve(process.cwd(), entry));
 
 	return {
 		name: "server-guard",
@@ -57,10 +53,7 @@ export function serverGuard(options: ServerGuardOptions = {}): Plugin {
 				return checkImport(resolvedSource, importer);
 			}
 
-			if (
-				(source.startsWith(".") || source.startsWith("/")) &&
-				!source.endsWith(".css")
-			) {
+			if ((source.startsWith(".") || source.startsWith("/")) && !source.endsWith(".css")) {
 				return checkImport(normalizedSource, importer);
 			}
 
@@ -71,26 +64,17 @@ export function serverGuard(options: ServerGuardOptions = {}): Plugin {
 			return;
 
 			function checkImport(resolvedSource: string, importer: string) {
-				if (
-					allowedImports.some((allowedPath) =>
-						resolvedSource.includes(path.resolve(process.cwd(), allowedPath)),
-					)
-				) {
+				if (allowedImports.some((allowedPath) => resolvedSource.includes(path.resolve(process.cwd(), allowedPath)))) {
 					return;
 				}
 
 				if (isClientCode(importer)) {
-					const isServerImport = serverDirs.some((dir) =>
-						resolvedSource.includes(dir),
-					);
+					const isServerImport = serverDirs.some((dir) => resolvedSource.includes(dir));
 
 					if (isServerImport) {
 						const importerContent = fs.readFileSync(importer, "utf-8");
 						const typeOnlyImportRegex = new RegExp(
-							`import\\s+type\\s+\\{[^}]*\\}\\s+from\\s+['"]${source.replace(
-								/[.*+?^${}()|[\]\\]/g,
-								"\\$&",
-							)}['"]`,
+							`import\\s+type\\s+\\{[^}]*\\}\\s+from\\s+['"]${source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}['"]`,
 						);
 
 						if (typeOnlyImportRegex.test(importerContent)) {
@@ -117,8 +101,7 @@ export function serverGuard(options: ServerGuardOptions = {}): Plugin {
 		}
 
 		if (
-			(normalizedPath.includes("/routes/") ||
-				normalizedPath.includes("/components/")) &&
+			(normalizedPath.includes("/routes/") || normalizedPath.includes("/components/")) &&
 			!normalizedPath.includes("/server/")
 		) {
 			return true;

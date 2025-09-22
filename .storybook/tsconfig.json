@@ -4,10 +4,5 @@
 		"types": ["@serwist/vite/typings", "@types/react"],
 		"verbatimModuleSyntax": true
 	},
-	"include": [
-		"../app/**/*.stories.tsx",
-		"../app/**/*.stories.ts",
-		"*.tsx",
-		"*.ts"
-	]
+	"include": ["../app/**/*.stories.tsx", "../app/**/*.stories.ts", "*.tsx", "*.ts"]
 }

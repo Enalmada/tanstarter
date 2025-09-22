@@ -10,13 +10,7 @@ import { TaskStatus } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
 
-export function TaskList({
-	userId,
-	tasks,
-}: {
-	userId: string | undefined;
-	tasks: Task[];
-}) {
+export function TaskList({ userId, tasks }: { userId: string | undefined; tasks: Task[] }) {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const { updateMutation, deleteMutation } = useEntityMutations<Task>({
@@ -63,9 +57,7 @@ export function TaskList({
 										onCheckedChange={() =>
 											handleTaskUpdate(
 												task,
-												task.status === TaskStatus.ACTIVE
-													? TaskStatus.COMPLETED
-													: TaskStatus.ACTIVE,
+												task.status === TaskStatus.ACTIVE ? TaskStatus.COMPLETED : TaskStatus.ACTIVE,
 											)
 										}
 									/>
@@ -75,9 +67,7 @@ export function TaskList({
 										to="/tasks/$taskId"
 										params={{ taskId: task.id }}
 										className={`block overflow-hidden text-ellipsis whitespace-nowrap ${
-											task.status === TaskStatus.COMPLETED
-												? "text-muted-foreground line-through"
-												: ""
+											task.status === TaskStatus.COMPLETED ? "text-muted-foreground line-through" : ""
 										}`}
 									>
 										<span className="text-lg font-medium">{task.title}</span>
@@ -88,9 +78,7 @@ export function TaskList({
 										</p>
 									)}
 									{task.dueDate && (
-										<p className="text-xs text-muted-foreground">
-											Due: {new Date(task.dueDate).toLocaleDateString()}
-										</p>
+										<p className="text-xs text-muted-foreground">Due: {new Date(task.dueDate).toLocaleDateString()}</p>
 									)}
 								</div>
 							</div>

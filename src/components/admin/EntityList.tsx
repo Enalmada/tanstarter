@@ -1,14 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "~/components/ui/button";
 import { Container } from "~/components/ui/container";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "~/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Title } from "~/components/ui/title";
 import type { TableDefinition } from "~/types/table";
 
@@ -53,10 +46,7 @@ export function EntityList<TData extends { id: string }>({
 							{columns.map((column) => (
 								<TableCell key={column.key as string}>
 									{to ? (
-										<Link
-											to={to.replace(":id", row.id)}
-											className="block w-full"
-										>
+										<Link to={to.replace(":id", row.id)} className="block w-full">
 											{column.render
 												? column.render({
 														value: row[column.key],

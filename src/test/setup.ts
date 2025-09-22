@@ -247,12 +247,7 @@ vi.mock("@tanstack/react-start", () => {
 			// biome-ignore lint/suspicious/noExplicitAny: Schema types are inherently any
 			validator: (schema: any) => ({
 				handler:
-					(
-						handler: (params: {
-							data: unknown;
-							context: unknown;
-						}) => Promise<unknown>,
-					) =>
+					(handler: (params: { data: unknown; context: unknown }) => Promise<unknown>) =>
 					async (input: { data: unknown; context: unknown }) => {
 						// Handle specific schema validations
 						if (schema?.name === "validateDeleteEntity") {
@@ -270,9 +265,7 @@ vi.mock("@tanstack/react-start", () => {
 			}),
 		})),
 		createMiddleware: () => ({
-			server: (
-				fn: (params: { next: () => Promise<unknown> }) => Promise<unknown>,
-			) => {
+			server: (fn: (params: { next: () => Promise<unknown> }) => Promise<unknown>) => {
 				return async (params: { next: () => Promise<unknown> }) => {
 					return fn(params);
 				};

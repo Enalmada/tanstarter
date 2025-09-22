@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 import { findFirst, findMany } from "~/functions/base-service";
-import { queries } from "~/utils/query/queries"; // Adjust this import path if needed
+import { queries } from "~/utils/query/queries";
 
 // Mock variables
 const mockUserId = "usr_1";
@@ -27,17 +27,13 @@ describe("queries", () => {
 	const mockQueryClient = new QueryClient();
 
 	describe("task queries", () => {
-		it("should generate correct task list query", () => {
+		it("should generate correct task list query with userId", () => {
 			const query = queries.task.list({ userId: mockUserId });
-			expect(query.queryKey).toEqual([
-				"task",
-				"list",
-				{ filters: { userId: mockUserId } },
-			]);
+			expect(query.queryKey).toEqual(["task", "list", { filters: { userId: mockUserId } }]);
 			expect(typeof query.queryFn).toBe("function");
 		});
 
-		it("should generate correct task list query", () => {
+		it("should generate correct task list query without userId", () => {
 			const query = queries.task.list();
 			expect(query.queryKey).toEqual(["task", "list", { filters: undefined }]);
 			expect(typeof query.queryFn).toBe("function");
@@ -59,11 +55,7 @@ describe("queries", () => {
 			// Test list query
 			const mockSignal = new AbortController().signal;
 			await queries.task.list({ userId: mockUserId }).queryFn({
-				queryKey: [
-					"task",
-					"list",
-					{ filters: { userId: mockUserId } },
-				] as const,
+				queryKey: ["task", "list", { filters: { userId: mockUserId } }] as const,
 				signal: mockSignal,
 				meta: undefined,
 				client: mockQueryClient,
@@ -85,29 +77,27 @@ describe("queries", () => {
 		});
 
 		it("should fetch tasks list", async () => {
-			// ... existing code ...
+			// Test that the query function exists and can be called
 			await queries.task.list({ userId: mockUserId }).queryFn({
-				queryKey: [
-					"task",
-					"list",
-					{ filters: { userId: mockUserId } },
-				] as const,
+				queryKey: ["task", "list", { filters: { userId: mockUserId } }] as const,
 				signal: new AbortController().signal,
 				meta: undefined,
 				client: mockQueryClient,
 			});
-			// ... existing code ...
+			// Verify the service was called
+			expect(findMany).toHaveBeenCalled();
 		});
 
 		it("should fetch task by id", async () => {
-			// ... existing code ...
+			// Test that the query function exists and can be called
 			await queries.task.byId(mockTaskId).queryFn({
 				queryKey: ["task", "byId", mockTaskId] as const,
 				signal: new AbortController().signal,
 				meta: undefined,
 				client: mockQueryClient,
 			});
-			// ... existing code ...
+			// Verify the service was called
+			expect(findFirst).toHaveBeenCalled();
 		});
 	});
 });

@@ -51,8 +51,7 @@ export async function notifyRollbarDeploy() {
 	}
 
 	// Map Cloudflare Pages branch to environment
-	const environment =
-		process.env.CF_PAGES_BRANCH === "main" ? "production" : "preview";
+	const environment = process.env.CF_PAGES_BRANCH === "main" ? "production" : "preview";
 
 	const revision = getRelease();
 
@@ -77,23 +76,17 @@ export async function notifyRollbarDeploy() {
 		const data = await response.json();
 
 		if (!response.ok) {
-			throw new Error(
-				`Failed to notify Rollbar: ${response.status} ${response.statusText}`,
-			);
+			throw new Error(`Failed to notify Rollbar: ${response.status} ${response.statusText}`);
 		}
 
 		// Type guard to verify response shape
 		if (!data || typeof data !== "object" || !("data" in data)) {
-			throw new Error(
-				`Invalid Rollbar response format: ${JSON.stringify(data)}`,
-			);
+			throw new Error(`Invalid Rollbar response format: ${JSON.stringify(data)}`);
 		}
 
 		const result = data.data;
 		if (typeof result !== "object" || !result || !("deploy_id" in result)) {
-			throw new Error(
-				`Missing required fields in Rollbar response: ${JSON.stringify(data)}`,
-			);
+			throw new Error(`Missing required fields in Rollbar response: ${JSON.stringify(data)}`);
 		}
 	} catch (_error) {
 		// Don't throw - we don't want to fail the build for monitoring issues

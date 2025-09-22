@@ -1,11 +1,10 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { EntityList } from "~/components/admin/EntityList";
 import { Badge } from "~/components/ui/badge";
 import type { User } from "~/server/db/schema";
 import type { TableDefinition } from "~/types/table";
 import { formatDate } from "~/utils/date";
-import { queries } from "~/utils/query/queries";
+import { preloadQueries, queries, useSuspenseQueries } from "~/utils/query/queries";
 
 const columns: TableDefinition<User> = [
 	{
@@ -22,20 +21,14 @@ const columns: TableDefinition<User> = [
 		render: ({ value, row }) => (
 			<div>
 				<p className="text-sm font-medium">{String(value)}</p>
-				{row.name && (
-					<p className="text-xs text-muted-foreground">{row.name}</p>
-				)}
+				{row.name && <p className="text-xs text-muted-foreground">{row.name}</p>}
 			</div>
 		),
 	},
 	{
 		key: "role",
 		header: "Role",
-		render: ({ value }) => (
-			<Badge variant={value === "ADMIN" ? "destructive" : "default"}>
-				{String(value)}
-			</Badge>
-		),
+		render: ({ value }) => <Badge variant={value === "ADMIN" ? "destructive" : "default"}>{String(value)}</Badge>,
 	},
 	{
 		key: "createdAt",
@@ -43,9 +36,7 @@ const columns: TableDefinition<User> = [
 		render: ({ value }: { value: string | number | Date | boolean | null }) => {
 			if (typeof value === "boolean") return null;
 			const formatted = formatDate(value);
-			return formatted ? (
-				<p className="text-sm text-muted-foreground">{formatted}</p>
-			) : null;
+			return formatted ? <p className="text-sm text-muted-foreground">{formatted}</p> : null;
 		},
 	},
 	{
@@ -54,24 +45,25 @@ const columns: TableDefinition<User> = [
 		render: ({ value }: { value: string | number | Date | boolean | null }) => {
 			if (typeof value === "boolean") return null;
 			const formatted = formatDate(value);
-			return formatted ? (
-				<p className="text-sm text-muted-foreground">{formatted}</p>
-			) : null;
+			return formatted ? <p className="text-sm text-muted-foreground">{formatted}</p> : null;
 		},
 	},
 ];
 
+function getRouteQueries() {
+	return [queries.user.list()] as const;
+}
+
 export const Route = createFileRoute("/admin/users/")({
 	component: UsersPage,
-	loader: ({ context: { queryClient } }) =>
-		// @ts-expect-error - React Query type conflicts from version mismatches
-		queryClient.ensureQueryData(queries.user.list()),
+	loader: async ({ context: { queryClient } }) => {
+		await preloadQueries(queryClient, getRouteQueries());
+	},
 });
 
 function UsersPage() {
 	const navigate = useNavigate();
-	// @ts-expect-error - React Query type conflicts from version mismatches
-	const { data: users } = useSuspenseQuery(queries.user.list());
+	const [users] = useSuspenseQueries(getRouteQueries());
 
 	return (
 		<EntityList

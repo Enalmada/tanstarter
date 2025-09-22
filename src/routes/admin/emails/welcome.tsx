@@ -18,18 +18,11 @@ const emailQueries = {
 function EmailPreview() {
 	const { data: emailHtml } = useSuspenseQuery(emailQueries.welcomePreview);
 
-	return (
-		<iframe
-			title="Email Preview"
-			srcDoc={emailHtml}
-			className="w-full h-[600px] border-none"
-		/>
-	);
+	return <iframe title="Email Preview" srcDoc={emailHtml} className="w-full h-[600px] border-none" />;
 }
 
 export const Route = createFileRoute("/admin/emails/welcome")({
-	loader: ({ context: { queryClient } }) =>
-		queryClient.ensureQueryData(emailQueries.welcomePreview),
+	loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(emailQueries.welcomePreview),
 	component: WelcomeEmailPreview,
 });
 
@@ -40,9 +33,7 @@ function WelcomeEmailPreview() {
 
 	return (
 		<div className="flex flex-col gap-8">
-			<h2 className="text-3xl font-bold tracking-tight">
-				Welcome Email Template
-			</h2>
+			<h2 className="text-3xl font-bold tracking-tight">Welcome Email Template</h2>
 
 			<Card>
 				<Suspense fallback={<div>Loading email preview...</div>}>
@@ -62,9 +53,7 @@ function WelcomeEmailPreview() {
 							id={emailInputId}
 							placeholder="Enter email to test"
 							value={testEmail}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-								setTestEmail(e.target.value)
-							}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTestEmail(e.target.value)}
 						/>
 					</div>
 					<Button

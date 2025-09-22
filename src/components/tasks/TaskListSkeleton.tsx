@@ -1,11 +1,7 @@
 import { Card, CardContent } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 
-const SKELETON_ITEMS = [
-	"skeleton-task-1",
-	"skeleton-task-2",
-	"skeleton-task-3",
-] as const;
+const SKELETON_ITEMS = ["skeleton-task-1", "skeleton-task-2", "skeleton-task-3"] as const;
 
 export function TaskListSkeleton() {
 	return (

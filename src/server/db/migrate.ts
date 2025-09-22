@@ -24,15 +24,12 @@ export const databaseConfig = {
 // Configure for local development with Neon HTTP proxy
 if (process.env.NODE_ENV === "development") {
 	neonConfig.fetchEndpoint = (host) => {
-		const [protocol, port] =
-			host === "db.localtest.me" ? ["http", 4444] : ["https", 443];
+		const [protocol, port] = host === "db.localtest.me" ? ["http", 4444] : ["https", 443];
 		return `${protocol}://${host}:${port}/sql`;
 	};
 }
 
-const waitUntilDatabaseIsReady = async (
-	db: ReturnType<typeof drizzle>,
-): Promise<void> => {
+const waitUntilDatabaseIsReady = async (db: ReturnType<typeof drizzle>): Promise<void> => {
 	for (let attempts = 0; attempts < databaseConfig.MAX_RETRIES; attempts++) {
 		try {
 			await db.execute(sql`SELECT 1`);
@@ -42,16 +39,12 @@ const waitUntilDatabaseIsReady = async (
 			} else if (attempts === databaseConfig.MAX_RETRIES - 1) {
 				throw new Error("❌  Database not ready after maximum retries");
 			}
-			await new Promise((resolve) =>
-				setTimeout(resolve, databaseConfig.RETRY_INTERVAL),
-			);
+			await new Promise((resolve) => setTimeout(resolve, databaseConfig.RETRY_INTERVAL));
 		}
 	}
 };
 
-export const runMigrate = async (
-	migrationsFolder = "src/server/db/migrations",
-): Promise<void> => {
+export const runMigrate = async (migrationsFolder = "src/server/db/migrations"): Promise<void> => {
 	if (!dbHelpers.getDatabaseUrl()) {
 		throw new Error("DATABASE_URL is not defined");
 	}

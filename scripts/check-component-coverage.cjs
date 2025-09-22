@@ -18,24 +18,13 @@ function findComponents(dir, components = []) {
 
 		if (stat.isDirectory() && !file.startsWith("__")) {
 			findComponents(fullPath, components);
-		} else if (
-			file.endsWith(".tsx") &&
-			!file.includes(".test.") &&
-			!file.includes(".stories.")
-		) {
+		} else if (file.endsWith(".tsx") && !file.includes(".test.") && !file.includes(".stories.")) {
 			// Check if this looks like a component (starts with capital letter or is index.tsx)
 			if (file[0] === file[0].toUpperCase() || file === "index.tsx") {
 				// Skip certain patterns that typically don't need stories
-				const skipPatterns = [
-					"Layout.tsx",
-					"CatchBoundary.tsx",
-					"ErrorBoundary.tsx",
-					"Error.tsx",
-				];
+				const skipPatterns = ["Layout.tsx", "CatchBoundary.tsx", "ErrorBoundary.tsx", "Error.tsx"];
 
-				const shouldSkip = skipPatterns.some((pattern) =>
-					file.includes(pattern),
-				);
+				const shouldSkip = skipPatterns.some((pattern) => file.includes(pattern));
 				if (!shouldSkip) {
 					components.push(fullPath);
 				}
@@ -59,10 +48,7 @@ function findStories(dirs, stories = []) {
 
 			if (stat.isDirectory()) {
 				findStories([fullPath], stories);
-			} else if (
-				file.endsWith(".stories.tsx") ||
-				file.endsWith(".stories.ts")
-			) {
+			} else if (file.endsWith(".stories.tsx") || file.endsWith(".stories.ts")) {
 				stories.push(fullPath);
 			}
 		}
@@ -175,9 +161,7 @@ function checkCoverage() {
 	// Create map of story names
 	const storyMap = new Set();
 	stories.forEach((storyPath) => {
-		const base = path
-			.basename(storyPath, path.extname(storyPath))
-			.replace(".stories", "");
+		const base = path.basename(storyPath, path.extname(storyPath)).replace(".stories", "");
 		const parent = path.basename(path.dirname(storyPath));
 
 		// Simple key for backward compatibility
@@ -226,22 +210,13 @@ function checkCoverage() {
 		}
 	});
 	if (covered.length > 0 && process.argv.includes("--verbose")) {
-		console.log("✅ Components with story coverage:");
-		covered.forEach((item) => {
-			console.log(`  ${item.name} (${item.path})`);
-		});
+		covered.forEach((item) => {});
 	}
 	if (missing.length > 0) {
-		console.log("❌ Components missing story coverage:");
-		missing.forEach((item) => {
-			console.log(`  ${item.name} (${item.path})`);
-		});
+		missing.forEach((item) => {});
 	}
 
-	const _coverage =
-		allItems.length > 0
-			? Math.round((covered.length / allItems.length) * 100)
-			: 100;
+	const _coverage = allItems.length > 0 ? Math.round((covered.length / allItems.length) * 100) : 100;
 
 	return {
 		covered: covered.length,
@@ -253,29 +228,18 @@ function checkCoverage() {
 // Main execution
 const stats = checkCoverage();
 
-const coverage =
-	stats.total > 0 ? Math.round((stats.covered / stats.total) * 100) : 100;
-const itemType = process.argv.includes("--include-routes")
-	? "components/pages/emails"
-	: "components/emails";
+const _coverage = stats.total > 0 ? Math.round((stats.covered / stats.total) * 100) : 100;
+const _itemType = process.argv.includes("--include-routes") ? "components/pages/emails" : "components/emails";
 
 // Check for --quiet flag to suppress success output
 const isQuiet = process.argv.includes("--quiet");
 
 if (stats.missing > 0) {
-	console.log(
-		`\n📊 Storybook Coverage: ${stats.covered}/${stats.total} ${itemType} (${coverage}%)`,
-	);
-	console.log(`\n❌ ${stats.missing} ${itemType} missing story coverage`);
 	// Exit with error when stories are missing
 	process.exit(1);
 } else {
 	// Only show detailed output if not in quiet mode
 	if (!isQuiet) {
-		console.log(
-			`\n📊 Storybook Coverage: ${stats.covered}/${stats.total} ${itemType} (${coverage}%)`,
-		);
-		console.log(`\n✅ All ${itemType} have story coverage!`);
 	}
 	process.exit(0);
 }

@@ -22,9 +22,7 @@ test.describe("Admin User operations", () => {
 		expect(page.url()).toContain("/admin/users");
 
 		// Check for the Users heading
-		await expect(
-			page.getByRole("heading", { name: "Users", level: 1 }),
-		).toBeVisible({ timeout: 5000 });
+		await expect(page.getByRole("heading", { name: "Users", level: 1 })).toBeVisible({ timeout: 5000 });
 
 		// Check table headers
 		await expect(page.locator("th", { hasText: "Email" })).toBeVisible({

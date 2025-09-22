@@ -26,15 +26,11 @@ const preview: Preview = {
 		// Cloudflare Pages specific configurations
 		docs: {
 			source: {
-				transform: (code: string) =>
-					code.replace(/\/sb-addons\//g, "/sb-addons/"),
+				transform: (code: string) => code.replace(/\/sb-addons\//g, "/sb-addons/"),
 			},
 		},
 		server: {
-			url:
-				typeof window !== "undefined"
-					? window.location.origin
-					: "http://localhost:6006",
+			url: typeof window !== "undefined" ? window.location.origin : "http://localhost:6006",
 		},
 	},
 

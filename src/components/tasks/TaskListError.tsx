@@ -7,9 +7,7 @@ export function TaskListError({ error, resetErrorBoundary }: FallbackProps) {
 		<div className="container mx-auto p-6">
 			<Card>
 				<CardContent className="flex flex-col items-center gap-4 p-6">
-					<p className="text-lg font-medium text-destructive">
-						Error Loading Tasks
-					</p>
+					<p className="text-lg font-medium text-destructive">Error Loading Tasks</p>
 					<p className="text-sm text-muted-foreground">{error.message}</p>
 					<Button onClick={() => resetErrorBoundary()}>Try Again</Button>
 				</CardContent>

@@ -17,11 +17,7 @@ interface AdminUserFormProps {
 	isSubmitting?: boolean;
 }
 
-export function AdminUserForm({
-	defaultValues,
-	onSubmit,
-	isSubmitting = false,
-}: AdminUserFormProps) {
+export function AdminUserForm({ defaultValues, onSubmit, isSubmitting = false }: AdminUserFormProps) {
 	const fields: FormFieldConfig<UserFormData>[] = [
 		{
 			key: "version",

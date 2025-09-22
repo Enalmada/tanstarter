@@ -35,30 +35,20 @@ function DefaultDialogComponent() {
 			<DialogContent className="sm:max-w-[425px]">
 				<DialogHeader>
 					<DialogTitle>Edit profile</DialogTitle>
-					<DialogDescription>
-						Make changes to your profile here. Click save when you're done.
-					</DialogDescription>
+					<DialogDescription>Make changes to your profile here. Click save when you're done.</DialogDescription>
 				</DialogHeader>
 				<div className="grid gap-4 py-4">
 					<div className="grid grid-cols-4 items-center gap-4">
 						<label htmlFor={nameId} className="text-right">
 							Name
 						</label>
-						<input
-							id={nameId}
-							className="col-span-3"
-							defaultValue="Pedro Duarte"
-						/>
+						<input id={nameId} className="col-span-3" defaultValue="Pedro Duarte" />
 					</div>
 					<div className="grid grid-cols-4 items-center gap-4">
 						<label htmlFor={usernameId} className="text-right">
 							Username
 						</label>
-						<input
-							id={usernameId}
-							className="col-span-3"
-							defaultValue="@peduarte"
-						/>
+						<input id={usernameId} className="col-span-3" defaultValue="@peduarte" />
 					</div>
 				</div>
 				<DialogFooter>
@@ -85,9 +75,7 @@ function WithFormComponent() {
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Edit profile</DialogTitle>
-					<DialogDescription>
-						Make changes to your profile here. Click save when you're done.
-					</DialogDescription>
+					<DialogDescription>Make changes to your profile here. Click save when you're done.</DialogDescription>
 				</DialogHeader>
 				<form className="grid gap-4 py-4">
 					<div className="grid grid-cols-4 items-center gap-4">

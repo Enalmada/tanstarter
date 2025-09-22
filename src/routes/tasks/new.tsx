@@ -51,11 +51,7 @@ function NewTask() {
 		<div className="container mx-auto space-y-4 p-6">
 			<Card>
 				<CardContent className="pt-6 space-y-4">
-					<TaskForm
-						onSubmit={createMutation.mutate}
-						isSubmitting={createMutation.isPending}
-						userId={userId ?? ""}
-					/>
+					<TaskForm onSubmit={createMutation.mutate} isSubmitting={createMutation.isPending} userId={userId ?? ""} />
 				</CardContent>
 			</Card>
 		</div>

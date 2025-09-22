@@ -65,16 +65,12 @@ export default defineConfig({
 			rollupFormat: "iife",
 		}),
 		// Upload source maps to Rollbar after build
-		...(process.env.ROLLBAR_SERVER_TOKEN &&
-		process.env.NODE_ENV === "production"
+		...(process.env.ROLLBAR_SERVER_TOKEN && process.env.NODE_ENV === "production"
 			? [
 					viteRollbar({
 						accessToken: process.env.ROLLBAR_SERVER_TOKEN,
 						version: getBuildRelease(),
-						baseUrl:
-							process.env.PUBLIC_APP_URL ||
-							process.env.CF_PAGES_URL ||
-							"http://localhost:3000",
+						baseUrl: process.env.PUBLIC_APP_URL || process.env.CF_PAGES_URL || "http://localhost:3000",
 						ignoreUploadErrors: true,
 						silent: false,
 					}),
@@ -86,9 +82,7 @@ export default defineConfig({
 	define: {
 		// TODO - try getting rid of these now that we have envPrefix
 		// Explicitly expose specific environment variables to client
-		"process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN": JSON.stringify(
-			process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN,
-		),
+		"process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN": JSON.stringify(process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN),
 		// Environment and release info
 		"process.env.APP_ENV": JSON.stringify(process.env.APP_ENV),
 		"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
@@ -96,12 +90,8 @@ export default defineConfig({
 		"process.env.CF_PAGES": JSON.stringify(process.env.CF_PAGES),
 		"process.env.CF_PAGES_URL": JSON.stringify(process.env.CF_PAGES_URL),
 		"process.env.CF_PAGES_BRANCH": JSON.stringify(process.env.CF_PAGES_BRANCH),
-		"process.env.CF_PAGES_COMMIT_SHA": JSON.stringify(
-			process.env.CF_PAGES_COMMIT_SHA,
-		),
-		"process.env.PUBLIC_POSTHOG_API_KEY": JSON.stringify(
-			process.env.PUBLIC_POSTHOG_API_KEY,
-		),
+		"process.env.CF_PAGES_COMMIT_SHA": JSON.stringify(process.env.CF_PAGES_COMMIT_SHA),
+		"process.env.PUBLIC_POSTHOG_API_KEY": JSON.stringify(process.env.PUBLIC_POSTHOG_API_KEY),
 	},
 	assetsInclude: ["**/*.po"],
 	// TODO confirm we need this build section.
