@@ -19,6 +19,7 @@ dist
 
 .codebuddy
 .turbo
+.serena
 
 # Serwist
 public/sw*

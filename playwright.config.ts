@@ -1,5 +1,5 @@
-import { defineConfig, devices } from "@playwright/test";
 import type { PlaywrightTestConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 
 // Set NODE_ENV for tests - required for test tokens to work in auth.ts
 process.env.NODE_ENV = "development";
