@@ -22,6 +22,13 @@ vi.mock("~/functions/base-service", () => ({
 	deleteEntity: vi.fn(),
 }));
 
+vi.mock("@tanstack/react-start", () => ({
+	useServerFn: vi.fn((fn) => fn), // Just pass through the function in tests
+	createServerFn: vi.fn(() => ({
+		handler: vi.fn(() => vi.fn()), // Mock the handler method which returns a function
+	})),
+}));
+
 describe("queries", () => {
 	// Add a mock QueryClient at the top of the test
 	const mockQueryClient = new QueryClient();
