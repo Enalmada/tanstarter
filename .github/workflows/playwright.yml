@@ -60,6 +60,10 @@ jobs:
           DB_PROXY_PORT: "4444"
           DB_RETRY_INTERVAL: "2000"
           DB_MAX_RETRIES: "15"
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          APP_ENV: development
 
       - name: Run Playwright tests
         run: bun run test:e2e
@@ -68,6 +72,9 @@ jobs:
           NODE_ENV: development
           DATABASE_URL: "postgres://postgres:postgres@db.localtest.me:5434/tanstarter"
           DB_PROXY_PORT: "4444"
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
 
       - name: Upload test results
         if: failure()
