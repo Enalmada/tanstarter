@@ -1,13 +1,44 @@
 pre-commit:
   parallel: true
   commands:
+
     type-check:
       glob: "**/*.{ts,tsx}"
       run: bun run check-types
+      fail_text: "❌ TypeScript errors found! Run 'bun run check-types' to see details. TypeScript errors cannot ship to production."
+
     lint:
       glob: "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
       run: bun run lint
       stage_fixed: true
+      fail_text: "❌ Linting errors found! Most have been auto-fixed. Please review the changes and commit again."
+
     drizzle-check:
-      glob: "src/server/db/schema.ts"
+      glob: "src/server/db/schema/**/*.{ts,tsx}"
       run: bun drizzle:generate
+      fail_text: "❌ Database schema changed! Generated new migration. Please review the migration file before committing."
+
+    storybook-coverage:
+      glob: "src/**/*.{tsx,ts}"
+      exclude: "**/*.{test,spec,stories}.{ts,tsx}"
+      run: bun run check-stories
+      fail_text: "❌ Missing Storybook stories detected! Components need stories for testing. Run 'bun run check-stories' to see which components need stories."
+
+    danger-check:
+      glob: "**/*.{ts,tsx,js,jsx}"
+      run: |
+        if grep -r "process\.env" src/ --include="*.ts" --include="*.tsx" --exclude-dir=server | grep -v "process\.env\.NODE_ENV"; then
+          echo "❌ Direct process.env usage detected! Use import { env } from '~/validate-env' instead."
+          exit 1
+        fi
+      fail_text: "❌ Direct process.env usage detected! Use import { env } from '~/validate-env' instead."
+
+    console-check:
+      glob: "src/**/*.{ts,tsx}"
+      exclude: "**/*.{stories,test,spec}.{ts,tsx}"
+      run: |
+        if grep -r "console\." src/ --include="*.ts" --include="*.tsx" --exclude="*.stories.*" --exclude="*.test.*" --exclude="*.spec.*" --exclude-dir=lib/monitoring --exclude="validate-env.ts" | grep -v "// eslint-disable"; then
+          echo "❌ Console statements found in production code! Remove console.log/error statements or add eslint-disable comment if needed for debugging."
+          exit 1
+        fi
+      fail_text: "❌ Console statements found in production code! Remove console.log/error statements or add eslint-disable comment if needed for debugging."
