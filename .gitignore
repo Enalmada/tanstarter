@@ -8,6 +8,7 @@ yarn.lock
 
 .vercel
 .output
+.nitro
 .vinxi
 .wrangler
 .netlify
@@ -20,6 +21,7 @@ dist
 .codebuddy
 .turbo
 .serena
+.tanstack
 
 # Serwist
 public/sw*
