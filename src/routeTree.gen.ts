@@ -14,6 +14,7 @@ import { Route as TasksRouteImport } from "./routes/tasks";
 import { Route as SignoutRouteImport } from "./routes/signout";
 import { Route as SigninRouteImport } from "./routes/signin";
 import { Route as PrivacyRouteImport } from "./routes/privacy";
+import { Route as HealthRouteImport } from "./routes/health";
 import { Route as AdminRouteImport } from "./routes/admin";
 import { Route as IndexRouteImport } from "./routes/index";
 import { Route as TasksIndexRouteImport } from "./routes/tasks/index";
@@ -51,6 +52,11 @@ const SigninRoute = SigninRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: "/privacy",
   path: "/privacy",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const HealthRoute = HealthRouteImport.update({
+  id: "/health",
+  path: "/health",
   getParentRoute: () => rootRouteImport,
 } as any);
 const AdminRoute = AdminRouteImport.update({
@@ -122,6 +128,7 @@ const AdminEmailsWelcomeRoute = AdminEmailsWelcomeRouteImport.update({
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
   "/admin": typeof AdminRouteWithChildren;
+  "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
@@ -141,6 +148,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
+  "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/": typeof IndexRoute;
   "/admin": typeof AdminRouteWithChildren;
+  "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/admin"
+    | "/health"
     | "/privacy"
     | "/signin"
     | "/signout"
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
+    | "/health"
     | "/privacy"
     | "/signin"
     | "/signout"
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | "__root__"
     | "/"
     | "/admin"
+    | "/health"
     | "/privacy"
     | "/signin"
     | "/signout"
@@ -242,6 +254,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   AdminRoute: typeof AdminRouteWithChildren;
+  HealthRoute: typeof HealthRoute;
   PrivacyRoute: typeof PrivacyRoute;
   SigninRoute: typeof SigninRoute;
   SignoutRoute: typeof SignoutRoute;
@@ -285,6 +298,13 @@ declare module "@tanstack/react-router" {
       path: "/privacy";
       fullPath: "/privacy";
       preLoaderRoute: typeof PrivacyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/health": {
+      id: "/health";
+      path: "/health";
+      fullPath: "/health";
+      preLoaderRoute: typeof HealthRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/admin": {
@@ -420,6 +440,7 @@ const TasksRouteWithChildren = TasksRoute._addFileChildren(TasksRouteChildren);
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  HealthRoute: HealthRoute,
   PrivacyRoute: PrivacyRoute,
   SigninRoute: SigninRoute,
   SignoutRoute: SignoutRoute,
@@ -430,3 +451,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>();
+
+import type { getRouter } from "./router.tsx";
+import type { createStart } from "@tanstack/react-start";
+declare module "@tanstack/react-start" {
+  interface Register {
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
+  }
+}

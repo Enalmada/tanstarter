@@ -17,7 +17,7 @@ export const renderRouterToStream = (_props: any) => Promise.resolve(null);
 
 // Mock server-only functions used by server functions
 // biome-ignore lint/suspicious/noExplicitAny: Mock server function needs flexible typing for compatibility
-export const getWebRequest = () => ({}) as any;
+export const getRequest = () => ({}) as any;
 
 export const setResponseStatus = (_code: number) => {};
 
@@ -26,6 +26,6 @@ export default {
 	createHandler,
 	renderRouterToString,
 	renderRouterToStream,
-	getWebRequest,
+	getRequest,
 	setResponseStatus,
 };

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getWebRequest, setResponseStatus } from "@tanstack/react-start/server";
+import { getRequest, setResponseStatus } from "@tanstack/react-start/server";
 import { eq } from "drizzle-orm";
 import { any, object, optional, picklist, safeParse, string } from "valibot";
 import { ENTITY_TYPES } from "~/server/access/ability";
@@ -96,7 +96,7 @@ const getUser = async (): Promise<SessionUser> => {
 	}
 
 	// Normal auth flow
-	const request = getWebRequest();
+	const request = getRequest();
 	if (!request) {
 		setResponseStatus(500);
 		throw new Error("No web request available");
@@ -143,7 +143,7 @@ export const validateDeleteEntity = object({
 });
 
 export const deleteEntity = createServerFn({ method: "POST" })
-	.validator(validateDeleteEntity)
+	.inputValidator(validateDeleteEntity)
 	.handler(async ({ data: { subject, id } }) => {
 		const user = await getUser();
 		logger.info("deleteEntity", { subject, id, userId: user.id });
@@ -174,7 +174,7 @@ type ValidateCreateEntityType = {
 };
 
 export const createEntity = createServerFn({ method: "POST" })
-	.validator((input: unknown) => {
+	.inputValidator((input: unknown) => {
 		const createEntityResult = safeParse(validateCreateEntity, input);
 		if (!createEntityResult.success) {
 			handleValidationError(createEntityResult, "entity");
@@ -231,7 +231,7 @@ export const validateUpdateEntity = object({
 });
 
 export const updateEntity = createServerFn({ method: "POST" })
-	.validator((input: unknown) => {
+	.inputValidator((input: unknown) => {
 		const updateEntityResult = safeParse(validateUpdateEntity, input);
 		if (!updateEntityResult.success) {
 			handleValidationError(updateEntityResult, "entity");
@@ -297,7 +297,7 @@ export const validateFindFirst = object({
 });
 
 export const findFirst = createServerFn({ method: "GET" })
-	.validator((input: unknown) => {
+	.inputValidator((input: unknown) => {
 		const findFirstResult = safeParse(validateFindFirst, input);
 		if (!findFirstResult.success) {
 			handleValidationError(findFirstResult, "entity");
@@ -346,7 +346,7 @@ export const validateFindMany = object({
 });
 
 export const findMany = createServerFn({ method: "GET" })
-	.validator((input: unknown) => {
+	.inputValidator((input: unknown) => {
 		const findManyResult = safeParse(validateFindMany, input);
 		if (!findManyResult.success) {
 			handleValidationError(findManyResult, "entity");

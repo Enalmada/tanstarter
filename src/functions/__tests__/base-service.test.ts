@@ -49,7 +49,7 @@
  * ```
  */
 
-import { getWebRequest, setResponseStatus } from "@tanstack/react-start/server";
+import { getRequest, setResponseStatus } from "@tanstack/react-start/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteEntity } from "~/functions/base-service";
 import { validateId } from "~/functions/helpers";
@@ -129,7 +129,7 @@ describe("base-service", () => {
 			vi.clearAllMocks();
 
 			// Ensure web request mock returns something
-			vi.mocked(getWebRequest).mockReturnValue({
+			vi.mocked(getRequest).mockReturnValue({
 				headers: new Headers(),
 				cache: "default",
 				credentials: "same-origin",
@@ -284,7 +284,7 @@ describe("base-service", () => {
 		// Update the web request mock for this test
 		it("should throw error when web request is not available", async () => {
 			// Mock getWebRequest to return undefined instead of null
-			vi.mocked(getWebRequest).mockReturnValueOnce(undefined);
+			vi.mocked(getRequest).mockReturnValueOnce(undefined);
 
 			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow("No web request available");
 			expect(setResponseStatus).toHaveBeenCalledWith(500);

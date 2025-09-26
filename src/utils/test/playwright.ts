@@ -1,4 +1,4 @@
-import { getWebRequest } from "@tanstack/react-start/server";
+import { getRequest } from "@tanstack/react-start/server";
 import type { SessionUser } from "~/utils/auth-client";
 
 // Mock users for testing - keep in sync with auth-guard.ts
@@ -30,7 +30,7 @@ export const checkPlaywrightTestAuth = () => {
 		return null;
 	}
 
-	const request = getWebRequest();
+	const request = getRequest();
 	if (!request) {
 		return null;
 	}
