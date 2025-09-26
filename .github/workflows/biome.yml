@@ -1,10 +1,15 @@
 name: Biome
 
-on:
-  push:
-    branches-ignore:
-      - main
+on: [pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_REMOTE_ONLY: true
 
 jobs:
   quality:
@@ -12,9 +17,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Biome
         uses: biomejs/setup-biome@v2
         with:
           version: latest
+
       - name: Run Biome
         run: biome ci .

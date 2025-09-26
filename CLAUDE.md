@@ -54,3 +54,7 @@ Pre-commit hooks (LeftHook) automatically enforce these checks.
 
 - `app/server/db/schema.ts` - Database schema (triggers migration generation)
 - `biome.json` - Linting configuration
+
+## Pull Request Guidelines
+
+- **NO Claude Code signatures** - Do not include "🤖 Generated with [Claude Code]" or similar signatures in PR descriptions
