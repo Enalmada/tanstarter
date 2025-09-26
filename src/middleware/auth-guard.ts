@@ -1,12 +1,11 @@
 import { createMiddleware } from "@tanstack/react-start";
-import { getWebRequest, setResponseStatus } from "@tanstack/react-start/server";
+import { getRequest, setResponseStatus } from "@tanstack/react-start/server";
 import { auth } from "~/server/auth/auth";
 import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
 /**
  * Middleware to force authentication on a server function, and add the user to the context.
  */
-// @ts-expect-error - TanStack Start middleware API may have changed
 export const authMiddleware = createMiddleware().server(async ({ next }) => {
 	const mockUser = checkPlaywrightTestAuth();
 	if (mockUser) {
@@ -14,7 +13,7 @@ export const authMiddleware = createMiddleware().server(async ({ next }) => {
 	}
 
 	// Normal auth flow
-	const request = getWebRequest();
+	const request = getRequest();
 	if (!request) {
 		setResponseStatus(500);
 		throw new Error("No web request available");

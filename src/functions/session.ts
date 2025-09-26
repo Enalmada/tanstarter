@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getWebRequest } from "@tanstack/react-start/server";
+import { getRequest } from "@tanstack/react-start/server";
 import { auth } from "~/server/auth/auth";
 import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
@@ -10,7 +10,7 @@ export const getSessionUser = createServerFn({ method: "GET" }).handler(async ()
 	}
 
 	// Normal auth flow
-	const request = getWebRequest();
+	const request = getRequest();
 	if (!request) {
 		return null;
 	}

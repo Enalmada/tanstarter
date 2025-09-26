@@ -31,10 +31,7 @@ export default defineConfig({
 		}),
 		tailwindcss(),
 		tanstackStart({
-			target: "bun",
-			// https://github.com/TanStack/router/discussions/2863#discussioncomment-13713677
-			customViteReactPlugin: true,
-			tsr: {
+			router: {
 				quoteStyle: "double",
 				semicolons: true,
 			},
@@ -102,7 +99,7 @@ export default defineConfig({
 		// In production, source maps are uploaded to Rollbar
 		sourcemap: process.env.NODE_ENV === "development",
 		rollupOptions: {
-			external: ["perf_hooks", "crypto", "stream"],
+			external: ["perf_hooks", "crypto", "stream", "@react-email/render", "html-to-text", "prettier"],
 		},
 	},
 });

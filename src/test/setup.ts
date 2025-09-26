@@ -245,7 +245,7 @@ vi.mock("@tanstack/react-start", () => {
 		createServerFn: vi.fn().mockImplementation(() => ({
 			handler: mockHandler,
 			// biome-ignore lint/suspicious/noExplicitAny: Schema types are inherently any
-			validator: (schema: any) => ({
+			inputValidator: (schema: any) => ({
 				handler:
 					(handler: (params: { data: unknown; context: unknown }) => Promise<unknown>) =>
 					async (input: { data: unknown; context: unknown }) => {
@@ -306,7 +306,7 @@ vi.mock("~/server/auth/auth", () => ({
 
 // Add web request mock
 vi.mock("@tanstack/react-start/server", () => ({
-	getWebRequest: vi.fn().mockReturnValue({
+	getRequest: vi.fn().mockReturnValue({
 		headers: new Headers(),
 	}),
 	setResponseStatus: vi.fn(),

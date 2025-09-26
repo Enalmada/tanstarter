@@ -57,3 +57,6 @@ export function createRouter() {
 		queryClient,
 	);
 }
+
+// Export for TanStack Start compatibility
+export const getRouter = createRouter;

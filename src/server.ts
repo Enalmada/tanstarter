@@ -7,8 +7,6 @@
 import { createStartHandler, defaultStreamHandler } from "@tanstack/react-start/server";
 import { activateLanguage, DEFAULT_LANGUAGE, getLocale, type SupportedLanguage } from "~/locales/locale";
 
-import { createRouter } from "./router";
-
 // Create a custom stream handler that initializes i18n and handles errors
 const enhancedStreamHandler = async (ctx: Parameters<typeof defaultStreamHandler>[0]) => {
 	try {
@@ -23,6 +21,8 @@ const enhancedStreamHandler = async (ctx: Parameters<typeof defaultStreamHandler
 	}
 };
 
-export default createStartHandler({
-	createRouter,
-})(enhancedStreamHandler);
+const fetch = createStartHandler(enhancedStreamHandler);
+
+export default {
+	fetch,
+};
