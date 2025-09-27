@@ -7,8 +7,8 @@
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
 import { QueryClient } from "@tanstack/react-query";
-import { createRouter as createTanStackRouter } from "@tanstack/react-router";
-import { routerWithQueryClient } from "@tanstack/react-router-with-query";
+import { createRouter } from "@tanstack/react-router";
+import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import type { ReactNode } from "react";
 import type { SessionUser } from "~/utils/auth-client";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
@@ -26,8 +26,7 @@ interface RouterContext {
 	user: SessionUser | null | undefined;
 }
 
-export function createRouter() {
-	// Create QueryClient here as recommended by TanStack examples
+export function getRouter() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: {
@@ -39,24 +38,27 @@ export function createRouter() {
 		},
 	});
 
-	return routerWithQueryClient(
-		createTanStackRouter({
-			scrollRestoration: true,
-			routeTree,
-			context: { queryClient, user: undefined } as RouterContext,
-			// Preload on hover/focus, but respect 5-minute stale time
-			defaultPreload: "intent" as const,
-			// TODO: confirm this is the best approach
-			// react-query will handle data fetching & caching
-			// https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#passing-all-loader-events-to-an-external-cache
-			defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
-			defaultErrorComponent: DefaultCatchBoundary,
-			defaultNotFoundComponent: NotFound,
-			Wrap: ({ children }: { children: ReactNode }) => <I18nProvider i18n={i18n}>{children}</I18nProvider>,
-		}),
-		queryClient,
-	);
-}
+	const router = createRouter({
+		routeTree,
+		context: { queryClient, user: undefined } as RouterContext,
+		defaultPreload: "intent",
+		// TODO: confirm this is the best approach
+		// react-query will handle data fetching & caching
+		// https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#passing-all-loader-events-to-an-external-cache
+		defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
+		defaultErrorComponent: DefaultCatchBoundary,
+		defaultNotFoundComponent: NotFound,
+		scrollRestoration: true,
+		defaultStructuralSharing: true,
+		Wrap: ({ children }: { children: ReactNode }) => <I18nProvider i18n={i18n}>{children}</I18nProvider>,
+	});
 
-// Export for TanStack Start compatibility
-export const getRouter = createRouter;
+	setupRouterSsrQueryIntegration({
+		router,
+		queryClient,
+		handleRedirects: true,
+		wrapQueryClient: true,
+	});
+
+	return router;
+}

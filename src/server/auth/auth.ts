@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { reactStartCookies } from "better-auth/react-start";
 import { env } from "~/env";
 import db from "~/server/db";
 
@@ -47,6 +48,7 @@ export const auth = betterAuth({
 	advanced: {
 		generateId: false,
 	},
+	plugins: [reactStartCookies()],
 });
 
 export type Session = typeof auth.$Infer.Session;

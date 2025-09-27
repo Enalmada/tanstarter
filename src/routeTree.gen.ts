@@ -24,6 +24,7 @@ import { Route as TasksTaskIdRouteImport } from "./routes/tasks/$taskId";
 import { Route as DebugMonitoringRouteImport } from "./routes/debug/monitoring";
 import { Route as AdminUsersIndexRouteImport } from "./routes/admin/users/index";
 import { Route as AdminTasksIndexRouteImport } from "./routes/admin/tasks/index";
+import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth/$";
 import { Route as AdminUsersUserIdRouteImport } from "./routes/admin/users/$userId";
 import { Route as AdminTasksNewRouteImport } from "./routes/admin/tasks/new";
 import { Route as AdminTasksTaskIdRouteImport } from "./routes/admin/tasks/$taskId";
@@ -104,6 +105,11 @@ const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
   path: "/tasks/",
   getParentRoute: () => AdminRoute,
 } as any);
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: "/api/auth/$",
+  path: "/api/auth/$",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
   id: "/users/$userId",
   path: "/users/$userId",
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   "/admin/tasks/$taskId": typeof AdminTasksTaskIdRoute;
   "/admin/tasks/new": typeof AdminTasksNewRoute;
   "/admin/users/$userId": typeof AdminUsersUserIdRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
   "/admin/tasks": typeof AdminTasksIndexRoute;
   "/admin/users": typeof AdminUsersIndexRoute;
 }
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   "/admin/tasks/$taskId": typeof AdminTasksTaskIdRoute;
   "/admin/tasks/new": typeof AdminTasksNewRoute;
   "/admin/users/$userId": typeof AdminUsersUserIdRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
   "/admin/tasks": typeof AdminTasksIndexRoute;
   "/admin/users": typeof AdminUsersIndexRoute;
 }
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   "/admin/tasks/$taskId": typeof AdminTasksTaskIdRoute;
   "/admin/tasks/new": typeof AdminTasksNewRoute;
   "/admin/users/$userId": typeof AdminUsersUserIdRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
   "/admin/tasks/": typeof AdminTasksIndexRoute;
   "/admin/users/": typeof AdminUsersIndexRoute;
 }
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | "/admin/tasks/$taskId"
     | "/admin/tasks/new"
     | "/admin/users/$userId"
+    | "/api/auth/$"
     | "/admin/tasks"
     | "/admin/users";
   fileRoutesByTo: FileRoutesByTo;
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | "/admin/tasks/$taskId"
     | "/admin/tasks/new"
     | "/admin/users/$userId"
+    | "/api/auth/$"
     | "/admin/tasks"
     | "/admin/users";
   id:
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | "/admin/tasks/$taskId"
     | "/admin/tasks/new"
     | "/admin/users/$userId"
+    | "/api/auth/$"
     | "/admin/tasks/"
     | "/admin/users/";
   fileRoutesById: FileRoutesById;
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   TasksRoute: typeof TasksRouteWithChildren;
   TermsRoute: typeof TermsRoute;
   DebugMonitoringRoute: typeof DebugMonitoringRoute;
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
 }
 
 declare module "@tanstack/react-router" {
@@ -370,6 +383,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AdminTasksIndexRouteImport;
       parentRoute: typeof AdminRoute;
     };
+    "/api/auth/$": {
+      id: "/api/auth/$";
+      path: "/api/auth/$";
+      fullPath: "/api/auth/$";
+      preLoaderRoute: typeof ApiAuthSplatRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/admin/users/$userId": {
       id: "/admin/users/$userId";
       path: "/users/$userId";
@@ -447,6 +467,7 @@ const rootRouteChildren: RootRouteChildren = {
   TasksRoute: TasksRouteWithChildren,
   TermsRoute: TermsRoute,
   DebugMonitoringRoute: DebugMonitoringRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
