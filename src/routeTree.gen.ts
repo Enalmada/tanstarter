@@ -14,6 +14,7 @@ import { Route as TasksRouteImport } from "./routes/tasks";
 import { Route as SignupRouteImport } from "./routes/signup";
 import { Route as SignoutRouteImport } from "./routes/signout";
 import { Route as SigninRouteImport } from "./routes/signin";
+import { Route as ProfileRouteImport } from "./routes/profile";
 import { Route as PrivacyRouteImport } from "./routes/privacy";
 import { Route as HealthRouteImport } from "./routes/health";
 import { Route as AdminRouteImport } from "./routes/admin";
@@ -54,6 +55,11 @@ const SignoutRoute = SignoutRouteImport.update({
 const SigninRoute = SigninRouteImport.update({
   id: "/signin",
   path: "/signin",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ProfileRoute = ProfileRouteImport.update({
+  id: "/profile",
+  path: "/profile",
   getParentRoute: () => rootRouteImport,
 } as any);
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   "/admin": typeof AdminRouteWithChildren;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
+  "/profile": typeof ProfileRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
   "/signup": typeof SignupRoute;
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
+  "/profile": typeof ProfileRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
   "/signup": typeof SignupRoute;
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   "/admin": typeof AdminRouteWithChildren;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
+  "/profile": typeof ProfileRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
   "/signup": typeof SignupRoute;
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | "/admin"
     | "/health"
     | "/privacy"
+    | "/profile"
     | "/signin"
     | "/signout"
     | "/signup"
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | "/"
     | "/health"
     | "/privacy"
+    | "/profile"
     | "/signin"
     | "/signout"
     | "/signup"
@@ -256,6 +267,7 @@ export interface FileRouteTypes {
     | "/admin"
     | "/health"
     | "/privacy"
+    | "/profile"
     | "/signin"
     | "/signout"
     | "/signup"
@@ -280,6 +292,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren;
   HealthRoute: typeof HealthRoute;
   PrivacyRoute: typeof PrivacyRoute;
+  ProfileRoute: typeof ProfileRoute;
   SigninRoute: typeof SigninRoute;
   SignoutRoute: typeof SignoutRoute;
   SignupRoute: typeof SignupRoute;
@@ -324,6 +337,13 @@ declare module "@tanstack/react-router" {
       path: "/signin";
       fullPath: "/signin";
       preLoaderRoute: typeof SigninRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/profile": {
+      id: "/profile";
+      path: "/profile";
+      fullPath: "/profile";
+      preLoaderRoute: typeof ProfileRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/privacy": {
@@ -482,6 +502,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   HealthRoute: HealthRoute,
   PrivacyRoute: PrivacyRoute,
+  ProfileRoute: ProfileRoute,
   SigninRoute: SigninRoute,
   SignoutRoute: SignoutRoute,
   SignupRoute: SignupRoute,
