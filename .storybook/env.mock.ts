@@ -28,7 +28,6 @@ export default {
 	GOOGLE_CLIENT_SECRET: "mock-google-client-secret",
 	DATABASE_URL: "postgres://mock:mock@localhost:5432/mock",
 	BETTER_AUTH_SECRET: "mock-secret-for-storybook",
-	BETTER_AUTH_URL: "http://localhost:6006",
 
 	// Client vars
 	PUBLIC_ROLLBAR_ACCESS_TOKEN: "mock-rollbar-token",

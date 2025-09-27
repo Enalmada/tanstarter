@@ -42,6 +42,6 @@ export const useProductionServices = () => isProduction() || isStaging();
 // Database helpers
 export const dbHelpers = {
 	getDatabaseUrl: () => env.DATABASE_URL,
-	getMaxRetries: () => env.DB_MAX_RETRIES?.toString(),
-	getRetryInterval: () => env.DB_RETRY_INTERVAL?.toString(),
+	getMaxRetries: () => env.DB_MAX_RETRIES,
+	getRetryInterval: () => env.DB_RETRY_INTERVAL,
 } as const;
