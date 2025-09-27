@@ -12,13 +12,13 @@ import { queries } from "~/utils/query/queries";
 
 const ENABLE_SERVICE_WORKER = false;
 
-const _TanStackRouterDevtools = import.meta.env.PROD
-	? () => null
-	: lazy(() =>
-			import("@tanstack/router-devtools").then((res) => ({
-				default: res.TanStackRouterDevtools,
-			})),
-		);
+// const _TanStackRouterDevtools = import.meta.env.PROD
+// 	? () => null
+// 	: lazy(() =>
+// 			import("@tanstack/router-devtools").then((res) => ({
+// 				default: res.TanStackRouterDevtools,
+// 			})),
+// 		);
 
 const AnalyticsProvider = lazy(() =>
 	import("~/utils/analytics").then((mod) => ({
