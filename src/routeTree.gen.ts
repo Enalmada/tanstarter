@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from "./routes/__root";
 import { Route as TermsRouteImport } from "./routes/terms";
 import { Route as TasksRouteImport } from "./routes/tasks";
+import { Route as SignupRouteImport } from "./routes/signup";
 import { Route as SignoutRouteImport } from "./routes/signout";
 import { Route as SigninRouteImport } from "./routes/signin";
 import { Route as PrivacyRouteImport } from "./routes/privacy";
@@ -38,6 +39,11 @@ const TermsRoute = TermsRouteImport.update({
 const TasksRoute = TasksRouteImport.update({
   id: "/tasks",
   path: "/tasks",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const SignupRoute = SignupRouteImport.update({
+  id: "/signup",
+  path: "/signup",
   getParentRoute: () => rootRouteImport,
 } as any);
 const SignoutRoute = SignoutRouteImport.update({
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   "/privacy": typeof PrivacyRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
+  "/signup": typeof SignupRoute;
   "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   "/privacy": typeof PrivacyRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
+  "/signup": typeof SignupRoute;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
   "/tasks/$taskId": typeof TasksTaskIdRoute;
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   "/privacy": typeof PrivacyRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
+  "/signup": typeof SignupRoute;
   "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | "/privacy"
     | "/signin"
     | "/signout"
+    | "/signup"
     | "/tasks"
     | "/terms"
     | "/debug/monitoring"
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | "/privacy"
     | "/signin"
     | "/signout"
+    | "/signup"
     | "/terms"
     | "/debug/monitoring"
     | "/tasks/$taskId"
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | "/privacy"
     | "/signin"
     | "/signout"
+    | "/signup"
     | "/tasks"
     | "/terms"
     | "/debug/monitoring"
@@ -270,6 +282,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute;
   SigninRoute: typeof SigninRoute;
   SignoutRoute: typeof SignoutRoute;
+  SignupRoute: typeof SignupRoute;
   TasksRoute: typeof TasksRouteWithChildren;
   TermsRoute: typeof TermsRoute;
   DebugMonitoringRoute: typeof DebugMonitoringRoute;
@@ -290,6 +303,13 @@ declare module "@tanstack/react-router" {
       path: "/tasks";
       fullPath: "/tasks";
       preLoaderRoute: typeof TasksRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/signup": {
+      id: "/signup";
+      path: "/signup";
+      fullPath: "/signup";
+      preLoaderRoute: typeof SignupRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/signout": {
@@ -464,6 +484,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   SigninRoute: SigninRoute,
   SignoutRoute: SignoutRoute,
+  SignupRoute: SignupRoute,
   TasksRoute: TasksRouteWithChildren,
   TermsRoute: TermsRoute,
   DebugMonitoringRoute: DebugMonitoringRoute,

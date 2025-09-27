@@ -50,8 +50,8 @@ function GoogleButton(props: React.ComponentPropsWithoutRef<"button">) {
 	);
 }
 
-export const Route = createFileRoute("/signin")({
-	component: SigninLayout,
+export const Route = createFileRoute("/signup")({
+	component: SignupLayout,
 	beforeLoad: async ({ context }) => {
 		if (context.user) {
 			throw redirect({
@@ -61,7 +61,7 @@ export const Route = createFileRoute("/signin")({
 	},
 });
 
-function SigninLayout() {
+function SignupLayout() {
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background">
 			<AuthPage />
@@ -69,10 +69,10 @@ function SigninLayout() {
 	);
 }
 
-function SigninForm() {
+function SignupForm() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [isUserNotFound, setIsUserNotFound] = useState(false);
+	const [isUserExists, setIsUserExists] = useState(false);
 
 	const form = useForm({
 		defaultValues: {
@@ -83,29 +83,23 @@ function SigninForm() {
 			try {
 				setIsLoading(true);
 				setError(null);
-				setIsUserNotFound(false);
+				setIsUserExists(false);
 
-				// Add timeout to prevent indefinite hanging
-				const timeoutPromise = new Promise((_, reject) => {
-					setTimeout(() => reject(new Error("Request timed out. Please try again.")), 10000);
-				});
-
-				const authPromise = authClient.signIn.email({
+				const result = await authClient.signUp.email({
 					email: value.email,
 					password: value.password,
+					name: value.email.split("@")[0], // Use email prefix as default name
 					callbackURL: "/tasks",
 				});
-
-				const result = await Promise.race([authPromise, timeoutPromise]);
 
 				// Check if the result contains an error
 				if (result && typeof result === "object" && "error" in result && result.error) {
 					// Better Auth returns errors in result.error, not as thrown exceptions
 					const error = result.error as { message?: string; code?: string };
-					throw new Error(error.message || error.code || "Authentication failed");
+					throw new Error(error.message || error.code || "Sign up failed");
 				}
 
-				// Successful sign in - loading state will be handled by redirect
+				// Successful signup - loading state will be handled by redirect
 			} catch (err) {
 				setIsLoading(false);
 
@@ -113,23 +107,20 @@ function SigninForm() {
 				if (err instanceof Error) {
 					const errorMessage = err.message.toLowerCase();
 
-					// Check for Better Auth specific error codes and patterns
+					// Check for "user already exists" error patterns
 					if (
-						errorMessage.includes("invalid_email_or_password") ||
-						errorMessage.includes("invalid email or password") ||
-						errorMessage.includes("user not found") ||
-						errorMessage.includes("unauthorized") ||
-						errorMessage.includes("user does not exist")
+						errorMessage.includes("user already exists") ||
+						errorMessage.includes("email already exists") ||
+						errorMessage.includes("user exists") ||
+						errorMessage.includes("email is already registered")
 					) {
-						setError("No account found with this email or password combination.");
-						setIsUserNotFound(true);
-					} else if (errorMessage.includes("invalid password") || errorMessage.includes("incorrect password")) {
-						setError("Incorrect password. Please try again.");
+						setError("An account with this email already exists.");
+						setIsUserExists(true);
 					} else {
-						setError("Sign in failed. Please check your credentials and try again.");
+						setError(err.message);
 					}
 				} else {
-					setError("Sign in failed. Please check your email and password.");
+					setError("Sign up failed. Please try again.");
 				}
 			}
 		},
@@ -200,7 +191,7 @@ function SigninForm() {
 							value={field.state.value}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
-							placeholder="Enter your password"
+							placeholder="Enter your password (8+ characters)"
 							disabled={isLoading}
 						/>
 						{field.state.meta.errors.length > 0 && (
@@ -213,11 +204,11 @@ function SigninForm() {
 			{error && (
 				<div className="rounded-md bg-destructive/15 p-3 text-sm">
 					<p className="text-destructive">{error}</p>
-					{isUserNotFound && (
+					{isUserExists && (
 						<p className="mt-2 text-muted-foreground">
-							Need an account?{" "}
-							<Link to="/signup" className="text-foreground underline hover:no-underline">
-								Sign up here
+							Already have an account?{" "}
+							<Link to="/signin" className="text-foreground underline hover:no-underline">
+								Sign in here
 							</Link>
 						</p>
 					)}
@@ -228,16 +219,16 @@ function SigninForm() {
 				{isLoading ? (
 					<>
 						<div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-						Signing in...
+						Creating account...
 					</>
 				) : (
-					"Sign in"
+					"Create account"
 				)}
 			</Button>
 
 			<div className="text-center">
-				<Link to="/signup" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-					Don't have an account? Sign up
+				<Link to="/signin" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+					Already have an account? Sign in
 				</Link>
 			</div>
 		</form>
@@ -250,12 +241,12 @@ function AuthPage() {
 	return (
 		<div className="container max-w-md mx-auto px-4">
 			<div className="text-center">
-				<h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
-				<p className="text-sm text-muted-foreground mt-2">Sign in to access your tasks</p>
+				<h1 className="text-3xl font-bold tracking-tight">Create your account</h1>
+				<p className="text-sm text-muted-foreground mt-2">Just email and password - quick and simple</p>
 			</div>
 
 			<Card className="mt-8 p-6 border-0 bg-white dark:bg-gray-800 shadow-md">
-				<SigninForm />
+				<SignupForm />
 
 				<div className="relative my-6">
 					<div className="absolute inset-0 flex items-center">

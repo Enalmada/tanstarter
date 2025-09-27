@@ -3,14 +3,15 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { reactStartCookies } from "better-auth/react-start";
 import { env } from "~/env";
 import db from "~/server/db";
+import { nanoString } from "~/server/db/schema";
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "pg",
 	}),
-	// emailAndPassword: {
-	//   enabled: true,
-	// },
+	emailAndPassword: {
+		enabled: true,
+	},
 	socialProviders: {
 		google: {
 			// Using process.env instead of env.GOOGLE_CLIENT_* to avoid dev-time client-side execution
@@ -46,7 +47,7 @@ export const auth = betterAuth({
 		modelName: "VerificationTable",
 	},
 	advanced: {
-		generateId: false,
+		generateId: () => nanoString("usr"),
 	},
 	plugins: [reactStartCookies()],
 });
