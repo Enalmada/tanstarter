@@ -1,6 +1,5 @@
 import type { Configuration } from "rollbar";
-import { env } from "~/env";
-import { getAppEnv, shouldReportErrors } from "../env/environment";
+import { env, getAppEnv, shouldReportErrors } from "~/env";
 import { getRelease } from "../env/release";
 import { createRollbarConfig, RollbarMonitor } from "./rollbar";
 import type { ErrorMonitor, MonitoringConfig, MonitorUser } from "./types";

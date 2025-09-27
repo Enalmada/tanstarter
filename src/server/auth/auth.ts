@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { env } from "~/env";
 import db from "~/server/db";
 
 export const auth = betterAuth({
@@ -11,11 +12,16 @@ export const auth = betterAuth({
 	// },
 	socialProviders: {
 		google: {
+			// Using process.env instead of env.GOOGLE_CLIENT_* to avoid dev-time client-side execution
+			// This auth config is imported by client-side code during development for type inference,
+			// which causes Vite to bundle and execute server code on the client, triggering:
+			// "EnvError: Attempted to access server-side environment variable on client"
+			// Production builds work fine - this is purely a development bundling issue.
 			clientId: process.env.GOOGLE_CLIENT_ID || "",
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
 		},
 	},
-	// baseURL: env.CF_PAGES_URL || env.APP_BASE_URL || "",
+	baseURL: env.PUBLIC_APP_URL || "http://localhost:3000",
 	user: {
 		modelName: "UserTable",
 		additionalFields: {

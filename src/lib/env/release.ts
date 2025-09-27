@@ -8,12 +8,23 @@
 
 import { env } from "~/env";
 
-// Get release info from Cloudflare Pages or use environment
+// Get release info from environment or Fly.io deployment
 export const getRelease = () => {
-	// First try Cloudflare Pages info
-	if (env.CF_PAGES_COMMIT_SHA) {
-		const release = `${env.CF_PAGES_BRANCH}@${env.CF_PAGES_COMMIT_SHA}`;
-		return release;
+	// First try explicit release version (set during CI/deployment with Git SHA)
+	if (process.env.RELEASE_VERSION) {
+		return process.env.RELEASE_VERSION;
+	}
+
+	// Then try Fly.io machine version (updates when Docker image changes)
+	if (env.FLY_MACHINE_VERSION) {
+		return env.FLY_MACHINE_VERSION;
+	}
+
+	// Or try Fly.io image ref (contains deployment identifier)
+	if (env.FLY_IMAGE_REF) {
+		// Extract deployment ID from registry.fly.io/app:deployment-XXXXX
+		const deploymentId = env.FLY_IMAGE_REF.split(":").pop() || env.FLY_IMAGE_REF;
+		return deploymentId;
 	}
 
 	// Then try APP_ENV
@@ -31,11 +42,11 @@ export const getRelease = () => {
  */
 export const getRollbarDebugInfo = () => ({
 	token: process.env.ROLLBAR_SERVER_TOKEN ? "set" : "not set",
-	baseUrl: process.env.CF_PAGES_URL || "http://localhost:3000",
+	baseUrl: process.env.PUBLIC_APP_URL || "http://localhost:3000",
 	version: getRelease(),
 	environment: {
-		CF_PAGES: process.env.CF_PAGES,
-		CF_PAGES_URL: process.env.CF_PAGES_URL,
+		FLY_APP_NAME: process.env.FLY_APP_NAME,
+		FLY_REGION: process.env.FLY_REGION,
 		NODE_ENV: process.env.NODE_ENV,
 	},
 });

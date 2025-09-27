@@ -17,9 +17,9 @@ const getBuildRelease = () => {
 	if (process.env.RELEASE_VERSION) {
 		return process.env.RELEASE_VERSION;
 	}
-	// Then try Cloudflare Pages info (legacy)
-	if (process.env.CF_PAGES_COMMIT_SHA) {
-		return `${process.env.CF_PAGES_BRANCH}@${process.env.CF_PAGES_COMMIT_SHA}`;
+	// Then try Fly.io image ref
+	if (process.env.FLY_IMAGE_REF) {
+		return process.env.FLY_IMAGE_REF;
 	}
 	// Fallback to development
 	return "development";
@@ -70,7 +70,7 @@ export default defineConfig({
 					viteRollbar({
 						accessToken: process.env.ROLLBAR_SERVER_TOKEN,
 						version: getBuildRelease(),
-						baseUrl: process.env.PUBLIC_APP_URL || process.env.CF_PAGES_URL || "http://localhost:3000",
+						baseUrl: process.env.PUBLIC_APP_URL || "http://localhost:3000",
 						ignoreUploadErrors: true,
 						silent: false,
 					}),
@@ -78,7 +78,7 @@ export default defineConfig({
 			: []),
 	],
 	// Only expose PUBLIC_ prefixed vars to client
-	envPrefix: ["PUBLIC_", "APP_", "CF_"],
+	envPrefix: ["PUBLIC_", "APP_", "FLY_"],
 	define: {
 		// TODO - try getting rid of these now that we have envPrefix
 		// Explicitly expose specific environment variables to client
@@ -86,11 +86,7 @@ export default defineConfig({
 		// Environment and release info
 		"process.env.APP_ENV": JSON.stringify(process.env.APP_ENV),
 		"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
-		// Cloudflare Pages environment info
-		"process.env.CF_PAGES": JSON.stringify(process.env.CF_PAGES),
-		"process.env.CF_PAGES_URL": JSON.stringify(process.env.CF_PAGES_URL),
-		"process.env.CF_PAGES_BRANCH": JSON.stringify(process.env.CF_PAGES_BRANCH),
-		"process.env.CF_PAGES_COMMIT_SHA": JSON.stringify(process.env.CF_PAGES_COMMIT_SHA),
+		"process.env.PUBLIC_APP_URL": JSON.stringify(process.env.PUBLIC_APP_URL),
 		"process.env.PUBLIC_POSTHOG_API_KEY": JSON.stringify(process.env.PUBLIC_POSTHOG_API_KEY),
 	},
 	assetsInclude: ["**/*.po"],

@@ -57,4 +57,4 @@ Pre-commit hooks (LeftHook) automatically enforce these checks.
 
 ## Pull Request Guidelines
 
-- **NO Claude Code signatures** - Do not include "🤖 Generated with [Claude Code]" or similar signatures in PR descriptions
+- **NO Claude Code signatures** - Do not include "🤖 Generated with [Claude Code]" or similar signatures in PR descriptions, commit messages, or any project documentation

@@ -24,6 +24,8 @@ const config: StorybookConfig = {
 			resolve: {
 				alias: {
 					"~": path.resolve(__dirname, "../src"),
+					// Mock env config for Storybook
+					"../env.config": path.resolve(__dirname, "./env.mock.ts"),
 				},
 			},
 			build: {
