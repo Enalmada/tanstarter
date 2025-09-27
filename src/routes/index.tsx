@@ -36,7 +36,7 @@ function Home() {
 							<Link to="/tasks">Get Started</Link>
 						</Button>
 						<Button asChild variant="outline" size="lg" className="bg-accent/10 hover:bg-accent/20">
-							<a href="https://github.com/dotnize/tanstarter" target="_blank" rel="noopener noreferrer">
+							<a href="https://github.com/Enalmada/tanstarter" target="_blank" rel="noopener noreferrer">
 								View on GitHub
 							</a>
 						</Button>
