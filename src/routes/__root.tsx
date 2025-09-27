@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { getSerwist } from "virtual:serwist";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, HeadContent, Outlet, redirect, ScriptOnce, Scripts } from "@tanstack/react-router";
@@ -11,13 +12,13 @@ import { queries } from "~/utils/query/queries";
 
 const ENABLE_SERVICE_WORKER = false;
 
-const _TanStackRouterDevtools = import.meta.env.PROD
-	? () => null
-	: lazy(() =>
-			import("@tanstack/router-devtools").then((res) => ({
-				default: res.TanStackRouterDevtools,
-			})),
-		);
+// const _TanStackRouterDevtools = import.meta.env.PROD
+// 	? () => null
+// 	: lazy(() =>
+// 			import("@tanstack/router-devtools").then((res) => ({
+// 				default: res.TanStackRouterDevtools,
+// 			})),
+// 		);
 
 const AnalyticsProvider = lazy(() =>
 	import("~/utils/analytics").then((mod) => ({
@@ -34,7 +35,6 @@ export const Route = createRootRouteWithContext<{
 		let user: SessionUser | null = null;
 
 		try {
-			// @ts-expect-error - React Query type conflicts from version mismatches
 			user = await context.queryClient.ensureQueryData(queries.user.session);
 		} catch (_error) {
 			// Handle error silently

@@ -2,7 +2,7 @@ import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import react from "@vitejs/plugin-react";
+import viteReact from "@vitejs/plugin-react";
 import { config } from "dotenv";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
@@ -39,7 +39,7 @@ export default defineConfig({
 		}),
 		// https://tanstack.com/start/latest/docs/framework/react/hosting#using-nitro-v3-beta
 		nitro(),
-		react({
+		viteReact({
 			// https://react.dev/learn/react-compiler
 			jsxRuntime: "automatic",
 			babel: {
@@ -98,7 +98,21 @@ export default defineConfig({
 		// In production, source maps are uploaded to Rollbar
 		sourcemap: process.env.NODE_ENV === "development",
 		rollupOptions: {
-			external: ["perf_hooks", "crypto", "stream", "@react-email/render", "html-to-text", "prettier"],
+			external: [
+				"perf_hooks",
+				"crypto",
+				"stream",
+				"@react-email/render",
+				"html-to-text",
+				"prettier",
+				"node:async_hooks",
+			],
 		},
+	},
+	ssr: {
+		noExternal: ["better-auth"],
+	},
+	optimizeDeps: {
+		exclude: ["better-auth"],
 	},
 });

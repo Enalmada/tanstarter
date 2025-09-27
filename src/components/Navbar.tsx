@@ -18,6 +18,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { UserRole } from "~/server/db/schema";
 import type { SessionUser } from "~/utils/auth-client";
 
 // Move this outside component to ensure consistent hash generation
@@ -70,8 +71,13 @@ export function Navbar({ user }: NavbarProps) {
 								<DropdownMenuSeparator />
 								<DropdownMenuGroup>
 									<DropdownMenuItem asChild>
-										<Link to="/admin">Admin</Link>
+										<Link to="/profile">Profile</Link>
 									</DropdownMenuItem>
+									{user.role === UserRole.ADMIN && (
+										<DropdownMenuItem asChild>
+											<Link to="/admin">Admin</Link>
+										</DropdownMenuItem>
+									)}
 									<DropdownMenuItem asChild className="text-destructive">
 										<Link to="/signout">Sign out</Link>
 									</DropdownMenuItem>

@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from "./routes/__root";
 import { Route as TermsRouteImport } from "./routes/terms";
 import { Route as TasksRouteImport } from "./routes/tasks";
+import { Route as SignupRouteImport } from "./routes/signup";
 import { Route as SignoutRouteImport } from "./routes/signout";
 import { Route as SigninRouteImport } from "./routes/signin";
+import { Route as ProfileRouteImport } from "./routes/profile";
 import { Route as PrivacyRouteImport } from "./routes/privacy";
 import { Route as HealthRouteImport } from "./routes/health";
 import { Route as AdminRouteImport } from "./routes/admin";
@@ -24,6 +26,7 @@ import { Route as TasksTaskIdRouteImport } from "./routes/tasks/$taskId";
 import { Route as DebugMonitoringRouteImport } from "./routes/debug/monitoring";
 import { Route as AdminUsersIndexRouteImport } from "./routes/admin/users/index";
 import { Route as AdminTasksIndexRouteImport } from "./routes/admin/tasks/index";
+import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth/$";
 import { Route as AdminUsersUserIdRouteImport } from "./routes/admin/users/$userId";
 import { Route as AdminTasksNewRouteImport } from "./routes/admin/tasks/new";
 import { Route as AdminTasksTaskIdRouteImport } from "./routes/admin/tasks/$taskId";
@@ -39,6 +42,11 @@ const TasksRoute = TasksRouteImport.update({
   path: "/tasks",
   getParentRoute: () => rootRouteImport,
 } as any);
+const SignupRoute = SignupRouteImport.update({
+  id: "/signup",
+  path: "/signup",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const SignoutRoute = SignoutRouteImport.update({
   id: "/signout",
   path: "/signout",
@@ -47,6 +55,11 @@ const SignoutRoute = SignoutRouteImport.update({
 const SigninRoute = SigninRouteImport.update({
   id: "/signin",
   path: "/signin",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ProfileRoute = ProfileRouteImport.update({
+  id: "/profile",
+  path: "/profile",
   getParentRoute: () => rootRouteImport,
 } as any);
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -104,6 +117,11 @@ const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
   path: "/tasks/",
   getParentRoute: () => AdminRoute,
 } as any);
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: "/api/auth/$",
+  path: "/api/auth/$",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
   id: "/users/$userId",
   path: "/users/$userId",
@@ -130,8 +148,10 @@ export interface FileRoutesByFullPath {
   "/admin": typeof AdminRouteWithChildren;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
+  "/profile": typeof ProfileRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
+  "/signup": typeof SignupRoute;
   "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
@@ -143,6 +163,7 @@ export interface FileRoutesByFullPath {
   "/admin/tasks/$taskId": typeof AdminTasksTaskIdRoute;
   "/admin/tasks/new": typeof AdminTasksNewRoute;
   "/admin/users/$userId": typeof AdminUsersUserIdRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
   "/admin/tasks": typeof AdminTasksIndexRoute;
   "/admin/users": typeof AdminUsersIndexRoute;
 }
@@ -150,8 +171,10 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
+  "/profile": typeof ProfileRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
+  "/signup": typeof SignupRoute;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
   "/tasks/$taskId": typeof TasksTaskIdRoute;
@@ -162,6 +185,7 @@ export interface FileRoutesByTo {
   "/admin/tasks/$taskId": typeof AdminTasksTaskIdRoute;
   "/admin/tasks/new": typeof AdminTasksNewRoute;
   "/admin/users/$userId": typeof AdminUsersUserIdRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
   "/admin/tasks": typeof AdminTasksIndexRoute;
   "/admin/users": typeof AdminUsersIndexRoute;
 }
@@ -171,8 +195,10 @@ export interface FileRoutesById {
   "/admin": typeof AdminRouteWithChildren;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
+  "/profile": typeof ProfileRoute;
   "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
+  "/signup": typeof SignupRoute;
   "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
@@ -184,6 +210,7 @@ export interface FileRoutesById {
   "/admin/tasks/$taskId": typeof AdminTasksTaskIdRoute;
   "/admin/tasks/new": typeof AdminTasksNewRoute;
   "/admin/users/$userId": typeof AdminUsersUserIdRoute;
+  "/api/auth/$": typeof ApiAuthSplatRoute;
   "/admin/tasks/": typeof AdminTasksIndexRoute;
   "/admin/users/": typeof AdminUsersIndexRoute;
 }
@@ -194,8 +221,10 @@ export interface FileRouteTypes {
     | "/admin"
     | "/health"
     | "/privacy"
+    | "/profile"
     | "/signin"
     | "/signout"
+    | "/signup"
     | "/tasks"
     | "/terms"
     | "/debug/monitoring"
@@ -207,6 +236,7 @@ export interface FileRouteTypes {
     | "/admin/tasks/$taskId"
     | "/admin/tasks/new"
     | "/admin/users/$userId"
+    | "/api/auth/$"
     | "/admin/tasks"
     | "/admin/users";
   fileRoutesByTo: FileRoutesByTo;
@@ -214,8 +244,10 @@ export interface FileRouteTypes {
     | "/"
     | "/health"
     | "/privacy"
+    | "/profile"
     | "/signin"
     | "/signout"
+    | "/signup"
     | "/terms"
     | "/debug/monitoring"
     | "/tasks/$taskId"
@@ -226,6 +258,7 @@ export interface FileRouteTypes {
     | "/admin/tasks/$taskId"
     | "/admin/tasks/new"
     | "/admin/users/$userId"
+    | "/api/auth/$"
     | "/admin/tasks"
     | "/admin/users";
   id:
@@ -234,8 +267,10 @@ export interface FileRouteTypes {
     | "/admin"
     | "/health"
     | "/privacy"
+    | "/profile"
     | "/signin"
     | "/signout"
+    | "/signup"
     | "/tasks"
     | "/terms"
     | "/debug/monitoring"
@@ -247,6 +282,7 @@ export interface FileRouteTypes {
     | "/admin/tasks/$taskId"
     | "/admin/tasks/new"
     | "/admin/users/$userId"
+    | "/api/auth/$"
     | "/admin/tasks/"
     | "/admin/users/";
   fileRoutesById: FileRoutesById;
@@ -256,11 +292,14 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren;
   HealthRoute: typeof HealthRoute;
   PrivacyRoute: typeof PrivacyRoute;
+  ProfileRoute: typeof ProfileRoute;
   SigninRoute: typeof SigninRoute;
   SignoutRoute: typeof SignoutRoute;
+  SignupRoute: typeof SignupRoute;
   TasksRoute: typeof TasksRouteWithChildren;
   TermsRoute: typeof TermsRoute;
   DebugMonitoringRoute: typeof DebugMonitoringRoute;
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
 }
 
 declare module "@tanstack/react-router" {
@@ -279,6 +318,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof TasksRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/signup": {
+      id: "/signup";
+      path: "/signup";
+      fullPath: "/signup";
+      preLoaderRoute: typeof SignupRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/signout": {
       id: "/signout";
       path: "/signout";
@@ -291,6 +337,13 @@ declare module "@tanstack/react-router" {
       path: "/signin";
       fullPath: "/signin";
       preLoaderRoute: typeof SigninRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/profile": {
+      id: "/profile";
+      path: "/profile";
+      fullPath: "/profile";
+      preLoaderRoute: typeof ProfileRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/privacy": {
@@ -370,6 +423,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AdminTasksIndexRouteImport;
       parentRoute: typeof AdminRoute;
     };
+    "/api/auth/$": {
+      id: "/api/auth/$";
+      path: "/api/auth/$";
+      fullPath: "/api/auth/$";
+      preLoaderRoute: typeof ApiAuthSplatRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/admin/users/$userId": {
       id: "/admin/users/$userId";
       path: "/users/$userId";
@@ -442,11 +502,14 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   HealthRoute: HealthRoute,
   PrivacyRoute: PrivacyRoute,
+  ProfileRoute: ProfileRoute,
   SigninRoute: SigninRoute,
   SignoutRoute: SignoutRoute,
+  SignupRoute: SignupRoute,
   TasksRoute: TasksRouteWithChildren,
   TermsRoute: TermsRoute,
   DebugMonitoringRoute: DebugMonitoringRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

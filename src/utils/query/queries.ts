@@ -30,7 +30,7 @@
  * @see https://tanstack.com/start/latest/docs/framework/react/server-functions#calling-server-functions-from-hooks-and-components
  * @see https://github.com/lukemorales/query-key-factory#readme
  */
-import { createQueryKeyStore, type inferQueryKeyStore } from "@lukemorales/query-key-factory";
+// Removed @lukemorales/query-key-factory due to compatibility issues with @tanstack/react-query v5
 import { type QueryClient, useSuspenseQueries as useSuspenseQueriesBuiltIn } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { findFirst, findMany } from "~/functions/base-service";
@@ -123,14 +123,14 @@ export function useSuspenseQueries<T extends readonly unknown[]>(configs: T): an
 function createCrudQueries<T extends { id: string }>(subject: string) {
 	return {
 		list: (filters?: AllowUndefined<T>) => ({
-			queryKey: [{ filters }] as const,
+			queryKey: [subject.toLowerCase(), "list", { filters }] as const,
 			queryFn: () =>
 				findMany({
 					data: { where: { ...filters }, subject },
 				}) as Promise<T[]>,
 		}),
 		byId: (id: string) => ({
-			queryKey: [id] as const,
+			queryKey: [subject.toLowerCase(), "byId", id] as const,
 			queryFn: () =>
 				findFirst({
 					data: { where: { id }, subject },
@@ -144,18 +144,18 @@ function createCrudQueries<T extends { id: string }>(subject: string) {
  * - Safe to use in server contexts (loaders, beforeLoad)
  * - Used as base for component queries with automatic useServerFn wrapping
  */
-export const queries = createQueryKeyStore({
+export const queries = {
 	task: createCrudQueries<Task>("Task"),
 	user: {
 		...createCrudQueries<User>("User"),
 		session: {
-			queryKey: null,
+			queryKey: ["user", "session"] as const,
 			queryFn: async () => {
 				return await getSessionUser();
 			},
 		},
 	},
-});
+};
 
 // Type inference helpers
-export type QueryKeys = inferQueryKeyStore<typeof queries>;
+export type QueryKeys = typeof queries;
