@@ -37,7 +37,7 @@ export const cspRules: CspRule[] = [
 	},
 	{
 		description: "jsdelivr-cdn",
-		"style-src": "'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+		"style-src": "https://cdn.jsdelivr.net",
 		"connect-src": "https://cdn.jsdelivr.net",
 	},
 	{
@@ -47,7 +47,7 @@ export const cspRules: CspRule[] = [
 	},
 	{
 		description: "google-fonts",
-		"style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
-		"font-src": "'self' https://fonts.gstatic.com",
+		"style-src": "https://fonts.googleapis.com",
+		"font-src": "https://fonts.gstatic.com",
 	},
 ];
