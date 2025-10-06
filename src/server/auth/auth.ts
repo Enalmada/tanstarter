@@ -47,7 +47,9 @@ export const auth = betterAuth({
 		modelName: "VerificationTable",
 	},
 	advanced: {
-		generateId: () => nanoString("usr"),
+		database: {
+			generateId: () => nanoString("usr"),
+		},
 	},
 	plugins: [reactStartCookies()],
 });

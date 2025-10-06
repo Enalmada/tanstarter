@@ -490,7 +490,7 @@ export function useUpdateEntityMutation<
 					data,
 				},
 			});
-			return result as T;
+			return result as unknown as T;
 		},
 		onMutate: async ({ entity, data }) => {
 			const targetEntity = entity ?? defaultEntity;
@@ -655,7 +655,7 @@ export function useCreateEntityMutation<
 					data,
 				},
 			});
-			return result as T;
+			return result as unknown as T;
 		},
 		onMutate: async (data) => {
 			setErrorMessage?.("");

@@ -1,12 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest, setResponseStatus } from "@tanstack/react-start/server";
-import { eq } from "drizzle-orm";
 import { object, safeParse, string } from "valibot";
 import { auth, type SessionUser } from "~/server/auth/auth";
-import db from "~/server/db";
-import { UserTable, userRoleSchema } from "~/server/db/schema";
+import { userRoleSchema } from "~/server/db/schema";
 import { logger } from "~/utils/logger";
 import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
+import { getUserById, updateUserRole } from "./user.db";
 
 export const validateMakeAdmin = object({
 	userId: string(),
@@ -26,22 +25,14 @@ export const makeUserAdmin = createServerFn({ method: "POST" })
 		logger.info("makeUserAdmin", { userId, role, currentUserId: currentUser.id });
 
 		// Find the user to update
-		const [userToUpdate] = await db.select().from(UserTable).where(eq(UserTable.id, userId)).limit(1);
+		const [userToUpdate] = await getUserById(userId);
 
 		if (!userToUpdate) {
 			throw new Error("User not found");
 		}
 
 		// Update the user's role
-		const [updatedUser] = await db
-			.update(UserTable)
-			.set({
-				role,
-				updatedAt: new Date(),
-				updatedById: currentUser.id,
-			})
-			.where(eq(UserTable.id, userId))
-			.returning();
+		const [updatedUser] = await updateUserRole(userId, role, currentUser.id);
 
 		return updatedUser;
 	});
