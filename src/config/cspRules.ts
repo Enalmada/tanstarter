@@ -1,0 +1,53 @@
+/**
+ * Content Security Policy (CSP) rules configuration
+ * Defines security policies for content loading and execution
+ * Includes rules for scripts, styles, and external resources
+ */
+
+import type { CspRule } from "@enalmada/start-secure";
+
+export const cspRules: CspRule[] = [
+	{
+		description: "google-auth",
+		"form-action": "'self' https://accounts.google.com",
+		"img-src": "https://*.googleusercontent.com",
+		"connect-src": "https://*.googleusercontent.com",
+	},
+	{
+		description: "sentry",
+		"worker-src": "blob:",
+		"connect-src": "https://o32548.ingest.sentry.io",
+	},
+	{
+		description: "rollbar",
+		"connect-src": "'self' https://api.rollbar.com https://*.rollbar.com",
+	},
+	{
+		description: "imageDemo",
+		"img-src": "'self' blob: data: https://images.unsplash.com",
+	},
+	{
+		description: "sampleimage",
+		"img-src":
+			"'self' blob: data: https://picsum.photos/200/300 https://fastly.picsum.photos/ https://i.pravatar.cc/ https://*.googleusercontent.com",
+	},
+	{
+		description: "gravatar",
+		"img-src": "https://*.gravatar.com/avatar/",
+	},
+	{
+		description: "jsdelivr-cdn",
+		"style-src": "'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+		"connect-src": "https://cdn.jsdelivr.net",
+	},
+	{
+		description: "posthog",
+		"script-src": "https://*.posthog.com",
+		"connect-src": "https://*.posthog.com",
+	},
+	{
+		description: "google-fonts",
+		"style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
+		"font-src": "'self' https://fonts.gstatic.com",
+	},
+];
