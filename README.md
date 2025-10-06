@@ -31,22 +31,17 @@ A production starter template for TanStack Start.
 
 - [Vitest](https://vitest.dev/) unit testing
 - [Playwright](https://playwright.dev/) E2E testing
-- [Storybook](https://storybook.js.org/)component development and testing
+- [Storybook](https://storybook.js.org/) component development and testing
 - [Rollbar](https://rollbar.com/) error tracking and release monitoring
 
 ### Tools
 
 - [Docker](https://docker.com/) containerization
-- [Biome](https://biomejs.dev/) fast linting and formatting.
+- [Biome](https://biomejs.dev/) fast linting and formatting
 - [Fixpack](https://fixpack.dev/) package.json normalization
 - [Turborepo](https://turbo.build/repo) monorepo management
 - [LeftHook](https://lefthook.dev/) precommit checks
 - [envin](https://github.com/enalmada/envin) type-safe environment variable validation
-- [Rollbar](https://rollbar.com/) error tracking and release monitoring
-
-### DevOps
-
-- [Cline Memory Bank](https://github.com/nickbaumann98/cline_docs/blob/main/prompting/custom%20instructions%20library/cline-memory-bank.md)
 
 ## Getting Started
 
@@ -70,7 +65,7 @@ A production starter template for TanStack Start.
 
 ## Building for production
 
-1. Configure [`app.config.ts`](./app.config.ts#L15) for your preferred deployment target. Read the [hosting](https://tanstack.com/router/latest/docs/framework/react/start/hosting#deployment) docs for more information.
+1. Configure [`vite.config.ts`](./vite.config.ts) for your preferred deployment target. Read the [hosting](https://tanstack.com/router/latest/docs/framework/react/start/hosting#deployment) docs for more information.
 
 2. Build the application:
 
@@ -88,7 +83,7 @@ A production starter template for TanStack Start.
 
 The following items are still needed for full production readiness:
 
-- [ ] Nonce implementation (waiting on TanStack Start support)
+- [ ] Nonce implementation ([waiting on TanStack Start support](https://github.com/TanStack/router/discussions/3028))
 - [ ] SEO configuration
 - [ ] Bundle Analyzer (couldn't get it to work)
 
@@ -97,30 +92,15 @@ The following items are still needed for full production readiness:
 - [ ] event pipelines - Rudderstack
 - [ ] AI - Vercel AI SDK
 - [ ] [posthog proxy](https://posthog.com/docs/libraries/posthog-js#proxy-mode)
-- [ ] [storybook test runner](<[https://storybook.js.org/](https://storybook.js.org/docs/writing-tests/test-runner)>)
 
 ## Contributing
 
-Please note that this is an opinionated test project used for minumum reproduction
+Please note that this is an opinionated test project used for minimum reproduction
 of issues and integration testing for a production site using the core technologies.
 Not all requests and PRs will be accepted.
 
 ## See Also
 
-- https://github.com/dotnize/tanstarter thanks so much for this great starter!
-- [nekochan0122/tanstack-boilerplate](https://github.com/nekochan0122/tanstack-boilerplate) - A batteries-included TanStack Start boilerplate that inspired some patterns in this template. If you're looking for a more feature-rich starter, check it out!
-- [AlexGaudon/tanstarter-better-auth](https://github.com/AlexGaudon/tanstarter-better-auth) for his own better-auth implementation.
-
-# Shadcn UI
-
-Initialize:
-`bun x --bun shadcn@latest init`
-
-and to add a component, use this command:
-`bun x --bun shadcn@latest add button`
-
-~ [docs](https://github.com/shadcn-ui/ui/issues/3090)
-
-Storybook
-[text](https://www.reddit.com/r/Frontend/comments/1hgb1np/ever_used_shadcn_and_storybook_loving_it_and/)
-[Grab stories](https://github.com/shadcn-ui/ui/pull/1561/files#diff-adc6de2bf831e1f1a074f423698ffe043a0161805eeb0df967d8e91c25f84d83)
+- https://github.com/dotnize/tanstarter - Thanks so much for this great starter!
+- [nekochan0122/tanstack-boilerplate](https://github.com/nekochan0122/tanstack-boilerplate) - A batteries-included TanStack Start boilerplate that inspired some patterns in this template
+- [AlexGaudon/tanstarter-better-auth](https://github.com/AlexGaudon/tanstarter-better-auth) - Better-auth implementation reference
