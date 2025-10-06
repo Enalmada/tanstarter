@@ -337,4 +337,4 @@ export async function getDiscussionById(id: string) { /* ... */ }
 
 ## Questions?
 
-For comprehensive architecture documentation, see: `C:\Users\enalm\code\gell\gell-v2\docs\session\db-optimization.md`
+Refer to this guide and the reference implementations listed above for guidance on data access layer patterns.
