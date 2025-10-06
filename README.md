@@ -15,7 +15,7 @@ A production starter template for TanStack Start.
 - [shadcn/ui](https://ui.shadcn.com/) UI components with modals and notifications
 - [Tailwind CSS](https://tailwindcss.com/) styling
 - [Lingui](https://lingui.dev/) localization
-- [CSP Headers](https://csp.withgoogle.com/)
+- [start-secure](https://github.com/enalmada/start-secure) Content Security Policy (CSP) middleware
 - [Service Worker](https://developer.chrome.com/docs/workbox/service-worker-overview/) with [Serwist](https://serwist.pages.dev/)
 
 ### Backend & Data
@@ -41,6 +41,7 @@ A production starter template for TanStack Start.
 - [Fixpack](https://fixpack.dev/) package.json normalization
 - [Turborepo](https://turbo.build/repo) monorepo management
 - [LeftHook](https://lefthook.dev/) precommit checks
+- [envin](https://github.com/enalmada/envin) type-safe environment variable validation
 - [Rollbar](https://rollbar.com/) error tracking and release monitoring
 
 ### DevOps
