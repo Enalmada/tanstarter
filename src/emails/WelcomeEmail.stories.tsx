@@ -1,6 +1,6 @@
-import { render } from "@react-email/components";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useEffect, useRef } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { WelcomeEmail } from "./WelcomeEmail";
 
 interface EmailPreviewProps {
@@ -11,22 +11,16 @@ function EmailPreview({ username = "there" }: EmailPreviewProps) {
 	const iframeRef = useRef<HTMLIFrameElement>(null);
 
 	useEffect(() => {
-		const renderEmail = async () => {
-			if (!iframeRef.current) return;
+		if (!iframeRef.current) return;
 
-			const html = await render(<WelcomeEmail username={username} />, {
-				pretty: true,
-			});
+		const html = renderToStaticMarkup(<WelcomeEmail username={username} />);
 
-			const iframeDoc = iframeRef.current?.contentDocument;
-			if (iframeDoc) {
-				iframeDoc.open();
-				iframeDoc.write(html);
-				iframeDoc.close();
-			}
-		};
-
-		renderEmail();
+		const iframeDoc = iframeRef.current?.contentDocument;
+		if (iframeDoc) {
+			iframeDoc.open();
+			iframeDoc.write(html);
+			iframeDoc.close();
+		}
 	}, [username]);
 
 	return (
