@@ -6,8 +6,10 @@
 export function Spinner() {
 	return (
 		<output
-			className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent text-muted-foreground"
+			className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent text-muted-foreground"
 			aria-label="Loading"
-		/>
+		>
+			<span className="sr-only">Loading...</span>
+		</output>
 	);
 }

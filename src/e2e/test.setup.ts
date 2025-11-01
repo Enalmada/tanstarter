@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { test as base } from "@playwright/test";
+import { UserRole } from "~/server/db/schema";
 import type { SessionUser } from "~/utils/auth-client";
 
 // Mock users for testing
@@ -7,7 +8,7 @@ const mockMemberUser: SessionUser = {
 	id: "test-user-id",
 	email: "test@example.com",
 	name: "Test User",
-	role: "MEMBER",
+	role: UserRole.MEMBER,
 	image: null,
 	emailVerified: false,
 	createdAt: new Date(),
@@ -19,7 +20,7 @@ const mockAdminUser: SessionUser = {
 	id: "test-admin-id",
 	email: "admin@example.com",
 	name: "Test Admin",
-	role: "ADMIN",
+	role: UserRole.ADMIN,
 };
 
 // Extend the base test type to include auth context

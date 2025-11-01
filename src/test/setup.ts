@@ -3,7 +3,17 @@ import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 import type DB from "~/server/db";
 import type { Task, User } from "~/server/db/schema";
-import { TaskStatus, UserRole } from "~/server/db/schema";
+
+// Define enums locally to avoid import issues with mocked modules
+export enum UserRole {
+	MEMBER = "MEMBER",
+	ADMIN = "ADMIN",
+}
+
+export enum TaskStatus {
+	ACTIVE = "ACTIVE",
+	COMPLETED = "COMPLETED",
+}
 
 /**
  * Test Setup and Shared Test Data

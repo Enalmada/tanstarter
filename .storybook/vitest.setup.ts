@@ -1,5 +1,6 @@
 import { setProjectAnnotations } from "@storybook/react";
 import { beforeAll } from "vitest";
+import "../src/polyfills/process";
 import * as projectAnnotations from "./preview";
 
 // This is an important step to apply the right configuration when testing your stories.

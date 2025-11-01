@@ -1,3 +1,4 @@
+import path from "node:path";
 import { lingui } from "@lingui/vite-plugin";
 import { serwist } from "@serwist/vite";
 import tailwindcss from "@tailwindcss/vite";
@@ -26,6 +27,23 @@ const getBuildRelease = () => {
 };
 
 export default defineConfig({
+	resolve: {
+		alias: {
+			"use-sync-external-store/shim/with-selector.js": path.resolve(
+				__dirname,
+				"./src/polyfills/use-sync-external-store-shim.ts",
+			),
+			"use-sync-external-store/shim/with-selector": path.resolve(
+				__dirname,
+				"./src/polyfills/use-sync-external-store-shim.ts",
+			),
+			"use-sync-external-store/shim/index.js": path.resolve(
+				__dirname,
+				"./src/polyfills/use-sync-external-store-shim.ts",
+			),
+			"use-sync-external-store/shim": path.resolve(__dirname, "./src/polyfills/use-sync-external-store-shim.ts"),
+		},
+	},
 	plugins: [
 		tsConfigPaths({
 			projects: ["./tsconfig.json"],

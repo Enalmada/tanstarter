@@ -3,6 +3,24 @@
  * Prevents server-side imports from being resolved in browser environment
  */
 
+// Mock server-side request functions
+export const getRequest = () => null;
+export const setResponseStatus = (_code: number) => {};
+
+// biome-ignore lint/suspicious/noExplicitAny: Mock createStartHandler needs flexible typing for compatibility
+export const createStartHandler = (_options?: any) => {
+	// Return a mock handler function
+	// biome-ignore lint/suspicious/noExplicitAny: Mock handler needs flexible typing
+	return async (_event: any) => {
+		return new Response("Storybook mock", { status: 200 });
+	};
+};
+
+// biome-ignore lint/suspicious/noExplicitAny: Mock defaultStreamHandler needs flexible typing for compatibility
+export const defaultStreamHandler = async (_ctx: any) => {
+	return new Response("Storybook mock stream", { status: 200 });
+};
+
 // Mock session functions
 export const getSessionUser = () => Promise.resolve(null);
 
