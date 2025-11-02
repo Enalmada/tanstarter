@@ -226,47 +226,4 @@ export class AdminTaskFormPage extends BasePage {
 		await this.page.waitForSelector("form", { state: "visible", timeout: 5000 });
 		await this.waitForLoadingComplete();
 	}
-
-	/**
-	 * Complete CRUD workflow: Create → Edit → Delete
-	 * Useful for integration tests
-	 */
-	async performCRUDWorkflow(options: { title: string; description?: string; updatedTitle?: string }): Promise<void> {
-		// Create
-		await this.waitForFormReady();
-		const createData: { title: string; description?: string } = {
-			title: options.title,
-		};
-		if (options.description) {
-			createData.description = options.description;
-		}
-		await this.createTaskByPlaceholder(createData);
-
-		// Wait for redirect to detail page
-		await this.page.waitForURL(/^\/admin\/tasks\/[^/]+$/);
-		await this.waitForFormReady();
-
-		// Verify created
-		const createdTitle = await this.getTitleValue();
-		if (createdTitle !== options.title) {
-			throw new Error(`Expected title "${options.title}", got "${createdTitle}"`);
-		}
-
-		// Edit if specified
-		if (options.updatedTitle) {
-			await this.editTask({ title: options.updatedTitle });
-			await this.waitForPageLoad();
-
-			// Verify updated
-			const updatedTitle = await this.getTitleValue();
-			if (updatedTitle !== options.updatedTitle) {
-				throw new Error(`Expected updated title "${options.updatedTitle}", got "${updatedTitle}"`);
-			}
-		}
-
-		// Delete
-		await this.delete();
-		await this.page.waitForURL("/admin/tasks");
-		await this.waitForPageLoad();
-	}
 }

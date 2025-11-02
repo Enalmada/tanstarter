@@ -5,7 +5,10 @@ Analyze all PR review comments and create a comprehensive plan to address them u
 ## Usage
 Simply say: **"Respond to PR comments"** or **"Address PR feedback"**
 
-You can also use: `/respond` or `/respond 618` (with PR number)
+You can also use:
+- `/respond` (auto-detect from current branch)
+- `/respond 618` (with PR number)
+- `/respond https://github.com/Enalmada/tanstarter/pull/29` (with full URL)
 
 ## Instructions
 
@@ -15,9 +18,11 @@ When this command is invoked:
 
 1. **Get current branch name**: `git branch --show-current`
 2. **Find associated PR**:
-   - Try `gh pr view --json number,url` to get PR from current branch
+   - If user provided full GitHub URL, use that directly with `gh pr view`
    - If user provided PR number, use that
-   - If neither works, ask user for PR number
+   - Otherwise try `gh pr view --json number,url` to get PR from current branch
+   - If none work, ask user for PR number or URL
+3. **Read plan context**: If `.plan/plans/<branch_name>/README.md` exists, read it for context about the PR's purpose and technical decisions
 
 ### Step 2: Fetch All PR Comments
 
@@ -40,6 +45,9 @@ Also check for inline code review comments
 You are analyzing PR review feedback for a software project.
 
 PR #<NUMBER>: <TITLE>
+
+Plan Context (from .plan/plans/<branch_name>/README.md):
+<PLAN_CONTEXT_IF_EXISTS>
 
 Review Comments:
 <ALL_COMMENTS_FORMATTED>
@@ -119,16 +127,27 @@ Present the plan to the user and ask:
 - "Are there any comments you want to skip or handle differently?"
 - "Do you want me to start with the critical issues first?"
 
-## Example Invocation
+## Example Invocations
 
 **User**: "/respond 618"
 
 **Claude**:
 1. Fetches PR #618 details
-2. Retrieves all review comments and inline code comments
-3. Uses deep thinking to analyze feedback comprehensively
-4. Creates TODO list with prioritized tasks
-5. Presents summary and asks for direction
+2. Reads `.plan/plans/<branch_name>/README.md` for context
+3. Retrieves all review comments and inline code comments
+4. Uses deep thinking to analyze feedback comprehensively
+5. Creates TODO list with prioritized tasks
+6. Presents summary and asks for direction
+
+**User**: "/respond https://github.com/Enalmada/tanstarter/pull/29"
+
+**Claude**:
+1. Fetches PR from the provided URL
+2. Gets branch name and reads plan context if available
+3. Retrieves all review comments and inline code comments
+4. Uses deep thinking to analyze feedback comprehensively
+5. Creates TODO list with prioritized tasks
+6. Presents summary and asks for direction
 
 ## Notes
 

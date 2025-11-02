@@ -119,23 +119,4 @@ test.describe("Admin Tasks Integration", () => {
 		await taskFormPage.delete();
 		await tasksListPage.waitForUrl("/admin/tasks");
 	});
-
-	test("should demonstrate simplified CRUD using helper method", async ({ page }) => {
-		const tasksListPage = new AdminTasksListPage(page);
-		const taskFormPage = new AdminTaskFormPage(page);
-
-		// Navigate to form
-		await tasksListPage.clickAddNew();
-		await taskFormPage.waitForFormReady();
-
-		// Perform complete CRUD workflow in one method
-		await taskFormPage.performCRUDWorkflow({
-			title: `Workflow Test ${Date.now()}`,
-			description: "Testing helper method",
-			updatedTitle: `Updated Workflow Test ${Date.now()}`,
-		});
-
-		// Verify back on list page
-		expect(tasksListPage.isOnPage("/admin/tasks")).toBe(true);
-	});
 });

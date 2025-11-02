@@ -2,12 +2,12 @@
 
 ## What & Why
 
-**Goal:** Implement strict Content Security Policy (CSP) with per-request nonces in TanStack Start, then extract to `@enalmada/start-secure` for reuse across projects.
+**Goal:** Implement strict Content Security Policy (CSP) with per-request nonces in TanStack Start using the `@enalmada/start-secure` package.
 
 **Problem Solved:**
-- Current `start-secure` v0.1 uses `'unsafe-inline'` (insecure fallback)
-- TanStack Start v1 now has native nonce support via `router.options.ssr.nonce`
-- Need nonce-based CSP for production security (no `'unsafe-inline'` for scripts)
+- Eliminated `'unsafe-inline'` for scripts (XSS protection)
+- TanStack Start v1 native nonce support via `router.options.ssr.nonce`
+- Production-ready nonce-based CSP using `@enalmada/start-secure` v1.0.0
 
 **Security Model:**
 - **Scripts:** Strict with nonces (main XSS vector)
@@ -15,19 +15,18 @@
 
 ## Current Status
 
-✅ **Phase 1-2 Complete:** Working implementation in TanStarter
-- Native CSP middleware in `src/start.ts`
-- Nonce integration in `src/router.tsx`
+✅ **COMPLETE:** Using `@enalmada/start-secure` v1.0.0 in production
+- CSP middleware via `createCspMiddleware()` in `src/start.ts`
+- Nonce integration via `createNonceGetter()` in `src/router.tsx`
 - All tests passing, no CSP violations
 - HMR works in development
-
-⏭️ **Next:** Extract to `start-secure` package (Phase 10-15)
+- Package published and integrated
 
 ## Documentation Structure
 
-- **[IMPLEMENTATION.md](./IMPLEMENTATION.md)** - What we built in TanStarter and why
-- **[EXTRACTION.md](./EXTRACTION.md)** - How to extract to start-secure package
-- **[PACKAGE_API_DESIGN.md](./PACKAGE_API_DESIGN.md)** - Detailed API design for start-secure v0.2
+- **[IMPLEMENTATION.md](./IMPLEMENTATION.md)** - Implementation details and architecture
+- **Package Docs:** https://github.com/Enalmada/start-secure
+- See `src/start.ts` and `src/router.tsx` for extensive inline documentation
 
 ## Key Technical Decisions
 
@@ -39,11 +38,11 @@
 
 ## Quick Reference
 
-**Files Changed:**
+**Key Files:**
 ```
-src/start.ts          (NEW)  - CSP middleware with nonce generation
-src/router.tsx        (+17L) - Isomorphic nonce getter, ssr: { nonce }
-src/server.ts         (-14L) - Removed old createSecureHandler wrapper
+src/start.ts          - Uses createCspMiddleware() from @enalmada/start-secure
+src/router.tsx        - Uses createNonceGetter() for isomorphic nonce access
+src/config/cspRules.ts - Service-specific CSP rules (merged with base rules)
 ```
 
 **Key Learnings:**
@@ -54,6 +53,6 @@ src/server.ts         (-14L) - Removed old createSecureHandler wrapper
 
 ## References
 
-- [TanStack Router Discussion #3028](https://github.com/TanStack/router/discussions/3028) - Complete implementation pattern
+- [@enalmada/start-secure](https://github.com/Enalmada/start-secure) - NPM package (v1.0.0)
+- [TanStack Router Discussion #3028](https://github.com/TanStack/router/discussions/3028) - Implementation pattern
 - [TanStack Start Middleware Docs](https://tanstack.com/start/latest/docs/framework/react/guide/middleware)
-- Current package: `C:\Users\enalm\code\open\start-secure`
