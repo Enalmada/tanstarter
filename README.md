@@ -15,7 +15,7 @@ A production starter template for TanStack Start.
 - [shadcn/ui](https://ui.shadcn.com/) UI components with modals and notifications
 - [Tailwind CSS](https://tailwindcss.com/) styling
 - [Lingui](https://lingui.dev/) localization
-- [start-secure](https://github.com/enalmada/start-secure) Content Security Policy (CSP) middleware
+- [start-secure](https://github.com/enalmada/start-secure) Content Security Policy (CSP) with native nonce support
 - [Service Worker](https://developer.chrome.com/docs/workbox/service-worker-overview/) with [Serwist](https://serwist.pages.dev/)
 
 ### Backend & Data
@@ -83,9 +83,12 @@ A production starter template for TanStack Start.
 
 The following items are still needed for full production readiness:
 
-- [ ] Nonce implementation ([waiting on TanStack Start support](https://github.com/TanStack/router/discussions/3028))
 - [ ] SEO configuration
 - [ ] Bundle Analyzer (couldn't get it to work)
+
+### Recently Completed
+
+- [x] ~~Nonce implementation~~ - **DONE!** Now using native TanStack Start nonce support with strict CSP (see [src/start.ts](./src/start.ts) and [src/router.tsx](./src/router.tsx))
 
 ## Future Considerations
 
