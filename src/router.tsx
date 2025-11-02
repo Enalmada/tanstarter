@@ -158,9 +158,6 @@ interface RouterContext {
 }
 
 export async function getRouter() {
-	// biome-ignore lint/suspicious/noConsole: Debug router creation timing
-	console.log("[router] getRouter() called");
-
 	// Get nonce on server (client doesn't need it, uses meta tag)
 	let nonce: string | undefined;
 	if (typeof window === "undefined") {
