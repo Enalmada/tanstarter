@@ -1,178 +1,141 @@
 import { expect, test } from "@playwright/test";
+import { AdminTaskFormPage } from "../pages/admin/task-form.page";
+import { AdminTasksListPage } from "../pages/admin/tasks-list.page";
 
-test.describe("Admin Tasks Page", () => {
+/**
+ * Admin Tasks Integration Tests
+ *
+ * Tests complete CRUD workflows using Page Object Model pattern.
+ * Demonstrates best practices for:
+ * - Page Object usage in integration tests
+ * - Complex multi-step workflows
+ * - Data verification across pages
+ * - Clean test isolation (create → use → cleanup)
+ */
+test.describe("Admin Tasks Integration", () => {
 	// Use admin auth state for all tests in this file
 	test.use({ storageState: "playwright/.auth/admin.json" });
 
 	test.beforeEach(async ({ page }) => {
-		// Start each test from admin tasks page
-		await page.goto("/admin/tasks");
-		await page.waitForLoadState("domcontentloaded");
-		await page.waitForLoadState("networkidle");
-
-		// Wait for loading spinner to disappear
-		await page.waitForSelector("[role='progressbar']", {
-			state: "detached",
-			timeout: 5000,
-		});
+		const tasksListPage = new AdminTasksListPage(page);
+		await tasksListPage.gotoAndWaitForReady();
 	});
 
 	test("should show admin tasks page with correct table structure", async ({ page }) => {
+		const tasksListPage = new AdminTasksListPage(page);
+
 		// Verify we're on the admin tasks page
-		expect(page.url()).toContain("/admin/tasks");
+		expect(tasksListPage.isOnPage("/admin/tasks")).toBe(true);
 
 		// Verify page title
-		await expect(page.getByRole("heading", { name: "Tasks", level: 1 })).toBeVisible({ timeout: 5000 });
+		await expect(page.getByRole("heading", { name: "Tasks", level: 1 })).toBeVisible();
 
-		// Verify table headers using th elements
-		const expectedHeaders = ["Title", "Status", "Due Date", "Created", "Last Updated"];
-		for (const header of expectedHeaders) {
-			await expect(page.locator("th", { hasText: header })).toBeVisible({
-				timeout: 5000,
-			});
-		}
+		// Verify table columns
+		const columns = tasksListPage.getTableColumns();
+		await expect(columns.title).toBeVisible();
+		await expect(columns.status).toBeVisible();
+		await expect(columns.dueDate).toBeVisible();
+		await expect(columns.created).toBeVisible();
+		await expect(columns.lastUpdated).toBeVisible();
 
 		// Verify Add New button is present
-		await expect(page.getByRole("button", { name: "Add New" })).toBeVisible({
-			timeout: 5000,
-		});
+		await expect(tasksListPage.getAddNewButton()).toBeVisible();
 	});
 
-	test("should handle task creation and editing flow", async ({ page }) => {
-		// Create new task
-		const addButton = page.getByRole("button", { name: "Add New" });
-		await expect(addButton).toBeVisible({ timeout: 5000 });
-		await addButton.click();
-		await page.waitForURL("/admin/tasks/new");
-		await page.waitForLoadState("networkidle");
+	test("should handle complete task CRUD workflow", async ({ page }) => {
+		const tasksListPage = new AdminTasksListPage(page);
+		const taskFormPage = new AdminTaskFormPage(page);
 
-		// Wait for loading spinner to disappear
-		await page.waitForSelector("[role='progressbar']", {
-			state: "detached",
-			timeout: 5000,
-		});
+		// Navigate to new task form
+		await tasksListPage.clickAddNew();
+		await taskFormPage.waitForUrl("/admin/tasks/new");
+		await taskFormPage.waitForFormReady();
 
-		// Wait for form to be visible
-		const form = page.locator("form");
-		await expect(form).toBeVisible({ timeout: 5000 });
-
-		// Get form inputs
-		const titleInput = page.getByPlaceholder("Enter task title");
-		const descInput = page.getByPlaceholder("Enter task description");
-		await expect(titleInput).toBeVisible({ timeout: 5000 });
-		await expect(descInput).toBeVisible({ timeout: 5000 });
-
-		// Fill out task form
+		// Create task with unique title
 		const testTitle = `Test Task ${Date.now()}`;
-		await titleInput.fill(testTitle);
-		await descInput.fill("Test Description");
-
-		const createButton = page.getByRole("button", { name: "Create Task" });
-		await expect(createButton).toBeVisible({ timeout: 5000 });
-		await createButton.click();
-
-		// Wait for redirect and verify task was created
-		await page.waitForURL(/^\/admin\/tasks\/[^/]+$/);
-		await page.waitForLoadState("networkidle");
-		await page.waitForSelector("[role='progressbar']", {
-			state: "detached",
-			timeout: 5000,
+		await taskFormPage.createTaskByPlaceholder({
+			title: testTitle,
+			description: "Test Description",
 		});
 
-		await expect(titleInput).toBeVisible({ timeout: 5000 });
-		await expect(titleInput).toHaveValue(testTitle);
+		// Verify redirect to detail page
+		expect(taskFormPage.isOnPage(/^\/admin\/tasks\/[^/]+$/)).toBe(true);
+		await taskFormPage.waitForFormReady();
+
+		// Verify task was created
+		const createdTitle = await taskFormPage.getTitleValue();
+		expect(createdTitle).toBe(testTitle);
 
 		// Edit task
 		const updatedTitle = `Updated ${testTitle}`;
-		await titleInput.fill(updatedTitle);
-
-		const updateButton = page.getByRole("button", { name: "Update Task" });
-		await expect(updateButton).toBeVisible({ timeout: 5000 });
-		await updateButton.click();
-		await page.waitForLoadState("networkidle");
+		await taskFormPage.editTask({ title: updatedTitle });
+		await taskFormPage.waitForPageLoad();
 
 		// Verify update
-		await expect(titleInput).toHaveValue(updatedTitle);
+		const titleAfterUpdate = await taskFormPage.getTitleValue();
+		expect(titleAfterUpdate).toBe(updatedTitle);
 
 		// Delete task
-		const deleteButton = page.getByRole("button", { name: "Delete Task" });
-		await expect(deleteButton).toBeVisible({ timeout: 5000 });
-		await deleteButton.click();
-		await page.waitForURL("/admin/tasks");
-		await page.waitForLoadState("networkidle");
-		await page.waitForSelector("[role='progressbar']", {
-			state: "detached",
-			timeout: 5000,
-		});
+		await taskFormPage.delete();
+		await taskFormPage.waitForUrl("/admin/tasks");
+		await taskFormPage.waitForPageLoad();
 
 		// Verify back on list page
-		await expect(page.getByRole("heading", { name: "Tasks", level: 1 })).toBeVisible({ timeout: 5000 });
+		expect(tasksListPage.isOnPage("/admin/tasks")).toBe(true);
 	});
 
 	test("should navigate to task details when clicking row", async ({ page }) => {
+		const tasksListPage = new AdminTasksListPage(page);
+		const taskFormPage = new AdminTaskFormPage(page);
+
 		// Create a task first
-		await page.getByRole("button", { name: "Add New" }).click();
-		await page.waitForURL("/admin/tasks/new");
-		await page.waitForLoadState("networkidle");
-		await page.waitForSelector("[role='progressbar']", {
-			state: "detached",
-			timeout: 5000,
-		});
-
-		// Wait for form and fill it
-		const form = page.locator("form");
-		await expect(form).toBeVisible({ timeout: 5000 });
-
-		const titleInput = page.getByPlaceholder("Enter task title");
-		await expect(titleInput).toBeVisible({ timeout: 5000 });
+		await tasksListPage.clickAddNew();
+		await taskFormPage.waitForUrl("/admin/tasks/new");
+		await taskFormPage.waitForFormReady();
 
 		const testTitle = `Navigation Test Task ${Date.now()}`;
-		await titleInput.fill(testTitle);
+		await taskFormPage.createTaskByPlaceholder({ title: testTitle });
 
-		const createButton = page.getByRole("button", { name: "Create Task" });
-		await expect(createButton).toBeVisible({ timeout: 5000 });
-		await createButton.click();
-
-		// Wait for redirect
-		await page.waitForURL(/^\/admin\/tasks\/[^/]+$/);
-		await page.waitForLoadState("networkidle");
-		await page.waitForSelector("[role='progressbar']", {
-			state: "detached",
-			timeout: 5000,
-		});
+		// Wait for redirect to detail page
+		await taskFormPage.waitForUrl(/^\/admin\/tasks\/[^/]+$/);
+		await taskFormPage.waitForFormReady();
 
 		// Go back to list
-		await page.goto("/admin/tasks");
-		await page.waitForLoadState("networkidle");
-		await page.waitForSelector("[role='progressbar']", {
-			state: "detached",
-			timeout: 5000,
-		});
+		await tasksListPage.gotoAndWaitForReady();
 
 		// Find and click the task row
 		const taskRow = page.getByText(testTitle);
-		await expect(taskRow).toBeVisible({ timeout: 5000 });
+		await expect(taskRow).toBeVisible();
 		await taskRow.click();
-		await page.waitForURL(/^\/admin\/tasks\/[^/]+$/);
-		await page.waitForLoadState("networkidle");
-		await page.waitForSelector("[role='progressbar']", {
-			state: "detached",
-			timeout: 5000,
-		});
 
-		// Verify on details page
-		await expect(titleInput).toBeVisible({ timeout: 5000 });
-		await expect(titleInput).toHaveValue(testTitle);
+		// Verify navigated to details page
+		await taskFormPage.waitForUrl(/^\/admin\/tasks\/[^/]+$/);
+		await taskFormPage.waitForFormReady();
+
+		const titleValue = await taskFormPage.getTitleValue();
+		expect(titleValue).toBe(testTitle);
 
 		// Clean up - delete the task
-		const deleteButton = page.getByRole("button", { name: "Delete Task" });
-		await expect(deleteButton).toBeVisible({ timeout: 5000 });
-		await deleteButton.click();
-		await page.waitForURL("/admin/tasks");
-		await page.waitForLoadState("networkidle");
-		await page.waitForSelector("[role='progressbar']", {
-			state: "detached",
-			timeout: 5000,
+		await taskFormPage.delete();
+		await tasksListPage.waitForUrl("/admin/tasks");
+	});
+
+	test("should demonstrate simplified CRUD using helper method", async ({ page }) => {
+		const tasksListPage = new AdminTasksListPage(page);
+		const taskFormPage = new AdminTaskFormPage(page);
+
+		// Navigate to form
+		await tasksListPage.clickAddNew();
+		await taskFormPage.waitForFormReady();
+
+		// Perform complete CRUD workflow in one method
+		await taskFormPage.performCRUDWorkflow({
+			title: `Workflow Test ${Date.now()}`,
+			description: "Testing helper method",
+			updatedTitle: `Updated Workflow Test ${Date.now()}`,
 		});
+
+		// Verify back on list page
+		expect(tasksListPage.isOnPage("/admin/tasks")).toBe(true);
 	});
 });

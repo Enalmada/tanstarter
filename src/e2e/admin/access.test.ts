@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { AdminTasksListPage } from "../pages/admin/tasks-list.page";
 
 test.describe("Admin Access", () => {
 	test.beforeEach(async ({ context }) => {
@@ -10,8 +11,10 @@ test.describe("Admin Access", () => {
 	});
 
 	test("can access admin tasks page", async ({ page }) => {
-		await page.goto("/admin/tasks");
+		const tasksListPage = new AdminTasksListPage(page);
+		await tasksListPage.goto();
+
 		await expect(page.getByRole("heading", { name: "Tasks" })).toBeVisible();
-		await expect(page.getByRole("button", { name: /new/i })).toBeVisible();
+		await expect(tasksListPage.getAddNewButton()).toBeVisible();
 	});
 });
