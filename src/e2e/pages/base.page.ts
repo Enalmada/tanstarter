@@ -47,8 +47,12 @@ export abstract class BasePage {
 				state: "detached",
 				timeout: 5000,
 			});
-		} catch {
-			// Loading spinner may not appear for fast responses
+		} catch (error) {
+			// Loading spinner may not appear for fast responses, which is acceptable.
+			// We only want to ignore timeout errors.
+			if (error instanceof Error && error.name !== "TimeoutError") {
+				throw error;
+			}
 		}
 	}
 

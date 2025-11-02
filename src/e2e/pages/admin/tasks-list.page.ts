@@ -1,4 +1,4 @@
-import type { Locator, Page } from "@playwright/test";
+import type { Locator } from "@playwright/test";
 import { BasePage } from "../base.page";
 
 /**
@@ -10,31 +10,11 @@ import { BasePage } from "../base.page";
 export class AdminTasksListPage extends BasePage {
 	protected readonly path = "/admin/tasks";
 
-	// Locators
-	private readonly addNewButton: Locator;
-	private readonly titleColumn: Locator;
-	private readonly statusColumn: Locator;
-	private readonly dueDateColumn: Locator;
-	private readonly createdColumn: Locator;
-	private readonly lastUpdatedColumn: Locator;
-
-	constructor(page: Page) {
-		super(page);
-		this.addNewButton = page.getByRole("button", { name: "Add New" });
-		this.titleColumn = page.getByRole("cell", { name: "Title" });
-		this.statusColumn = page.getByRole("cell", { name: "Status" });
-		this.dueDateColumn = page.getByRole("cell", { name: "Due Date" });
-		this.createdColumn = page.getByRole("cell", { name: "Created" });
-		this.lastUpdatedColumn = page.getByRole("cell", {
-			name: "Last Updated",
-		});
-	}
-
 	/**
 	 * Get the Add New button
 	 */
 	getAddNewButton(): Locator {
-		return this.addNewButton;
+		return this.page.getByRole("button", { name: "Add New" });
 	}
 
 	/**
@@ -42,11 +22,13 @@ export class AdminTasksListPage extends BasePage {
 	 */
 	getTableColumns() {
 		return {
-			title: this.titleColumn,
-			status: this.statusColumn,
-			dueDate: this.dueDateColumn,
-			created: this.createdColumn,
-			lastUpdated: this.lastUpdatedColumn,
+			title: this.page.getByRole("cell", { name: "Title" }),
+			status: this.page.getByRole("cell", { name: "Status" }),
+			dueDate: this.page.getByRole("cell", { name: "Due Date" }),
+			created: this.page.getByRole("cell", { name: "Created" }),
+			lastUpdated: this.page.getByRole("cell", {
+				name: "Last Updated",
+			}),
 		};
 	}
 
@@ -54,6 +36,6 @@ export class AdminTasksListPage extends BasePage {
 	 * Click the Add New button to create a task
 	 */
 	async clickAddNew(): Promise<void> {
-		await this.addNewButton.click();
+		await this.getAddNewButton().click();
 	}
 }

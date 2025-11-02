@@ -1,4 +1,4 @@
-import type { Locator, Page } from "@playwright/test";
+import type { Locator } from "@playwright/test";
 import { BasePage } from "../base.page";
 
 /**
@@ -10,37 +10,26 @@ import { BasePage } from "../base.page";
 export class MemberTasksListPage extends BasePage {
 	protected readonly path = "/tasks";
 
-	// Locators
-	private readonly newTaskLink: Locator;
-	private readonly emptyStateText: Locator;
-
-	constructor(page: Page) {
-		super(page);
-		this.newTaskLink = page.getByRole("link", { name: /new/i });
-
-		// Empty state can have various text patterns
-		const emptyStatePatterns = [/no tasks/i, /create.*first task/i, /get started/i, /nothing here/i, /empty/i];
-		this.emptyStateText = page.getByText(new RegExp(emptyStatePatterns.map((p) => p.source).join("|"), "i"));
-	}
-
 	/**
 	 * Get the New Task link
 	 */
 	getNewTaskLink(): Locator {
-		return this.newTaskLink;
+		return this.page.getByRole("link", { name: /new/i });
 	}
 
 	/**
 	 * Get empty state text
 	 */
 	getEmptyStateText(): Locator {
-		return this.emptyStateText;
+		// Empty state can have various text patterns
+		const emptyStatePatterns = [/no tasks/i, /create.*first task/i, /get started/i, /nothing here/i, /empty/i];
+		return this.page.getByText(new RegExp(emptyStatePatterns.map((p) => p.source).join("|"), "i"));
 	}
 
 	/**
 	 * Click the New Task link
 	 */
 	async clickNewTask(): Promise<void> {
-		await this.newTaskLink.click();
+		await this.getNewTaskLink().click();
 	}
 }
