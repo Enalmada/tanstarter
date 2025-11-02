@@ -40,20 +40,17 @@ export abstract class BasePage {
 	/**
 	 * Wait for loading spinner to disappear
 	 * Common pattern for TanStack Start apps
+	 *
+	 * Note: If the spinner never appears (fast response), this resolves immediately
+	 * since the selector is already in "detached" state. If the spinner appears but
+	 * doesn't disappear within timeout, it will throw TimeoutError (expected behavior
+	 * for stuck loading states).
 	 */
 	async waitForLoadingComplete(): Promise<void> {
-		try {
-			await this.page.waitForSelector("[role='progressbar']", {
-				state: "detached",
-				timeout: 5000,
-			});
-		} catch (error) {
-			// Loading spinner may not appear for fast responses, which is acceptable.
-			// We only want to ignore timeout errors.
-			if (error instanceof Error && error.name !== "TimeoutError") {
-				throw error;
-			}
-		}
+		await this.page.waitForSelector("[role='progressbar']", {
+			state: "detached",
+			timeout: 5000,
+		});
 	}
 
 	/**

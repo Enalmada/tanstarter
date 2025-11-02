@@ -194,11 +194,11 @@ export class AdminTaskFormPage extends BasePage {
 	 */
 	async editTask(data: { title?: string; description?: string; dueDate?: string; status?: string }): Promise<void> {
 		if (data.title) {
-			await this.fillTitleByPlaceholder(data.title);
+			await this.fillTitle(data.title);
 		}
 
 		if (data.description) {
-			await this.fillDescriptionByPlaceholder(data.description);
+			await this.fillDescription(data.description);
 		}
 
 		if (data.dueDate) {
@@ -216,7 +216,7 @@ export class AdminTaskFormPage extends BasePage {
 	 * Get title input value
 	 */
 	async getTitleValue(): Promise<string> {
-		return (await this.getTitleInputByPlaceholder().inputValue()) || "";
+		return (await this.getTitleInput().inputValue()) || "";
 	}
 
 	/**

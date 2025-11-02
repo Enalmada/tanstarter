@@ -53,7 +53,7 @@ test.describe("Admin Tasks Integration", () => {
 
 		// Create task with unique title
 		const testTitle = `Test Task ${Date.now()}`;
-		await taskFormPage.createTaskByPlaceholder({
+		await taskFormPage.createTask({
 			title: testTitle,
 			description: "Test Description",
 		});
@@ -94,7 +94,7 @@ test.describe("Admin Tasks Integration", () => {
 		await taskFormPage.waitForFormReady();
 
 		const testTitle = `Navigation Test Task ${Date.now()}`;
-		await taskFormPage.createTaskByPlaceholder({ title: testTitle });
+		await taskFormPage.createTask({ title: testTitle });
 
 		// Wait for redirect to detail page
 		await taskFormPage.waitForUrl(/^\/admin\/tasks\/[^/]+$/);

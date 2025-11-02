@@ -6,7 +6,7 @@ Move working CSP implementation from TanStarter to `@enalmada/start-secure` v0.2
 
 ## Package Location
 
-`C:\Users\enalm\code\open\start-secure`
+`<workspace>/start-secure` (sibling directory to tanstarter)
 
 ## Extraction Strategy
 
