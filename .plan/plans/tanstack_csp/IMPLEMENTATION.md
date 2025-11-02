@@ -2,7 +2,7 @@
 
 ## What We Built
 
-Native nonce-based CSP using TanStack Start's middleware system.
+Native nonce-based CSP using TanStack Start's middleware system with official TanStack Router pattern.
 
 ## Architecture
 
@@ -11,57 +11,47 @@ Native nonce-based CSP using TanStack Start's middleware system.
 **Purpose:** Generate unique nonce per request, build CSP header, set security headers
 
 **Key Functions:**
-- `generateNonce()` - Crypto-random base64 nonce from `crypto.randomUUID()`
-- `buildCspHeader()` - Merges base directives + user rules + nonce
-- `cspMiddleware` - Request middleware registered globally
+- `createCspMiddleware()` - From `@enalmada/start-secure` package
+- Per-request nonce generation
+- CSP rule merging and header building
+- Security headers configuration
 
 **How It Works:**
 ```typescript
-createMiddleware().server(({ next }) => {
-  const nonce = generateNonce()               // 1. Generate per request
-  const cspHeader = buildCspHeader(...)       // 2. Build CSP with nonce
-  setResponseHeaders({ CSP: cspHeader })      // 3. Set headers
-  return next({ context: { nonce } })         // 4. Pass to router
-})
+// src/start.ts
+import { createCspMiddleware } from '@enalmada/start-secure';
+import { cspRules } from './config/cspRules';
+
+export const startInstance = createStart(() => ({
+  requestMiddleware: [
+    createCspMiddleware({
+      rules: cspRules,
+      options: { isDev: process.env.NODE_ENV !== 'production' }
+    })
+  ]
+}));
+
+// Middleware flow:
+// 1. Generate unique nonce per request
+// 2. Build CSP header with merged rules + nonce
+// 3. Set response headers (CSP + security headers)
+// 4. Pass nonce to router via context
 ```
 
 ### 2. Router Integration (`src/router.tsx`)
 
-**Purpose:** Retrieve nonce and apply to router's SSR config
+**Purpose:** Retrieve nonce from middleware context and apply to router's SSR config
 
-**⚠️ CRITICAL BUG DISCOVERED:** The original isomorphic approach breaks AsyncLocalStorage context chain.
-
-**Original Approach (BROKEN):**
+**Official TanStack Pattern (Current Implementation):**
 ```typescript
-// This DOES NOT WORK - createIsomorphicFn() breaks AsyncLocalStorage
-const getNonce = createIsomorphicFn()
-  .server(() => getStartContext().contextAfterGlobalMiddlewares.nonce)
-  .client(() => document.querySelector("meta[property='csp-nonce']")?.content)
-
-createRouter({
-  ssr: { nonce: getNonce() }  // Returns undefined - context not accessible
-})
-```
-
-**Symptom:**
-- Middleware generates nonce ✅
-- `getRouter()` called at correct time ✅
-- `getNonce()` throws "No Start context found" ❌
-- Scripts have NO nonce attributes in HTML
-- Scripts blocked by CSP
-
-**Root Cause:**
-`createIsomorphicFn()` wrapper from `@enalmada/start-secure` breaks the AsyncLocalStorage continuation chain. Even though `getRouter()` is called during request handling (after middleware), the isomorphic wrapper prevents access to `contextAfterGlobalMiddlewares.nonce`.
-
-**Working Solution (Current Implementation):**
-```typescript
-// Make getRouter() async and use direct context access
+// src/router.tsx
 export async function getRouter() {
+  // Get nonce on server (client doesn't need it, uses meta tag)
   let nonce: string | undefined;
 
   if (typeof window === "undefined") {
     try {
-      // Dynamic import for server-only code
+      // Dynamic import ensures server-only code stays out of client bundle
       const { getStartContext } = await import("@tanstack/start-storage-context");
       const context = getStartContext();
       nonce = context.contextAfterGlobalMiddlewares?.nonce;
@@ -71,19 +61,22 @@ export async function getRouter() {
   }
 
   const router = createRouter({
-    ssr: { nonce }  // ✅ Now receives actual nonce value
+    // ... other options
+    // Only include ssr.nonce if nonce has a value (exactOptionalPropertyTypes)
+    ...(nonce ? { ssr: { nonce } } : {})
   });
 
   return router;
 }
 ```
 
-**Why This Works:**
-- ✅ Bypasses broken isomorphic wrapper
-- ✅ Direct access to AsyncLocalStorage context
-- ✅ Dynamic import prevents Node.js code in browser bundle
-- ✅ Client doesn't need nonce (TanStack Start auto-creates meta tag)
-- ✅ Server gets nonce directly from middleware context
+**Why This Pattern:**
+- ✅ **Official TanStack Router pattern** - Recommended by TanStack team
+- ✅ **Direct context access** - No wrapper to break AsyncLocalStorage
+- ✅ **Dynamic import** - Prevents Node.js code in browser bundle
+- ✅ **Tree-shaking** - `getStartContext` removed from client bundle
+- ✅ **Client automatic** - TanStack Start creates `<meta property="csp-nonce">` automatically
+- ✅ **Type-safe** - Properly typed with optional nonce
 
 ### 3. Simplified Server (`src/server.ts`)
 

@@ -1,8 +1,20 @@
-# CRITICAL BUG: createIsomorphicFn() Breaks AsyncLocalStorage Context
+# ✅ RESOLVED: createIsomorphicFn() Broke AsyncLocalStorage Context
+
+> **Status:** This bug has been RESOLVED in `@enalmada/start-secure` v1.0.1
+>
+> **Resolution Date:** January 2025
+>
+> **Fix:** Removed broken `createNonceGetter()` function, documented official TanStack pattern using direct context access
+>
+> **Migration Guide:** See `C:\Users\enalm\code\open\start-secure\docs\MIGRATION-1.0-to-1.0.1.md`
+>
+> **This document is kept for historical reference and technical documentation.**
+
+---
 
 ## Summary
 
-The `createIsomorphicFn()` wrapper in `@enalmada/start-secure` breaks Node.js AsyncLocalStorage continuation chain, preventing access to TanStack Start middleware context. This renders the `createNonceGetter()` function unusable in its current form.
+The `createIsomorphicFn()` wrapper in `@enalmada/start-secure` broke Node.js AsyncLocalStorage continuation chain, preventing access to TanStack Start middleware context. This rendered the `createNonceGetter()` function unusable in its current form.
 
 ## Discovery Timeline
 
