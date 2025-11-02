@@ -29,19 +29,61 @@ createMiddleware().server(({ next }) => {
 
 **Purpose:** Retrieve nonce and apply to router's SSR config
 
-**Isomorphic Nonce Getter:**
+**⚠️ CRITICAL BUG DISCOVERED:** The original isomorphic approach breaks AsyncLocalStorage context chain.
+
+**Original Approach (BROKEN):**
 ```typescript
+// This DOES NOT WORK - createIsomorphicFn() breaks AsyncLocalStorage
 const getNonce = createIsomorphicFn()
   .server(() => getStartContext().contextAfterGlobalMiddlewares.nonce)
   .client(() => document.querySelector("meta[property='csp-nonce']")?.content)
-```
 
-**Router Config:**
-```typescript
 createRouter({
-  ssr: { nonce: getNonce() }  // Applies to all <Scripts> and <ScriptOnce>
+  ssr: { nonce: getNonce() }  // Returns undefined - context not accessible
 })
 ```
+
+**Symptom:**
+- Middleware generates nonce ✅
+- `getRouter()` called at correct time ✅
+- `getNonce()` throws "No Start context found" ❌
+- Scripts have NO nonce attributes in HTML
+- Scripts blocked by CSP
+
+**Root Cause:**
+`createIsomorphicFn()` wrapper from `@enalmada/start-secure` breaks the AsyncLocalStorage continuation chain. Even though `getRouter()` is called during request handling (after middleware), the isomorphic wrapper prevents access to `contextAfterGlobalMiddlewares.nonce`.
+
+**Working Solution (Current Implementation):**
+```typescript
+// Make getRouter() async and use direct context access
+export async function getRouter() {
+  let nonce: string | undefined;
+
+  if (typeof window === "undefined") {
+    try {
+      // Dynamic import for server-only code
+      const { getStartContext } = await import("@tanstack/start-storage-context");
+      const context = getStartContext();
+      nonce = context.contextAfterGlobalMiddlewares?.nonce;
+    } catch (error) {
+      nonce = undefined;
+    }
+  }
+
+  const router = createRouter({
+    ssr: { nonce }  // ✅ Now receives actual nonce value
+  });
+
+  return router;
+}
+```
+
+**Why This Works:**
+- ✅ Bypasses broken isomorphic wrapper
+- ✅ Direct access to AsyncLocalStorage context
+- ✅ Dynamic import prevents Node.js code in browser bundle
+- ✅ Client doesn't need nonce (TanStack Start auto-creates meta tag)
+- ✅ Server gets nonce directly from middleware context
 
 ### 3. Simplified Server (`src/server.ts`)
 
@@ -191,9 +233,37 @@ Beyond CSP, we set:
 4. **Scripts are main XSS vector** - Styles can't execute code
 5. **`'strict-dynamic'` is powerful** - Nonce-verified scripts can load others
 6. **Development needs relaxed rules** - HMR, source maps, dev tools
+7. **⚠️ `createIsomorphicFn()` breaks AsyncLocalStorage** - The isomorphic wrapper in `@enalmada/start-secure` breaks the AsyncLocalStorage continuation chain, preventing access to middleware context. Workaround: Use direct `getStartContext()` access with dynamic imports instead of the isomorphic wrapper.
 
 ## Next Steps
 
-Extract this working implementation to `@enalmada/start-secure` v0.2 for reuse across projects.
+### 1. Fix `@enalmada/start-secure` Package
 
-See [EXTRACTION.md](./EXTRACTION.md) for the extraction plan.
+**CRITICAL:** Before extraction, fix the `createIsomorphicFn()` bug in start-secure:
+
+**Current (Broken):**
+```typescript
+// src/nonce.ts
+export function createNonceGetter() {
+  return createIsomorphicFn()
+    .server(() => {
+      const context = getStartContext();
+      return context.contextAfterGlobalMiddlewares?.nonce;
+    })
+    .client(() => {
+      const meta = document.querySelector("meta[property='csp-nonce']");
+      return meta?.getAttribute("content") ?? undefined;
+    });
+}
+```
+
+**Proposed Fix:**
+Remove the isomorphic wrapper entirely and document that users should access the nonce directly in their router setup. The wrapper doesn't work with AsyncLocalStorage.
+
+**Alternative:** Investigate if there's a way to make the isomorphic wrapper preserve AsyncLocalStorage context, or provide clear documentation that this pattern doesn't work with TanStack Start's context system.
+
+### 2. Extract Working Implementation
+
+Once start-secure is fixed, extract this working implementation to `@enalmada/start-secure` v0.2 for reuse across projects.
+
+See [EXTRACTION.md](./EXTRACTION.md) for the extraction plan and [CRITICAL-BUG.md](./CRITICAL-BUG.md) for detailed bug analysis.
