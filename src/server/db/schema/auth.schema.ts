@@ -7,7 +7,7 @@ import { relations } from "drizzle-orm";
 import { boolean, integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-valibot";
 import { nanoid } from "nanoid/non-secure";
-import { enum_, nullable, number, pipe, transform } from "valibot";
+import { nullable, number, picklist, pipe, transform } from "valibot";
 
 // Parameterized insert don't seem to respect defaultFn
 export const nanoString = (prefix: string) => `${prefix}_${nanoid()}`;
@@ -38,7 +38,7 @@ export const UserRolesEnum = pgEnum("role", Object.values(UserRole) as [string, 
 
 export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
 
-export const userRoleSchema = enum_(UserRole);
+export const userRoleSchema = picklist([UserRole.MEMBER, UserRole.ADMIN]);
 
 export const UserTable = pgTable("user", {
 	id: generateIdField("usr"),

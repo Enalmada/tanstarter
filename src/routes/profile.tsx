@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { DefaultLayout } from "~/components/layouts/DefaultLayout";
@@ -8,6 +9,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { makeUserAdmin } from "~/functions/user-role";
 import { UserRole } from "~/server/db/schema";
+import { queries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/profile")({
 	component: ProfilePage,
@@ -26,6 +28,7 @@ export const Route = createFileRoute("/profile")({
 function ProfilePage() {
 	const { user: initialUser } = Route.useLoaderData();
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const [isUpdatingRole, setIsUpdatingRole] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
 	const [optimisticUser, setOptimisticUser] = useState(initialUser);
@@ -54,12 +57,14 @@ function ProfilePage() {
 
 			setMessage("Success! You are now an admin.");
 
-			// Invalidate router data to sync with server
-			router.invalidate();
-		} catch (_error) {
+			// Invalidate user session query and router data to sync with server
+			await queryClient.invalidateQueries({ queryKey: queries.user.session.queryKey });
+			await router.invalidate();
+		} catch (error) {
 			// Revert optimistic update on error
 			setOptimisticUser(initialUser);
-			setMessage("Failed to update role. Please try again.");
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			setMessage(`Failed to update role: ${errorMessage}`);
 		} finally {
 			setIsUpdatingRole(false);
 		}
@@ -82,12 +87,14 @@ function ProfilePage() {
 
 			setMessage("Success! You are now a member.");
 
-			// Invalidate router data to sync with server
-			router.invalidate();
-		} catch (_error) {
+			// Invalidate user session query and router data to sync with server
+			await queryClient.invalidateQueries({ queryKey: queries.user.session.queryKey });
+			await router.invalidate();
+		} catch (error) {
 			// Revert optimistic update on error
 			setOptimisticUser(initialUser);
-			setMessage("Failed to update role. Please try again.");
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			setMessage(`Failed to update role: ${errorMessage}`);
 		} finally {
 			setIsUpdatingRole(false);
 		}

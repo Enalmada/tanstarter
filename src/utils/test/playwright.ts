@@ -1,4 +1,5 @@
 import { getRequest } from "@tanstack/react-start/server";
+import { UserRole } from "~/server/db/schema";
 import type { SessionUser } from "~/utils/auth-client";
 
 // Mock users for testing - keep in sync with auth-guard.ts
@@ -6,7 +7,7 @@ export const mockTestUser: SessionUser = {
 	id: "test-user-id",
 	email: "test@example.com",
 	name: "Test User",
-	role: "MEMBER",
+	role: UserRole.MEMBER,
 	image: null,
 	emailVerified: false,
 	createdAt: new Date(),
@@ -18,7 +19,7 @@ export const mockAdminUser: SessionUser = {
 	id: "test-admin-id",
 	email: "admin@example.com",
 	name: "Test Admin",
-	role: "ADMIN",
+	role: UserRole.ADMIN,
 };
 
 /**

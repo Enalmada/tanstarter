@@ -39,14 +39,12 @@ export const WelcomeEmail: FC<WelcomeEmailProps> = ({ username = "there" }) => (
 						</Button>
 					</Section>
 
-					<Text style={text}>
-						Here are a few things you can do:
-						<ul style={list}>
-							<li>Complete your profile</li>
-							<li>Explore the dashboard</li>
-							<li>Create your first project</li>
-						</ul>
-					</Text>
+					<Text style={text}>Here are a few things you can do:</Text>
+					<ul style={list}>
+						<li style={listItem}>Complete your profile</li>
+						<li style={listItem}>Explore the dashboard</li>
+						<li style={listItem}>Create your first project</li>
+					</ul>
 
 					<Hr style={hr} />
 
@@ -146,4 +144,11 @@ const list = {
 	marginBottom: "0",
 	marginTop: "10px",
 	paddingLeft: "20px",
+};
+
+const listItem = {
+	color: "#444",
+	fontSize: "16px",
+	lineHeight: "24px",
+	marginBottom: "8px",
 };

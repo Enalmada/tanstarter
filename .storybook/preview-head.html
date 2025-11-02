@@ -2,7 +2,7 @@
   // Handle module loading errors gracefully
   window.addEventListener(
     "error",
-    function (e) {
+    (e) => {
       if (e.target && (e.target.src || e.target.href)) {
         // Prevent the error from causing a page reload
         e.preventDefault();

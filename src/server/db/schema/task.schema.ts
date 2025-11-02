@@ -6,7 +6,7 @@
 import { relations } from "drizzle-orm";
 import { integer, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-valibot";
-import { date, enum_, nullable, pipe, transform } from "valibot";
+import { date, nullable, picklist, pipe, transform } from "valibot";
 import { nanoString, UserTable } from "./auth.schema";
 
 const generateIdField = (prefix: string) => {
@@ -65,7 +65,7 @@ export type ClientTask = Pick<
 >;
 
 // Valibot schema for TaskStatus
-export const taskStatusSchema = enum_(TaskStatus);
+export const taskStatusSchema = picklist([TaskStatus.ACTIVE, TaskStatus.COMPLETED]);
 
 // Valibot schemas with proper enum handling
 export const taskSelectSchema = createSelectSchema(TaskTable, {

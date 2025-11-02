@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
+import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -54,6 +55,8 @@ export default defineConfig({
 				},
 				define: {
 					"process.env.NODE_ENV": '"test"',
+					"process.env.GOOGLE_CLIENT_ID": '""',
+					"process.env.GOOGLE_CLIENT_SECRET": '""',
 				},
 				optimizeDeps: {
 					include: [
@@ -75,7 +78,7 @@ export default defineConfig({
 						enabled: true,
 						headless: true,
 						instances: [{ browser: "chromium" }],
-						provider: "playwright",
+						provider: playwright(),
 					},
 					setupFiles: ["./.storybook/vitest.setup.ts"],
 				},

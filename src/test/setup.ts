@@ -3,7 +3,12 @@ import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 import type DB from "~/server/db";
 import type { Task, User } from "~/server/db/schema";
-import { TaskStatus, UserRole } from "~/server/db/schema";
+
+// Import actual enums from schema to avoid duplication and drift
+// Using vi.importActual to get real enums before mocking the module
+const schema = await vi.importActual<typeof import("~/server/db/schema")>("~/server/db/schema");
+export const UserRole = schema.UserRole;
+export const TaskStatus = schema.TaskStatus;
 
 /**
  * Test Setup and Shared Test Data
