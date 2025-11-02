@@ -33,23 +33,9 @@ export const Centered: Story = {
 };
 
 export const Large: Story = {
-	render: () => (
-		<output
-			className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-current border-t-transparent text-muted-foreground"
-			aria-label="Loading"
-		>
-			<span className="sr-only">Loading...</span>
-		</output>
-	),
+	render: () => <Spinner className="h-8 w-8 border-4" />,
 };
 
 export const Small: Story = {
-	render: () => (
-		<output
-			className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent text-muted-foreground"
-			aria-label="Loading"
-		>
-			<span className="sr-only">Loading...</span>
-		</output>
-	),
+	render: () => <Spinner className="h-3 w-3" />,
 };
