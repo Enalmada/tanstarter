@@ -128,7 +128,9 @@ export const cspRules: CspRule[] = [
 	// Product analytics and feature flags
 	{
 		description: "posthog",
-		"script-src": "https://*.posthog.com", // Analytics SDK script
+		// Note: script-src URL whitelists are IGNORED with 'strict-dynamic'
+		// Load PostHog via a nonce-d script instead (e.g., <script nonce={nonce}>loadPostHog()</script>)
+		// "script-src": "https://*.posthog.com", // NOT NEEDED with strict-dynamic
 		"connect-src": "https://*.posthog.com", // Analytics events API
 	},
 

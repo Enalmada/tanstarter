@@ -135,15 +135,18 @@ import { NotFound } from "./components/NotFound";
 import { routeTree } from "./routeTree.gen";
 
 /**
- * CSP Nonce Access - Workaround for AsyncLocalStorage Bug
+ * CSP Nonce Access - Direct Context Pattern
  *
- * NOTE: We do NOT use createNonceGetter() from @enalmada/start-secure because it's broken.
- * The isomorphic wrapper breaks AsyncLocalStorage, preventing access to middleware context.
+ * We use direct context access instead of @enalmada/start-secure's createNonceGetter()
+ * because the isomorphic wrapper breaks AsyncLocalStorage context chain.
  *
- * Instead, we use direct context access in getRouter() below, which aligns with the
- * official TanStack Router pattern: https://github.com/TanStack/router/discussions/3028
+ * This pattern:
+ * - Uses dynamic import() to load server-only code (prevents client bundle pollution)
+ * - Calls getStartContext directly on server to retrieve nonce from middleware
+ * - Client uses <meta property="csp-nonce"> tag automatically
  *
- * See .plan/plans/tanstack_csp/CRITICAL-BUG.md for full details on the bug.
+ * Official TanStack pattern: https://github.com/TanStack/router/discussions/3028
+ * Bug details: .plan/plans/tanstack_csp/CRITICAL-BUG.md
  */
 
 declare module "@tanstack/react-router" {
@@ -162,7 +165,7 @@ export async function getRouter() {
 	let nonce: string | undefined;
 	if (typeof window === "undefined") {
 		try {
-			// Dynamic import for server-only code
+			// Dynamic import ensures server-only code stays out of client bundle
 			const { getStartContext } = await import("@tanstack/start-storage-context");
 			const context = getStartContext();
 			nonce = context.contextAfterGlobalMiddlewares?.nonce;
