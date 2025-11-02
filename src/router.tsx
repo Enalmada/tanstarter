@@ -123,7 +123,6 @@
  * - Docs: https://github.com/Enalmada/start-secure
  */
 
-import { createNonceGetter } from "@enalmada/start-secure";
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
 import { QueryClient } from "@tanstack/react-query";
@@ -136,24 +135,16 @@ import { NotFound } from "./components/NotFound";
 import { routeTree } from "./routeTree.gen";
 
 /**
- * Isomorphic nonce getter from @enalmada/start-secure
+ * CSP Nonce Access - Workaround for AsyncLocalStorage Bug
  *
- * This function retrieves the CSP nonce from different sources depending on environment:
+ * NOTE: We do NOT use createNonceGetter() from @enalmada/start-secure because it's broken.
+ * The isomorphic wrapper breaks AsyncLocalStorage, preventing access to middleware context.
  *
- * **Server-side:**
- * - Retrieves from TanStack Start middleware context
- * - Context populated by CSP middleware (see src/start.ts)
- * - Uses: getStartContext().contextAfterGlobalMiddlewares.nonce
+ * Instead, we use direct context access in getRouter() below, which aligns with the
+ * official TanStack Router pattern: https://github.com/TanStack/router/discussions/3028
  *
- * **Client-side:**
- * - Retrieves from <meta property="csp-nonce"> tag in <head>
- * - Meta tag auto-created by TanStack Start when ssr.nonce is set
- * - Uses: document.querySelector("meta[property='csp-nonce']")?.content
- *
- * Returns the same nonce value in both environments for a given request.
- * This ensures consistent nonce across server rendering and client hydration.
+ * See .plan/plans/tanstack_csp/CRITICAL-BUG.md for full details on the bug.
  */
-const getNonce = createNonceGetter();
 
 declare module "@tanstack/react-router" {
 	interface Register {
@@ -166,7 +157,23 @@ interface RouterContext {
 	user: SessionUser | null | undefined;
 }
 
-export function getRouter() {
+export async function getRouter() {
+	// biome-ignore lint/suspicious/noConsole: Debug router creation timing
+	console.log("[router] getRouter() called");
+
+	// Get nonce on server (client doesn't need it, uses meta tag)
+	let nonce: string | undefined;
+	if (typeof window === "undefined") {
+		try {
+			// Dynamic import for server-only code
+			const { getStartContext } = await import("@tanstack/start-storage-context");
+			const context = getStartContext();
+			nonce = context.contextAfterGlobalMiddlewares?.nonce;
+		} catch (_error) {
+			nonce = undefined;
+		}
+	}
+
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: {
@@ -243,12 +250,12 @@ export function getRouter() {
 		 *
 		 * ## Reference:
 		 * - Middleware: src/start.ts
-		 * - Nonce Getter: createNonceGetter() (defined above)
+		 * - Nonce Access: Direct context access (see getRouter() above)
 		 * - CSP Rules: src/config/cspRules.ts
+		 * - Bug Details: .plan/plans/tanstack_csp/CRITICAL-BUG.md
 		 */
-		ssr: {
-			nonce: getNonce(), // Applies nonce to all framework-generated scripts
-		},
+		// Only include ssr.nonce if nonce has a value (exactOptionalPropertyTypes)
+		...(nonce ? { ssr: { nonce } } : {}),
 	});
 
 	setupRouterSsrQueryIntegration({
