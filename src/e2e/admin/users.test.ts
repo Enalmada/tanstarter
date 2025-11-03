@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
+import { AdminUsersPage } from "../pages/admin/users.page";
 
 /**
  * Admin Users Tests
  *
  * Basic tests to verify admin access to user management.
- * Uses the authenticated state from admin.setup.ts.
+ * Uses Page Object Model pattern for maintainability.
  *
  * Testing strategy:
  * 1. Start with basic page access tests
@@ -29,7 +30,9 @@ test.describe("Admin Users", () => {
 	});
 
 	test("can access admin users page", async ({ page }) => {
-		await page.goto("/admin/users");
+		const usersPage = new AdminUsersPage(page);
+		await usersPage.goto();
+
 		await expect(page.getByRole("heading", { name: "Users" })).toBeVisible();
 	});
 });
