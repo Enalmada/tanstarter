@@ -1,6 +1,7 @@
 import path from "node:path";
 import { lingui } from "@lingui/vite-plugin";
-import { serwist } from "@serwist/vite";
+// TODO: Re-enable when Serwist Vite plugin works with Nitro v3
+// import { serwist } from "@serwist/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
@@ -73,15 +74,25 @@ export default defineConfig({
 			},
 		}),
 		lingui(),
-		serwist({
-			base: "/",
-			scope: "/",
-			swUrl: "/_build/assets/sw.js",
-			swSrc: "./src/sw.ts",
-			swDest: "assets/sw.js",
-			globDirectory: "dist",
-			rollupFormat: "iife",
-		}),
+		// TODO: Serwist Vite plugin is currently DISABLED due to Nitro v3 incompatibility
+		// ISSUE: Serwist runs during Vite's build phase but Nitro processes/moves assets
+		//        AFTER that. Result: sw.js gets generated in dist/ but never copied to
+		//        .output/public/ where Nitro serves from.
+		// WORKAROUND: Using post-build script (scripts/generate-sw.ts) that runs after
+		//             Nitro completes. See package.json build:prod script.
+		// FUTURE FIX: This should work once Nitro v3 is stable and has proper integration
+		//             hooks, or if Serwist adds a "closeBundleOrder: post" option to run
+		//             after Nitro's processing.
+		// REFERENCES: docs/sessions/serwist_support.md for full investigation
+		// serwist({
+		// 	base: "/",
+		// 	scope: "/",
+		// 	swUrl: "/_build/assets/sw.js",
+		// 	swSrc: "./src/sw.ts",
+		// 	swDest: "assets/sw.js",
+		// 	globDirectory: "dist",
+		// 	rollupFormat: "iife",
+		// }),
 		// Upload source maps to Rollbar after build
 		...(process.env.ROLLBAR_SERVER_TOKEN && process.env.NODE_ENV === "production"
 			? [
