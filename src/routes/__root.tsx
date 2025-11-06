@@ -188,7 +188,7 @@ function RootComponent() {
 						scope: "/",
 					});
 				} catch (_error) {
-					// Service worker registration failed (expected in dev without HTTPS)
+					// Service worker registration failed (expected in dev - sw.js not generated)
 				}
 			}
 		};
