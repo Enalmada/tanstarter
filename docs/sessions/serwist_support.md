@@ -5,22 +5,36 @@
 **Status:** ✅ RESOLVED - Implemented post-build workaround
 **Last Updated:** 2025-11-06
 **PR:** [#30](https://github.com/Enalmada/tanstarter/pull/30)
+**Critical Bug Fix:** 2025-11-06 - Fixed `self.__SW_MANIFEST` comment issue in `src/sw.ts`
 
 ## Executive Summary
 
-After deep investigation, **Serwist is currently NOT functional** in the tanstarter project despite being configured. The service worker file is being generated, but it contains an **empty precache manifest** and is placed in the wrong output directory.
+✅ **FULLY WORKING** as of November 6, 2025
 
-### Key Finding
+After deep investigation and bug fixes, **Serwist PWA is now functional** in the tanstarter project using a post-build workaround. A critical bug in `src/sw.ts` (comment contained injection point string) was preventing the service worker from generating correctly. This has been **FIXED**.
 
-The generated `dist/assets/sw.js` contains:
+### Current State (After Bug Fix)
+
+The generated `.output/public/sw.js` now contains:
 ```javascript
 const serwist = new Serwist({
-  precacheEntries: [],  // EMPTY! No files are being precached
+  precacheEntries: [
+    {"url":"...","revision":"..."},  // ✅ 56 FILES PRECACHED!
+    // ... more entries
+  ],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: defaultCache
 });
+```
+
+**Build Output:**
+```
+🔨 Generating service worker...
+✅ Service worker generated successfully!
+   📦 Precached 56 files (2260.76 KB)
+   📍 Location: .output/public/sw.js
 ```
 
 ## Root Cause Analysis
@@ -243,19 +257,21 @@ function serwistNitroPlugin() {
 
 **Status:** NOT RECOMMENDED based on community reports
 
-## Current State
+## Current State (Updated After Bug Fix)
 
-### What Works
-- ✅ Service worker source file (`src/sw.ts`) is well-structured
-- ✅ Serwist Vite plugin runs without errors
-- ✅ Service worker file is generated (`dist/assets/sw.js`)
-- ✅ Service worker code is valid (100KB bundle)
+### What Works ✅
+- ✅ Service worker source file (`src/sw.ts`) is well-structured (bug fixed!)
+- ✅ Post-build script (`scripts/generate-sw.ts`) runs successfully
+- ✅ Service worker file is generated in correct location (`.output/public/sw.js`)
+- ✅ **Precache manifest properly injected** (56 files, 2.2 MB)
+- ✅ Service worker code is valid and functional
+- ✅ PWA functionality fully operational (ready to enable)
 
-### What Doesn't Work
-- ❌ Precache manifest is empty (no files cached)
-- ❌ Service worker not copied to `.output/public/`
-- ❌ Service worker not available to the app in production
-- ❌ PWA functionality completely non-functional
+### Previous Issues (Now Resolved) 🔧
+- ~~❌ Precache manifest is empty~~ → ✅ FIXED: Comment bug resolved
+- ~~❌ Service worker not copied to `.output/public/`~~ → ✅ FIXED: Generated directly to correct location
+- ~~❌ Service worker not available to the app~~ → ✅ FIXED: Available at `/sw.js`
+- ~~❌ PWA functionality non-functional~~ → ✅ FIXED: Ready to enable in `__root.tsx`
 
 ## Recommendations
 
@@ -406,11 +422,12 @@ bun run start
 1. ✅ ~~Decide on solution approach~~ (implemented Option 1)
 2. ✅ ~~Implement chosen solution~~ (post-build script completed)
 3. ✅ ~~Fix code review issues~~ (removed virtual:serwist import, fixed comments)
-4. ⏳ Install dependency: `bun install` to get `@serwist/build`
-5. ⏳ Test production build: `bun run build:prod`
-6. ⏳ Verify sw.js is generated with precache entries
-7. ⏳ (Optional) Enable service worker when ready for PWA
-8. ⏳ Consider contributing findings back to Serwist/TanStack communities
+4. ✅ ~~Install dependency~~ (`bun install` to get `@serwist/build`)
+5. ✅ ~~Fix CRITICAL bug in src/sw.ts~~ (comment contained injection point string - 2025-11-06)
+6. ✅ ~~Test production build~~ (`bun run build:prod` - now works!)
+7. ✅ ~~Verify sw.js is generated with precache entries~~ (56 files, 2.2 MB)
+8. ⏳ (Optional) Enable service worker when ready for PWA
+9. ⏳ Consider contributing findings back to Serwist/TanStack communities
 
 ## Code Review & Refinements
 
@@ -483,9 +500,78 @@ ls -lh .output/public/sw.js
 grep "precacheEntries" .output/public/sw.js  # Should show file array
 ```
 
+## CRITICAL BUG FIX - November 6, 2025
+
+### The Problem
+
+The `scripts/generate-sw.ts` post-build script was failing with:
+```
+AssertionError: Please ensure that your 'swSrc' file contains only one match for the following: self.__SW_MANIFEST
+```
+
+### Root Cause
+
+In `src/sw.ts` line 14, a **comment** contained the literal injection point string:
+```typescript
+// BEFORE (BROKEN):
+// actual precache manifest. By default, this string is set to
+// `"self.__SW_MANIFEST"`.   <-- THE BUG!
+```
+
+This caused Serwist's `injectManifest()` to find **TWO matches**:
+1. The comment on line 14 (inside quotes)
+2. The actual code on line 24: `precacheEntries: self.__SW_MANIFEST ?? []`
+
+The tool requires **exactly ONE** match to know where to inject the precache manifest.
+
+### The Fix
+
+**Changed:** `src/sw.ts` line 14
+```typescript
+// AFTER (FIXED):
+// actual precache manifest. The injection point variable is
+// defined as a global __SW_MANIFEST property on the self object.
+```
+
+By rewording the comment to avoid the literal string `self.__SW_MANIFEST`, the injection tool now only finds one match (the actual code).
+
+### Verification
+
+```bash
+# Before fix:
+bun run build:prod
+# ❌ Failed to generate service worker:
+#    Please ensure that your 'swSrc' file contains only one match...
+
+# After fix:
+bun run build:prod
+# 🔨 Generating service worker...
+# ✅ Service worker generated successfully!
+#    📦 Precached 56 files (2260.76 KB)
+#    📍 Location: .output/public/sw.js
+
+# Verify precache manifest was injected:
+grep "precacheEntries: \[" .output/public/sw.js
+# precacheEntries: [{"url":"...","revision":"..."},...]  ✅ WORKING!
+```
+
+### Impact
+
+- ✅ Service worker generation now works correctly
+- ✅ Precache manifest properly injected (56 files)
+- ✅ Build completes without errors
+- ✅ PWA offline functionality ready to enable
+
+### Lesson Learned
+
+When using `injectManifest()`, be careful that **comments** don't contain the injection point string. The tool uses simple string matching and will find matches in comments, strings, and code alike.
+
+**Best Practice:** Avoid writing the exact injection point string anywhere except where you want the injection to happen.
+
 ## References
 
 - [Serwist Documentation](https://serwist.pages.dev/)
+- [Serwist Build API (injectManifest)](https://serwist.pages.dev/docs/build/inject-manifest)
 - [TanStack Start Hosting Guide](https://tanstack.com/start/latest/docs/framework/react/guide/hosting)
 - [Nitro v3 GitHub](https://github.com/nitrojs/nitro)
 - [AnswerOverflow: Making TanStack Start work offline](https://www.answeroverflow.com/m/1360370134887174316)
