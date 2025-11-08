@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
-import { getSerwist } from "virtual:serwist";
+// TODO: Re-enable when Serwist Vite plugin is working with Nitro v3
+// import { getSerwist } from "virtual:serwist";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, HeadContent, Outlet, redirect, ScriptOnce, Scripts } from "@tanstack/react-router";
 import { lazy, type ReactNode, Suspense, useEffect } from "react";
@@ -10,7 +11,29 @@ import appCss from "~/styles/app.css?url";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
 
-const ENABLE_SERVICE_WORKER = false;
+// TODO: Enable service worker when you're ready to use PWA features
+// The service worker is generated via scripts/generate-sw.ts (runs during build:prod)
+//
+// BEST PRACTICE: Service workers should run in BOTH dev and prod:
+//   - Dev mode: Uses NetworkOnly strategy (no caching, always fresh)
+//   - Prod mode: Uses full caching strategies (offline support)
+//   Benefits: Test SW lifecycle in dev, catch bugs early, develop PWA features
+//
+// CURRENT LIMITATION: sw.js only generated during production builds
+//   TODO: To enable in dev, either:
+//     1. Re-enable Serwist Vite plugin when Nitro v3 is stable (auto-generates in dev)
+//     2. Add dev mode generation to generate-sw.ts script
+//   For now, only enable in production builds.
+//
+// To enable:
+//   1. Change to: const ENABLE_SERVICE_WORKER = import.meta.env.PROD;
+//   2. Test in production build (bun run build:prod && bun run start)
+//   3. Verify sw.js is accessible at /sw.js in browser
+//   4. Check browser DevTools > Application > Service Workers
+//
+// NOTE: Service worker only works with HTTPS or localhost
+// See docs/sessions/serwist_support.md for full details
+const ENABLE_SERVICE_WORKER = import.meta.env.PROD && false;
 
 // const _TanStackRouterDevtools = import.meta.env.PROD
 // 	? () => null
@@ -155,10 +178,18 @@ function RootComponent() {
 		const loadSerwist = async () => {
 			if (ENABLE_SERVICE_WORKER && "serviceWorker" in navigator) {
 				try {
-					const serwist = await getSerwist();
-					serwist?.addEventListener("installed", () => {});
-					await serwist?.register();
-				} catch (_error) {}
+					// TODO: Uncomment when Serwist Vite plugin is enabled
+					// const serwist = await getSerwist();
+					// serwist?.addEventListener("installed", () => {});
+					// await serwist?.register();
+
+					// Direct registration (works without Serwist Vite plugin)
+					await navigator.serviceWorker.register("/sw.js", {
+						scope: "/",
+					});
+				} catch (_error) {
+					// Service worker registration failed (expected in dev - sw.js not generated)
+				}
 			}
 		};
 

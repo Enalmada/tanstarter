@@ -4,7 +4,7 @@
 	"scripts": {
 		"build": "vite build",
 		"build-storybook": "storybook build",
-		"build:prod": "bun run build && bun run drizzle:migrate && bun run scripts/post-build.ts",
+		"build:prod": "bun run build && bun run drizzle:migrate && bun run scripts/generate-sw.ts && bun run scripts/post-build.ts",
 		"check": "turbo lint check-types check-stories test:unit test-storybook test:e2e",
 		"check-stories": "bun scripts/check-component-coverage.cjs --quiet",
 		"check-types": "tsc --noEmit",
@@ -102,6 +102,7 @@
 		"@lingui/loader": "^5.5.2",
 		"@lingui/vite-plugin": "^5.5.2",
 		"@playwright/test": "^1.56.1",
+		"@serwist/build": "^9.2.1",
 		"@serwist/vite": "^9.2.1",
 		"@serwist/window": "^9.2.1",
 		"@storybook/addon-a11y": "^10.0.2",
