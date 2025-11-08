@@ -33,7 +33,7 @@ import { queries } from "~/utils/query/queries";
 //
 // NOTE: Service worker only works with HTTPS or localhost
 // See docs/sessions/serwist_support.md for full details
-const ENABLE_SERVICE_WORKER = import.meta.env.PROD && false;
+const ENABLE_SERVICE_WORKER = import.meta.env.PROD;
 
 // const _TanStackRouterDevtools = import.meta.env.PROD
 // 	? () => null
