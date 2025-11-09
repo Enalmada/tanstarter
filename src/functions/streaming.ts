@@ -3,15 +3,66 @@
  *
  * TanStack Start async generators for real-time notification streaming.
  * Demonstrates proper input validation, cleanup, and type safety.
+ *
+ * IMPORTANT: createServerFn exports must be at the top of the file for proper code splitting
  */
 
 import { createServerFn } from "@tanstack/react-start";
-import {
-	type NotificationEvent,
-	publishNotification,
-	subscribeToNotifications,
-	type WatchNotificationsInput,
-} from "~/server/lib/events";
+import type { NotificationEvent, WatchNotificationsInput } from "~/server/lib/events.types";
+
+/**
+ * Demo-only: Sequential notification counter
+ *
+ * WARNING: This is stored in-memory and will:
+ * - Reset to 0 on server restart
+ * - Not work correctly with multiple server instances
+ * - Not be thread-safe under high concurrency
+ *
+ * For production, use:
+ * - Database with auto-incrementing IDs
+ * - Redis INCR command
+ * - Distributed counter service
+ */
+let notificationCount = 0;
+
+/**
+ * Server function that streams notification events
+ *
+ * Establishes a long-lived HTTP connection using NDJSON format.
+ * Automatically reconnects on disconnect with exponential backoff.
+ *
+ * @example
+ * // Client usage:
+ * const stream = useAutoReconnectStream({
+ *   streamFn: watchNotifications,
+ *   params: {},
+ *   onData: (event) => {
+ *     console.log('New notification:', event.message);
+ *   },
+ * });
+ */
+export const watchNotifications = createServerFn({ method: "POST" })
+	.inputValidator(validateWatchNotificationsInput)
+	.handler(handleWatchNotifications);
+
+/**
+ * Server function to trigger a new notification
+ *
+ * Publishes a notification event to all connected streaming clients.
+ * Increments the demo counter and broadcasts to all subscribers.
+ *
+ * @returns Success status and current notification count
+ *
+ * @example
+ * // Client usage:
+ * const result = await triggerNotification();
+ * console.log('Triggered notification #', result.count);
+ */
+export const triggerNotification = createServerFn({ method: "POST" }).handler(handleTriggerNotification);
+
+// ============================================================================
+// Helper Functions (defined after exports as per TanStack Start requirements)
+// ============================================================================
 
 /**
  * Validate input for watchNotifications
@@ -45,6 +96,8 @@ function validateWatchNotificationsInput(data: unknown): WatchNotificationsInput
  * @returns AsyncGenerator yielding notification events
  */
 async function* handleWatchNotifications({ data }: { data: WatchNotificationsInput }) {
+	// Dynamic import to avoid Vite analyzing server-only code during client bundling
+	const { subscribeToNotifications } = await import("~/server/lib/events");
 	const subscription = subscribeToNotifications();
 
 	try {
@@ -60,55 +113,16 @@ async function* handleWatchNotifications({ data }: { data: WatchNotificationsInp
 }
 
 /**
- * Server function that streams notification events
+ * Handler for triggerNotification
  *
- * Establishes a long-lived HTTP connection using NDJSON format.
- * Automatically reconnects on disconnect with exponential backoff.
+ * Increments counter and publishes a notification to all subscribers.
  *
- * @example
- * // Client usage:
- * const stream = useAutoReconnectStream({
- *   streamFn: watchNotifications,
- *   params: {},
- *   onData: (event) => {
- *     console.log('New notification:', event.message);
- *   },
- * });
+ * @returns Success status and current count
  */
-export const watchNotifications = createServerFn({ method: "POST" })
-	.inputValidator(validateWatchNotificationsInput)
-	.handler(handleWatchNotifications);
-
-/**
- * Demo-only: Sequential notification counter
- *
- * WARNING: This is stored in-memory and will:
- * - Reset to 0 on server restart
- * - Not work correctly with multiple server instances
- * - Not be thread-safe under high concurrency
- *
- * For production, use:
- * - Database with auto-incrementing IDs
- * - Redis INCR command
- * - Distributed counter service
- */
-let notificationCount = 0;
-
-/**
- * Server function to trigger a new notification
- *
- * Publishes a notification event to all connected streaming clients.
- * Increments the demo counter and broadcasts to all subscribers.
- *
- * @returns Success status and current notification count
- *
- * @example
- * // Client usage:
- * const result = await triggerNotification();
- * console.log('Triggered notification #', result.count);
- */
-export const triggerNotification = createServerFn({ method: "POST" }).handler(async () => {
+async function handleTriggerNotification() {
+	// Dynamic import to avoid Vite analyzing server-only code during client bundling
+	const { publishNotification } = await import("~/server/lib/events");
 	notificationCount++;
 	publishNotification(`Notification #${notificationCount}`, notificationCount);
 	return { success: true, count: notificationCount };
-});
+}
