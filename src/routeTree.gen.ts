@@ -23,6 +23,7 @@ import { Route as TasksIndexRouteImport } from "./routes/tasks/index";
 import { Route as AdminIndexRouteImport } from "./routes/admin/index";
 import { Route as TasksNewRouteImport } from "./routes/tasks/new";
 import { Route as TasksTaskIdRouteImport } from "./routes/tasks/$taskId";
+import { Route as DebugStreamingRouteImport } from "./routes/debug/streaming";
 import { Route as DebugMonitoringRouteImport } from "./routes/debug/monitoring";
 import { Route as AdminUsersIndexRouteImport } from "./routes/admin/users/index";
 import { Route as AdminTasksIndexRouteImport } from "./routes/admin/tasks/index";
@@ -102,6 +103,11 @@ const TasksTaskIdRoute = TasksTaskIdRouteImport.update({
   path: "/$taskId",
   getParentRoute: () => TasksRoute,
 } as any);
+const DebugStreamingRoute = DebugStreamingRouteImport.update({
+  id: "/debug/streaming",
+  path: "/debug/streaming",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const DebugMonitoringRoute = DebugMonitoringRouteImport.update({
   id: "/debug/monitoring",
   path: "/debug/monitoring",
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
+  "/debug/streaming": typeof DebugStreamingRoute;
   "/tasks/$taskId": typeof TasksTaskIdRoute;
   "/tasks/new": typeof TasksNewRoute;
   "/admin/": typeof AdminIndexRoute;
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   "/signup": typeof SignupRoute;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
+  "/debug/streaming": typeof DebugStreamingRoute;
   "/tasks/$taskId": typeof TasksTaskIdRoute;
   "/tasks/new": typeof TasksNewRoute;
   "/admin": typeof AdminIndexRoute;
@@ -202,6 +210,7 @@ export interface FileRoutesById {
   "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
+  "/debug/streaming": typeof DebugStreamingRoute;
   "/tasks/$taskId": typeof TasksTaskIdRoute;
   "/tasks/new": typeof TasksNewRoute;
   "/admin/": typeof AdminIndexRoute;
@@ -228,6 +237,7 @@ export interface FileRouteTypes {
     | "/tasks"
     | "/terms"
     | "/debug/monitoring"
+    | "/debug/streaming"
     | "/tasks/$taskId"
     | "/tasks/new"
     | "/admin/"
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | "/signup"
     | "/terms"
     | "/debug/monitoring"
+    | "/debug/streaming"
     | "/tasks/$taskId"
     | "/tasks/new"
     | "/admin"
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | "/tasks"
     | "/terms"
     | "/debug/monitoring"
+    | "/debug/streaming"
     | "/tasks/$taskId"
     | "/tasks/new"
     | "/admin/"
@@ -299,6 +311,7 @@ export interface RootRouteChildren {
   TasksRoute: typeof TasksRouteWithChildren;
   TermsRoute: typeof TermsRoute;
   DebugMonitoringRoute: typeof DebugMonitoringRoute;
+  DebugStreamingRoute: typeof DebugStreamingRoute;
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
 }
 
@@ -401,6 +414,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/tasks/$taskId";
       preLoaderRoute: typeof TasksTaskIdRouteImport;
       parentRoute: typeof TasksRoute;
+    };
+    "/debug/streaming": {
+      id: "/debug/streaming";
+      path: "/debug/streaming";
+      fullPath: "/debug/streaming";
+      preLoaderRoute: typeof DebugStreamingRouteImport;
+      parentRoute: typeof rootRouteImport;
     };
     "/debug/monitoring": {
       id: "/debug/monitoring";
@@ -509,6 +529,7 @@ const rootRouteChildren: RootRouteChildren = {
   TasksRoute: TasksRouteWithChildren,
   TermsRoute: TermsRoute,
   DebugMonitoringRoute: DebugMonitoringRoute,
+  DebugStreamingRoute: DebugStreamingRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 };
 export const routeTree = rootRouteImport
