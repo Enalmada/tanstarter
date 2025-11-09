@@ -277,6 +277,32 @@ export const triggerNotification = createServerFn({ method: "POST" })
 4. Should we apply these fixes to gell-v2 as well?
    - **Answer:** gell-v2 already follows most best practices
 
+## Critical Issue: Node.js Module Imports in Browser Code
+
+### Issue Discovered After Initial Review
+
+**Error**: `Module "node:events" has been externalized for browser compatibility`
+
+**Root Cause**: Importing types from `events.ts` (which imports `node:events`) caused Vite to try loading Node.js modules in browser code, even with `type` imports.
+
+**Solution**: Created separate `events.types.ts` file with only type definitions
+- No Node.js imports in types file
+- Client code imports from `events.types.ts`
+- Server code imports from `events.ts` and re-exports types
+
+**Files Changed**:
+1. Created `src/server/lib/events.types.ts` - Pure type definitions
+2. Updated `src/server/lib/events.ts` - Import and re-export types
+3. Updated `src/routes/debug/streaming.tsx` - Import from types file
+
+**Lesson**: Always separate shared types from server implementation files to avoid bundling Node.js code in browser builds.
+
 ## Summary
 
-The current implementation is **functional and safe**, but has **type safety and code quality issues** that should be addressed before considering it production-ready. The main learnings from gell-v2 (input validation, proper typing, documentation) should be applied to create a more robust example.
+The implementation is now **production-ready** with all issues resolved:
+- ✅ Type safety without Node.js imports
+- ✅ Input validation
+- ✅ Proper documentation
+- ✅ SSR-safe patterns
+- ✅ Resource cleanup
+- ✅ Matches gell-v2 quality standards
