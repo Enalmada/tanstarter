@@ -17,12 +17,18 @@ import {
  * Validate input for watchNotifications
  *
  * @param data - Raw input data to validate
- * @returns Validated input object
+ * @returns Validated input object (empty object as no params required)
  * @throws Error if validation fails
  */
 function validateWatchNotificationsInput(data: unknown): WatchNotificationsInput {
-	if (typeof data !== "object" || data === null) {
-		throw new Error("Invalid input: expected object");
+	// Accept null/undefined and convert to empty object (no params needed for global notifications)
+	if (data === null || data === undefined) {
+		return {};
+	}
+
+	// Ensure it's an object if provided
+	if (typeof data !== "object") {
+		throw new Error("Invalid input: expected object, null, or undefined");
 	}
 
 	// Currently no required fields, but validate structure
