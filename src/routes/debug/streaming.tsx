@@ -52,7 +52,7 @@ function StreamingClient() {
 		pauseOnHidden: true,
 
 		// Handle incoming events
-		onData: (event: any) => {
+		onData: (event: { type: string; message: string; count: number; timestamp: number }) => {
 			setNotifications((prev) => [event, ...prev].slice(0, 10)); // Keep last 10
 		},
 
