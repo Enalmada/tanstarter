@@ -7,11 +7,11 @@
 
 services:
   postgres_tanstarter:
-    image: postgres:17
+    image: postgres:18
     container_name: postgres_tanstarter
     command: '-d 1'
     volumes:
-      - postgres_data_tanstarter:/var/lib/postgresql/data
+      - postgres_data_tanstarter:/var/lib/postgresql
     ports:
       - '5434:5432'
     environment:
@@ -27,11 +27,11 @@ services:
       - tanstarter_network
 
   postgres_tanstarter_test:
-    image: postgres:17
+    image: postgres:18
     container_name: postgres_tanstarter_test
     command: '-d 1'
     volumes:
-      - postgres_data_tanstarter_test:/var/lib/postgresql/data
+      - postgres_data_tanstarter_test:/var/lib/postgresql
     ports:
       - '5435:5432'
     environment:
