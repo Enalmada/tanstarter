@@ -1,4 +1,8 @@
 import { createEventBroadcaster } from "@enalmada/start-streaming/server";
+import type { NotificationEvent, WatchNotificationsInput } from "./events.types";
+
+// Re-export types for convenience
+export type { NotificationEvent, WatchNotificationsInput };
 
 /**
  * Event broadcaster for real-time notifications
@@ -16,26 +20,6 @@ export const broadcaster = createEventBroadcaster({
 	type: "memory",
 	maxListeners: 100,
 });
-
-/**
- * Input type for watchNotifications server function
- * Currently empty as notifications are global, but typed for consistency
- */
-export type WatchNotificationsInput = Record<string, never>;
-
-/**
- * Event emitted when a notification is published
- */
-export type NotificationEvent = {
-	/** Event type discriminator */
-	type: "notification";
-	/** Human-readable notification message */
-	message: string;
-	/** Sequential notification counter */
-	count: number;
-	/** Unix timestamp (milliseconds) when notification was created */
-	timestamp: number;
-};
 
 /**
  * Subscribe to notification events
