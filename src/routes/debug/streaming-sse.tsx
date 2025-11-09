@@ -1,7 +1,7 @@
 /**
  * SSE Streaming Demo Page
  *
- * Demonstrates Server-Sent Events (SSE) using better-sse library.
+ * Demonstrates Server-Sent Events (SSE) using @enalmada/start-streaming library.
  * Uses native browser EventSource API for simple, standards-compliant streaming.
  */
 
@@ -112,7 +112,7 @@ function SSEClient() {
 				<div className="bg-white rounded-lg shadow-lg p-6">
 					<h1 className="text-3xl font-bold mb-2">SSE Streaming Demo</h1>
 					<p className="text-gray-600 mb-6">
-						Powered by <code className="bg-gray-100 px-2 py-1 rounded text-sm">better-sse</code>
+						Powered by <code className="bg-gray-100 px-2 py-1 rounded text-sm">@enalmada/start-streaming</code>
 					</p>
 
 					{/* Connection Status */}
@@ -185,11 +185,11 @@ function SSEClient() {
 							<li>Uses native browser EventSource API (Web Standard)</li>
 							<li>Server-Sent Events (SSE) over HTTP</li>
 							<li>Automatic reconnection built into browser</li>
-							<li>better-sse library for server-side SSE management</li>
+							<li>@enalmada/start-streaming library for TanStack Start SSE integration</li>
 							<li>Full TypeScript type safety end-to-end</li>
 						</ul>
 						<a
-							href="https://github.com/MatthewWid/better-sse"
+							href="https://github.com/Enalmada/start-streaming"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="text-blue-600 hover:underline text-sm mt-2 inline-block"

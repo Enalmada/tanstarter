@@ -2,38 +2,40 @@
  * SSE Channel Infrastructure
  *
  * Provides a shared broadcast channel for server-sent events.
- * Uses better-sse library for standards-compliant SSE implementation.
+ * Uses @enalmada/start-streaming library for standards-compliant SSE implementation.
  */
 
-import type { Channel } from "better-sse";
-import { createChannel } from "better-sse";
+import type { SSEEvent } from "@enalmada/start-streaming";
+import { createSSEChannelManager } from "@enalmada/start-streaming/server";
 
 /**
  * Notification event structure
  */
-export type NotificationEvent = {
+export type NotificationEvent = SSEEvent & {
 	type: "notification";
 	message: string;
 	count: number;
-	timestamp: number;
 };
 
 /**
- * Global notification channel for broadcasting to all connected clients
+ * Global notification channel manager for broadcasting to all connected clients
  *
  * In-memory channel that broadcasts notification events to all active SSE sessions.
  * For production multi-server deployments, consider using Redis pub/sub instead.
  *
  * @example
- * // Broadcasting to all connected clients:
- * notificationChannel.broadcast({
+ * // Publishing to all connected clients:
+ * notificationChannels.publish("global", {
  *   type: "notification",
  *   message: "New update available",
  *   count: 42,
  *   timestamp: Date.now()
- * }, "message");
+ * });
  */
-export const notificationChannel: Channel<NotificationEvent> = createChannel();
+export const notificationChannels = createSSEChannelManager<NotificationEvent>({
+	keyPrefix: "notification",
+	keySuffix: "stream",
+});
 
 /**
  * Demo-only: Sequential notification counter
@@ -76,6 +78,6 @@ export function publishNotification(message: string, count: number): void {
 		timestamp: Date.now(),
 	};
 
-	// Broadcast to all connected SSE sessions
-	notificationChannel.broadcast(event, "message");
+	// Publish to all connected SSE sessions on the global channel
+	notificationChannels.publish("global", event);
 }
