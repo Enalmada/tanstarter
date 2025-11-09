@@ -20,8 +20,8 @@ function StreamingDebugPage() {
 
 	// Set up streaming connection (using useAutoReconnectStream instead of useStreamInvalidation to avoid QueryClient SSR issues)
 	const stream = useAutoReconnectStream({
-		streamFn: () => watchNotifications(),
-		params: {},
+		streamFn: watchNotifications,
+		params: {} as never,
 		pauseOnHidden: true,
 		enabled: isClient, // Only enable when client-side
 
@@ -29,6 +29,12 @@ function StreamingDebugPage() {
 		onData: (event: NotificationEvent) => {
 			setNotifications((prev) => [event, ...prev].slice(0, 10)); // Keep last 10
 		},
+
+		onConnect: () => {},
+
+		onDisconnect: () => {},
+
+		onError: (error, attempt) => {},
 
 		maxRetries: 10,
 		baseDelay: 1000,
