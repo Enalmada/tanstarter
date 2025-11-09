@@ -4,8 +4,16 @@ import { publishNotification, subscribeToNotifications } from "~/server/lib/even
 // Server function to subscribe to notifications (streaming)
 export const watchNotifications = createServerFn({ method: "POST" }).handler(async function* () {
 	const subscription = subscribeToNotifications();
-	for await (const event of subscription) {
-		yield event;
+
+	try {
+		// Yield events as they arrive from the subscription
+		for await (const event of subscription) {
+			yield event;
+		}
+	} finally {
+		// Ensure proper cleanup when client disconnects or generator is closed
+		// This triggers the finally block in the broadcaster's subscribe method
+		await subscription.return(undefined);
 	}
 });
 
