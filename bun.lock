@@ -9,6 +9,7 @@
         "@casl/ability": "^6.7.3",
         "@enalmada/drizzle-helpers": "0.0.18",
         "@enalmada/start-secure": "^1.0.2",
+        "@enalmada/start-streaming": "^2.0.0",
         "@hookform/resolvers": "^5.2.2",
         "@lingui/babel-plugin-lingui-macro": "^5.5.2",
         "@lingui/cli": "^5.5.2",
@@ -262,6 +263,8 @@
     "@enalmada/drizzle-helpers": ["@enalmada/drizzle-helpers@0.0.18", "", { "dependencies": { "dotenv": "16.4.7", "dotenv-cli": "7.4.4" }, "peerDependencies": { "drizzle-orm": ">=0.38", "postgres": ">=3.4.0" } }, "sha512-BNH7xZVGS+5qg3niDnWobAqXJ7EMmuu5w+oi5Y3U+OyeyxNhoNCJBCw9dGvIe2gCQYFpJKEiYrIgJG594Dslfw=="],
 
     "@enalmada/start-secure": ["@enalmada/start-secure@1.0.2", "", { "peerDependencies": { "@tanstack/react-start": ">=1.0.0", "@tanstack/start-storage-context": ">=1.0.0" } }, "sha512-6Sy5CcI8tkONtKfuiGsIWu7ocmX6OJmfnqTCBRdqAaJR+HVlUiun9n0mttLHu2sI++oeADXsT2jXuiyIxpEc9w=="],
+
+    "@enalmada/start-streaming": ["@enalmada/start-streaming@2.0.0", "", { "peerDependencies": { "@tanstack/react-query": "^5.0.0", "@tanstack/react-router": "^1.0.0", "@tanstack/react-start": "^1.0.0", "better-sse": "^0.15.1", "react": "^18.0.0 || ^19.0.0" }, "optionalPeers": ["@tanstack/react-query"] }, "sha512-gGnOtg1zc4D93PBsm4RRz657oajN9UM6BvqeXiqWYEym9aKChd6SGvjNPSildE9kd5huJua7CE5FE3Zb3rHLZQ=="],
 
     "@esbuild-kit/core-utils": ["@esbuild-kit/core-utils@3.3.2", "", { "dependencies": { "esbuild": "~0.18.20", "source-map-support": "^0.5.21" } }, "sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ=="],
 

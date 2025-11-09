@@ -15,6 +15,7 @@ export type NotificationEvent = SSEEvent & {
 	type: "notification";
 	message: string;
 	count: number;
+	timestamp: number;
 };
 
 /**

@@ -46,6 +46,7 @@
 		"@casl/ability": "^6.7.3",
 		"@enalmada/drizzle-helpers": "0.0.18",
 		"@enalmada/start-secure": "^1.0.2",
+		"@enalmada/start-streaming": "^2.0.0",
 		"@hookform/resolvers": "^5.2.2",
 		"@lingui/babel-plugin-lingui-macro": "^5.5.2",
 		"@lingui/cli": "^5.5.2",

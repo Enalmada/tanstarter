@@ -23,7 +23,7 @@ import { type NotificationEvent, notificationChannels } from "~/server/lib/sse-c
  * };
  * ```
  */
-export const Route = createFileRoute("/api/sse/notifications" as any)({
+export const Route = createFileRoute("/api/sse/notifications")({
 	server: {
 		handlers: {
 			GET: createSSERouteHandler<Record<string, never>, NotificationEvent>({
