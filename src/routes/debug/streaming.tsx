@@ -6,7 +6,7 @@ export const Route = createFileRoute("/debug/streaming")({
 });
 
 // Lazy load the client component to avoid SSR issues
-const StreamingClient = lazy(() => import("./streaming-client"));
+const StreamingClient = lazy(() => import("~/components/debug/streaming-client"));
 
 function StreamingDebugPage() {
 	const [isClient, setIsClient] = useState(false);
