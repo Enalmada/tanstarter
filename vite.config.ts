@@ -135,16 +135,13 @@ export default defineConfig({
 				"html-to-text",
 				"prettier",
 				"node:async_hooks",
-				"@enalmada/start-streaming/server",
-				"node:events",
 			],
 		},
 	},
 	ssr: {
 		noExternal: ["better-auth"],
-		external: ["@enalmada/start-streaming/server", "node:events"],
 	},
 	optimizeDeps: {
-		exclude: ["better-auth", "@enalmada/start-streaming"],
+		exclude: ["better-auth"],
 	},
 });

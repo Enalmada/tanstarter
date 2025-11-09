@@ -1,22 +1,28 @@
-import { useAutoReconnectStream } from "@enalmada/start-streaming/client";
+/**
+ * SSE Streaming Demo Page
+ *
+ * Demonstrates Server-Sent Events (SSE) using better-sse library.
+ * Uses native browser EventSource API for simple, standards-compliant streaming.
+ */
+
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
-import { triggerNotification, watchNotifications } from "~/functions/streaming";
-import type { NotificationEvent, WatchNotificationsInput } from "~/server/lib/events.types";
+import { triggerSSENotification } from "~/functions/sse-trigger";
+import type { NotificationEvent } from "~/server/lib/sse-channel";
 
-export const Route = createFileRoute("/debug/streaming")({
-	component: StreamingDebugPage,
+export const Route = createFileRoute("/debug/streaming-sse" as any)({
+	component: StreamingSSEPage,
 });
 
 /**
- * Streaming demo page component
+ * SSE demo page component
  *
  * Demonstrates SSR-safe streaming with proper hydration.
  * Only renders streaming component on client-side to avoid
  * calling hooks during SSR.
  */
-function StreamingDebugPage() {
+function StreamingSSEPage() {
 	const [isClient, setIsClient] = useState(false);
 
 	// Only render streaming component on client-side
@@ -30,7 +36,7 @@ function StreamingDebugPage() {
 			<div className="min-h-screen bg-gray-50 p-8">
 				<div className="max-w-4xl mx-auto">
 					<div className="bg-white rounded-lg shadow-lg p-6">
-						<h1 className="text-3xl font-bold mb-2">Real-time Streaming Demo</h1>
+						<h1 className="text-3xl font-bold mb-2">SSE Streaming Demo</h1>
 						<p className="text-gray-600">Loading streaming demo...</p>
 					</div>
 				</div>
@@ -39,47 +45,62 @@ function StreamingDebugPage() {
 	}
 
 	// Client-side only rendering
-	return <StreamingClient />;
+	return <SSEClient />;
 }
 
 /**
- * Client-only streaming component
+ * Client-only SSE component
  *
- * Manages real-time notification stream with auto-reconnection.
- * Uses proper type imports and safe React keys.
+ * Manages real-time notification stream using native EventSource API.
+ * Automatically reconnects on disconnect (built into EventSource).
  */
-function StreamingClient() {
+function SSEClient() {
 	const [notifications, setNotifications] = useState<NotificationEvent[]>([]);
 	const [isTriggering, setIsTriggering] = useState(false);
+	const [isConnected, setIsConnected] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
-	// Set up streaming connection with proper typing
-	const stream = useAutoReconnectStream<WatchNotificationsInput, NotificationEvent>({
-		streamFn: watchNotifications,
-		params: {},
-		pauseOnHidden: true,
+	// Set up EventSource connection
+	useEffect(() => {
+		// Native browser EventSource API
+		// Automatically handles:
+		// - SSE protocol parsing
+		// - Automatic reconnection with exponential backoff
+		// - Connection keep-alive
+		const eventSource = new EventSource("/api/sse/notifications");
 
-		// Handle incoming events
-		onData: (event: NotificationEvent) => {
-			setNotifications((prev) => [event, ...prev].slice(0, 10)); // Keep last 10
-		},
+		// Connection opened
+		eventSource.onopen = () => {
+			setIsConnected(true);
+			setError(null);
+		};
 
-		// Connection lifecycle callbacks with debug logging
-		onConnect: () => {},
+		// Message received
+		eventSource.onmessage = (event) => {
+			try {
+				const notification: NotificationEvent = JSON.parse(event.data);
+				setNotifications((prev) => [notification, ...prev].slice(0, 10)); // Keep last 10
+			} catch (_err) {}
+		};
 
-		onDisconnect: () => {},
+		// Error occurred
+		eventSource.onerror = (err) => {
+			setIsConnected(false);
+			setError("Connection lost. Reconnecting...");
+			// EventSource automatically attempts to reconnect
+		};
 
-		onError: (error: Error, attempt: number) => {},
-
-		// Reconnection strategy
-		maxRetries: 10,
-		baseDelay: 1000,
-		maxDelay: 30000,
-	});
+		// Cleanup on unmount
+		return () => {
+			eventSource.close();
+		};
+	}, []);
 
 	const handleTrigger = async () => {
 		setIsTriggering(true);
 		try {
-			await triggerNotification();
+			await triggerSSENotification();
+		} catch (_err) {
 		} finally {
 			setIsTriggering(false);
 		}
@@ -89,35 +110,25 @@ function StreamingClient() {
 		<div className="min-h-screen bg-gray-50 p-8">
 			<div className="max-w-4xl mx-auto">
 				<div className="bg-white rounded-lg shadow-lg p-6">
-					<h1 className="text-3xl font-bold mb-2">Real-time Streaming Demo</h1>
+					<h1 className="text-3xl font-bold mb-2">SSE Streaming Demo</h1>
 					<p className="text-gray-600 mb-6">
-						Powered by <code className="bg-gray-100 px-2 py-1 rounded text-sm">@enalmada/start-streaming</code>
+						Powered by <code className="bg-gray-100 px-2 py-1 rounded text-sm">better-sse</code>
 					</p>
 
 					{/* Connection Status */}
 					<div className="mb-6 p-4 bg-gray-50 rounded border">
 						<h2 className="font-semibold mb-2">Connection Status</h2>
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+						<div className="grid grid-cols-2 gap-4 text-sm">
 							<div>
 								<span className="text-gray-600">Connected:</span>
-								<span className={`ml-2 font-semibold ${stream.isConnected ? "text-green-600" : "text-red-600"}`}>
-									{stream.isConnected ? "✓ Yes" : "✗ No"}
+								<span className={`ml-2 font-semibold ${isConnected ? "text-green-600" : "text-red-600"}`}>
+									{isConnected ? "✓ Yes" : "✗ No"}
 								</span>
 							</div>
 							<div>
-								<span className="text-gray-600">Reconnecting:</span>
-								<span className={`ml-2 font-semibold ${stream.isReconnecting ? "text-yellow-600" : "text-gray-400"}`}>
-									{stream.isReconnecting ? "⟳ Yes" : "—"}
-								</span>
-							</div>
-							<div>
-								<span className="text-gray-600">Attempts:</span>
-								<span className="ml-2 font-semibold">{stream.reconnectAttempt}</span>
-							</div>
-							<div>
-								<span className="text-gray-600">Error:</span>
-								<span className={`ml-2 font-semibold ${stream.error ? "text-red-600" : "text-gray-400"}`}>
-									{stream.error ? "✗ Error" : "—"}
+								<span className="text-gray-600">Status:</span>
+								<span className={`ml-2 font-semibold ${error ? "text-red-600" : "text-gray-400"}`}>
+									{error || "Ready"}
 								</span>
 							</div>
 						</div>
@@ -128,7 +139,7 @@ function StreamingClient() {
 						<Button
 							type="button"
 							onClick={handleTrigger}
-							disabled={isTriggering}
+							disabled={isTriggering || !isConnected}
 							className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
 						>
 							{isTriggering ? "Triggering..." : "Trigger Notification"}
@@ -171,14 +182,14 @@ function StreamingClient() {
 					<div className="mt-8 p-4 bg-gray-50 rounded border">
 						<h2 className="font-semibold mb-2">How It Works</h2>
 						<ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-							<li>Uses TanStack Start's native async generator streaming</li>
-							<li>NDJSON format over HTTP (not EventSource/SSE)</li>
-							<li>Auto-reconnection with exponential backoff + jitter</li>
-							<li>Pauses when tab is hidden (Page Visibility API)</li>
+							<li>Uses native browser EventSource API (Web Standard)</li>
+							<li>Server-Sent Events (SSE) over HTTP</li>
+							<li>Automatic reconnection built into browser</li>
+							<li>better-sse library for server-side SSE management</li>
 							<li>Full TypeScript type safety end-to-end</li>
 						</ul>
 						<a
-							href="https://github.com/Enalmada/start-streaming"
+							href="https://github.com/MatthewWid/better-sse"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="text-blue-600 hover:underline text-sm mt-2 inline-block"
