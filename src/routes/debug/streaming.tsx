@@ -3,11 +3,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { triggerNotification, watchNotifications } from "~/functions/streaming";
+import type { NotificationEvent, WatchNotificationsInput } from "~/server/lib/events";
 
 export const Route = createFileRoute("/debug/streaming")({
 	component: StreamingDebugPage,
 });
 
+/**
+ * Streaming demo page component
+ *
+ * Demonstrates SSR-safe streaming with proper hydration.
+ * Only renders streaming component on client-side to avoid
+ * calling hooks during SSR.
+ */
 function StreamingDebugPage() {
 	const [isClient, setIsClient] = useState(false);
 
@@ -34,34 +42,35 @@ function StreamingDebugPage() {
 	return <StreamingClient />;
 }
 
+/**
+ * Client-only streaming component
+ *
+ * Manages real-time notification stream with auto-reconnection.
+ * Uses proper type imports and safe React keys.
+ */
 function StreamingClient() {
-	const [notifications, setNotifications] = useState<
-		Array<{
-			type: string;
-			message: string;
-			count: number;
-			timestamp: number;
-		}>
-	>([]);
+	const [notifications, setNotifications] = useState<NotificationEvent[]>([]);
 	const [isTriggering, setIsTriggering] = useState(false);
 
-	// Set up streaming connection
-	const stream = useAutoReconnectStream({
+	// Set up streaming connection with proper typing
+	const stream = useAutoReconnectStream<WatchNotificationsInput, NotificationEvent>({
 		streamFn: watchNotifications,
-		params: {} as never,
+		params: {},
 		pauseOnHidden: true,
 
 		// Handle incoming events
-		onData: (event: { type: string; message: string; count: number; timestamp: number }) => {
+		onData: (event: NotificationEvent) => {
 			setNotifications((prev) => [event, ...prev].slice(0, 10)); // Keep last 10
 		},
 
+		// Connection lifecycle callbacks with debug logging
 		onConnect: () => {},
 
 		onDisconnect: () => {},
 
 		onError: (error: Error, attempt: number) => {},
 
+		// Reconnection strategy
 		maxRetries: 10,
 		baseDelay: 1000,
 		maxDelay: 30000,
@@ -140,7 +149,7 @@ function StreamingClient() {
 							<div className="space-y-2">
 								{notifications.map((notification) => (
 									<div
-										key={notification.timestamp}
+										key={`${notification.timestamp}-${notification.count}`}
 										className="p-4 bg-blue-50 border-l-4 border-blue-600 rounded animate-fadeIn"
 									>
 										<div className="flex justify-between items-start">
