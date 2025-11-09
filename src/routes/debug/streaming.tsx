@@ -1,32 +1,58 @@
-import { useAutoReconnectStream } from "@enalmada/start-streaming/client";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { triggerNotification, watchNotifications } from "~/functions/streaming";
-import type { NotificationEvent } from "~/server/lib/events";
 
 export const Route = createFileRoute("/debug/streaming")({
 	component: StreamingDebugPage,
 });
 
 function StreamingDebugPage() {
-	const [notifications, setNotifications] = useState<NotificationEvent[]>([]);
-	const [isTriggering, setIsTriggering] = useState(false);
 	const [isClient, setIsClient] = useState(false);
 
-	// Only run streaming on client-side
+	// Only render streaming component on client-side
 	useEffect(() => {
 		setIsClient(true);
 	}, []);
 
-	// Set up streaming connection (using useAutoReconnectStream instead of useStreamInvalidation to avoid QueryClient SSR issues)
+	// Show loading state during SSR
+	if (!isClient) {
+		return (
+			<div className="min-h-screen bg-gray-50 p-8">
+				<div className="max-w-4xl mx-auto">
+					<div className="bg-white rounded-lg shadow-lg p-6">
+						<h1 className="text-3xl font-bold mb-2">Real-time Streaming Demo</h1>
+						<p className="text-gray-600">Loading streaming demo...</p>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	// Client-side only component
+	return <StreamingClient />;
+}
+
+// This component only renders on client-side, avoiding SSR issues
+function StreamingClient() {
+	const { useAutoReconnectStream } = require("@enalmada/start-streaming/client");
+	const { triggerNotification, watchNotifications } = require("~/functions/streaming");
+	const [notifications, setNotifications] = useState<
+		Array<{
+			type: string;
+			message: string;
+			count: number;
+			timestamp: number;
+		}>
+	>([]);
+	const [isTriggering, setIsTriggering] = useState(false);
+
+	// Set up streaming connection
 	const stream = useAutoReconnectStream({
 		streamFn: watchNotifications,
 		params: {} as never,
 		pauseOnHidden: true,
-		enabled: isClient, // Only enable when client-side
 
 		// Handle incoming events
-		onData: (event: NotificationEvent) => {
+		onData: (event: any) => {
 			setNotifications((prev) => [event, ...prev].slice(0, 10)); // Keep last 10
 		},
 
@@ -34,7 +60,7 @@ function StreamingDebugPage() {
 
 		onDisconnect: () => {},
 
-		onError: (error, attempt) => {},
+		onError: (error: Error, attempt: number) => {},
 
 		maxRetries: 10,
 		baseDelay: 1000,
