@@ -1,7 +1,7 @@
 import { useStreamInvalidation } from "@enalmada/start-streaming/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { triggerNotification, watchNotifications } from "~/functions/streaming";
 import type { NotificationEvent } from "~/server/lib/events";
 
@@ -13,12 +13,19 @@ function StreamingDebugPage() {
 	const _queryClient = useQueryClient();
 	const [notifications, setNotifications] = useState<NotificationEvent[]>([]);
 	const [isTriggering, setIsTriggering] = useState(false);
+	const [isClient, setIsClient] = useState(false);
 
-	// Set up streaming connection
+	// Only run streaming on client-side
+	useEffect(() => {
+		setIsClient(true);
+	}, []);
+
+	// Set up streaming connection (only on client)
 	const stream = useStreamInvalidation({
 		streamFn: () => watchNotifications(),
 		params: {},
 		pauseOnHidden: true,
+		enabled: isClient, // Only enable when client-side
 
 		// Handle incoming events
 		onData: (event: NotificationEvent) => {
