@@ -16,6 +16,7 @@ A production starter template for TanStack Start.
 - [Tailwind CSS](https://tailwindcss.com/) styling
 - [Lingui](https://lingui.dev/) localization
 - [start-secure](https://github.com/enalmada/start-secure) Content Security Policy (CSP) with native nonce support
+- [better-sse](https://github.com/MatthewWid/better-sse) Server-Sent Events (SSE) for real-time streaming
 - [Service Worker](https://developer.chrome.com/docs/workbox/service-worker-overview/) with [Serwist](https://serwist.pages.dev/)
 
 ### Backend & Data
@@ -62,6 +63,8 @@ A production starter template for TanStack Start.
    ```
 
    The development server should be now running at [http://localhost:3000](http://localhost:3000).
+
+5. Check out the **real-time streaming demo** at [http://localhost:3000/debug/streaming-sse](http://localhost:3000/debug/streaming-sse) to see Server-Sent Events in action.
 
 ## Building for production
 

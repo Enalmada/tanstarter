@@ -23,9 +23,11 @@ import { Route as TasksIndexRouteImport } from "./routes/tasks/index";
 import { Route as AdminIndexRouteImport } from "./routes/admin/index";
 import { Route as TasksNewRouteImport } from "./routes/tasks/new";
 import { Route as TasksTaskIdRouteImport } from "./routes/tasks/$taskId";
+import { Route as DebugStreamingSseRouteImport } from "./routes/debug/streaming-sse";
 import { Route as DebugMonitoringRouteImport } from "./routes/debug/monitoring";
 import { Route as AdminUsersIndexRouteImport } from "./routes/admin/users/index";
 import { Route as AdminTasksIndexRouteImport } from "./routes/admin/tasks/index";
+import { Route as ApiSseNotificationsRouteImport } from "./routes/api/sse/notifications";
 import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth/$";
 import { Route as AdminUsersUserIdRouteImport } from "./routes/admin/users/$userId";
 import { Route as AdminTasksNewRouteImport } from "./routes/admin/tasks/new";
@@ -102,6 +104,11 @@ const TasksTaskIdRoute = TasksTaskIdRouteImport.update({
   path: "/$taskId",
   getParentRoute: () => TasksRoute,
 } as any);
+const DebugStreamingSseRoute = DebugStreamingSseRouteImport.update({
+  id: "/debug/streaming-sse",
+  path: "/debug/streaming-sse",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const DebugMonitoringRoute = DebugMonitoringRouteImport.update({
   id: "/debug/monitoring",
   path: "/debug/monitoring",
@@ -116,6 +123,11 @@ const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
   id: "/tasks/",
   path: "/tasks/",
   getParentRoute: () => AdminRoute,
+} as any);
+const ApiSseNotificationsRoute = ApiSseNotificationsRouteImport.update({
+  id: "/api/sse/notifications",
+  path: "/api/sse/notifications",
+  getParentRoute: () => rootRouteImport,
 } as any);
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: "/api/auth/$",
@@ -155,6 +167,7 @@ export interface FileRoutesByFullPath {
   "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
+  "/debug/streaming-sse": typeof DebugStreamingSseRoute;
   "/tasks/$taskId": typeof TasksTaskIdRoute;
   "/tasks/new": typeof TasksNewRoute;
   "/admin/": typeof AdminIndexRoute;
@@ -164,6 +177,7 @@ export interface FileRoutesByFullPath {
   "/admin/tasks/new": typeof AdminTasksNewRoute;
   "/admin/users/$userId": typeof AdminUsersUserIdRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/api/sse/notifications": typeof ApiSseNotificationsRoute;
   "/admin/tasks": typeof AdminTasksIndexRoute;
   "/admin/users": typeof AdminUsersIndexRoute;
 }
@@ -177,6 +191,7 @@ export interface FileRoutesByTo {
   "/signup": typeof SignupRoute;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
+  "/debug/streaming-sse": typeof DebugStreamingSseRoute;
   "/tasks/$taskId": typeof TasksTaskIdRoute;
   "/tasks/new": typeof TasksNewRoute;
   "/admin": typeof AdminIndexRoute;
@@ -186,6 +201,7 @@ export interface FileRoutesByTo {
   "/admin/tasks/new": typeof AdminTasksNewRoute;
   "/admin/users/$userId": typeof AdminUsersUserIdRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/api/sse/notifications": typeof ApiSseNotificationsRoute;
   "/admin/tasks": typeof AdminTasksIndexRoute;
   "/admin/users": typeof AdminUsersIndexRoute;
 }
@@ -202,6 +218,7 @@ export interface FileRoutesById {
   "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
+  "/debug/streaming-sse": typeof DebugStreamingSseRoute;
   "/tasks/$taskId": typeof TasksTaskIdRoute;
   "/tasks/new": typeof TasksNewRoute;
   "/admin/": typeof AdminIndexRoute;
@@ -211,6 +228,7 @@ export interface FileRoutesById {
   "/admin/tasks/new": typeof AdminTasksNewRoute;
   "/admin/users/$userId": typeof AdminUsersUserIdRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
+  "/api/sse/notifications": typeof ApiSseNotificationsRoute;
   "/admin/tasks/": typeof AdminTasksIndexRoute;
   "/admin/users/": typeof AdminUsersIndexRoute;
 }
@@ -228,6 +246,7 @@ export interface FileRouteTypes {
     | "/tasks"
     | "/terms"
     | "/debug/monitoring"
+    | "/debug/streaming-sse"
     | "/tasks/$taskId"
     | "/tasks/new"
     | "/admin/"
@@ -237,6 +256,7 @@ export interface FileRouteTypes {
     | "/admin/tasks/new"
     | "/admin/users/$userId"
     | "/api/auth/$"
+    | "/api/sse/notifications"
     | "/admin/tasks"
     | "/admin/users";
   fileRoutesByTo: FileRoutesByTo;
@@ -250,6 +270,7 @@ export interface FileRouteTypes {
     | "/signup"
     | "/terms"
     | "/debug/monitoring"
+    | "/debug/streaming-sse"
     | "/tasks/$taskId"
     | "/tasks/new"
     | "/admin"
@@ -259,6 +280,7 @@ export interface FileRouteTypes {
     | "/admin/tasks/new"
     | "/admin/users/$userId"
     | "/api/auth/$"
+    | "/api/sse/notifications"
     | "/admin/tasks"
     | "/admin/users";
   id:
@@ -274,6 +296,7 @@ export interface FileRouteTypes {
     | "/tasks"
     | "/terms"
     | "/debug/monitoring"
+    | "/debug/streaming-sse"
     | "/tasks/$taskId"
     | "/tasks/new"
     | "/admin/"
@@ -283,6 +306,7 @@ export interface FileRouteTypes {
     | "/admin/tasks/new"
     | "/admin/users/$userId"
     | "/api/auth/$"
+    | "/api/sse/notifications"
     | "/admin/tasks/"
     | "/admin/users/";
   fileRoutesById: FileRoutesById;
@@ -299,7 +323,9 @@ export interface RootRouteChildren {
   TasksRoute: typeof TasksRouteWithChildren;
   TermsRoute: typeof TermsRoute;
   DebugMonitoringRoute: typeof DebugMonitoringRoute;
+  DebugStreamingSseRoute: typeof DebugStreamingSseRoute;
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
+  ApiSseNotificationsRoute: typeof ApiSseNotificationsRoute;
 }
 
 declare module "@tanstack/react-router" {
@@ -402,6 +428,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof TasksTaskIdRouteImport;
       parentRoute: typeof TasksRoute;
     };
+    "/debug/streaming-sse": {
+      id: "/debug/streaming-sse";
+      path: "/debug/streaming-sse";
+      fullPath: "/debug/streaming-sse";
+      preLoaderRoute: typeof DebugStreamingSseRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/debug/monitoring": {
       id: "/debug/monitoring";
       path: "/debug/monitoring";
@@ -422,6 +455,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/admin/tasks";
       preLoaderRoute: typeof AdminTasksIndexRouteImport;
       parentRoute: typeof AdminRoute;
+    };
+    "/api/sse/notifications": {
+      id: "/api/sse/notifications";
+      path: "/api/sse/notifications";
+      fullPath: "/api/sse/notifications";
+      preLoaderRoute: typeof ApiSseNotificationsRouteImport;
+      parentRoute: typeof rootRouteImport;
     };
     "/api/auth/$": {
       id: "/api/auth/$";
@@ -509,7 +549,9 @@ const rootRouteChildren: RootRouteChildren = {
   TasksRoute: TasksRouteWithChildren,
   TermsRoute: TermsRoute,
   DebugMonitoringRoute: DebugMonitoringRoute,
+  DebugStreamingSseRoute: DebugStreamingSseRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiSseNotificationsRoute: ApiSseNotificationsRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

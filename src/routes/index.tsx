@@ -127,20 +127,39 @@ function Home() {
 					</Card>
 				</div>
 
-				{/* Error Monitoring Section */}
+				{/* Demos Section */}
 				<div className="flex flex-col gap-8">
-					<h2 className="text-3xl font-bold tracking-tight text-center">Error Monitoring</h2>
-					<Card>
-						<CardContent className="flex flex-col items-center gap-4 pt-6">
-							<p className="text-muted-foreground text-center">
-								Test the error monitoring system with various scenarios including error boundaries, uncaught errors,
-								async errors, and user context tracking.
-							</p>
-							<Button asChild>
-								<Link to="/debug/monitoring">Test Error Monitoring</Link>
-							</Button>
-						</CardContent>
-					</Card>
+					<h2 className="text-3xl font-bold tracking-tight text-center">Live Demos</h2>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<Card>
+							<CardContent className="flex flex-col items-center gap-4 pt-6">
+								<div className="text-center">
+									<h3 className="font-semibold text-lg mb-2">Real-time Streaming</h3>
+									<p className="text-muted-foreground text-sm mb-4">
+										Server-Sent Events with native EventSource API, automatic reconnection, and type-safe events.
+										Powered by <code className="bg-muted px-1 py-0.5 rounded text-xs">better-sse</code>
+									</p>
+								</div>
+								<Button asChild>
+									<Link to="/debug/streaming-sse">Try Streaming Demo</Link>
+								</Button>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className="flex flex-col items-center gap-4 pt-6">
+								<div className="text-center">
+									<h3 className="font-semibold text-lg mb-2">Error Monitoring</h3>
+									<p className="text-muted-foreground text-sm mb-4">
+										Test error monitoring with various scenarios including error boundaries, uncaught errors, and async
+										errors.
+									</p>
+								</div>
+								<Button asChild>
+									<Link to="/debug/monitoring">Test Error Monitoring</Link>
+								</Button>
+							</CardContent>
+						</Card>
+					</div>
 				</div>
 			</div>
 		</Container>
