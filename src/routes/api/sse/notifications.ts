@@ -47,7 +47,8 @@ export const Route = createFileRoute("/api/sse/notifications" as any)({
 						);
 
 						// Handle cleanup when client disconnects
-						// This is critical for preventing memory leaks
+						// Note: better-sse auto-deregisters on disconnect, but we explicitly
+						// deregister here for clarity and defensive programming
 						session.once("disconnected", () => {
 							notificationChannel.deregister(session);
 						});
