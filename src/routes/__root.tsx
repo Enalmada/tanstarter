@@ -34,14 +34,34 @@ import { queries } from "~/utils/query/queries";
 // NOTE: Service worker only works with HTTPS or localhost
 // See docs/sessions/serwist_support.md for full details
 const ENABLE_SERVICE_WORKER = import.meta.env.PROD;
+const ENABLE_DEVTOOLS = false; // Set to true to show DevTools button in development
 
-// const _TanStackRouterDevtools = import.meta.env.PROD
-// 	? () => null
-// 	: lazy(() =>
-// 			import("@tanstack/router-devtools").then((res) => ({
-// 				default: res.TanStackRouterDevtools,
-// 			})),
-// 		);
+const TanStackDevtools =
+	import.meta.env.PROD || !ENABLE_DEVTOOLS
+		? () => null
+		: lazy(() =>
+				import("@tanstack/react-devtools").then((res) => ({
+					default: res.TanStackDevtools,
+				})),
+			);
+
+const ReactQueryDevtoolsPanel =
+	import.meta.env.PROD || !ENABLE_DEVTOOLS
+		? () => null
+		: lazy(() =>
+				import("@tanstack/react-query-devtools").then((res) => ({
+					default: res.ReactQueryDevtoolsPanel,
+				})),
+			);
+
+const TanStackRouterDevtoolsPanel =
+	import.meta.env.PROD || !ENABLE_DEVTOOLS
+		? () => null
+		: lazy(() =>
+				import("@tanstack/router-devtools").then((res) => ({
+					default: res.TanStackRouterDevtoolsPanel,
+				})),
+			);
 
 const AnalyticsProvider = lazy(() =>
 	import("~/utils/analytics").then((mod) => ({
@@ -218,13 +238,20 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 				</ScriptOnce>
 				{children}
 				<Toaster position="bottom-right" />
-				{/*}
-				<ReactQueryDevtools buttonPosition="bottom-left" />
-
 				<Suspense>
-					<TanStackRouterDevtools position="bottom-right" />
+					<TanStackDevtools
+						plugins={[
+							{
+								name: "TanStack Query",
+								render: <ReactQueryDevtoolsPanel />,
+							},
+							{
+								name: "TanStack Router",
+								render: <TanStackRouterDevtoolsPanel />,
+							},
+						]}
+					/>
 				</Suspense>
-				*/}
 				<Scripts />
 				<Suspense fallback={null}>
 					<AnalyticsProvider />
