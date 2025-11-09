@@ -136,12 +136,12 @@ function Home() {
 								<div className="text-center">
 									<h3 className="font-semibold text-lg mb-2">Real-time Streaming</h3>
 									<p className="text-muted-foreground text-sm mb-4">
-										Live notifications with auto-reconnection, exponential backoff, and type-safe events. Powered by{" "}
-										<code className="bg-muted px-1 py-0.5 rounded text-xs">@enalmada/start-streaming</code>
+										Server-Sent Events with native EventSource API, automatic reconnection, and type-safe events.
+										Powered by <code className="bg-muted px-1 py-0.5 rounded text-xs">better-sse</code>
 									</p>
 								</div>
 								<Button asChild>
-									<Link to="/debug/streaming">Try Streaming Demo</Link>
+									<Link to="/debug/streaming-sse">Try Streaming Demo</Link>
 								</Button>
 							</CardContent>
 						</Card>
