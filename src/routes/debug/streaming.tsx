@@ -1,5 +1,4 @@
-import { useStreamInvalidation } from "@enalmada/start-streaming/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useAutoReconnectStream } from "@enalmada/start-streaming/client";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { triggerNotification, watchNotifications } from "~/functions/streaming";
@@ -10,7 +9,6 @@ export const Route = createFileRoute("/debug/streaming")({
 });
 
 function StreamingDebugPage() {
-	const _queryClient = useQueryClient();
 	const [notifications, setNotifications] = useState<NotificationEvent[]>([]);
 	const [isTriggering, setIsTriggering] = useState(false);
 	const [isClient, setIsClient] = useState(false);
@@ -20,8 +18,8 @@ function StreamingDebugPage() {
 		setIsClient(true);
 	}, []);
 
-	// Set up streaming connection (only on client)
-	const stream = useStreamInvalidation({
+	// Set up streaming connection (using useAutoReconnectStream instead of useStreamInvalidation to avoid QueryClient SSR issues)
+	const stream = useAutoReconnectStream({
 		streamFn: () => watchNotifications(),
 		params: {},
 		pauseOnHidden: true,
