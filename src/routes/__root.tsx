@@ -3,7 +3,7 @@
 // import { getSerwist } from "virtual:serwist";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, HeadContent, Outlet, redirect, ScriptOnce, Scripts } from "@tanstack/react-router";
-import { lazy, type ReactNode, Suspense, useEffect } from "react";
+import { type ComponentType, lazy, type ReactNode, Suspense, useEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import { Toaster } from "~/components/ui/sonner";
@@ -34,14 +34,40 @@ import { queries } from "~/utils/query/queries";
 // NOTE: Service worker only works with HTTPS or localhost
 // See docs/sessions/serwist_support.md for full details
 const ENABLE_SERVICE_WORKER = import.meta.env.PROD;
+const ENABLE_DEVTOOLS = false; // Set to true to show DevTools button in development
 
-// const _TanStackRouterDevtools = import.meta.env.PROD
-// 	? () => null
-// 	: lazy(() =>
-// 			import("@tanstack/router-devtools").then((res) => ({
-// 				default: res.TanStackRouterDevtools,
-// 			})),
-// 		);
+// biome-ignore lint/suspicious/noExplicitAny: DevTools components have complex prop types that are correctly inferred at call sites
+const lazyLoadDevtool = <P = any>(loader: () => Promise<{ default: ComponentType<P> }>): ComponentType<P> => {
+	if (import.meta.env.PROD || !ENABLE_DEVTOOLS) {
+		// Return a component that renders nothing
+		return (() => null) as ComponentType<P>;
+	}
+	return lazy(loader);
+};
+
+const TanStackDevtools = lazyLoadDevtool(
+	() =>
+		import("@tanstack/react-devtools").then((res) => ({
+			default: res.TanStackDevtools,
+			// biome-ignore lint/suspicious/noExplicitAny: Type assertion needed for dynamic import compatibility
+		})) as Promise<{ default: ComponentType<any> }>,
+);
+
+const ReactQueryDevtoolsPanel = lazyLoadDevtool(
+	() =>
+		import("@tanstack/react-query-devtools").then((res) => ({
+			default: res.ReactQueryDevtoolsPanel,
+			// biome-ignore lint/suspicious/noExplicitAny: Type assertion needed for dynamic import compatibility
+		})) as Promise<{ default: ComponentType<any> }>,
+);
+
+const TanStackRouterDevtoolsPanel = lazyLoadDevtool(
+	() =>
+		import("@tanstack/router-devtools").then((res) => ({
+			default: res.TanStackRouterDevtoolsPanel,
+			// biome-ignore lint/suspicious/noExplicitAny: Type assertion needed for dynamic import compatibility
+		})) as Promise<{ default: ComponentType<any> }>,
+);
 
 const AnalyticsProvider = lazy(() =>
 	import("~/utils/analytics").then((mod) => ({
@@ -218,13 +244,20 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 				</ScriptOnce>
 				{children}
 				<Toaster position="bottom-right" />
-				{/*}
-				<ReactQueryDevtools buttonPosition="bottom-left" />
-
 				<Suspense>
-					<TanStackRouterDevtools position="bottom-right" />
+					<TanStackDevtools
+						plugins={[
+							{
+								name: "TanStack Query",
+								render: <ReactQueryDevtoolsPanel />,
+							},
+							{
+								name: "TanStack Router",
+								render: <TanStackRouterDevtoolsPanel />,
+							},
+						]}
+					/>
 				</Suspense>
-				*/}
 				<Scripts />
 				<Suspense fallback={null}>
 					<AnalyticsProvider />
