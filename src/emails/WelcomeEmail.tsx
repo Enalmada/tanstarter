@@ -4,12 +4,25 @@ import { EmailLayout } from "./components/EmailLayout";
 
 export interface WelcomeEmailProps {
 	username?: string;
+	appName: string;
 	gettingStartedUrl: string;
 	supportEmail: string;
+	unsubscribeUrl?: string;
 }
 
-export const WelcomeEmail: FC<WelcomeEmailProps> = ({ username, gettingStartedUrl, supportEmail }) => (
-	<EmailLayout preview="Welcome to our platform! Get started with your new account." supportEmail={supportEmail}>
+export const WelcomeEmail: FC<WelcomeEmailProps> = ({
+	username,
+	appName,
+	gettingStartedUrl,
+	supportEmail,
+	unsubscribeUrl,
+}) => (
+	<EmailLayout
+		preview="Welcome to our platform! Get started with your new account."
+		appName={appName}
+		supportEmail={supportEmail}
+		{...(unsubscribeUrl ? { unsubscribeUrl } : {})}
+	>
 		<Heading className="mb-4 text-2xl font-semibold text-gray-900">
 			{username ? `Welcome ${username}!` : "Welcome!"}
 		</Heading>

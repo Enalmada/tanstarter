@@ -56,13 +56,21 @@ const meta = {
 			control: "text",
 			description: "The username to display in the welcome message (optional)",
 		},
+		appName: {
+			control: "text",
+			description: "App/brand name shown in header and footer (required)",
+		},
 		gettingStartedUrl: {
 			control: "text",
-			description: "URL for the Get Started button",
+			description: "URL for the Get Started button (required)",
 		},
 		supportEmail: {
 			control: "text",
-			description: "Support email address",
+			description: "Support email address (required)",
+		},
+		unsubscribeUrl: {
+			control: "text",
+			description: "Unsubscribe URL for email compliance (optional)",
 		},
 	},
 } satisfies Meta<typeof EmailPreview>;
@@ -76,8 +84,10 @@ export const Default: Story = {
 
 export const WithoutUsername: Story = {
 	args: {
+		appName: welcomeEmailPreview.appName,
 		gettingStartedUrl: welcomeEmailPreview.gettingStartedUrl,
 		supportEmail: welcomeEmailPreview.supportEmail,
+		unsubscribeUrl: welcomeEmailPreview.unsubscribeUrl,
 	},
 };
 
@@ -85,5 +95,20 @@ export const WithLongUsername: Story = {
 	args: {
 		...welcomeEmailPreview,
 		username: "Alexandra Thompson-Williams",
+	},
+};
+
+export const WithoutUnsubscribe: Story = {
+	args: {
+		appName: welcomeEmailPreview.appName,
+		gettingStartedUrl: welcomeEmailPreview.gettingStartedUrl,
+		supportEmail: welcomeEmailPreview.supportEmail,
+	},
+};
+
+export const CustomBranding: Story = {
+	args: {
+		...welcomeEmailPreview,
+		appName: "FrontlineIQ",
 	},
 };
