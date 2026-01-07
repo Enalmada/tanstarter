@@ -34,6 +34,16 @@ export const makeUserAdmin = createServerFn({ method: "POST" })
 		// Update the user's role
 		const [updatedUser] = await updateUserRole(userId, role, currentUser.id);
 
+		// Refresh the session cookie cache with updated user data
+		// This forces a DB fetch and updates the cookie so hard refresh reflects the change
+		const request = getRequest();
+		if (request) {
+			await auth.api.getSession({
+				headers: request.headers,
+				query: { disableCookieCache: true },
+			});
+		}
+
 		return updatedUser;
 	});
 

@@ -1,3 +1,4 @@
+import { render } from "@react-email/render";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, useId, useState } from "react";
@@ -5,12 +6,15 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { welcomeEmailPreview } from "~/emails/preview-data";
+import { WelcomeEmail } from "~/emails/WelcomeEmail";
 
 const emailQueries = {
 	welcomePreview: {
 		queryKey: ["emails", "welcome", "preview"],
 		queryFn: async () => {
-			return "TBD";
+			const html = await render(<WelcomeEmail {...welcomeEmailPreview} />);
+			return html;
 		},
 	},
 } as const;
