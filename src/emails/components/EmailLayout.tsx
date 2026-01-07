@@ -58,7 +58,10 @@ export const EmailLayout: FC<PropsWithChildren<EmailLayoutProps>> = ({
 						<Section className="border-t border-gray-200 px-6 py-4 text-xs text-gray-500">
 							<Text className="m-0">
 								You received this email because you have an account with {appName}. If you have questions, contact us at{" "}
-								{supportEmail}.
+								<Link href={`mailto:${supportEmail}`} className="text-gray-500 underline">
+									{supportEmail}
+								</Link>
+								.
 							</Text>
 							{unsubscribeUrl && (
 								<Text className="m-0 mt-2">
