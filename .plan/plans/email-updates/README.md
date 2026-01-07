@@ -35,21 +35,43 @@ const WelcomeEmail = ({ username = "there" }) => (
 3. **No shared layout** - Every email repeats Html/Head/Body boilerplate
 4. **Inline styles** - Verbose, hard to maintain, no design system
 5. **Optional props with defaults** - Easy to forget required values
+6. **Hardcoded app name** - Cannot reuse templates across different brands
 
 ## Architecture Decisions
 
-### 1. Required Props for URLs (No Defaults)
+### 1. Required Props for URLs and Branding (No Defaults)
 
 ```tsx
 // ✅ Forces callers to provide real values
 interface WelcomeEmailProps {
+  appName: string;            // Required - no hardcoded brand
   gettingStartedUrl: string;  // Required - no example.com default
   supportEmail: string;       // Required - no placeholder
-  username?: string;          // Optional - has graceful fallback
+  unsubscribeUrl?: string;    // Optional - for email compliance
+  username?: string;          // Optional - has graceful UI fallback
 }
 ```
 
 **Why?** Default URLs like `example.com` can accidentally ship to production. By making URLs required, TypeScript ensures every call site provides real values. Optional props like `username` have UI fallbacks ("Welcome!" vs "Welcome Jordan!").
+
+**Why required appName?** A hardcoded brand name limits reusability. Making it required ensures templates work across different applications/brands.
+
+### 1b. Optional Unsubscribe URL for Compliance
+
+```tsx
+interface EmailLayoutProps {
+  unsubscribeUrl?: string;  // Optional - shown in footer when provided
+}
+
+// In footer:
+{unsubscribeUrl && (
+  <Text>
+    <Link href={unsubscribeUrl}>Unsubscribe</Link> from these emails.
+  </Text>
+)}
+```
+
+**Why optional?** Not all emails require unsubscribe links (e.g., transactional emails like password resets). But when needed for marketing emails, CAN-SPAM and GDPR compliance requires it.
 
 ### 2. Tailwind CSS with pixelBasedPreset
 
@@ -88,8 +110,18 @@ Email clients have poor CSS support. Tailwind uses `rem` units for accessibility
 
 ```tsx
 // src/emails/components/EmailLayout.tsx
-export const EmailLayout: FC<PropsWithChildren<{ preview: string }>> = ({
+export interface EmailLayoutProps {
+  preview: string;
+  appName: string;
+  supportEmail: string;
+  unsubscribeUrl?: string;
+}
+
+export const EmailLayout: FC<PropsWithChildren<EmailLayoutProps>> = ({
   preview,
+  appName,
+  supportEmail,
+  unsubscribeUrl,
   children,
 }) => (
   <Html lang="en">
@@ -98,9 +130,14 @@ export const EmailLayout: FC<PropsWithChildren<{ preview: string }>> = ({
     <Tailwind config={tailwindConfig}>
       <Body className="bg-gray-50 font-sans">
         <Container>
-          <Section className="bg-gray-900">{/* Header */}</Section>
+          <Section className="bg-gray-900">
+            <Text>{appName}</Text>
+          </Section>
           <Section>{children}</Section>
-          <Section>{/* Footer with disclaimer */}</Section>
+          <Section>
+            <Text>You received this because you have an account with {appName}.</Text>
+            {unsubscribeUrl && <Link href={unsubscribeUrl}>Unsubscribe</Link>}
+          </Section>
         </Container>
       </Body>
     </Tailwind>
@@ -113,16 +150,24 @@ export const EmailLayout: FC<PropsWithChildren<{ preview: string }>> = ({
 - Consistent header/footer across all emails
 - Single place to update brand styling
 - `lang="en"` for accessibility
+- Configurable branding via props
 
-### 4. Preview Data Pattern
+### 4. Preview Data Pattern with Type Safety
 
 ```tsx
 // src/emails/preview-data.ts
-export const welcomeEmailPreview: WelcomeEmailProps = {
+import type { WelcomeEmailProps } from "./WelcomeEmail";
+
+// Use const satisfies Required<T> for preview data
+// This ensures all props have concrete values (no string | undefined)
+// which avoids exactOptionalPropertyTypes issues in stories
+export const welcomeEmailPreview = {
   username: "Jordan",
-  gettingStartedUrl: "https://app.example.dev/getting-started",
-  supportEmail: "support@example.dev",
-};
+  appName: "TanStarter",
+  gettingStartedUrl: "https://app.tanstarter.dev/getting-started",
+  supportEmail: "support@tanstarter.dev",
+  unsubscribeUrl: "https://app.tanstarter.dev/settings/notifications",
+} as const satisfies Required<WelcomeEmailProps>;
 
 // src/emails/WelcomeEmail.stories.tsx
 export const Default: Story = {
@@ -130,11 +175,12 @@ export const Default: Story = {
 };
 ```
 
-**Why?**
+**Why `as const satisfies Required<T>`?**
 - Typed preview props catch interface mismatches
-- Centralized test data for Storybook
-- Easy to add new story variants
-- Keeps stories clean and focused
+- `as const` preserves literal types for better inference
+- `Required<T>` ensures all optional props have values in previews
+- Avoids TypeScript `exactOptionalPropertyTypes` errors in Storybook
+- Centralized test data for easy story variants
 
 ## File Structure
 
@@ -158,42 +204,52 @@ For a single application, deep nesting adds complexity without benefit. A `compo
 ```tsx
 // src/emails/PasswordResetEmail.tsx
 export interface PasswordResetEmailProps {
+  appName: string;       // Required
   resetUrl: string;      // Required
   expiresIn: string;     // Required
+  supportEmail: string;  // Required
   username?: string;     // Optional
 }
 
 export const PasswordResetEmail: FC<PasswordResetEmailProps> = ({
+  appName,
   resetUrl,
   expiresIn,
+  supportEmail,
   username,
 }) => (
-  <EmailLayout preview="Reset your password">
+  <EmailLayout
+    preview="Reset your password"
+    appName={appName}
+    supportEmail={supportEmail}
+  >
     <Heading>{username ? `Hi ${username}` : "Hi"},</Heading>
     <Text>Click the button below to reset your password.</Text>
     <Button href={resetUrl}>Reset Password</Button>
     <Text>This link expires in {expiresIn}.</Text>
-    <Text>If the button doesn't work: {resetUrl}</Text>
+    <Text>If the button does not work: {resetUrl}</Text>
   </EmailLayout>
 );
 ```
 
-2. Add preview data and story:
+2. Add preview data:
 
 ```tsx
 // preview-data.ts
-export const passwordResetPreview: PasswordResetEmailProps = {
-  resetUrl: "https://app.example.dev/reset?token=abc123",
+export const passwordResetPreview = {
+  appName: "TanStarter",
+  resetUrl: "https://app.tanstarter.dev/reset?token=abc123",
   expiresIn: "1 hour",
+  supportEmail: "support@tanstarter.dev",
   username: "Jordan",
-};
+} as const satisfies Required<PasswordResetEmailProps>;
 ```
 
 3. Export from barrel:
 
 ```tsx
 // index.ts
-export { PasswordResetEmail, type PasswordResetEmailProps } from "./PasswordResetEmail";
+export * from "./PasswordResetEmail";
 ```
 
 ## Best Practices
@@ -203,3 +259,6 @@ export { PasswordResetEmail, type PasswordResetEmailProps } from "./PasswordRese
 3. **Test across clients** - Gmail, Outlook, Apple Mail all render differently
 4. **Keep templates simple** - Complex layouts often break in email clients
 5. **Include unsubscribe/contact info** - Legal requirement in many jurisdictions
+6. **Make branding configurable** - Pass `appName` as a prop, do not hardcode
+7. **Use JSDoc comments on interface props** - Documents intent for other developers
+8. **Use `as const satisfies Required<T>`** - Avoids type issues with optional props in previews
