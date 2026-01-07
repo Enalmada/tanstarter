@@ -1,25 +1,38 @@
+import { render } from "@react-email/render";
 import type { Meta, StoryObj } from "@storybook/react";
-import { useEffect, useRef } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import { useEffect, useRef, useState } from "react";
 import { welcomeEmailPreview } from "./preview-data";
 import type { WelcomeEmailProps } from "./WelcomeEmail";
 import { WelcomeEmail } from "./WelcomeEmail";
 
 function EmailPreview(props: WelcomeEmailProps) {
 	const iframeRef = useRef<HTMLIFrameElement>(null);
+	const [html, setHtml] = useState<string>("");
 
 	useEffect(() => {
-		if (!iframeRef.current) return;
+		let cancelled = false;
 
-		const html = renderToStaticMarkup(<WelcomeEmail {...props} />);
+		render(<WelcomeEmail {...props} />).then((result) => {
+			if (!cancelled) {
+				setHtml(result);
+			}
+		});
 
-		const iframeDoc = iframeRef.current?.contentDocument;
+		return () => {
+			cancelled = true;
+		};
+	}, [props]);
+
+	useEffect(() => {
+		if (!iframeRef.current || !html) return;
+
+		const iframeDoc = iframeRef.current.contentDocument;
 		if (iframeDoc) {
 			iframeDoc.open();
 			iframeDoc.write(html);
 			iframeDoc.close();
 		}
-	}, [props]);
+	}, [html]);
 
 	return (
 		<div className="w-full h-screen">
