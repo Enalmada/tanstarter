@@ -1,5 +1,7 @@
 # Email System Architecture
 
+**PR**: https://github.com/Enalmada/tanstarter/pull/36
+
 This document explains the design decisions behind the email template system in TanStarter. It serves as both documentation and an educational guide for building production-ready email templates with React Email.
 
 ## Why React Email?
