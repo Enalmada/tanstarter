@@ -1,19 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useEffect, useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { welcomeEmailPreview } from "./preview-data";
+import type { WelcomeEmailProps } from "./WelcomeEmail";
 import { WelcomeEmail } from "./WelcomeEmail";
 
-interface EmailPreviewProps {
-	username?: string;
-}
-
-function EmailPreview({ username = "there" }: EmailPreviewProps) {
+function EmailPreview(props: WelcomeEmailProps) {
 	const iframeRef = useRef<HTMLIFrameElement>(null);
 
 	useEffect(() => {
 		if (!iframeRef.current) return;
 
-		const html = renderToStaticMarkup(<WelcomeEmail username={username} />);
+		const html = renderToStaticMarkup(<WelcomeEmail {...props} />);
 
 		const iframeDoc = iframeRef.current?.contentDocument;
 		if (iframeDoc) {
@@ -21,7 +19,7 @@ function EmailPreview({ username = "there" }: EmailPreviewProps) {
 			iframeDoc.write(html);
 			iframeDoc.close();
 		}
-	}, [username]);
+	}, [props]);
 
 	return (
 		<div className="w-full h-screen">
@@ -43,7 +41,15 @@ const meta = {
 	argTypes: {
 		username: {
 			control: "text",
-			description: "The username to display in the welcome message",
+			description: "The username to display in the welcome message (optional)",
+		},
+		gettingStartedUrl: {
+			control: "text",
+			description: "URL for the Get Started button",
+		},
+		supportEmail: {
+			control: "text",
+			description: "Support email address",
 		},
 	},
 } satisfies Meta<typeof EmailPreview>;
@@ -52,19 +58,19 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+	args: welcomeEmailPreview,
+};
+
+export const WithoutUsername: Story = {
 	args: {
-		username: "there",
+		gettingStartedUrl: welcomeEmailPreview.gettingStartedUrl,
+		supportEmail: welcomeEmailPreview.supportEmail,
 	},
 };
 
-export const WithUsername: Story = {
+export const WithLongUsername: Story = {
 	args: {
-		username: "John",
-	},
-};
-
-export const LongUsername: Story = {
-	args: {
+		...welcomeEmailPreview,
 		username: "Alexandra Thompson-Williams",
 	},
 };
