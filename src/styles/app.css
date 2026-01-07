@@ -168,4 +168,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Tailwind v4 removed cursor:pointer from buttons - restore it */
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
 }

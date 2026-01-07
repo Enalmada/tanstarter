@@ -69,6 +69,7 @@ export default defineConfig({
 						"tailwind-merge",
 						"@radix-ui/react-slot",
 						"class-variance-authority",
+						"@react-email/render",
 					],
 					exclude: ["@tanstack/react-start", "@tanstack/react-start-server", "@tanstack/react-start-client"],
 				},
