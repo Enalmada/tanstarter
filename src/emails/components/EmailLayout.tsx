@@ -4,7 +4,7 @@ import type { FC, PropsWithChildren } from "react";
 
 interface EmailLayoutProps {
 	preview: string;
-	supportEmail?: string;
+	supportEmail: string;
 }
 
 const tailwindConfig = {
@@ -30,11 +30,7 @@ const tailwindConfig = {
 	},
 };
 
-export const EmailLayout: FC<PropsWithChildren<EmailLayoutProps>> = ({
-	preview,
-	supportEmail = "support@tanstarter.dev",
-	children,
-}) => (
+export const EmailLayout: FC<PropsWithChildren<EmailLayoutProps>> = ({ preview, supportEmail, children }) => (
 	<Html lang="en">
 		<Head />
 		<Preview>{preview}</Preview>

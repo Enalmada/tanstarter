@@ -23,11 +23,9 @@ export const WelcomeEmail: FC<WelcomeEmailProps> = ({ username, gettingStartedUr
 
 		<Section className="my-6">
 			<Text className="text-sm font-semibold uppercase tracking-wide text-gray-700">Next steps</Text>
-			<ul className="mb-0 mt-2 pl-6">
-				<li className="mb-2 text-sm text-gray-600">Complete your profile</li>
-				<li className="mb-2 text-sm text-gray-600">Explore the dashboard</li>
-				<li className="mb-2 text-sm text-gray-600">Create your first project</li>
-			</ul>
+			<Text className="mb-1 mt-2 text-sm text-gray-600">• Complete your profile</Text>
+			<Text className="mb-1 text-sm text-gray-600">• Explore the dashboard</Text>
+			<Text className="mb-0 text-sm text-gray-600">• Create your first project</Text>
 		</Section>
 
 		<Section className="my-8">
