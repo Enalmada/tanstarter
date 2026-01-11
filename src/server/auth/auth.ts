@@ -1,14 +1,23 @@
-import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { reactStartCookies } from "better-auth/react-start";
+import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { betterAuth } from "better-auth/minimal";
+import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { env } from "~/env";
 import db from "~/server/db";
+import * as schema from "~/server/db/schema";
 import { nanoString, type UserRole } from "~/server/db/schema";
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "pg",
+		schema,
 	}),
+	// NOTE: experimental.joins is disabled - it requires better-auth's drizzle adapter
+	// to fully support Drizzle ORM v1 RQBv2 relations. Once PR #6913 merges and
+	// is stable, re-enable for 2-3x performance improvement on session queries.
+	// https://www.better-auth.com/docs/concepts/database#experimental-joins
+	// experimental: {
+	// 	joins: true,
+	// },
 	emailAndPassword: {
 		enabled: true,
 	},
@@ -53,11 +62,11 @@ export const auth = betterAuth({
 		},
 	},
 	// WORKAROUND: better-auth v1.3.31+ has a type incompatibility with exactOptionalPropertyTypes: true
-	// The reactStartCookies plugin's type definition uses `headers?: Headers` but should use
+	// The tanstackStartCookies plugin's type definition uses `headers?: Headers` but should use
 	// `headers?: Headers | undefined` to be compatible with strict TypeScript settings.
 	// See: https://github.com/better-auth/better-auth/issues/5574
 	// biome-ignore lint/suspicious/noExplicitAny: Required workaround for better-auth type bug
-	plugins: [reactStartCookies() as any],
+	plugins: [tanstackStartCookies() as any],
 });
 
 export type Session = typeof auth.$Infer.Session;

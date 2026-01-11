@@ -4,11 +4,11 @@
  * Includes responsive design with mobile menu
  */
 
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useId } from "react";
 import ThemeToggle from "~/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { Button } from "~/components/ui/button";
+import { buttonVariants } from "~/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -39,7 +39,6 @@ interface NavbarProps {
 }
 
 export function Navbar({ user }: NavbarProps) {
-	const navigate = useNavigate();
 	const avatarId = useId();
 
 	// Pre-compute the avatar URL
@@ -57,50 +56,40 @@ export function Navbar({ user }: NavbarProps) {
 				{user ? (
 					<>
 						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Avatar id={avatarId} className="cursor-pointer">
+							<DropdownMenuTrigger id={avatarId} className="cursor-pointer rounded-full">
+								<Avatar>
 									<AvatarImage src={avatarUrl} alt={user.name ?? ""} />
 									<AvatarFallback>{user.name?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
 								</Avatar>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" className="w-56">
-								<DropdownMenuLabel>
-									<div className="font-medium">{user.name}</div>
-									<div className="text-xs text-muted-foreground">{user.email}</div>
-								</DropdownMenuLabel>
+								<DropdownMenuGroup>
+									<DropdownMenuLabel>
+										<div className="font-medium">{user.name}</div>
+										<div className="text-xs text-muted-foreground">{user.email}</div>
+									</DropdownMenuLabel>
+								</DropdownMenuGroup>
 								<DropdownMenuSeparator />
 								<DropdownMenuGroup>
-									<DropdownMenuItem asChild>
-										<Link to="/profile">Profile</Link>
-									</DropdownMenuItem>
+									<DropdownMenuItem render={<Link to="/profile" />}>Profile</DropdownMenuItem>
 									{user.role === UserRole.ADMIN && (
-										<DropdownMenuItem asChild>
-											<Link to="/admin">Admin</Link>
-										</DropdownMenuItem>
+										<DropdownMenuItem render={<Link to="/admin" />}>Admin</DropdownMenuItem>
 									)}
-									<DropdownMenuItem asChild className="text-destructive">
-										<Link to="/signout">Sign out</Link>
+									<DropdownMenuItem className="text-destructive" render={<Link to="/signout" />}>
+										Sign out
 									</DropdownMenuItem>
 								</DropdownMenuGroup>
 							</DropdownMenuContent>
 						</DropdownMenu>
 
-						<Button
-							onClick={() => {
-								navigate({ to: "/tasks/new" });
-							}}
-						>
+						<Link to="/tasks/new" className={buttonVariants()}>
 							New Task
-						</Button>
+						</Link>
 					</>
 				) : (
-					<Button
-						onClick={() => {
-							navigate({ to: "/signin" });
-						}}
-					>
+					<Link to="/signin" className={buttonVariants()}>
 						Sign in
-					</Button>
+					</Link>
 				)}
 			</div>
 		</div>

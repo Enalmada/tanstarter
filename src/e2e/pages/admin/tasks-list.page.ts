@@ -22,11 +22,11 @@ export class AdminTasksListPage extends BasePage {
 	 */
 	getTableColumns() {
 		return {
-			title: this.page.getByRole("cell", { name: "Title" }),
-			status: this.page.getByRole("cell", { name: "Status" }),
-			dueDate: this.page.getByRole("cell", { name: "Due Date" }),
-			created: this.page.getByRole("cell", { name: "Created" }),
-			lastUpdated: this.page.getByRole("cell", {
+			title: this.page.getByRole("columnheader", { name: "Title" }),
+			status: this.page.getByRole("columnheader", { name: "Status" }),
+			dueDate: this.page.getByRole("columnheader", { name: "Due Date" }),
+			created: this.page.getByRole("columnheader", { name: "Created" }),
+			lastUpdated: this.page.getByRole("columnheader", {
 				name: "Last Updated",
 			}),
 		};

@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Checkbox } from "~/components/ui/checkbox";
 import type { Task } from "~/server/db/schema";
@@ -41,9 +41,9 @@ export function TaskList({ userId, tasks }: { userId: string | undefined; tasks:
 			)}
 			<div className="flex h-12 items-center justify-between">
 				<h1 className="text-2xl font-bold">Tasks</h1>
-				<Button asChild size="lg">
-					<Link to="/tasks/new">New Task</Link>
-				</Button>
+				<Link to="/tasks/new" className={buttonVariants({ size: "lg" })}>
+					New Task
+				</Link>
 			</div>
 
 			<div className="flex min-h-[50px] flex-col gap-4">

@@ -17,7 +17,7 @@ export const Default: Story = {
 	render: () => (
 		<Select>
 			<SelectTrigger className="w-[180px]">
-				<SelectValue placeholder="Select a fruit" />
+				<SelectValue>{(value) => value ?? "Select a fruit"}</SelectValue>
 			</SelectTrigger>
 			<SelectContent>
 				<SelectGroup>
@@ -35,7 +35,7 @@ export const WithGroups: Story = {
 	render: () => (
 		<Select>
 			<SelectTrigger className="w-[180px]">
-				<SelectValue placeholder="Select a food" />
+				<SelectValue>{(value) => value ?? "Select a food"}</SelectValue>
 			</SelectTrigger>
 			<SelectContent>
 				<SelectGroup>
@@ -57,7 +57,7 @@ export const Disabled: Story = {
 	render: () => (
 		<Select disabled>
 			<SelectTrigger className="w-[180px]">
-				<SelectValue placeholder="Select a fruit" />
+				<SelectValue>{(value) => value ?? "Select a fruit"}</SelectValue>
 			</SelectTrigger>
 			<SelectContent>
 				<SelectItem value="apple">Apple</SelectItem>

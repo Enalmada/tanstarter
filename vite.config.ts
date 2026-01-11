@@ -9,7 +9,6 @@ import { config } from "dotenv";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
 import viteRollbar from "vite-plugin-rollbar";
-import tsConfigPaths from "vite-tsconfig-paths";
 
 config();
 
@@ -28,7 +27,13 @@ const getBuildRelease = () => {
 };
 
 export default defineConfig({
+	experimental: {
+		// Vite 8 beta: Enable native plugins for tsconfigPaths
+		// Note: Warning about "native plugins disabled" is a known beta issue - can be ignored
+		enableNativePlugin: true,
+	},
 	resolve: {
+		tsconfigPaths: true,
 		alias: {
 			"use-sync-external-store/shim/with-selector.js": path.resolve(
 				__dirname,
@@ -46,9 +51,6 @@ export default defineConfig({
 		},
 	},
 	plugins: [
-		tsConfigPaths({
-			projects: ["./tsconfig.json"],
-		}),
 		tailwindcss(),
 		tanstackStart({
 			router: {

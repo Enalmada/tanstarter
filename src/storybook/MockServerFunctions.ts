@@ -6,6 +6,7 @@
 // Mock server-side request functions
 export const getRequest = () => null;
 export const setResponseStatus = (_code: number) => {};
+export const setResponseHeader = (_name: string, _value: string | string[]) => {};
 
 // biome-ignore lint/suspicious/noExplicitAny: Mock createStartHandler needs flexible typing for compatibility
 export const createStartHandler = (_options?: any) => {

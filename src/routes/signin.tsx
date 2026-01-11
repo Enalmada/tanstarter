@@ -41,11 +41,19 @@ function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
 	);
 }
 
-function GoogleButton(props: React.ComponentPropsWithoutRef<"button">) {
+interface GoogleButtonProps {
+	disabled?: boolean;
+	className?: string;
+	children?: React.ReactNode;
+	onClick?: () => void;
+	type?: "button" | "submit" | "reset";
+}
+
+function GoogleButton({ disabled = false, className = "", children, onClick, type = "button" }: GoogleButtonProps) {
 	return (
-		<Button variant="outline" {...props}>
+		<Button variant="outline" disabled={disabled} className={className} onClick={onClick} type={type}>
 			<GoogleIcon className="mr-2" />
-			{props.children}
+			{children}
 		</Button>
 	);
 }

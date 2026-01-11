@@ -1,5 +1,5 @@
 import { createMiddleware } from "@tanstack/react-start";
-import { getRequest, setResponseStatus } from "@tanstack/react-start/server";
+import { getRequest, setResponseHeader, setResponseStatus } from "@tanstack/react-start/server";
 import { auth } from "~/server/auth/auth";
 import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
@@ -26,12 +26,21 @@ export const authMiddleware = createMiddleware().server(async ({ next }) => {
 			// https://www.better-auth.com/docs/concepts/session-management#session-caching
 			disableCookieCache: true,
 		},
+		asResponse: true,
 	});
 
-	if (!session) {
+	// Forward any Set-Cookie headers (e.g., session refresh)
+	const cookies = session.headers?.getSetCookie();
+	if (cookies?.length) {
+		setResponseHeader("Set-Cookie", cookies);
+	}
+
+	const data = await session.json();
+
+	if (!data?.user) {
 		setResponseStatus(401);
 		throw new Error("Unauthorized");
 	}
 
-	return next({ context: { user: session.user } });
+	return next({ context: { user: data.user } });
 });

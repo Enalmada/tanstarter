@@ -11,10 +11,10 @@ export class MemberTasksListPage extends BasePage {
 	protected readonly path = "/tasks";
 
 	/**
-	 * Get the New Task link
+	 * Get the New Task link in the main content area
 	 */
 	getNewTaskLink(): Locator {
-		return this.page.getByRole("link", { name: /new/i });
+		return this.page.getByRole("main").getByRole("link", { name: /new/i });
 	}
 
 	/**

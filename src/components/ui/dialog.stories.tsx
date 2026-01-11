@@ -29,9 +29,7 @@ function DefaultDialogComponent() {
 
 	return (
 		<Dialog>
-			<DialogTrigger asChild>
-				<Button variant="outline">Open Dialog</Button>
-			</DialogTrigger>
+			<DialogTrigger render={<Button variant="outline" />}>Open Dialog</DialogTrigger>
 			<DialogContent className="sm:max-w-[425px]">
 				<DialogHeader>
 					<DialogTitle>Edit profile</DialogTitle>
@@ -69,9 +67,7 @@ function WithFormComponent() {
 
 	return (
 		<Dialog>
-			<DialogTrigger asChild>
-				<Button>Edit Profile</Button>
-			</DialogTrigger>
+			<DialogTrigger render={<Button />}>Edit Profile</DialogTrigger>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Edit profile</DialogTitle>
