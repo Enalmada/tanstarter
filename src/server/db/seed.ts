@@ -20,8 +20,8 @@ export const seedDatabase = async (): Promise<void> => {
 		throw new Error("DATABASE_URL is not defined");
 	}
 
-	const sql = neon(dbHelpers.getDatabaseUrl());
-	const _db = drizzle(sql);
+	const neonClient = neon(dbHelpers.getDatabaseUrl());
+	const _db = drizzle({ client: neonClient });
 };
 
 // Auto-run if this is the main module

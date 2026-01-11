@@ -3,7 +3,6 @@
  * Task management related tables and types
  */
 
-import { relations } from "drizzle-orm";
 import { integer, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-valibot";
 import { date, nullable, picklist, pipe, transform } from "valibot";
@@ -44,17 +43,6 @@ export const TaskTable = pgTable("task", {
 		.references(() => UserTable.id, { onDelete: "cascade" }),
 	...generateAuditingFields(),
 });
-
-export const taskRelations = relations(TaskTable, ({ one }) => ({
-	user: one(UserTable, {
-		fields: [TaskTable.userId],
-		references: [UserTable.id],
-	}),
-}));
-
-export const usersRelations = relations(UserTable, ({ many }) => ({
-	tasks: many(TaskTable),
-}));
 
 export type Task = typeof TaskTable.$inferSelect;
 export type TaskInsert = typeof TaskTable.$inferInsert;

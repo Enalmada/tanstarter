@@ -1,7 +1,4 @@
-import { and, eq, type SQL } from "drizzle-orm";
 import type { PgTableWithColumns } from "drizzle-orm/pg-core";
-
-type CriteriaType<T> = keyof T;
 
 export interface OrderBy {
 	sortBy: string;
@@ -15,30 +12,27 @@ export interface Config<T> {
 	offset?: number;
 }
 
+/**
+ * Build a where clause object for Drizzle ORM v1 RQBv2.
+ * Returns an object-based filter that can be passed directly to findMany/findFirst.
+ */
 export const buildWhereClause = <T>(
 	// biome-ignore lint/suspicious/noExplicitAny: Using any here is necessary for generic table operations
-	tableOrQuery: PgTableWithColumns<any> | { table: PgTableWithColumns<any> },
+	_tableOrQuery: PgTableWithColumns<any> | { table: PgTableWithColumns<any> },
 	criteria?: Partial<T>,
-): SQL | undefined => {
-	const table = "table" in tableOrQuery ? tableOrQuery.table : tableOrQuery;
+): Record<string, unknown> | undefined => {
+	if (!criteria) return undefined;
 
-	const conditions = criteria
-		? Object.keys(criteria)
-				.filter((key) => criteria[key as CriteriaType<T>] !== undefined)
-				.map((key) => {
-					const criteriaType = key as CriteriaType<T>;
-					const value = criteria[criteriaType];
-					if (value === undefined) return undefined;
-					return eq(table[criteriaType], value);
-				})
-				.filter((condition): condition is NonNullable<typeof condition> => condition !== undefined)
-		: [];
-
-	if (conditions.length === 0) return undefined;
-	if (conditions.length === 1) {
-		return conditions[0];
+	// Filter out undefined values and return the criteria object directly
+	// Drizzle v1 RQBv2 uses object-based where clauses
+	const filteredCriteria: Record<string, unknown> = {};
+	for (const [key, value] of Object.entries(criteria)) {
+		if (value !== undefined) {
+			filteredCriteria[key] = value;
+		}
 	}
-	return and(...conditions);
+
+	return Object.keys(filteredCriteria).length > 0 ? filteredCriteria : undefined;
 };
 
 export const buildOrderByClause = (

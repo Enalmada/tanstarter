@@ -43,8 +43,8 @@ export const runMigrate = async (migrationsFolder = "src/server/db/migrations"):
 		throw new Error("DATABASE_URL is not defined");
 	}
 
-	const sql = neon(dbHelpers.getDatabaseUrl());
-	const db = drizzle(sql);
+	const neonClient = neon(dbHelpers.getDatabaseUrl());
+	const db = drizzle({ client: neonClient });
 	await waitUntilDatabaseIsReady(db);
 	const _start = Date.now();
 	await migrate(db, { migrationsFolder });

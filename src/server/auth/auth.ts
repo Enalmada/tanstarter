@@ -1,19 +1,23 @@
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth/minimal";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { env } from "~/env";
 import db from "~/server/db";
+import * as schema from "~/server/db/schema";
 import { nanoString, type UserRole } from "~/server/db/schema";
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "pg",
+		schema,
 	}),
-	experimental: {
-		// Use JOINs for better performance when fetching related data
-		// https://www.better-auth.com/docs/concepts/database#experimental-joins
-		joins: true,
-	},
+	// NOTE: experimental.joins is disabled - it requires better-auth's drizzle adapter
+	// to fully support Drizzle ORM v1 RQBv2 relations. Once PR #6913 merges and
+	// is stable, re-enable for 2-3x performance improvement on session queries.
+	// https://www.better-auth.com/docs/concepts/database#experimental-joins
+	// experimental: {
+	// 	joins: true,
+	// },
 	emailAndPassword: {
 		enabled: true,
 	},

@@ -3,7 +3,6 @@
  * User, Session, Account, and Verification tables for Better Auth
  */
 
-import { relations } from "drizzle-orm";
 import { boolean, integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-valibot";
 import { nanoid } from "nanoid/non-secure";
@@ -49,8 +48,6 @@ export const UserTable = pgTable("user", {
 	role: UserRolesEnum("role").default(UserRole.MEMBER).$type<UserRole>().notNull(),
 	...generateAuditingFields(),
 });
-
-// Note: Relations with TaskTable are defined in task.schema.ts to avoid circular imports
 
 export type User = typeof UserTable.$inferSelect;
 export type UserInsert = typeof UserTable.$inferInsert;
@@ -99,13 +96,6 @@ export const SessionTable = pgTable("session", {
 		.references(() => UserTable.id, { onDelete: "cascade" }),
 });
 
-export const sessionRelations = relations(SessionTable, ({ one }) => ({
-	user: one(UserTable, {
-		fields: [SessionTable.userId],
-		references: [UserTable.id],
-	}),
-}));
-
 export type Session = typeof SessionTable.$inferSelect;
 
 // Account Schema
@@ -128,13 +118,6 @@ export const AccountTable = pgTable("account", {
 	createdAt: timestamp("created_at", { mode: "date" }).notNull(),
 	updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
 });
-
-export const accountRelations = relations(AccountTable, ({ one }) => ({
-	user: one(UserTable, {
-		fields: [AccountTable.userId],
-		references: [UserTable.id],
-	}),
-}));
 
 // Verification Schema
 export const VerificationTable = pgTable("verification", {

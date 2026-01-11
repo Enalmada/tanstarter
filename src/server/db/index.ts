@@ -12,9 +12,10 @@ import { drizzle } from "drizzle-orm/neon-http";
 import { drizzle as drizzleServerless } from "drizzle-orm/neon-serverless";
 import { buildEnv, env } from "~/env";
 import * as schema from "./schema";
+import { relations } from "./schema";
 
-// More specific type that includes your schema
-type DB = ReturnType<typeof drizzle<typeof schema>>;
+// Type for database instance
+type DB = ReturnType<typeof drizzle>;
 
 // Use build-time env check for global context
 if (buildEnv.isDev) {
@@ -34,7 +35,7 @@ function getDb(): DB {
 			throw new Error("DATABASE_URL not available");
 		}
 		const neonClient = neon(dbUrl);
-		_db = drizzle(neonClient, { schema });
+		_db = drizzle({ client: neonClient, schema, relations });
 	}
 	return _db;
 }
@@ -57,7 +58,7 @@ export async function withTransaction<T>(
 	try {
 		pool = new Pool({ connectionString: env.DATABASE_URL });
 
-		const dbWithTx = drizzleServerless(pool, { schema });
+		const dbWithTx = drizzleServerless({ client: pool, schema, relations });
 
 		return await operation(dbWithTx);
 	} finally {

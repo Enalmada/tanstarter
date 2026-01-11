@@ -40,7 +40,7 @@ const config: PlaywrightTestConfig = {
 	webServer: {
 		reuseExistingServer: true,
 		command:
-			"bun run docker:up && sh scripts/wait-for.sh && cross-env GOOGLE_CLIENT_ID=test-client-id GOOGLE_CLIENT_SECRET=test-client-secret BETTER_AUTH_SECRET=test-auth-secret APP_ENV=development bun run dev:vite",
+			"bun run docker:up && sh scripts/wait-for.sh && bun run drizzle:migrate && cross-env GOOGLE_CLIENT_ID=test-client-id GOOGLE_CLIENT_SECRET=test-client-secret BETTER_AUTH_SECRET=test-auth-secret APP_ENV=development bun run dev:vite",
 		port: 3000,
 		stdout: "pipe",
 		stderr: "pipe",
