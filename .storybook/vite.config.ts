@@ -5,6 +5,6 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
 	plugins: [tsconfigPaths(), tailwindcss()],
 	optimizeDeps: {
-		include: ["react/jsx-dev-runtime"],
+		include: ["react/jsx-dev-runtime", "better-auth/minimal"],
 	},
 });

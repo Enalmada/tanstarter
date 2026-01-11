@@ -1,5 +1,5 @@
-import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { betterAuth } from "better-auth/minimal";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { env } from "~/env";
 import db from "~/server/db";
@@ -9,6 +9,11 @@ export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "pg",
 	}),
+	experimental: {
+		// Use JOINs for better performance when fetching related data
+		// https://www.better-auth.com/docs/concepts/database#experimental-joins
+		joins: true,
+	},
 	emailAndPassword: {
 		enabled: true,
 	},
