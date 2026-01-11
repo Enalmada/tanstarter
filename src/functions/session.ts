@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
+import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { auth } from "~/server/auth/auth";
 import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
@@ -15,6 +15,17 @@ export const getSessionUser = createServerFn({ method: "GET" }).handler(async ()
 		return null;
 	}
 
-	const session = await auth.api.getSession({ headers: request.headers });
-	return session?.user || null;
+	const session = await auth.api.getSession({
+		headers: request.headers,
+		asResponse: true,
+	});
+
+	// Forward any Set-Cookie headers (e.g., session refresh)
+	const cookies = session.headers?.getSetCookie();
+	if (cookies?.length) {
+		setResponseHeader("Set-Cookie", cookies);
+	}
+
+	const data = await session.json();
+	return data?.user || null;
 });
