@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Image } from "@unpic/react";
 import { DefaultLayout } from "~/components/layouts/DefaultLayout";
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Container } from "~/components/ui/container";
 
@@ -32,9 +32,9 @@ function Home() {
 						A modern, type-safe todo application built with TanStack Start.
 					</p>
 					<div className="flex gap-4 mt-4">
-						<Button size="lg" render={<Link to="/tasks" />}>
+						<Link to="/tasks" className={buttonVariants({ size: "lg" })}>
 							Get Started
-						</Button>
+						</Link>
 						<a href="https://github.com/Enalmada/tanstarter" target="_blank" rel="noopener noreferrer">
 							<Button variant="outline" size="lg" className="bg-accent/10 hover:bg-accent/20">
 								View on GitHub

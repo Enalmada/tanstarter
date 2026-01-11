@@ -52,6 +52,38 @@ function Button({
 }
 ```
 
+### Navigation Links with Button Styling (Recommended)
+
+**IMPORTANT:** When using `Button` with `render={<Link />}`, Base UI adds `role="button"` to the element, which overrides the link's implicit `role="link"`. This breaks accessibility - navigation elements should be links, not buttons.
+
+**Problem with render prop:**
+```tsx
+// ❌ This renders with role="button", not role="link"
+<Button render={<Link to="/tasks/new" />}>New Task</Button>
+```
+
+**Solution:** Use `buttonVariants` directly on Link for navigation:
+```tsx
+import { buttonVariants } from "~/components/ui/button";
+
+// ✅ Renders as a proper link with button styling
+<Link to="/tasks/new" className={buttonVariants()}>New Task</Link>
+
+// ✅ With size/variant options
+<Link to="/tasks" className={buttonVariants({ size: "lg" })}>
+  Get Started
+</Link>
+
+<Link to="/settings" className={buttonVariants({ variant: "outline" })}>
+  Settings
+</Link>
+```
+
+**When to use which pattern:**
+- **Navigation (changes URL):** Use `Link` with `buttonVariants()` - preserves `role="link"`
+- **Actions (onClick handlers):** Use `Button` component - correctly uses `role="button"`
+- **DropdownMenuItem links:** Use `render` prop - menu item semantics are appropriate
+
 ### Trigger Components (Dialog, Sheet, DropdownMenu)
 
 **Radix:**
@@ -290,6 +322,102 @@ function Label({ className, ...props }: React.ComponentProps<"label">) {
 }
 ```
 
+## TanStack Form Integration
+
+shadcn/ui's default form component uses React Hook Form. For TanStack Form projects, use the TanStack Form version instead.
+
+### Install TanStack Form Component
+
+```bash
+bunx shadcn@canary add https://shadcn-tanstack-form.netlify.app/r/tanstack-form.json
+```
+
+This creates `tanstack-form.tsx` with:
+- `useAppForm` - Form hook with pre-configured field components
+- `useFormContext` - Access form context
+- `useFieldContext` - Access field context within FormItem
+- `withForm` - HOC for form components
+- Field components: `FormItem`, `FormLabel`, `FormControl`, `FormDescription`, `FormMessage`
+
+### Fix Radix Slot Dependency
+
+The component uses `@radix-ui/react-slot`. Replace with `React.cloneElement` for Base UI:
+
+```tsx
+// Before (uses Radix Slot):
+import { Slot } from "@radix-ui/react-slot";
+
+function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
+  return <Slot {...props} />;
+}
+
+// After (Base UI pattern):
+function FormControl({
+  children,
+  ...props
+}: React.ComponentProps<"div"> & { children: React.ReactElement }) {
+  const { errors, formItemId, formDescriptionId, formMessageId } = useFieldContext();
+
+  return React.cloneElement(children, {
+    "data-slot": "form-control",
+    id: formItemId,
+    "aria-describedby": !errors.length ? formDescriptionId : `${formDescriptionId} ${formMessageId}`,
+    "aria-invalid": !!errors.length,
+    ...props,
+  } as React.HTMLAttributes<HTMLElement> & Record<string, any>);
+}
+```
+
+### Remove React Hook Form
+
+If migrating from React Hook Form to TanStack Form:
+
+1. Delete `src/components/ui/form.tsx` (React Hook Form version)
+2. Remove dependencies from `package.json`:
+   ```json
+   // Remove from dependencies:
+   "@hookform/resolvers": "..."
+
+   // Remove from devDependencies:
+   "react-hook-form": "..."
+   ```
+3. Run `bun install` to update lockfile
+
+### Usage Example
+
+```tsx
+import { useAppForm } from "~/components/ui/tanstack-form";
+
+function MyForm() {
+  const form = useAppForm({
+    defaultValues: { email: "", password: "" },
+    onSubmit: async ({ value }) => {
+      console.log(value);
+    },
+  });
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }}>
+      <form.Field name="email">
+        {(field) => (
+          <form.FieldComponent.FormItem>
+            <form.FieldComponent.FormLabel>Email</form.FieldComponent.FormLabel>
+            <form.FieldComponent.FormControl>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+            </form.FieldComponent.FormControl>
+            <form.FieldComponent.FormMessage />
+          </form.FieldComponent.FormItem>
+        )}
+      </form.Field>
+      <Button type="submit">Submit</Button>
+    </form>
+  );
+}
+```
+
 ## Components Checklist
 
 When migrating, search your codebase for these patterns:
@@ -298,6 +426,8 @@ When migrating, search your codebase for these patterns:
 - [ ] `<SelectValue placeholder=` - convert to render function
 - [ ] Test files using `getByRole("checkbox", { name: "..." })` - update queries
 - [ ] Wrapper components spreading button props - use explicit interfaces
+- [ ] React Hook Form imports - migrate to TanStack Form
+- [ ] `@radix-ui/react-slot` imports - replace with `React.cloneElement`
 
 ## Files Typically Affected
 
@@ -307,3 +437,4 @@ When migrating, search your codebase for these patterns:
 - Dropdown menus with navigation items
 - Form components using Select
 - Test files for form components
+- Form components using React Hook Form

@@ -28,6 +28,8 @@ const getBuildRelease = () => {
 
 export default defineConfig({
 	experimental: {
+		// Vite 8 beta: Enable native plugins for tsconfigPaths
+		// Note: Warning about "native plugins disabled" is a known beta issue - can be ignored
 		enableNativePlugin: true,
 	},
 	resolve: {

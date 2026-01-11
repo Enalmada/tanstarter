@@ -4,11 +4,11 @@
  * Includes responsive design with mobile menu
  */
 
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useId } from "react";
 import ThemeToggle from "~/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { Button } from "~/components/ui/button";
+import { buttonVariants } from "~/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -39,7 +39,6 @@ interface NavbarProps {
 }
 
 export function Navbar({ user }: NavbarProps) {
-	const navigate = useNavigate();
 	const avatarId = useId();
 
 	// Pre-compute the avatar URL
@@ -83,22 +82,14 @@ export function Navbar({ user }: NavbarProps) {
 							</DropdownMenuContent>
 						</DropdownMenu>
 
-						<Button
-							onClick={() => {
-								navigate({ to: "/tasks/new" });
-							}}
-						>
+						<Link to="/tasks/new" className={buttonVariants()}>
 							New Task
-						</Button>
+						</Link>
 					</>
 				) : (
-					<Button
-						onClick={() => {
-							navigate({ to: "/signin" });
-						}}
-					>
+					<Link to="/signin" className={buttonVariants()}>
 						Sign in
-					</Button>
+					</Link>
 				)}
 			</div>
 		</div>
