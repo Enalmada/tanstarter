@@ -41,8 +41,8 @@ export function TaskList({ userId, tasks }: { userId: string | undefined; tasks:
 			)}
 			<div className="flex h-12 items-center justify-between">
 				<h1 className="text-2xl font-bold">Tasks</h1>
-				<Button asChild size="lg">
-					<Link to="/tasks/new">New Task</Link>
+				<Button size="lg" render={<Link to="/tasks/new" />}>
+					New Task
 				</Button>
 			</div>
 

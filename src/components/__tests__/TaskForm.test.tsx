@@ -12,7 +12,8 @@ describe("TaskForm", () => {
 		// Check for form fields
 		expect(screen.getByRole("textbox", { name: "Title *" })).toBeInTheDocument();
 		expect(screen.getByRole("textbox", { name: "Description" })).toBeInTheDocument();
-		expect(screen.getByRole("checkbox", { name: "Completed" })).toBeInTheDocument();
+		// Base UI checkbox uses a hidden input + visible span, so we find checkbox by its associated label
+		expect(screen.getByLabelText("Completed")).toBeInTheDocument();
 
 		// Check for submit button
 		expect(screen.getByRole("button", { name: "Create Task" })).toBeInTheDocument();
@@ -32,7 +33,8 @@ describe("TaskForm", () => {
 		// Check field values
 		expect(screen.getByRole("textbox", { name: "Title *" })).toHaveValue(defaultValues.title);
 		expect(screen.getByRole("textbox", { name: "Description" })).toHaveValue(defaultValues.description);
-		expect(screen.getByRole("checkbox", { name: "Completed" })).not.toBeChecked();
+		// Base UI checkbox: check that the hidden input is not checked
+		expect(screen.getByLabelText("Completed")).not.toBeChecked();
 
 		// Check for submit button
 		expect(screen.getByRole("button", { name: "Update Task" })).toBeInTheDocument();
@@ -51,8 +53,9 @@ describe("TaskForm", () => {
 				target: { value: "New Description" },
 			});
 
-			// Toggle status checkbox to completed
-			fireEvent.click(screen.getByRole("checkbox", { name: "Completed" }));
+			// Toggle status checkbox to completed - Base UI uses span with checkbox role
+			const checkbox = screen.getByRole("checkbox");
+			fireEvent.click(checkbox);
 		});
 
 		// Submit form

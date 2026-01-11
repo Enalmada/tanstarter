@@ -13,8 +13,8 @@ export function NotFound() {
 			<p className="text-muted-foreground">The page you are looking for does not exist.</p>
 			<div className="flex gap-4">
 				<Button onClick={() => window.history.back()}>Go back</Button>
-				<Button variant="outline" asChild>
-					<Link to="/">Home</Link>
+				<Button variant="outline" render={<Link to="/" />}>
+					Home
 				</Button>
 			</div>
 		</div>

@@ -32,14 +32,14 @@ function Home() {
 						A modern, type-safe todo application built with TanStack Start.
 					</p>
 					<div className="flex gap-4 mt-4">
-						<Button asChild size="lg">
-							<Link to="/tasks">Get Started</Link>
+						<Button size="lg" render={<Link to="/tasks" />}>
+							Get Started
 						</Button>
-						<Button asChild variant="outline" size="lg" className="bg-accent/10 hover:bg-accent/20">
-							<a href="https://github.com/Enalmada/tanstarter" target="_blank" rel="noopener noreferrer">
+						<a href="https://github.com/Enalmada/tanstarter" target="_blank" rel="noopener noreferrer">
+							<Button variant="outline" size="lg" className="bg-accent/10 hover:bg-accent/20">
 								View on GitHub
-							</a>
-						</Button>
+							</Button>
+						</a>
 					</div>
 				</div>
 
@@ -140,9 +140,7 @@ function Home() {
 										Powered by <code className="bg-muted px-1 py-0.5 rounded text-xs">@enalmada/start-streaming</code>
 									</p>
 								</div>
-								<Button asChild>
-									<Link to="/debug/streaming-sse">Try Streaming Demo</Link>
-								</Button>
+								<Button render={<Link to="/debug/streaming-sse" />}>Try Streaming Demo</Button>
 							</CardContent>
 						</Card>
 						<Card>
@@ -154,9 +152,7 @@ function Home() {
 										errors.
 									</p>
 								</div>
-								<Button asChild>
-									<Link to="/debug/monitoring">Test Error Monitoring</Link>
-								</Button>
+								<Button render={<Link to="/debug/monitoring" />}>Test Error Monitoring</Button>
 							</CardContent>
 						</Card>
 					</div>

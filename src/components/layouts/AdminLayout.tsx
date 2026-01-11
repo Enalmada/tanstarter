@@ -34,14 +34,9 @@ export function AdminLayout() {
 			<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
 				<div className="container flex h-14 items-center">
 					<Sheet open={open} onOpenChange={setOpen}>
-						<SheetTrigger asChild>
-							<Button
-								variant="ghost"
-								className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
-							>
-								<Menu className="h-5 w-5" />
-								<span className="sr-only">Toggle Menu</span>
-							</Button>
+						<SheetTrigger className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden">
+							<Menu className="h-5 w-5" />
+							<span className="sr-only">Toggle Menu</span>
 						</SheetTrigger>
 						<SheetContent side="left" className="pr-0">
 							<MobileNav />
@@ -52,8 +47,8 @@ export function AdminLayout() {
 						<div>
 							<ThemeToggle />
 
-							<Button variant="ghost" asChild>
-								<Link to="/tasks">App</Link>
+							<Button variant="ghost" render={<Link to="/tasks" />}>
+								App
 							</Button>
 						</div>
 					</div>
@@ -80,11 +75,9 @@ function MobileNav() {
 		<ScrollArea className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
 			<div className="flex flex-col space-y-2">
 				{navItems.map((item) => (
-					<Button key={item.to} variant="ghost" className="w-full justify-start" asChild>
-						<Link to={item.to}>
-							<item.icon className="mr-2 h-4 w-4" />
-							{item.label}
-						</Link>
+					<Button key={item.to} variant="ghost" className="w-full justify-start" render={<Link to={item.to} />}>
+						<item.icon className="mr-2 h-4 w-4" />
+						{item.label}
 					</Button>
 				))}
 			</div>
@@ -100,12 +93,10 @@ function SideNav() {
 					key={item.to}
 					variant="ghost"
 					className={cn("w-full justify-start", "data-active:bg-accent data-active:text-accent-foreground")}
-					asChild
+					render={<Link to={item.to} />}
 				>
-					<Link to={item.to}>
-						<item.icon className="mr-2 h-4 w-4" />
-						{item.label}
-					</Link>
+					<item.icon className="mr-2 h-4 w-4" />
+					{item.label}
 				</Button>
 			))}
 		</div>

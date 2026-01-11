@@ -165,6 +165,7 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 
 			case "select": {
 				const selectConfig = config as SelectFieldConfig<TData>;
+				const placeholder = config.placeholder;
 				return (
 					<div className="grid w-full gap-1.5">
 						{config.label && (
@@ -184,7 +185,15 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 								aria-invalid={hasError}
 								aria-errormessage={hasError ? `${config.key}-error` : undefined}
 							>
-								<SelectValue placeholder={config.placeholder} />
+								<SelectValue>
+									{(value) => {
+										if (value) {
+											const option = selectConfig.options.find((opt) => opt.value === value);
+											return option?.label ?? value;
+										}
+										return placeholder ?? "Select...";
+									}}
+								</SelectValue>
 							</SelectTrigger>
 							<SelectContent>
 								{selectConfig.options.map((option) => (

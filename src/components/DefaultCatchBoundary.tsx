@@ -33,8 +33,8 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 					Try Again
 				</Button>
 				{isRoot ? (
-					<Button asChild variant="outline">
-						<Link to="/">Home</Link>
+					<Button variant="outline" render={<Link to="/" />}>
+						Home
 					</Button>
 				) : (
 					<Button
