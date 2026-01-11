@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { reactStartCookies } from "better-auth/react-start";
+import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { env } from "~/env";
 import db from "~/server/db";
 import { nanoString, type UserRole } from "~/server/db/schema";
@@ -53,11 +53,11 @@ export const auth = betterAuth({
 		},
 	},
 	// WORKAROUND: better-auth v1.3.31+ has a type incompatibility with exactOptionalPropertyTypes: true
-	// The reactStartCookies plugin's type definition uses `headers?: Headers` but should use
+	// The tanstackStartCookies plugin's type definition uses `headers?: Headers` but should use
 	// `headers?: Headers | undefined` to be compatible with strict TypeScript settings.
 	// See: https://github.com/better-auth/better-auth/issues/5574
 	// biome-ignore lint/suspicious/noExplicitAny: Required workaround for better-auth type bug
-	plugins: [reactStartCookies() as any],
+	plugins: [tanstackStartCookies() as any],
 });
 
 export type Session = typeof auth.$Infer.Session;
