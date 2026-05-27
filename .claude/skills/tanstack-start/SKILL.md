@@ -105,27 +105,31 @@ Any TypeScript enum or constant used in BOTH client components AND server code m
 
 **Why this matters:** importing a value like `TaskStatus` from `~/server/db/schema` pulls in `pgTable("task", { … })` side effects via the schema barrel, leaking Drizzle into the client bundle. The `~/lib/` carve-out keeps client imports Drizzle-free while server code continues to import everything from `~/server/db/schema` via the barrel.
 
-## `getRequest()` defensive try/catch (REQUIRED)
+## Auth helpers — single source of truth (REQUIRED)
+
+Three central helpers in `~/server/auth/` own every session-loading flow in the codebase. **Use these instead of calling `getRequest()` / `auth.api.getSession()` directly** in createServerFn handlers, middleware, or any other server-only code:
+
+| Helper | Returns | Use when |
+|---|---|---|
+| [`getSessionRequest()`](src/server/auth/request.ts) | `Request \| null` | You need the raw `Request` and want the `getRequest()` v1.134+ throw-on-missing-context handled in one place. |
+| [`getOptionalSessionUser({ freshFromDb? })`](src/server/auth/session.ts) | `SessionUser \| null` | The anonymous path is valid (session probes, marketing pages, optional auth). |
+| [`requireAuthedUser({ freshFromDb? })`](src/server/auth/session.ts) | `SessionUser` (throws 401 otherwise) | The handler already requires a session — typical authed action. |
+
+Both `getOptionalSessionUser` and `requireAuthedUser` automatically:
+- Honor the Playwright test-auth header shortcut.
+- Wrap `getRequest()` in the defensive try/catch (no caller-visible throw on missing AsyncLocalStorage context).
+- Call `auth.api.getSession({ asResponse: true })` and forward `Set-Cookie` headers from session refresh.
+- Accept `{ freshFromDb: true }` to bypass better-auth's cookie cache when the caller needs to observe a role/permission change written earlier in the same session.
+
+### Failure mode that this design prevents
 
 `getRequest()` from `@tanstack/react-start/server` resolves the per-request `Request` from TanStack Start's AsyncLocalStorage context. Since v1.134+ the call **throws** (not returns `undefined`) when the context isn't active — which happens routinely during SSR query prefetch / dehydration. An unhandled throw poisons the React Query cache (`fetchFailureReason: TypeError`) on every SSR page render, breaks `setResponseHeader("Set-Cookie", …)` calls that depend on getting `request` first, and noisily alerts Sentry / Rollbar / Axiom.
 
-**Always wrap the call** — whether the import is static (e.g. `~/utils/test/playwright.ts`, middleware files) or dynamic (createServerFn handlers):
+Before the helpers landed, the defensive try/catch lived inline in five separate call sites and getting one of them wrong (which this PR's earlier commits did, twice) broke session refresh + SSR-time error monitoring. **The whole point of routing through the helpers is that the rule can't be forgotten.** If TanStack Start changes the semantics again (it has, twice — 1.134 and 1.167), one edit in `~/server/auth/request.ts` propagates everywhere.
 
-```typescript
-const { getRequest } = await import("@tanstack/react-start/server");
-let request: Request | undefined;
-try {
-	request = getRequest();
-} catch (_error) {
-	// Context not available (e.g., during SSR initialization)
-	return null;
-}
-if (!request) {
-	return null;
-}
-```
+### Direct `getRequest()` usage — when it's still OK
 
-For handlers where missing context IS a fatal condition (e.g. authed-action helpers), the `if (!request)` branch should `setResponseStatus(500)` and throw, but the throw should reach that branch via the `_error → request = undefined` fallthrough rather than crashing in the call itself. See [src/functions/session.ts](src/functions/session.ts), [src/functions/user-role.ts](src/functions/user-role.ts), and `getUser` in [src/functions/base-service.ts](src/functions/base-service.ts) for the canonical shape.
+`~/utils/test/playwright.ts` is the only file that calls `getRequest()` directly without going through `getSessionRequest()`. It needs to be sync (it's invoked at the top of the auth helpers themselves before any await), so wrapping its `getRequest()` call inline with try/catch is OK there. Every other file MUST go through `~/server/auth/session.ts`.
 
 ## Mechanical check script (TSS-2)
 

@@ -170,40 +170,11 @@ export async function loadEntityConfig(): Promise<Record<EntityType, EntityHandl
 }
 
 export async function getUser() {
-	const { checkPlaywrightTestAuth } = await import("~/utils/test/playwright");
-	const mockUser = checkPlaywrightTestAuth();
-	if (mockUser) return mockUser;
-
-	const { getRequest, setResponseStatus } = await import("@tanstack/react-start/server");
-	// `getRequest()` throws (not returns undefined) when the per-request
-	// AsyncLocalStorage context isn't active — happens during SSR query
-	// prefetch / dehydration in TanStack Start v1.134+. For an authed
-	// action this is a fatal condition; surface it as 500.
-	let request: Request | undefined;
-	try {
-		request = getRequest();
-	} catch (_error) {
-		request = undefined;
-	}
-	if (!request) {
-		setResponseStatus(500);
-		throw new Error("No web request available");
-	}
-
-	const { auth } = await import("~/server/auth/auth");
-	const session = await auth.api.getSession({
-		headers: request.headers,
-		query: {
-			// ensure session is fresh
-			// https://www.better-auth.com/docs/concepts/session-management#session-caching
-			disableCookieCache: true,
-		},
-	});
-
-	if (!session) {
-		setResponseStatus(401);
-		throw new Error("Unauthorized");
-	}
-
-	return session.user;
+	// All session-loading semantics (Playwright auth shortcut, getRequest
+	// try/catch, asResponse cookie forwarding, fresh-from-DB query) live in
+	// `~/server/auth/session`. This thin wrapper exists so per-handler files
+	// can `await import("~/functions/base-service")` for both the entity
+	// registry AND the authed actor in one round trip.
+	const { requireAuthedUser } = await import("~/server/auth/session");
+	return requireAuthedUser({ freshFromDb: true });
 }

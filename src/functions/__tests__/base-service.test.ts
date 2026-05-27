@@ -153,14 +153,17 @@ describe("base-service", () => {
 				text: async () => "",
 			} as Request);
 
-			// Ensure auth session returns a user with all required fields
-			vi.mocked(auth.api.getSession).mockResolvedValue({
+			// ~/server/auth/session.getOptionalSessionUser calls auth.api.getSession
+			// with `asResponse: true`, which returns a Response (not the plain
+			// {session,user} object). The Response carries Set-Cookie headers via
+			// getSetCookie() and the JSON body via .json(). Mock both shapes.
+			const mockSessionPayload = {
 				session: {
 					id: "sess_123",
 					createdAt: fixedDate,
 					updatedAt: fixedDate,
 					userId: mockUserId,
-					expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // expires in 24h
+					expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
 					token: "mock_token",
 					ipAddress: "127.0.0.1",
 					userAgent: "test-agent",
@@ -175,7 +178,11 @@ describe("base-service", () => {
 					updatedAt: fixedDate,
 					image: null,
 				},
-			});
+			};
+			vi.mocked(auth.api.getSession).mockResolvedValue({
+				headers: { getSetCookie: () => [] } as unknown as Headers,
+				json: async () => mockSessionPayload,
+			} as unknown as Response);
 
 			// Reset access check mock
 			vi.mocked(accessCheck).mockReset();
@@ -274,20 +281,26 @@ describe("base-service", () => {
 
 		// Add test for auth failure
 		it("should throw error when user is not authenticated", async () => {
-			// Mock auth to return no session
-			vi.mocked(auth.api.getSession).mockResolvedValueOnce(null);
+			// Mock auth to return a Response with a null user payload.
+			vi.mocked(auth.api.getSession).mockResolvedValueOnce({
+				headers: { getSetCookie: () => [] } as unknown as Headers,
+				json: async () => ({ session: null, user: null }),
+			} as unknown as Response);
 
 			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow("Unauthorized");
 			expect(setResponseStatus).toHaveBeenCalledWith(401);
 		});
 
-		// Update the web request mock for this test
-		it("should throw error when web request is not available", async () => {
-			// Mock getWebRequest to return undefined instead of null
+		// `getSessionRequest()` returns null when getRequest() throws OR returns
+		// undefined. `requireAuthedUser` now folds the "no request" path into the
+		// general "no authed user" path → 401 Unauthorized (was 500 before the
+		// refactor). The old 500 was a defensive code path; 401 is the correct
+		// HTTP status for "we couldn't authenticate this request".
+		it("should throw Unauthorized when web request is not available", async () => {
 			vi.mocked(getRequest).mockReturnValueOnce(undefined);
 
-			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow("No web request available");
-			expect(setResponseStatus).toHaveBeenCalledWith(500);
+			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow("Unauthorized");
+			expect(setResponseStatus).toHaveBeenCalledWith(401);
 		});
 	});
 });

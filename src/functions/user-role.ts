@@ -29,11 +29,13 @@ export async function handleMakeUserAdmin({ data }: { data: { userId: string; ro
 
 	const { logger } = await import("~/utils/logger");
 	const { getUserById, updateUserRole } = await import("./user.db");
-	const { auth } = await import("~/server/auth/auth");
-	const { getRequest } = await import("@tanstack/react-start/server");
 	const { NotFoundError } = await import("~/server/access/http-errors");
+	const { requireAuthedUser, getOptionalSessionUser } = await import("~/server/auth/session");
 
-	const currentUser = await getAuthedUser();
+	// requireAuthedUser handles the Playwright test-auth shortcut, the v1.134+
+	// getRequest() defensive try/catch, asResponse cookie forwarding, and the
+	// 401-on-no-session throw — all centralized in ~/server/auth/session.
+	const currentUser = await requireAuthedUser({ freshFromDb: true });
 	logger.info("makeUserAdmin", { userId, role, currentUserId: currentUser.id });
 
 	// Find the user to update
@@ -45,22 +47,12 @@ export async function handleMakeUserAdmin({ data }: { data: { userId: string; ro
 	// Update the user's role
 	const [updatedUser] = await updateUserRole(userId, role as UserRole, currentUser.id);
 
-	// Refresh the session cookie cache with updated user data.
-	// This forces a DB fetch and updates the cookie so hard refresh reflects the change.
-	// getRequest() throws when the AsyncLocalStorage context isn't active — refresh
-	// is best-effort; if we can't reach it we just skip silently.
-	let request: Request | undefined;
-	try {
-		request = getRequest();
-	} catch (_error) {
-		request = undefined;
-	}
-	if (request) {
-		await auth.api.getSession({
-			headers: request.headers,
-			query: { disableCookieCache: true },
-		});
-	}
+	// Refresh the session cookie cache so a hard refresh observes the new role.
+	// Best-effort: `getOptionalSessionUser({ freshFromDb: true })` re-queries the
+	// DB AND forwards the Set-Cookie headers via the helper. If the
+	// AsyncLocalStorage context isn't active for some reason, the helper
+	// returns null and we just skip silently.
+	await getOptionalSessionUser({ freshFromDb: true });
 
 	return updatedUser;
 }
@@ -68,40 +60,3 @@ export async function handleMakeUserAdmin({ data }: { data: { userId: string; ro
 export const makeUserAdmin = createServerFn({ method: "POST" })
 	.inputValidator(validateMakeAdmin)
 	.handler(handleMakeUserAdmin);
-
-// ---------------------------------------------------------------------------
-// Local auth helper — kept after the createServerFn so the file still ends
-// with the public registration. Dynamic-imports everything server-only.
-
-async function getAuthedUser() {
-	const { checkPlaywrightTestAuth } = await import("~/utils/test/playwright");
-	const mockUser = checkPlaywrightTestAuth();
-	if (mockUser) return mockUser;
-
-	const { getRequest, setResponseStatus } = await import("@tanstack/react-start/server");
-	// `getRequest()` throws when the AsyncLocalStorage context isn't active.
-	// For an authed action this is a fatal condition — surface it as 500.
-	let request: Request | undefined;
-	try {
-		request = getRequest();
-	} catch (_error) {
-		request = undefined;
-	}
-	if (!request) {
-		setResponseStatus(500);
-		throw new Error("No web request available");
-	}
-
-	const { auth } = await import("~/server/auth/auth");
-	const session = await auth.api.getSession({
-		headers: request.headers,
-		query: { disableCookieCache: true },
-	});
-
-	if (!session) {
-		setResponseStatus(401);
-		throw new Error("Unauthorized");
-	}
-
-	return session.user;
-}
