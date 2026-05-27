@@ -1,0 +1,20 @@
+name: TSS-2 Bundle Leak Check
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  check-tss-2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      # No need to `bun install` — the script only uses grep + bash.
+      - name: TSS-2 bundle-leak check
+        run: bun run check-tss-2
