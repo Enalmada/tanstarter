@@ -1,6 +1,6 @@
 import { date, minLength, nullish, picklist, pipe, string } from "valibot";
+import { TaskStatus } from "~/lib/enums/task-status";
 import type { Task } from "~/server/db/schema";
-import { TaskStatus } from "~/server/db/schema";
 import { FormGenerator } from "./form/FormGenerator";
 import type { FormFieldConfig } from "./form/types";
 

@@ -6,7 +6,14 @@
 import { integer, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-valibot";
 import { date, nullable, picklist, pipe, transform } from "valibot";
+import { TaskStatus, type TaskStatusType } from "~/lib/enums/task-status";
 import { nanoString, UserTable } from "./auth.schema";
+
+// Re-export so existing `import { TaskStatus } from "~/server/db/schema"` keeps
+// working on the server. Client code should import from `~/lib/enums/task-status`
+// directly to avoid pulling Drizzle into the browser bundle (TSS-2).
+export { TaskStatus };
+export type { TaskStatusType };
 
 const generateIdField = (prefix: string) => {
 	return varchar("id")
@@ -23,14 +30,6 @@ const generateAuditingFields = () => {
 		updatedAt: timestamp("updated_at", { mode: "date" }),
 	};
 };
-
-// Task Schema
-export enum TaskStatus {
-	ACTIVE = "ACTIVE",
-	COMPLETED = "COMPLETED",
-}
-
-export type TaskStatusType = (typeof TaskStatus)[keyof typeof TaskStatus];
 
 export const TaskTable = pgTable("task", {
 	id: generateIdField("tsk"),

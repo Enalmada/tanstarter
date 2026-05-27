@@ -18,7 +18,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { UserRole } from "~/server/db/schema";
+import { UserRole } from "~/lib/enums/user-role";
 import type { SessionUser } from "~/utils/auth-client";
 
 // Move this outside component to ensure consistent hash generation

@@ -1,5 +1,5 @@
 import { getRequest } from "@tanstack/react-start/server";
-import { UserRole } from "~/server/db/schema";
+import { UserRole } from "~/lib/enums/user-role";
 import type { SessionUser } from "~/utils/auth-client";
 
 // Mock users for testing - keep in sync with auth-guard.ts
