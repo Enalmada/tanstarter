@@ -51,7 +51,7 @@
 
 import { getRequest, setResponseStatus } from "@tanstack/react-start/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { deleteEntity } from "~/functions/base-service";
+import { deleteEntity } from "~/functions/delete-entity";
 import { validateId } from "~/functions/helpers";
 import { accessCheck } from "~/server/access/check";
 import { auth } from "~/server/auth/auth";

@@ -1,6 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
-import { findFirst, findMany } from "~/functions/base-service";
+import { findFirst } from "~/functions/find-first";
+import { findMany } from "~/functions/find-many";
 import { queries } from "~/utils/query/queries";
 
 // Mock variables
@@ -14,13 +15,11 @@ vi.mock("~/server/auth/auth", () => ({
 }));
 */
 
-vi.mock("~/functions/base-service", () => ({
-	findFirst: vi.fn(),
-	findMany: vi.fn(),
-	createEntity: vi.fn(),
-	updateEntity: vi.fn(),
-	deleteEntity: vi.fn(),
-}));
+vi.mock("~/functions/find-first", () => ({ findFirst: vi.fn() }));
+vi.mock("~/functions/find-many", () => ({ findMany: vi.fn() }));
+vi.mock("~/functions/create-entity", () => ({ createEntity: vi.fn() }));
+vi.mock("~/functions/update-entity", () => ({ updateEntity: vi.fn() }));
+vi.mock("~/functions/delete-entity", () => ({ deleteEntity: vi.fn() }));
 
 describe("queries", () => {
 	// Add a mock QueryClient at the top of the test
