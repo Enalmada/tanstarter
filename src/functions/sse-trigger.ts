@@ -6,7 +6,6 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
-import { incrementNotificationCount, publishNotification } from "~/server/lib/sse-channel";
 
 /**
  * Server function to trigger a new notification
@@ -21,7 +20,10 @@ import { incrementNotificationCount, publishNotification } from "~/server/lib/ss
  * const result = await triggerSSENotification();
  * console.log('Triggered notification #', result.count);
  */
-export const triggerSSENotification = createServerFn({ method: "POST" }).handler(async () => {
+export async function handleTriggerSSENotification() {
+	// Dynamic import — sse-channel pulls @enalmada/start-streaming/server
+	// (server-only entrypoint) and must not leak into the client bundle (TSS-2).
+	const { incrementNotificationCount, publishNotification } = await import("~/server/lib/sse-channel");
 	const count = incrementNotificationCount();
 	publishNotification(`Notification #${count}`, count);
 
@@ -29,4 +31,6 @@ export const triggerSSENotification = createServerFn({ method: "POST" }).handler
 		success: true,
 		count,
 	};
-});
+}
+
+export const triggerSSENotification = createServerFn({ method: "POST" }).handler(handleTriggerSSENotification);

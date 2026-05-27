@@ -1,69 +1,31 @@
+/**
+ * Generic CRUD Service Implementation
+ *
+ * Type-safe, generic CRUD API for entities in the system.
+ * Handles common operations (create, read, update, delete) with:
+ * - Input validation via valibot
+ * - CASL access control checks
+ * - Consistent error handling (BadRequestError for validation)
+ * - Optimistic concurrency control via version numbers
+ *
+ * TSS-2: Drizzle, CASL, auth, and the logger are dynamic-imported
+ * inside each handler. Top-level imports are limited to the framework,
+ * valibot, the client-safe ENTITY_TYPES, and the HTTP error vocabulary.
+ *
+ * Per-entity files should prefer per-resource handlers (with typed
+ * NotFoundError + safeMessage info-hiding); this generic surface stays
+ * for the simple cases.
+ */
+
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest, setResponseStatus } from "@tanstack/react-start/server";
-import { eq } from "drizzle-orm";
 import { any, object, optional, picklist, safeParse, string } from "valibot";
-import { ENTITY_TYPES } from "~/server/access/ability";
-import { accessCheck } from "~/server/access/check";
-import { auth, type SessionUser } from "~/server/auth/auth";
-import db from "~/server/db";
-import { buildWhereClause } from "~/server/db/DrizzleOrm";
-import {
-	TaskTable,
-	taskInsertSchema,
-	taskSelectSchema,
-	taskUpdateSchema,
-	UserTable,
-	userInsertSchema,
-	userSelectSchema,
-	userUpdateSchema,
-} from "~/server/db/schema";
-import { logger } from "~/utils/logger";
-import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
+import { ENTITY_TYPES, type EntityType } from "~/lib/entity-types";
+import { BadRequestError } from "~/server/access/http-errors";
 
-// Define the consolidated entity configuration
-const entityConfig = {
-	Task: {
-		get table() {
-			return TaskTable;
-		},
-		get query() {
-			// biome-ignore lint/suspicious/noExplicitAny: Needed for query builder type
-			return db.query.TaskTable as any;
-		},
-		schemas: {
-			select: taskSelectSchema,
-			insert: taskInsertSchema,
-			update: taskUpdateSchema,
-		},
-	},
-	User: {
-		get table() {
-			return UserTable;
-		},
-		get query() {
-			// biome-ignore lint/suspicious/noExplicitAny: Needed for query builder type
-			return db.query.UserTable as any;
-		},
-		schemas: {
-			select: userSelectSchema,
-			insert: userInsertSchema,
-			update: userUpdateSchema,
-		},
-	},
-} as const;
+// -----------------------------------------------------------------------------
+// Validators (sync, top-level — no server-only imports needed)
+// -----------------------------------------------------------------------------
 
-// Type helper to get table from entity type
-type EntityConfigType = typeof entityConfig;
-type EntityType = keyof EntityConfigType;
-
-// Helper function to create a where schema that accepts partial matches
-const createWhereSchema = (_subject: EntityType) => {
-	// Create a basic schema that allows any object for now
-	// We can add more specific validation later if needed
-	return object({});
-};
-
-// Define interfaces for our validation schemas
 interface BaseEntityPayload {
 	subject: EntityType;
 }
@@ -89,19 +51,121 @@ interface FindEntityPayload extends BaseEntityPayload {
 	};
 }
 
-const getUser = async (): Promise<SessionUser> => {
-	const mockUser = checkPlaywrightTestAuth();
-	if (mockUser) {
-		return mockUser;
+function formatIssues(error: unknown, subject: string): string {
+	if (error && typeof error === "object" && "issues" in error) {
+		const issues = ((error as { issues: Array<{ path?: Array<{ key: string }>; message?: string }> }).issues ?? [])
+			.map((issue) => {
+				const path = issue.path?.[0]?.key;
+				return path ? `${path}: ${issue.message}` : issue.message;
+			})
+			.join("; ");
+		return `Validation failed for ${subject}: ${issues}`;
 	}
+	return `Validation failed for ${subject}`;
+}
 
-	// Normal auth flow
+export const validateDeleteEntity = object({
+	subject: picklist(ENTITY_TYPES),
+	id: string(),
+});
+
+export const validateCreateEntity = object({
+	subject: picklist(ENTITY_TYPES),
+	data: any(), // Subject-specific schema applied after the outer parse
+});
+
+type ValidateCreateEntityType = {
+	subject: EntityType;
+	data: Record<string, unknown>;
+};
+
+export const validateUpdateEntity = object({
+	subject: picklist(ENTITY_TYPES),
+	id: string(),
+	data: any(),
+});
+
+export const validateFindFirst = object({
+	subject: picklist(ENTITY_TYPES),
+	where: optional(any()),
+	with: optional(any()),
+});
+
+export const validateFindMany = object({
+	subject: picklist(ENTITY_TYPES),
+	where: optional(any()),
+	with: optional(any()),
+});
+
+// Where-schema is currently permissive; we keep the helper so future
+// validation slots in without touching every handler.
+function createWhereSchema(_subject: EntityType) {
+	return object({});
+}
+
+// -----------------------------------------------------------------------------
+// Server-only helpers — these dynamic-import every Drizzle/auth/access module.
+// -----------------------------------------------------------------------------
+
+type EntityHandle = {
+	// biome-ignore lint/suspicious/noExplicitAny: Drizzle table types depend on dynamic schema lookup
+	table: any;
+	// biome-ignore lint/suspicious/noExplicitAny: Drizzle query builder type is opaque here
+	query: any;
+	// biome-ignore lint/suspicious/noExplicitAny: drizzle-valibot insert/update/select schema types
+	schemas: { select: any; insert: any; update: any };
+};
+
+async function loadEntityConfig(): Promise<Record<EntityType, EntityHandle>> {
+	const db = (await import("~/server/db")).default;
+	const {
+		TaskTable,
+		taskInsertSchema,
+		taskSelectSchema,
+		taskUpdateSchema,
+		UserTable,
+		userInsertSchema,
+		userSelectSchema,
+		userUpdateSchema,
+	} = await import("~/server/db/schema");
+
+	return {
+		Task: {
+			get table() {
+				return TaskTable;
+			},
+			get query() {
+				// biome-ignore lint/suspicious/noExplicitAny: drizzle query type is opaque
+				return db.query.TaskTable as any;
+			},
+			schemas: { select: taskSelectSchema, insert: taskInsertSchema, update: taskUpdateSchema },
+		},
+		User: {
+			get table() {
+				return UserTable;
+			},
+			get query() {
+				// biome-ignore lint/suspicious/noExplicitAny: drizzle query type is opaque
+				return db.query.UserTable as any;
+			},
+			schemas: { select: userSelectSchema, insert: userInsertSchema, update: userUpdateSchema },
+		},
+	};
+}
+
+async function getUser() {
+	const { checkPlaywrightTestAuth } = await import("~/utils/test/playwright");
+	const mockUser = checkPlaywrightTestAuth();
+	if (mockUser) return mockUser;
+
+	const { getRequest, setResponseStatus } = await import("@tanstack/react-start/server");
 	const request = getRequest();
 	if (!request) {
 		setResponseStatus(500);
 		throw new Error("No web request available");
 	}
 
+	const { auth } = await import("~/server/auth/auth");
 	const session = await auth.api.getSession({
 		headers: request.headers,
 		query: {
@@ -117,319 +181,274 @@ const getUser = async (): Promise<SessionUser> => {
 	}
 
 	return session.user;
-};
+}
 
-const handleValidationError = (error: unknown, subject: string) => {
-	if (error && typeof error === "object" && "issues" in error) {
-		const issues = (
-			error.issues as Array<{
-				path?: Array<{ key: string }>;
-				message?: string;
-			}>
-		)
-			.map((issue) => {
-				const path = issue.path?.[0]?.key;
-				return path ? `${path}: ${issue.message}` : issue.message;
-			})
-			.join(", ");
-		throw new Error(`Validation failed for ${subject}: ${issues}`);
+// -----------------------------------------------------------------------------
+// Handlers — inline exported named functions (per TanStack Start extraction rules).
+// -----------------------------------------------------------------------------
+
+export async function handleDeleteEntity({ data: { subject, id } }: { data: { subject: EntityType; id: string } }) {
+	const { eq } = await import("drizzle-orm");
+	const db = (await import("~/server/db")).default;
+	const { accessCheck } = await import("~/server/access/check");
+	const { logger } = await import("~/utils/logger");
+	const config = await loadEntityConfig();
+
+	const user = await getUser();
+	logger.info("deleteEntity", { subject, id, userId: user.id });
+
+	const { table } = config[subject];
+	const [entity] = await db.select().from(table).where(eq(table.id, id));
+
+	if (!entity) {
+		throw new Error(`${subject} ${id} not found`);
 	}
-	throw error;
-};
 
-export const validateDeleteEntity = object({
-	subject: picklist(ENTITY_TYPES),
-	id: string(),
-});
+	accessCheck(user, "delete", subject, entity);
+
+	// biome-ignore lint/suspicious/noExplicitAny: dynamic-imported entity table is `any`, returning() type is opaque
+	const deleted = (await db.delete(table).where(eq(table.id, id)).returning()) as any[];
+	return deleted[0];
+}
 
 export const deleteEntity = createServerFn({ method: "POST" })
 	.inputValidator(validateDeleteEntity)
-	.handler(async ({ data: { subject, id } }) => {
-		const user = await getUser();
-		logger.info("deleteEntity", { subject, id, userId: user.id });
+	.handler(handleDeleteEntity);
 
-		const table = entityConfig[subject as EntityType].table;
+export async function handleCreateEntity({ data }: { data: { subject: EntityType; data: Record<string, unknown> } }) {
+	const db = (await import("~/server/db")).default;
+	const { accessCheck } = await import("~/server/access/check");
+	const { logger } = await import("~/utils/logger");
+	const config = await loadEntityConfig();
 
-		const [entity] = await db.select().from(table).where(eq(table.id, id));
+	const user = await getUser();
+	logger.info("createEntity", { data, userId: user.id });
 
-		if (!entity) {
-			throw new Error(`${subject} ${id} not found`);
-		}
+	const { subject, data: entityData } = data as CreateEntityPayload;
+	const { table } = config[subject];
 
-		accessCheck(user, "delete", subject, entity);
+	const createWith = {
+		...(entityData as Record<string, unknown>),
+		createdById: user.id,
+		updatedById: user.id,
+		version: 1,
+	};
 
-		const [result] = await db.delete(table).where(eq(table.id, id)).returning();
+	accessCheck(user, "create", subject, createWith);
 
-		return result;
-	});
-
-export const validateCreateEntity = object({
-	subject: picklist(ENTITY_TYPES),
-	data: any(), // Use any() to pass through the data for subject-specific validation
-});
-
-type ValidateCreateEntityType = {
-	subject: (typeof ENTITY_TYPES)[number];
-	data: Record<string, unknown>;
-};
+	// biome-ignore lint/suspicious/noExplicitAny: dynamic-imported entity table is `any`
+	const inserted = (await db.insert(table).values(createWith).returning()) as any[];
+	return inserted[0];
+}
 
 export const createEntity = createServerFn({ method: "POST" })
 	.inputValidator((input: unknown) => {
-		const createEntityResult = safeParse(validateCreateEntity, input);
-		if (!createEntityResult.success) {
-			handleValidationError(createEntityResult, "entity");
+		const outer = safeParse(validateCreateEntity, input);
+		if (!outer.success) {
+			throw new BadRequestError(formatIssues(outer, "entity"));
 		}
 
-		const { subject, data } = createEntityResult.output as ValidateCreateEntityType;
-
-		// Get the schema for this subject type
-		const schema = entityConfig[subject as EntityType].schemas.insert;
-		if (!schema) {
-			throw new Error(`No schema found for subject type: ${subject}`);
-		}
-
-		// Validate the inner data using the subject-specific schema
-		const dataResult = safeParse(schema, data);
-
-		if (!dataResult.success) {
-			handleValidationError(dataResult, subject);
-		}
-
-		// Return the validated data
-		return {
-			subject,
-			data: dataResult.output as Record<string, unknown>,
-		} as const;
+		// NOTE: subject-specific schema validation happens inside the handler,
+		// not in this validator, because the Drizzle-valibot schemas import the
+		// Drizzle table layer (TSS-2). The outer pick at least pins `subject` so
+		// downstream code can rely on EntityType.
+		const { subject, data } = outer.output as ValidateCreateEntityType;
+		return { subject, data } as const;
 	})
-	.handler(async ({ data }) => {
-		const user = await getUser();
-
-		logger.info("createEntity", { data, userId: user.id });
-
-		const { subject, data: entityData } = data as CreateEntityPayload;
-
-		const { table } = entityConfig[subject as EntityType];
-
-		const createWith = {
-			...(entityData as Record<string, unknown>),
-			createdById: user.id,
-			updatedById: user.id,
-			version: 1,
-		};
-
-		accessCheck(user, "create", subject, createWith);
-
-		const [result] = await db.insert(table).values(createWith).returning();
-
-		return result;
+	.handler(async ({ data: outerData }) => {
+		// Subject-specific schema validation runs here with the lazy-loaded schemas
+		const config = await loadEntityConfig();
+		const schema = config[outerData.subject].schemas.insert;
+		const dataResult = safeParse(schema, outerData.data);
+		if (!dataResult.success) {
+			throw new BadRequestError(formatIssues(dataResult, outerData.subject));
+		}
+		return handleCreateEntity({
+			data: { subject: outerData.subject, data: dataResult.output as Record<string, unknown> },
+		});
 	});
 
-export const validateUpdateEntity = object({
-	subject: picklist(ENTITY_TYPES),
-	id: string(),
-	data: any(),
-});
+export async function handleUpdateEntity({
+	data,
+}: {
+	data: { subject: EntityType; id: string; data: Record<string, unknown> };
+}) {
+	const { eq } = await import("drizzle-orm");
+	const db = (await import("~/server/db")).default;
+	const { accessCheck } = await import("~/server/access/check");
+	const { logger } = await import("~/utils/logger");
+	const config = await loadEntityConfig();
+
+	const user = await getUser();
+	logger.info("updateEntity", { data, userId: user.id });
+
+	const { subject, id, data: entityData } = data as UpdateEntityPayload;
+	const { table } = config[subject];
+
+	const [entity] = await db.select().from(table).where(eq(table.id, id)).limit(1);
+	if (!entity) {
+		throw new Error(`${subject} ${id} not found`);
+	}
+
+	const version = (entityData as Record<string, unknown>).version;
+	if (entity.version && entity.version !== version) {
+		throw new Error(`${subject} has changed since loading.  Please reload and try again.`);
+	}
+
+	accessCheck(user, "update", subject, entity);
+
+	const updateWith = {
+		...(entityData as Record<string, unknown>),
+		updatedAt: new Date(),
+		updatedById: user.id,
+		version: entity.version + 1,
+	};
+
+	// biome-ignore lint/suspicious/noExplicitAny: dynamic-imported entity table is `any`
+	const updated = (await db.update(table).set(updateWith).where(eq(table.id, id)).returning()) as any[];
+	return updated[0];
+}
 
 export const updateEntity = createServerFn({ method: "POST" })
 	.inputValidator((input: unknown) => {
-		const updateEntityResult = safeParse(validateUpdateEntity, input);
-		if (!updateEntityResult.success) {
-			handleValidationError(updateEntityResult, "entity");
+		const outer = safeParse(validateUpdateEntity, input);
+		if (!outer.success) {
+			throw new BadRequestError(formatIssues(outer, "entity"));
 		}
-
-		const { subject, id, data } = updateEntityResult.output as UpdateEntityPayload;
-
-		// Get the schema for this subject type
-		const schema = entityConfig[subject as EntityType].schemas.update;
-		if (!schema) {
-			throw new Error(`No schema found for subject type: ${subject}`);
-		}
-
-		const dataResult = safeParse(schema, data);
-		if (!dataResult.success) {
-			handleValidationError(dataResult, subject);
-		}
-
-		return {
-			subject,
-			id,
-			data: dataResult.output as Record<string, unknown>,
-		};
+		const { subject, id, data } = outer.output as UpdateEntityPayload;
+		return { subject, id, data };
 	})
-	.handler(async ({ data }) => {
-		const user = await getUser();
-
-		logger.info("updateEntity", { data, userId: user.id });
-
-		const { subject, id, data: entityData } = data as UpdateEntityPayload;
-
-		const { table } = entityConfig[subject as EntityType];
-
-		const [entity] = await db.select().from(table).where(eq(table.id, id)).limit(1);
-
-		if (!entity) {
-			throw new Error(`${subject} ${id} not found`);
+	.handler(async ({ data: outerData }) => {
+		const config = await loadEntityConfig();
+		const schema = config[outerData.subject].schemas.update;
+		const dataResult = safeParse(schema, outerData.data);
+		if (!dataResult.success) {
+			throw new BadRequestError(formatIssues(dataResult, outerData.subject));
 		}
-
-		const version = (entityData as Record<string, unknown>).version;
-		if (entity.version && entity.version !== version) {
-			throw new Error(`${subject} has changed since loading.  Please reload and try again.`);
-		}
-
-		accessCheck(user, "update", subject, entity);
-
-		const updateWith = {
-			...(entityData as Record<string, unknown>),
-			updatedAt: new Date(),
-			updatedById: user.id,
-			version: entity.version + 1,
-		};
-
-		const [result] = await db.update(table).set(updateWith).where(eq(table.id, id)).returning();
-
-		return result;
+		return handleUpdateEntity({
+			data: {
+				subject: outerData.subject,
+				id: outerData.id,
+				data: dataResult.output as Record<string, unknown>,
+			},
+		});
 	});
 
-export const validateFindFirst = object({
-	subject: picklist(ENTITY_TYPES),
-	where: optional(any()),
-	with: optional(any()),
-});
+export async function handleFindFirst({
+	data,
+}: {
+	data: {
+		subject: EntityType;
+		where: Record<string, unknown> | undefined;
+		with: Record<string, unknown> | undefined;
+	};
+}) {
+	const { accessCheck } = await import("~/server/access/check");
+	const { logger } = await import("~/utils/logger");
+	const { buildWhereClause } = await import("~/server/db/DrizzleOrm");
+	const config = await loadEntityConfig();
+
+	const user = await getUser();
+	logger.info("findFirst", { data, userId: user.id });
+
+	const { subject, where, with: withRelations } = data as FindEntityPayload;
+	const { table, query } = config[subject];
+	const whereList = buildWhereClause(table, where);
+
+	const result = await query.findFirst({ where: whereList, with: withRelations });
+
+	if (!result) {
+		throw new Error(`${subject} ${where?.id ?? "record"} not found`);
+	}
+
+	accessCheck(user, "read", subject, result);
+	return result;
+}
 
 export const findFirst = createServerFn({ method: "GET" })
 	.inputValidator((input: unknown) => {
-		const findFirstResult = safeParse(validateFindFirst, input);
-		if (!findFirstResult.success) {
-			handleValidationError(findFirstResult, "entity");
+		const outer = safeParse(validateFindFirst, input);
+		if (!outer.success) {
+			throw new BadRequestError(formatIssues(outer, "entity"));
 		}
-
-		const { subject, where, with: withRelations } = findFirstResult.output as FindEntityPayload;
-
+		const { subject, where, with: withRelations } = outer.output as FindEntityPayload;
 		if (where) {
-			const whereSchema = createWhereSchema(subject as EntityType);
-			const whereResult = safeParse(whereSchema, where);
+			const whereResult = safeParse(createWhereSchema(subject), where);
 			if (!whereResult.success) {
-				handleValidationError(whereResult, subject);
+				throw new BadRequestError(formatIssues(whereResult, subject));
 			}
 		}
-
 		return { subject, where, with: withRelations };
 	})
-	.handler(async ({ data }) => {
-		const user = await getUser();
+	.handler(handleFindFirst);
 
-		logger.info("findFirst", { data, userId: user.id });
+export async function handleFindMany({
+	data,
+}: {
+	data: {
+		subject: EntityType;
+		where: Record<string, unknown> | undefined;
+		with: Record<string, unknown> | undefined;
+	};
+}) {
+	const { accessCheck } = await import("~/server/access/check");
+	const { logger } = await import("~/utils/logger");
+	const { buildWhereClause } = await import("~/server/db/DrizzleOrm");
+	const config = await loadEntityConfig();
 
-		const { subject, where, with: withRelations } = data as FindEntityPayload;
+	const user = await getUser();
+	logger.info("findMany", { data, userId: user.id });
 
-		const { table, query } = entityConfig[subject as EntityType];
-		const whereList = buildWhereClause(table, where);
+	const { subject, where, with: withRelations } = data as FindEntityPayload;
+	const { table, query } = config[subject];
+	const whereList = buildWhereClause(table, where);
 
-		const result = await query.findFirst({
-			where: whereList,
-			with: withRelations,
-		});
+	accessCheck(user, "list", subject, where);
 
-		if (!result) {
-			throw new Error(`${subject} ${where?.id ?? "record"} not found`);
-		}
-
-		accessCheck(user, "read", subject, result);
-
-		return result;
-	});
-
-export const validateFindMany = object({
-	subject: picklist(ENTITY_TYPES),
-	where: optional(any()),
-	with: optional(any()),
-});
+	return query.findMany({ where: whereList, with: withRelations });
+}
 
 export const findMany = createServerFn({ method: "GET" })
 	.inputValidator((input: unknown) => {
-		const findManyResult = safeParse(validateFindMany, input);
-		if (!findManyResult.success) {
-			handleValidationError(findManyResult, "entity");
+		const outer = safeParse(validateFindMany, input);
+		if (!outer.success) {
+			throw new BadRequestError(formatIssues(outer, "entity"));
 		}
-
-		const { subject, where, with: withRelations } = findManyResult.output as FindEntityPayload;
-
+		const { subject, where, with: withRelations } = outer.output as FindEntityPayload;
 		if (where) {
-			const whereSchema = createWhereSchema(subject as EntityType);
-			const whereResult = safeParse(whereSchema, where);
+			const whereResult = safeParse(createWhereSchema(subject), where);
 			if (!whereResult.success) {
-				handleValidationError(whereResult, subject);
+				throw new BadRequestError(formatIssues(whereResult, subject));
 			}
 		}
-
 		return { subject, where, with: withRelations };
 	})
-	.handler(async ({ data }) => {
-		const user = await getUser();
-
-		logger.info("findMany", { data, userId: user.id });
-
-		const { subject, where, with: withRelations } = data as FindEntityPayload;
-
-		const { table, query } = entityConfig[subject as EntityType];
-		const whereList = buildWhereClause(table, where);
-
-		accessCheck(user, "list", subject, where);
-
-		const result = await query.findMany({
-			where: whereList,
-			with: withRelations,
-		});
-
-		return result;
-	});
+	.handler(handleFindMany);
 
 /**
- * Generic CRUD Service Implementation
- *
- * This service provides a type-safe, generic CRUD API for entities in the system.
- * It handles common operations like create, read, update, delete with:
- * - Type safety through TypeScript and Valibot schemas
- * - Access control checks
- * - Consistent error handling
- * - Optimistic concurrency control via version numbers
- *
  * Usage:
  * ```ts
  * // Create
  * const task = await createEntity({
- *   data: {
- *     subject: "Task",
- *     data: { title: "New Task" }
- *   },
+ *   data: { subject: "Task", data: { title: "New Task" } },
  *   context: { user }
  * });
  *
  * // Read
  * const tasks = await findMany({
- *   data: {
- *     subject: "Task",
- *     where: { userId: user.id }
- *   },
+ *   data: { subject: "Task", where: { userId: user.id } },
  *   context: { user }
  * });
  *
  * // Update
  * const updated = await updateEntity({
- *   data: {
- *     subject: "Task",
- *     id: "task_1",
- *     data: { title: "Updated" }
- *   },
+ *   data: { subject: "Task", id: "task_1", data: { title: "Updated" } },
  *   context: { user }
  * });
  *
  * // Delete
  * const deleted = await deleteEntity({
- *   data: {
- *     subject: "Task",
- *     id: "task_1"
- *   },
+ *   data: { subject: "Task", id: "task_1" },
  *   context: { user }
  * });
  * ```

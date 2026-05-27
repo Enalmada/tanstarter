@@ -1,20 +1,27 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
-import { auth } from "~/server/auth/auth";
-import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
-export const getSessionUser = createServerFn({ method: "GET" }).handler(async () => {
+/**
+ * Returns the currently authenticated user, or null if anonymous.
+ *
+ * All server-only imports (`@tanstack/react-start/server`, auth, playwright
+ * helpers) are dynamic-imported inside the handler. Top-level imports from
+ * those modules would pull better-auth + Drizzle into the client bundle
+ * via the createServerFn extraction (TSS-2 rule).
+ */
+export async function handleGetSessionUser() {
+	const { checkPlaywrightTestAuth } = await import("~/utils/test/playwright");
 	const mockUser = checkPlaywrightTestAuth();
 	if (mockUser) {
 		return mockUser;
 	}
 
-	// Normal auth flow
+	const { getRequest, setResponseHeader } = await import("@tanstack/react-start/server");
 	const request = getRequest();
 	if (!request) {
 		return null;
 	}
 
+	const { auth } = await import("~/server/auth/auth");
 	const session = await auth.api.getSession({
 		headers: request.headers,
 		asResponse: true,
@@ -28,4 +35,6 @@ export const getSessionUser = createServerFn({ method: "GET" }).handler(async ()
 
 	const data = await session.json();
 	return data?.user || null;
-});
+}
+
+export const getSessionUser = createServerFn({ method: "GET" }).handler(handleGetSessionUser);
