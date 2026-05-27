@@ -145,5 +145,56 @@ export default defineConfig({
 	},
 	optimizeDeps: {
 		exclude: ["better-auth"],
+		// Pre-bundle the deps that vite would otherwise discover lazily on the
+		// first request and then trigger a full client reload after pre-bundling
+		// (the "✨ new dependencies optimized → ✨ reloading" pair in the dev
+		// log). Without this list, the bump to @tanstack/react-start 1.167 +
+		// better-auth 1.4 racks up ~38 newly-discovered deps on the first
+		// request after `vite dev` starts, and the resulting mid-flight reload
+		// breaks every Playwright test in that 10-15s window. The names below
+		// are exactly what the dev-mode optimizer logged on a cold start —
+		// keep them in sync if the dep tree shifts (the CI failure mode is
+		// obvious: "✨ new dependencies optimized" lines you don't see in
+		// the include list).
+		include: [
+			"@better-auth/core/api",
+			"@better-auth/core/context",
+			"@better-auth/core/db",
+			"@better-auth/core/db/adapter",
+			"@better-auth/core/env",
+			"@better-auth/core/error",
+			"@better-auth/core/social-providers",
+			"@better-auth/core/utils",
+			"@better-auth/telemetry",
+			"@better-auth/utils",
+			"@better-auth/utils/base64",
+			"@better-auth/utils/binary",
+			"@better-auth/utils/hash",
+			"@better-auth/utils/hex",
+			"@better-auth/utils/hmac",
+			"@better-auth/utils/random",
+			"@better-fetch/fetch",
+			"@noble/ciphers/chacha.js",
+			"@noble/ciphers/utils.js",
+			"@noble/hashes/hkdf.js",
+			"@noble/hashes/scrypt.js",
+			"@noble/hashes/sha2.js",
+			"@noble/hashes/utils.js",
+			"@tanstack/history",
+			"@tanstack/router-core",
+			"@tanstack/router-core/isServer",
+			"@tanstack/router-core/ssr/client",
+			"@tanstack/router-core/ssr/server",
+			"better-call",
+			"better-sse",
+			"defu",
+			"h3-v2",
+			"jose",
+			"jose/errors",
+			"kysely",
+			"nanostores",
+			"seroval",
+			"zod",
+		],
 	},
 });
