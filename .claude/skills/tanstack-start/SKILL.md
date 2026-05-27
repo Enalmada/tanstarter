@@ -25,6 +25,16 @@ Every `createServerFn` file MUST follow this pattern:
 
 Reference example: see [src/functions/user-role.ts](src/functions/user-role.ts).
 
+## One createServerFn per file (REQUIRED — TSS-6)
+
+Each `createServerFn(...)` lives in its own per-handler file. **Do not** collect multiple createServerFn definitions in a shared helper file (e.g. `base-service.ts`) that other modules import.
+
+**Why this is load-bearing**: `@tanstack/react-start` v1.167+ ships a `tanstack-start-core:import-protection` Vite plugin that walks the import graph and rejects any module reachable from a client route that imports `@tanstack/react-start/server` — even via dynamic `await import(...)`. If a shared file houses both the createServerFn definitions AND server-only helpers (e.g. `getUser`, `loadEntityConfig`), then a single client-reachable importer (`~/utils/query/queries.ts`, `~/utils/query/mutations.ts`, any route loader) drags the whole server-only chain into the client compile pass and the dev server / build fails.
+
+Per-handler files keep `base-service.ts`-style modules off the client-reachable graph: the per-handler file only re-exports its `createServerFn`, and the framework's compile-time handler extraction strips the body (with its dynamic imports of the helpers) before the client bundle is emitted.
+
+Pattern in this repo: [src/functions/find-first.ts](src/functions/find-first.ts), [src/functions/find-many.ts](src/functions/find-many.ts), [src/functions/create-entity.ts](src/functions/create-entity.ts), [src/functions/update-entity.ts](src/functions/update-entity.ts), [src/functions/delete-entity.ts](src/functions/delete-entity.ts) each export exactly one createServerFn; [src/functions/base-service.ts](src/functions/base-service.ts) houses only the shared entity registry, validators, error formatter, and the `getUser` / `loadEntityConfig` helpers (no createServerFn).
+
 ## TSS Rules (mechanical checks)
 
 | Rule | Description |
@@ -34,6 +44,7 @@ Reference example: see [src/functions/user-role.ts](src/functions/user-role.ts).
 | TSS-2 | No top-level server-only imports in createServerFn files (load-bearing — violations crash the client bundle) |
 | TSS-3 | Pure-valibot validators must not co-locate with `pgTable` declarations if shared across client + server |
 | TSS-5 | Validators use the canonical `.issues.map((i) => i.message).join("; ")` form |
+| TSS-6 | One `createServerFn` per file; no shared file housing multiple createServerFn surfaces + server-only helpers (load-bearing on v1.167+ import-protection) |
 
 **TSS-2 is the load-bearing rule** — violations crash the client bundle with `Buffer is not defined` or pull Drizzle / `postgres-js` into the browser. A mechanical CI gate (`bun run check-tss-2`) enforces it.
 
