@@ -45,9 +45,16 @@ export async function handleMakeUserAdmin({ data }: { data: { userId: string; ro
 	// Update the user's role
 	const [updatedUser] = await updateUserRole(userId, role as UserRole, currentUser.id);
 
-	// Refresh the session cookie cache with updated user data
-	// This forces a DB fetch and updates the cookie so hard refresh reflects the change
-	const request = getRequest();
+	// Refresh the session cookie cache with updated user data.
+	// This forces a DB fetch and updates the cookie so hard refresh reflects the change.
+	// getRequest() throws when the AsyncLocalStorage context isn't active — refresh
+	// is best-effort; if we can't reach it we just skip silently.
+	let request: Request | undefined;
+	try {
+		request = getRequest();
+	} catch (_error) {
+		request = undefined;
+	}
 	if (request) {
 		await auth.api.getSession({
 			headers: request.headers,
@@ -72,7 +79,14 @@ async function getAuthedUser() {
 	if (mockUser) return mockUser;
 
 	const { getRequest, setResponseStatus } = await import("@tanstack/react-start/server");
-	const request = getRequest();
+	// `getRequest()` throws when the AsyncLocalStorage context isn't active.
+	// For an authed action this is a fatal condition — surface it as 500.
+	let request: Request | undefined;
+	try {
+		request = getRequest();
+	} catch (_error) {
+		request = undefined;
+	}
 	if (!request) {
 		setResponseStatus(500);
 		throw new Error("No web request available");

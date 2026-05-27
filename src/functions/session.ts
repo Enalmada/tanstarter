@@ -16,7 +16,17 @@ export async function handleGetSessionUser() {
 	}
 
 	const { getRequest, setResponseHeader } = await import("@tanstack/react-start/server");
-	const request = getRequest();
+	// TanStack Start v1.134+ requires AsyncLocalStorage context for getRequest()
+	// to resolve; the call throws (not returns undefined) when it's missing —
+	// which happens during SSR query prefetch / hydration. Catch and fall
+	// through to the anonymous-session path so the error doesn't poison the
+	// React Query cache on every page render.
+	let request: Request | undefined;
+	try {
+		request = getRequest();
+	} catch (_error) {
+		return null;
+	}
 	if (!request) {
 		return null;
 	}

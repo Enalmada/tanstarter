@@ -159,7 +159,16 @@ async function getUser() {
 	if (mockUser) return mockUser;
 
 	const { getRequest, setResponseStatus } = await import("@tanstack/react-start/server");
-	const request = getRequest();
+	// `getRequest()` throws (not returns undefined) when the per-request
+	// AsyncLocalStorage context isn't active — happens during SSR query
+	// prefetch / dehydration in TanStack Start v1.134+. For an authed
+	// action this is a fatal condition; surface it as 500.
+	let request: Request | undefined;
+	try {
+		request = getRequest();
+	} catch (_error) {
+		request = undefined;
+	}
 	if (!request) {
 		setResponseStatus(500);
 		throw new Error("No web request available");

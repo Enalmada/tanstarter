@@ -94,6 +94,28 @@ Any TypeScript enum or constant used in BOTH client components AND server code m
 
 **Why this matters:** importing a value like `TaskStatus` from `~/server/db/schema` pulls in `pgTable("task", { … })` side effects via the schema barrel, leaking Drizzle into the client bundle. The `~/lib/` carve-out keeps client imports Drizzle-free while server code continues to import everything from `~/server/db/schema` via the barrel.
 
+## `getRequest()` defensive try/catch (REQUIRED)
+
+`getRequest()` from `@tanstack/react-start/server` resolves the per-request `Request` from TanStack Start's AsyncLocalStorage context. Since v1.134+ the call **throws** (not returns `undefined`) when the context isn't active — which happens routinely during SSR query prefetch / dehydration. An unhandled throw poisons the React Query cache (`fetchFailureReason: TypeError`) on every SSR page render, breaks `setResponseHeader("Set-Cookie", …)` calls that depend on getting `request` first, and noisily alerts Sentry / Rollbar / Axiom.
+
+**Always wrap the call** — whether the import is static (e.g. `~/utils/test/playwright.ts`, middleware files) or dynamic (createServerFn handlers):
+
+```typescript
+const { getRequest } = await import("@tanstack/react-start/server");
+let request: Request | undefined;
+try {
+	request = getRequest();
+} catch (_error) {
+	// Context not available (e.g., during SSR initialization)
+	return null;
+}
+if (!request) {
+	return null;
+}
+```
+
+For handlers where missing context IS a fatal condition (e.g. authed-action helpers), the `if (!request)` branch should `setResponseStatus(500)` and throw, but the throw should reach that branch via the `_error → request = undefined` fallthrough rather than crashing in the call itself. See [src/functions/session.ts](src/functions/session.ts), [src/functions/user-role.ts](src/functions/user-role.ts), and `getUser` in [src/functions/base-service.ts](src/functions/base-service.ts) for the canonical shape.
+
 ## Mechanical check script (TSS-2)
 
 See [scripts/check-tss-2.sh](scripts/check-tss-2.sh). Run via `bun run check-tss-2`. CI gates merge on a hit. Failing locally means a createServerFn file gained a top-level server-only import — convert it to a dynamic import inside the handler.
