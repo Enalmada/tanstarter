@@ -99,12 +99,17 @@
 import { createCspMiddleware } from "@enalmada/start-secure";
 import { createStart } from "@tanstack/react-start";
 import { cspRules } from "~/config/cspRules";
+import { authErrorTranslator } from "~/server/access/middleware";
 
 /**
  * TanStack Start instance with CSP middleware
  *
  * The middleware is registered in requestMiddleware array to run on every request.
  * Multiple middleware can be added here - they execute in array order.
+ *
+ * `functionMiddleware` runs around every `createServerFn` handler. The
+ * authErrorTranslator inspects thrown errors for `HttpErrorHints` and
+ * maps them to safe HTTP responses — see ~/server/access/http-errors.
  */
 export const startInstance = createStart(() => ({
 	requestMiddleware: [
@@ -122,5 +127,10 @@ export const startInstance = createStart(() => ({
 
 		// Add additional middleware here if needed
 		// Example: authentication, logging, rate limiting, etc.
+	],
+	functionMiddleware: [
+		// Translates typed domain errors (BadRequestError, NotAuthorizedError,
+		// NotFoundError, ConflictError, …) to HTTP status + safe wire message.
+		authErrorTranslator,
 	],
 }));
