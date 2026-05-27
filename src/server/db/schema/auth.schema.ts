@@ -12,8 +12,8 @@ import { UserRole, type UserRoleType } from "~/lib/enums/user-role";
 // Re-export so existing `import { UserRole } from "~/server/db/schema"` keeps
 // working on the server. Client code should import from `~/lib/enums/user-role`
 // directly to avoid pulling Drizzle into the browser bundle (TSS-2).
-export { UserRole };
 export type { UserRoleType };
+export { UserRole };
 
 // Parameterized insert don't seem to respect defaultFn
 export const nanoString = (prefix: string) => `${prefix}_${nanoid()}`;

@@ -12,8 +12,8 @@ import { nanoString, UserTable } from "./auth.schema";
 // Re-export so existing `import { TaskStatus } from "~/server/db/schema"` keeps
 // working on the server. Client code should import from `~/lib/enums/task-status`
 // directly to avoid pulling Drizzle into the browser bundle (TSS-2).
-export { TaskStatus };
 export type { TaskStatusType };
+export { TaskStatus };
 
 const generateIdField = (prefix: string) => {
 	return varchar("id")

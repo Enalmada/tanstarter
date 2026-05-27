@@ -290,8 +290,14 @@ export async function handleUpdateEntity({
 		throw new Error(`${subject} ${id} not found`);
 	}
 
-	const version = (entityData as Record<string, unknown>).version;
-	if (entity.version && entity.version !== version) {
+	// userFormSchema / taskFormSchema in ~/types/validation.ts type `version` as
+	// `nullish(string())` (form inputs are strings), but the schema column is an
+	// integer. Coerce stringified versions before comparing — a strict `!==`
+	// between `1` and `"1"` would otherwise always fire and break every update.
+	const rawVersion = (entityData as Record<string, unknown>).version;
+	const incomingVersion =
+		typeof rawVersion === "string" && rawVersion.trim() !== "" ? Number.parseInt(rawVersion, 10) : rawVersion;
+	if (entity.version && entity.version !== incomingVersion) {
 		throw new Error(`${subject} has changed since loading.  Please reload and try again.`);
 	}
 

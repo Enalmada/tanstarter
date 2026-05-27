@@ -8,7 +8,7 @@
 set -e
 
 # Pre-filter to files containing createServerFn(, excluding tests and .db.ts
-files=$(grep -rl 'createServerFn\s*(' src/ 2>/dev/null \
+files=$(grep -rl 'createServerFn[[:space:]]*(' src/ 2>/dev/null \
 	| grep -v '__tests__' \
 	| grep -v '\.test\.' \
 	| grep -v '\.db\.ts$' \
@@ -20,24 +20,35 @@ if [ -z "$files" ]; then
 	exit 0
 fi
 
-# The TSS-2 pattern. Matches top-level imports from server-only paths but
-# EXCLUDES the documented carve-outs:
-# - ~/server/access/http-errors (client-safe by construction)
-# - ~/server/db/schema/*-schemas.ts (Drizzle-free valibot siblings)
+# The TSS-2 pattern, designed to be hard to bypass:
 #
-# Also excludes `import type { … }` lines — type-only imports compile away.
+# - Matches every top-level import form:
+#     `import "path"`             (side-effect)
+#     `import x from "path"`      (default)
+#     `import { … } from "path"`  (named)
+#     `import * as x from "path"` (namespace)
+#     `import x, { … } from "…"`  (mixed)
+# - Supports both single and double quotes.
+# - The path pattern matches the exact server-only module OR any subpath,
+#   without depending on the trailing quote (the earlier `([^"]|$)` trick
+#   silently missed direct imports of `~/server/db` itself).
+#
+# EXCLUDES the documented carve-outs via the second grep -v stage:
+# - `import type { … }` lines (type-only — compile away)
+# - `~/server/db/schema/*-schemas.ts` (Drizzle-free valibot siblings)
+#
+# `~/server/access/http-errors` is excluded by construction (the regex
+# only matches `check|ability|middleware` under `~/server/access/`).
 hits=0
-hit_files=""
 for f in $files; do
 	matches=$(grep -nE \
-		'^import[[:space:]]+\{[^}]+\}[[:space:]]+from[[:space:]]+"(~/server/db([^"]|$)|~/server/access/(check|ability|middleware)|~/server/services|~/server/auth|~/server/lib|~/functions/[^"/]+/[^"]*\.db|~/utils/logger|@tanstack/react-start/server|drizzle-orm)' \
+		"^import([[:space:]]+[^'\"]*)?['\"](~/server/db(/[^'\"]*)?|~/server/access/(check|ability|middleware)|~/server/services(/[^'\"]*)?|~/server/auth(/[^'\"]*)?|~/server/lib(/[^'\"]*)?|~/functions/[^'\"/]+/[^'\"]*\\.db|~/utils/logger|@tanstack/react-start/server|drizzle-orm)['\"]" \
 		"$f" 2>/dev/null \
-		| grep -v '^[^:]*:[0-9]*:[[:space:]]*import[[:space:]]\+type' \
-		| grep -v '~/server/db/schema/[A-Za-z-]*-schemas' \
+		| grep -vE '^[0-9]+:[[:space:]]*import[[:space:]]+type' \
+		| grep -vE '~/server/db/schema/[A-Za-z-]+-schemas' \
 		|| true)
 	if [ -n "$matches" ]; then
 		hits=$((hits + 1))
-		hit_files+="\n  $f"
 		echo "  TSS-2 HIT: $f"
 		echo "$matches" | sed 's/^/    /'
 	fi
