@@ -184,7 +184,7 @@ See [scripts/check-tss-2.sh](scripts/check-tss-2.sh). Run via `bun run check-tss
 
 Implementation notes worth banking:
 
-- The script requires **ripgrep (`rg`)** for `--multiline --multiline-dotall -nP` (POSIX `grep -P` is GNU-only and can't match across lines). The guard at the top of the script gives an install hint when missing. CI's `ubuntu-latest` ships with rg preinstalled.
+- The script requires **ripgrep (`rg`)** for `--multiline --multiline-dotall -nP` (POSIX `grep -P` is GNU-only and can't match across lines). The guard at the top of the script gives an install hint when missing. CI installs it via `apt-get install ripgrep` in the workflow — ubuntu-latest does not ship with it.
 - The two carve-outs (`import type { … }` and `~/server/db/schema/*-schemas.ts`) live in **PCRE negative lookaheads inside the main regex**, not in post-filter `grep -v` pipes. Earlier versions used pipes and silently missed multi-line imports — `rg --multiline` matches the whole block as one logical hit but emits each line separately, so a `type` keyword on line 1 was stripped before the path-matched line was emitted. The lookahead approach fires BEFORE any path matching and correctly skips the whole match regardless of line layout.
 - All character classes use **POSIX `[[:space:]]` etc., NOT `\s` / `\d` / `\w`**. BSD grep (macOS default `/usr/bin/grep`) treats `\s` as the literal `s`.
 - When ripping out a Vite alias (e.g. removing `src/polyfills/use-sync-external-store-shim.ts`), grep `.storybook/`, `vitest.config*`, and any per-tool config for the same find-key. A single `vite.config.ts` edit is not sufficient when the project has parallel toolchains — Storybook's `viteFinal` and Vitest configs maintain their own alias blocks.
