@@ -20,9 +20,12 @@
  */
 
 export async function getSessionRequest(): Promise<Request | null> {
-	const { getRequest } = await import("@tanstack/react-start/server");
+	// Namespace dynamic-import (not destructured) so unit tests can
+	// `vi.spyOn(module, "getRequest")` and have the spy intercept.
+	// See gell-v2 PR #190 R1 / SKILL.md "Vitest mock limitations".
+	const serverModule = await import("@tanstack/react-start/server");
 	try {
-		return getRequest() ?? null;
+		return serverModule.getRequest() ?? null;
 	} catch {
 		// Context not active (e.g. SSR initialization). Caller decides
 		// whether this is fatal (throw) or recoverable (return null).

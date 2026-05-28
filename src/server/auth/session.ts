@@ -31,17 +31,25 @@
 
 import type { SessionUser } from "~/server/auth/auth";
 
+// All cross-module calls below go through the IMPORTED MODULE NAMESPACE, not
+// through destructured local bindings. This matters for unit tests:
+// `vi.spyOn(module, "fn")` replaces the property on the module object, but a
+// destructured `const { fn } = await import(...)` captured the ORIGINAL
+// reference and won't see the spy. Calling `mod.fn()` keeps the indirection
+// so tests can intercept at the helper layer.
+// (See gell-v2 PR #190 R1 / SKILL.md "Vitest mock limitations".)
+
 export async function getOptionalSessionUser(opts?: { freshFromDb?: boolean }): Promise<SessionUser | null> {
-	const { checkPlaywrightTestAuth } = await import("~/utils/test/playwright");
-	const mockUser = checkPlaywrightTestAuth();
+	const playwrightModule = await import("~/utils/test/playwright");
+	const mockUser = playwrightModule.checkPlaywrightTestAuth();
 	if (mockUser) return mockUser;
 
-	const { getSessionRequest } = await import("./request");
-	const request = await getSessionRequest();
+	const requestModule = await import("./request");
+	const request = await requestModule.getSessionRequest();
 	if (!request) return null;
 
-	const { auth } = await import("./auth");
-	const session = await auth.api.getSession({
+	const authModule = await import("./auth");
+	const session = await authModule.auth.api.getSession({
 		headers: request.headers,
 		asResponse: true,
 		...(opts?.freshFromDb ? { query: { disableCookieCache: true } } : {}),
@@ -50,8 +58,8 @@ export async function getOptionalSessionUser(opts?: { freshFromDb?: boolean }): 
 	// Forward any Set-Cookie headers (session refresh, expiry rotation).
 	const cookies = session.headers?.getSetCookie();
 	if (cookies?.length) {
-		const { setResponseHeader } = await import("@tanstack/react-start/server");
-		setResponseHeader("Set-Cookie", cookies);
+		const serverModule = await import("@tanstack/react-start/server");
+		serverModule.setResponseHeader("Set-Cookie", cookies);
 	}
 
 	const data = await session.json();
@@ -61,8 +69,8 @@ export async function getOptionalSessionUser(opts?: { freshFromDb?: boolean }): 
 export async function requireAuthedUser(opts?: { freshFromDb?: boolean }): Promise<SessionUser> {
 	const user = await getOptionalSessionUser(opts);
 	if (!user) {
-		const { setResponseStatus } = await import("@tanstack/react-start/server");
-		setResponseStatus(401);
+		const serverModule = await import("@tanstack/react-start/server");
+		serverModule.setResponseStatus(401);
 		throw new Error("Unauthorized");
 	}
 	return user;
