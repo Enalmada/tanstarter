@@ -48,14 +48,16 @@ fi
 # Helper modules + test setup are by design exempt — they ARE the
 # canonical helpers, or they configure the global test mock.
 is_exempt() {
+	# Leading `*` so `./src/...`-prefixed paths (e.g. from `git diff
+	# --name-only` in $CHANGED diff-mode) still match the exemptions.
 	case "$1" in
-		src/server/auth/request.ts) return 0 ;;
-		src/server/auth/session.ts) return 0 ;;
-		src/server/auth/auth.ts) return 0 ;;
-		src/test/setup.ts) return 0 ;;
-		src/utils/test/playwright.ts) return 0 ;;
+		*src/server/auth/request.ts) return 0 ;;
+		*src/server/auth/session.ts) return 0 ;;
+		*src/server/auth/auth.ts) return 0 ;;
+		*src/test/setup.ts) return 0 ;;
+		*src/utils/test/playwright.ts) return 0 ;;
 		# Better Auth route handler — different dispatch path
-		src/routes/api/*) return 0 ;;
+		*src/routes/api/*) return 0 ;;
 	esac
 	return 1
 }
@@ -70,8 +72,9 @@ for f in $files; do
 	# typically JSDoc rationale that explicitly mentions the bypassed call
 	# while explaining why the helper exists.
 	#
-	# Bare getRequest() — allow getSessionRequest references via grep -v
-	bare=$(grep -nE 'getRequest\(\)' "$f" 2>/dev/null \
+	# Bare getRequest() — allow getSessionRequest references via grep -v.
+	# Tolerate whitespace variants: `getRequest ()`, `getRequest( )`.
+	bare=$(grep -nE 'getRequest[[:space:]]*\([[:space:]]*\)' "$f" 2>/dev/null \
 		| grep -vE '^[0-9]+:[[:space:]]*(//|\*|/\*)' \
 		| grep -v 'getSessionRequest' \
 		|| true)
@@ -81,8 +84,8 @@ for f in $files; do
 		printf '%s\n' "$bare" | sed 's/^/    /'
 	fi
 
-	# Direct auth.api.getSession( call
-	direct=$(grep -nE 'auth\.api\.getSession\(' "$f" 2>/dev/null \
+	# Direct auth.api.getSession( call. Tolerate whitespace: `getSession  (`.
+	direct=$(grep -nE 'auth\.api\.getSession[[:space:]]*\(' "$f" 2>/dev/null \
 		| grep -vE '^[0-9]+:[[:space:]]*(//|\*|/\*)' \
 		|| true)
 	if [ -n "$direct" ]; then

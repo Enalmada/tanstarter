@@ -13,8 +13,6 @@
  */
 
 import { createMiddleware } from "@tanstack/react-start";
-import { setResponseStatus } from "@tanstack/react-start/server";
-import { logger } from "~/utils/logger";
 import { hasHttpErrorHints } from "./http-errors";
 
 export const authErrorTranslator = createMiddleware({ type: "function" }).server(async ({ next }) => {
@@ -22,8 +20,15 @@ export const authErrorTranslator = createMiddleware({ type: "function" }).server
 		return await next();
 	} catch (err) {
 		if (hasHttpErrorHints(err)) {
+			// Dynamic imports: middleware.ts is reachable from start.ts, so
+			// top-level imports of `@tanstack/react-start/server` and
+			// `~/utils/logger` (which pulls in Axiom) would leak server-only
+			// code into the client bundle (TSS-2). Load them inside the
+			// server-only `.server()` body instead.
+			const { setResponseStatus } = await import("@tanstack/react-start/server");
 			setResponseStatus(err.httpStatus);
 			// Log server-side for Axiom correlation (4xx info, 5xx error).
+			const { logger } = await import("~/utils/logger");
 			const logFn = err.httpStatus >= 500 ? logger.error : logger.info;
 			logFn(`[authErrorTranslator] ${err.name}`, {
 				message: err.message,
