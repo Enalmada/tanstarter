@@ -15,6 +15,10 @@ jobs:
         with:
           bun-version: latest
 
-      # No need to `bun install` — the script only uses grep + bash.
+      # The script uses grep + ripgrep + bash. ubuntu-latest does NOT ship
+      # with ripgrep — install it explicitly.
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
       - name: TSS-2 bundle-leak check
         run: bun run check-tss-2

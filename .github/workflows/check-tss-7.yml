@@ -1,0 +1,20 @@
+name: TSS-7 Bypassed Auth Helpers Check
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  check-tss-7:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      # No need to `bun install` — the script only uses grep + bash.
+      - name: TSS-7 bypassed-auth-helpers check
+        run: bun run check-tss-7

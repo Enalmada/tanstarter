@@ -57,7 +57,15 @@ import { accessCheck } from "~/server/access/check";
 import { auth } from "~/server/auth/auth";
 import DB from "~/server/db";
 import { UserRole } from "~/server/db/schema";
-import { createMockContext, fixedDate, mockTask, mockUser, mockUserId, setupDBMocks } from "~/test/setup";
+import {
+	createMockContext,
+	fixedDate,
+	makeMockSessionResponse,
+	mockTask,
+	mockUser,
+	mockUserId,
+	setupDBMocks,
+} from "~/test/setup";
 
 const mockContext = createMockContext();
 
@@ -154,9 +162,9 @@ describe("base-service", () => {
 			} as Request);
 
 			// ~/server/auth/session.getOptionalSessionUser calls auth.api.getSession
-			// with `asResponse: true`, which returns a Response (not the plain
-			// {session,user} object). The Response carries Set-Cookie headers via
-			// getSetCookie() and the JSON body via .json(). Mock both shapes.
+			// with `asResponse: true`. Use the centralized duck-typed factory so
+			// Date instances survive (a `new Response(JSON.stringify(...))` wrapper
+			// would round-trip them to ISO strings — see makeMockSessionResponse).
 			const mockSessionPayload = {
 				session: {
 					id: "sess_123",
@@ -179,10 +187,8 @@ describe("base-service", () => {
 					image: null,
 				},
 			};
-			vi.mocked(auth.api.getSession).mockResolvedValue({
-				headers: { getSetCookie: () => [] } as unknown as Headers,
-				json: async () => mockSessionPayload,
-			} as unknown as Response);
+			// biome-ignore lint/suspicious/noExplicitAny: duck-typed Response stand-in
+			vi.mocked(auth.api.getSession).mockResolvedValue(makeMockSessionResponse(mockSessionPayload) as any);
 
 			// Reset access check mock
 			vi.mocked(accessCheck).mockReset();
@@ -282,10 +288,10 @@ describe("base-service", () => {
 		// Add test for auth failure
 		it("should throw error when user is not authenticated", async () => {
 			// Mock auth to return a Response with a null user payload.
-			vi.mocked(auth.api.getSession).mockResolvedValueOnce({
-				headers: { getSetCookie: () => [] } as unknown as Headers,
-				json: async () => ({ session: null, user: null }),
-			} as unknown as Response);
+			vi.mocked(auth.api.getSession).mockResolvedValueOnce(
+				// biome-ignore lint/suspicious/noExplicitAny: duck-typed Response stand-in
+				makeMockSessionResponse({ session: null, user: null }) as any,
+			);
 
 			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow("Unauthorized");
 			expect(setResponseStatus).toHaveBeenCalledWith(401);
