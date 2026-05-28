@@ -32,7 +32,16 @@ function ProfilePage() {
 	const queryClient = useQueryClient();
 	const [isUpdatingRole, setIsUpdatingRole] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
+	const [prevInitialUser, setPrevInitialUser] = useState(initialUser);
 	const [optimisticUser, setOptimisticUser] = useState<SessionUser | null>(initialUser);
+
+	// Re-sync optimistic state to server state when the loader re-runs
+	// (e.g. after router.invalidate()), per React's "adjusting state during
+	// render" pattern: https://react.dev/learn/you-might-not-need-an-effect
+	if (initialUser !== prevInitialUser) {
+		setPrevInitialUser(initialUser);
+		setOptimisticUser(initialUser);
+	}
 
 	if (!initialUser) {
 		return null; // This shouldn't happen due to beforeLoad, but TypeScript needs it
