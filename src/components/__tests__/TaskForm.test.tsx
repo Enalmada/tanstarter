@@ -12,8 +12,9 @@ describe("TaskForm", () => {
 		// Check for form fields
 		expect(screen.getByRole("textbox", { name: "Title *" })).toBeInTheDocument();
 		expect(screen.getByRole("textbox", { name: "Description" })).toBeInTheDocument();
-		// Base UI checkbox uses a hidden input + visible span, so we find checkbox by its associated label
-		expect(screen.getByLabelText("Completed")).toBeInTheDocument();
+		// Base UI checkbox renders a visible role="checkbox" control plus a hidden
+		// form input; query the control by its accessible role + name.
+		expect(screen.getByRole("checkbox", { name: "Completed" })).toBeInTheDocument();
 
 		// Check for submit button
 		expect(screen.getByRole("button", { name: "Create Task" })).toBeInTheDocument();
@@ -33,8 +34,8 @@ describe("TaskForm", () => {
 		// Check field values
 		expect(screen.getByRole("textbox", { name: "Title *" })).toHaveValue(defaultValues.title);
 		expect(screen.getByRole("textbox", { name: "Description" })).toHaveValue(defaultValues.description);
-		// Base UI checkbox: check that the hidden input is not checked
-		expect(screen.getByLabelText("Completed")).not.toBeChecked();
+		// Base UI checkbox: the visible control reflects checked state via aria-checked.
+		expect(screen.getByRole("checkbox", { name: "Completed" })).not.toBeChecked();
 
 		// Check for submit button
 		expect(screen.getByRole("button", { name: "Update Task" })).toBeInTheDocument();

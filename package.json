@@ -45,7 +45,7 @@
 	},
 	"dependencies": {
 		"@axiomhq/js": "^1.6.1",
-		"@base-ui/react": "1.0.0",
+		"@base-ui/react": "^1.5.0",
 		"@better-auth/drizzle-adapter": "https://pkg.pr.new/better-auth/better-auth/@better-auth/drizzle-adapter@6913",
 		"@casl/ability": "^6.8.1",
 		"@enalmada/start-secure": "^1.0.2",
