@@ -22,9 +22,12 @@
     "bun.lockb": true
   },
 
-  // always choose typescript from node_modules
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
+  // Type-checking runs on TS 7 (tsgo, via check-types). The `typescript` package
+  // is kept because Storybook's react-docgen-typescript hard-requires the classic
+  // compiler API. Install the "TypeScript (Native Preview)" extension
+  // (TypeScriptTeam.native-preview) so the editor's language service uses tsgo and
+  // matches CI.
+  "typescript.experimental.useTsgo": true,
   "typescript.validate.enable": true,
   "typescript.surveys.enabled": false,
   "javascript.validate.enable": true,

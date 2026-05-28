@@ -1,6 +1,6 @@
 import { Provider } from "@rollbar/react";
 import { useEffect } from "react";
-import type { Configuration } from "rollbar";
+import type Rollbar from "rollbar";
 import authClient from "~/utils/auth-client";
 import { useMonitor } from "./hooks";
 import type { MonitorUser } from "./types";
@@ -32,7 +32,7 @@ function MonitoringUserSync() {
 
 interface Props {
 	children: React.ReactNode;
-	config: Configuration;
+	config: Rollbar.Configuration;
 }
 
 export function MonitoringProvider({ children, config }: Props) {

@@ -178,8 +178,8 @@ export interface FileRoutesByFullPath {
   "/admin/users/$userId": typeof AdminUsersUserIdRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
   "/api/sse/notifications": typeof ApiSseNotificationsRoute;
-  "/admin/tasks": typeof AdminTasksIndexRoute;
-  "/admin/users": typeof AdminUsersIndexRoute;
+  "/admin/tasks/": typeof AdminTasksIndexRoute;
+  "/admin/users/": typeof AdminUsersIndexRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
@@ -257,8 +257,8 @@ export interface FileRouteTypes {
     | "/admin/users/$userId"
     | "/api/auth/$"
     | "/api/sse/notifications"
-    | "/admin/tasks"
-    | "/admin/users";
+    | "/admin/tasks/"
+    | "/admin/users/";
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
@@ -445,14 +445,14 @@ declare module "@tanstack/react-router" {
     "/admin/users/": {
       id: "/admin/users/";
       path: "/users";
-      fullPath: "/admin/users";
+      fullPath: "/admin/users/";
       preLoaderRoute: typeof AdminUsersIndexRouteImport;
       parentRoute: typeof AdminRoute;
     };
     "/admin/tasks/": {
       id: "/admin/tasks/";
       path: "/tasks";
-      fullPath: "/admin/tasks";
+      fullPath: "/admin/tasks/";
       preLoaderRoute: typeof AdminTasksIndexRouteImport;
       parentRoute: typeof AdminRoute;
     };

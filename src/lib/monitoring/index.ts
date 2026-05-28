@@ -1,4 +1,4 @@
-import type { Configuration } from "rollbar";
+import type Rollbar from "rollbar";
 import { env, getAppEnv, shouldReportErrors } from "~/env";
 import { getRelease } from "../env/release";
 import { createRollbarConfig, RollbarMonitor } from "./rollbar";
@@ -16,7 +16,7 @@ const baseConfig: MonitoringConfig = {
 };
 
 // Full Rollbar configuration with additional options
-export const monitoringConfig: Configuration = {
+export const monitoringConfig: Rollbar.Configuration = {
 	...baseConfig,
 	// Only capture uncaught errors on the server side
 	captureUncaught: isServer,
