@@ -8,7 +8,7 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { makeUserAdmin } from "~/functions/user-role";
-import { UserRole } from "~/server/db/schema";
+import { UserRole } from "~/lib/enums/user-role";
 import { queries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/profile")({

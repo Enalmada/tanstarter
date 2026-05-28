@@ -33,7 +33,8 @@
 // Removed @lukemorales/query-key-factory due to compatibility issues with @tanstack/react-query v5
 import { type QueryClient, useSuspenseQueries as useSuspenseQueriesBuiltIn } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { findFirst, findMany } from "~/functions/base-service";
+import { findFirst } from "~/functions/find-first";
+import { findMany } from "~/functions/find-many";
 import { getSessionUser } from "~/functions/session";
 import type { Task, User } from "~/server/db/schema";
 

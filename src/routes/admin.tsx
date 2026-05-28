@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { UserRole } from "~/server/db/schema";
+import { UserRole } from "~/lib/enums/user-role";
 import { AdminLayout } from "../components/layouts/AdminLayout";
 
 export const Route = createFileRoute("/admin")({

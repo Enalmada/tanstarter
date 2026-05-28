@@ -44,3 +44,5 @@ storybook-static
 debug-storybook.log
 coverage
 docs/sessions
+# Claude Code scheduled-tasks lock file
+.claude/scheduled_tasks.lock

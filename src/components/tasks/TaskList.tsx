@@ -5,8 +5,8 @@ import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Checkbox } from "~/components/ui/checkbox";
+import { TaskStatus } from "~/lib/enums/task-status";
 import type { Task } from "~/server/db/schema";
-import { TaskStatus } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
 

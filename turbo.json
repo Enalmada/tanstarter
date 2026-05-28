@@ -10,6 +10,10 @@
 		"check-types": {
 			"dependsOn": ["^check-types"]
 		},
+		"check-tss-2": {
+			"inputs": ["src/functions/**/*", "scripts/check-tss-2.sh"],
+			"outputs": []
+		},
 		"dev:install": {
 			"inputs": ["package.json", "bun.lockb"],
 			"outputLogs": "new-only"
@@ -52,7 +56,7 @@
 			"outputs": []
 		},
 		"check": {
-			"dependsOn": ["lint", "check-types", "check-stories", "test:unit", "test-storybook", "test:e2e"]
+			"dependsOn": ["lint", "check-types", "check-tss-2", "check-stories", "test:unit", "test-storybook", "test:e2e"]
 		}
 	}
 }

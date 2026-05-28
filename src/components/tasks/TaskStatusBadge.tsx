@@ -1,5 +1,5 @@
 import { Badge } from "~/components/ui/badge";
-import { TaskStatus } from "~/server/db/schema";
+import { TaskStatus } from "~/lib/enums/task-status";
 
 interface TaskStatusBadgeProps {
 	status: (typeof TaskStatus)[keyof typeof TaskStatus];

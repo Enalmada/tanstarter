@@ -7,6 +7,13 @@ import { boolean, integer, pgEnum, pgTable, text, timestamp, varchar } from "dri
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-valibot";
 import { nanoid } from "nanoid/non-secure";
 import { nullable, number, picklist, pipe, transform } from "valibot";
+import { UserRole, type UserRoleType } from "~/lib/enums/user-role";
+
+// Re-export so existing `import { UserRole } from "~/server/db/schema"` keeps
+// working on the server. Client code should import from `~/lib/enums/user-role`
+// directly to avoid pulling Drizzle into the browser bundle (TSS-2).
+export type { UserRoleType };
+export { UserRole };
 
 // Parameterized insert don't seem to respect defaultFn
 export const nanoString = (prefix: string) => `${prefix}_${nanoid()}`;
@@ -27,15 +34,7 @@ const generateAuditingFields = () => {
 	};
 };
 
-// User Schema
-export enum UserRole {
-	MEMBER = "MEMBER",
-	ADMIN = "ADMIN",
-}
-
 export const UserRolesEnum = pgEnum("role", Object.values(UserRole) as [string, ...string[]]);
-
-export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
 
 export const userRoleSchema = picklist([UserRole.MEMBER, UserRole.ADMIN]);
 

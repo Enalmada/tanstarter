@@ -31,7 +31,6 @@ const config: StorybookConfig = {
 		const mockReactStart = path.resolve(__dirname, "../src/storybook/MockReactStart.ts");
 		const mockServerFunctions = path.resolve(__dirname, "../src/storybook/MockServerFunctions.ts");
 		const mockRouter = path.resolve(__dirname, "../src/storybook/MockLink.tsx");
-		const useSyncShim = path.resolve(__dirname, "../src/polyfills/use-sync-external-store-shim.ts");
 
 		return mergeConfig(config, {
 			resolve: {
@@ -40,10 +39,11 @@ const config: StorybookConfig = {
 					{ find: "@tanstack/react-start/server", replacement: mockServerFunctions },
 					{ find: "@tanstack/react-start", replacement: mockReactStart },
 					{ find: "@tanstack/react-router", replacement: mockRouter },
-					{ find: "use-sync-external-store/shim/with-selector.js", replacement: useSyncShim },
-					{ find: "use-sync-external-store/shim/with-selector", replacement: useSyncShim },
-					{ find: "use-sync-external-store/shim/index.js", replacement: useSyncShim },
-					{ find: "use-sync-external-store/shim", replacement: useSyncShim },
+					// `use-sync-external-store/shim*` aliases used to point at a hand-
+					// rolled polyfill that returned a new closure per render and
+					// triggered React's "Maximum update depth exceeded" guard during
+					// hydration once @tanstack 1.167 landed. Polyfill deleted; let
+					// Vite resolve the real package (v1.6.0, React-19 peerDep).
 					{ find: "~", replacement: path.resolve(__dirname, "../src") },
 					{ find: "../env.config", replacement: path.resolve(__dirname, "./env.mock.ts") },
 				],

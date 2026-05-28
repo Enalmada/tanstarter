@@ -1,5 +1,5 @@
 import { getRequest } from "@tanstack/react-start/server";
-import { UserRole } from "~/server/db/schema";
+import { UserRole } from "~/lib/enums/user-role";
 import type { SessionUser } from "~/utils/auth-client";
 
 // Mock users for testing - keep in sync with auth-guard.ts
@@ -31,7 +31,17 @@ export const checkPlaywrightTestAuth = () => {
 		return null;
 	}
 
-	const request = getRequest();
+	// TanStack Start v1.134+ requires the per-request AsyncLocalStorage context
+	// for getRequest() to resolve. During SSR initialization / dehydration
+	// the context may not yet be active and the call throws — handle that
+	// gracefully so the auth path falls through to the real session lookup
+	// instead of crashing every page render.
+	let request: Request | undefined;
+	try {
+		request = getRequest();
+	} catch (_error) {
+		return null;
+	}
 	if (!request) {
 		return null;
 	}

@@ -80,7 +80,9 @@
 import { type QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { createEntity, deleteEntity, updateEntity } from "~/functions/base-service";
+import { createEntity } from "~/functions/create-entity";
+import { deleteEntity } from "~/functions/delete-entity";
+import { updateEntity } from "~/functions/update-entity";
 
 // Toast configuration for consistent messaging
 interface ToastConfig {

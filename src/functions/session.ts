@@ -1,31 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
-import { auth } from "~/server/auth/auth";
-import { checkPlaywrightTestAuth } from "~/utils/test/playwright";
 
-export const getSessionUser = createServerFn({ method: "GET" }).handler(async () => {
-	const mockUser = checkPlaywrightTestAuth();
-	if (mockUser) {
-		return mockUser;
-	}
+/**
+ * Returns the currently authenticated user, or null if anonymous.
+ *
+ * Anonymous and authed paths are both handled inside
+ * `~/server/auth/session#getOptionalSessionUser`, which also forwards
+ * any Set-Cookie headers from session refresh. The helper does the
+ * `getRequest()` v1.134+ defensive try/catch in one place so this
+ * file stays a thin createServerFn shell.
+ */
+export async function handleGetSessionUser() {
+	const { getOptionalSessionUser } = await import("~/server/auth/session");
+	return getOptionalSessionUser();
+}
 
-	// Normal auth flow
-	const request = getRequest();
-	if (!request) {
-		return null;
-	}
-
-	const session = await auth.api.getSession({
-		headers: request.headers,
-		asResponse: true,
-	});
-
-	// Forward any Set-Cookie headers (e.g., session refresh)
-	const cookies = session.headers?.getSetCookie();
-	if (cookies?.length) {
-		setResponseHeader("Set-Cookie", cookies);
-	}
-
-	const data = await session.json();
-	return data?.user || null;
-});
+export const getSessionUser = createServerFn({ method: "GET" }).handler(handleGetSessionUser);

@@ -1,5 +1,8 @@
 import { date, nullish, object, picklist, string } from "valibot";
-import { TaskStatus, UserRole } from "~/server/db/schema";
+// Import from `~/lib/` (not `~/server/db/schema`) so this client-consumed module
+// doesn't pull Drizzle into the browser bundle (TSS-2).
+import { TaskStatus } from "~/lib/enums/task-status";
+import { UserRole } from "~/lib/enums/user-role";
 
 // Task validation schema
 export const taskFormSchema = object({

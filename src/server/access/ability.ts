@@ -1,16 +1,14 @@
 import { AbilityBuilder, createMongoAbility, type PureAbility } from "@casl/ability";
+import { ENTITY_TYPES } from "~/lib/entity-types";
 import type { SessionUser } from "~/server/auth/auth";
 import type { Task, UserRole } from "../db/schema";
 
 export type Action = "manage" | "list" | "read" | "create" | "update" | "delete";
 
-export const ENTITY_TYPES = ["Task", "User"] as const;
+// Re-export the client-safe vocabulary so existing
+// `import { ENTITY_TYPES } from "~/server/access/ability"` keeps working.
+export { ENTITY_TYPES };
 
-/* clone-code ENTITY_HOOK
-{
-  "addType": "<%= h.changeCase.pascalCase(name) %>"
-}
-*/
 export type SubjectType = (typeof ENTITY_TYPES)[number] | "all";
 
 type AppAbilities = [Action, SubjectType | { __caslSubjectType__: SubjectType } | Task];
