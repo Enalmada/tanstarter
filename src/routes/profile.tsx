@@ -9,6 +9,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { makeUserAdmin } from "~/functions/user-role";
 import { UserRole } from "~/lib/enums/user-role";
+import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/profile")({
@@ -31,7 +32,7 @@ function ProfilePage() {
 	const queryClient = useQueryClient();
 	const [isUpdatingRole, setIsUpdatingRole] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
-	const [optimisticUser, setOptimisticUser] = useState(initialUser);
+	const [optimisticUser, setOptimisticUser] = useState<SessionUser | null>(initialUser);
 
 	if (!initialUser) {
 		return null; // This shouldn't happen due to beforeLoad, but TypeScript needs it

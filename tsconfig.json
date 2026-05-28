@@ -18,7 +18,8 @@
 		"resolveJsonModule": true,
 
 		// Path configuration
-		"baseUrl": ".",
+		// No `baseUrl`: since TS 5.0 `paths` resolves relative to this tsconfig's
+		// directory without it. Verified with tsgo (TS 7) and Vite/Vitest.
 		"paths": {
 			"~/*": ["./src/*"]
 		},
