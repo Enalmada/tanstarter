@@ -1,5 +1,5 @@
 import { useRollbar } from "@rollbar/react";
-import type { LogArgument } from "rollbar";
+import type Rollbar from "rollbar";
 import type { ErrorMonitor, MonitorUser } from "./types";
 
 const noopMonitor: ErrorMonitor = {
@@ -23,10 +23,10 @@ export function useMonitor(): ErrorMonitor {
 		if (!rollbar) return noopMonitor;
 
 		return {
-			error: (message: string | Error, extra?: unknown) => rollbar.error(message, extra as LogArgument),
-			warn: (message: string | Error, extra?: unknown) => rollbar.warning(message, extra as LogArgument),
-			info: (message: string | Error, extra?: unknown) => rollbar.info(message, extra as LogArgument),
-			debug: (message: string | Error, extra?: unknown) => rollbar.debug(message, extra as LogArgument),
+			error: (message: string | Error, extra?: unknown) => rollbar.error(message, extra as Rollbar.LogArgument),
+			warn: (message: string | Error, extra?: unknown) => rollbar.warning(message, extra as Rollbar.LogArgument),
+			info: (message: string | Error, extra?: unknown) => rollbar.info(message, extra as Rollbar.LogArgument),
+			debug: (message: string | Error, extra?: unknown) => rollbar.debug(message, extra as Rollbar.LogArgument),
 			setUser: (user: MonitorUser | null) =>
 				user
 					? rollbar.configure({
@@ -42,7 +42,7 @@ export function useMonitor(): ErrorMonitor {
 						})
 					: undefined,
 			breadcrumb: (message: string, metadata?: Record<string, unknown>) =>
-				rollbar.info(message, metadata as LogArgument),
+				rollbar.info(message, metadata as Rollbar.LogArgument),
 		};
 	} catch (_error) {
 		// If there's any error accessing Rollbar, return a no-op monitor

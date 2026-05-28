@@ -1,5 +1,4 @@
 import { ErrorBoundary as RollbarBoundary } from "@rollbar/react";
-import type { Configuration, LogArgument } from "rollbar";
 import Rollbar from "rollbar";
 import type { ErrorMonitor, MonitoringConfig, MonitorUser } from "./types";
 
@@ -38,28 +37,28 @@ export class RollbarMonitor implements ErrorMonitor {
 
 	error(message: string | Error, extra?: unknown) {
 		if (this.rollbar) {
-			this.rollbar.error(message, extra as LogArgument);
+			this.rollbar.error(message, extra as Rollbar.LogArgument);
 		} else {
 		}
 	}
 
 	warn(message: string | Error, extra?: unknown) {
 		if (this.rollbar) {
-			this.rollbar.warning(message, extra as LogArgument);
+			this.rollbar.warning(message, extra as Rollbar.LogArgument);
 		} else {
 		}
 	}
 
 	info(message: string | Error, extra?: unknown) {
 		if (this.rollbar) {
-			this.rollbar.info(message, extra as LogArgument);
+			this.rollbar.info(message, extra as Rollbar.LogArgument);
 		} else {
 		}
 	}
 
 	debug(message: string | Error, extra?: unknown) {
 		if (this.rollbar) {
-			this.rollbar.debug(message, extra as LogArgument);
+			this.rollbar.debug(message, extra as Rollbar.LogArgument);
 		} else {
 		}
 	}
@@ -84,7 +83,7 @@ export class RollbarMonitor implements ErrorMonitor {
 
 	breadcrumb(message: string, metadata?: Record<string, unknown>) {
 		if (this.rollbar) {
-			this.info(message, metadata as LogArgument);
+			this.info(message, metadata as Rollbar.LogArgument);
 		} else {
 		}
 	}
@@ -94,7 +93,7 @@ export class RollbarMonitor implements ErrorMonitor {
 	}
 }
 
-export function createRollbarConfig(config: MonitoringConfig): Configuration {
+export function createRollbarConfig(config: MonitoringConfig): Rollbar.Configuration {
 	return {
 		accessToken: config.accessToken,
 		environment: config.environment,
