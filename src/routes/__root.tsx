@@ -9,6 +9,8 @@ import { type ComponentType, lazy, type ReactNode, Suspense, useEffect } from "r
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import { Toaster } from "~/components/ui/sonner";
+import { env } from "~/env";
+import { pickPublicRuntimeEnv, serializePublicRuntimeEnv } from "~/lib/env/public-env";
 import appCss from "~/styles/app.css?url";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
@@ -34,6 +36,11 @@ import { queries } from "~/utils/query/queries";
 // See docs/sessions/serwist_support.md for full details
 const ENABLE_SERVICE_WORKER = import.meta.env.PROD;
 const ENABLE_DEVTOOLS = false; // Set to true to show DevTools button in development
+
+// Allowlisted APP_ENV/PUBLIC_* values for the browser, read from the server's
+// runtime env (Fly secrets) instead of being baked in at build time. See
+// src/lib/env/public-env.ts. Server-only: ScriptOnce renders nothing on the client.
+const PUBLIC_ENV_SCRIPT = typeof window === "undefined" ? serializePublicRuntimeEnv(pickPublicRuntimeEnv(env)) : "";
 
 // Devtools load only in dev with ENABLE_DEVTOOLS on. The check must stay a
 // build-time constant around each `import(...)`: the bundler emits a chunk for
@@ -223,6 +230,8 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
+				{/* Must precede <Scripts />: env.config.ts reads it when the client entry loads. */}
+				<ScriptOnce>{PUBLIC_ENV_SCRIPT}</ScriptOnce>
 				<ScriptOnce>
 					{`document.documentElement.classList.toggle(
 						'dark',
