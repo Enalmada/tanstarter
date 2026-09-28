@@ -61,6 +61,18 @@
 		"enabled": true,
 		"rules": {
 			"recommended": true,
+			"nursery": {
+				// Type-aware rules (Biome's own type inference; ported from UseFrank/frank#41).
+				// fix: none, because the pre-commit `--unsafe` fix would pick await/void
+				// or add empty switch cases for you.
+				"noFloatingPromises": { "level": "error", "fix": "none" },
+				"noMisusedPromises": { "level": "error", "fix": "none" },
+				"useAwaitThenable": "error",
+				"useExhaustiveSwitchCases": { "level": "error", "fix": "none" },
+				"useArraySortCompare": "error",
+				"noUnsafePlusOperands": "error",
+				"noImpliedEval": "error"
+			},
 			"suspicious": {
 				"noConsole": { "level": "error", "fix": "safe" },
 				"noDebugger": "error"

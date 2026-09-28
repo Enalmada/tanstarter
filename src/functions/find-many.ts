@@ -33,7 +33,13 @@ export async function handleFindMany({ data }: { data: FindEntityPayload }) {
 	const { assertSafeWhere, assertSafeWith, filterReadableRows } = await import("~/server/access/read-filter");
 
 	const user = await getUser();
-	logger.info("findMany", { data, userId: user.id });
+	// Metadata only: filter values (ids, emails) stay out of logs.
+	logger.info("findMany", {
+		subject: data.subject,
+		where: Object.keys(data.where ?? {}),
+		with: Object.keys(data.with ?? {}),
+		userId: user.id,
+	});
 
 	const config = await loadEntityConfig();
 	const { table, query } = config[data.subject];

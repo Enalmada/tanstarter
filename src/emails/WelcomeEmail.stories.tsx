@@ -12,11 +12,17 @@ function EmailPreview(props: WelcomeEmailProps) {
 	useEffect(() => {
 		let cancelled = false;
 
-		render(<WelcomeEmail {...props} />).then((result) => {
-			if (!cancelled) {
-				setHtml(result);
-			}
-		});
+		render(<WelcomeEmail {...props} />)
+			.then((result) => {
+				if (!cancelled) {
+					setHtml(result);
+				}
+			})
+			.catch((error: unknown) => {
+				if (!cancelled) {
+					setHtml(`<pre>Failed to render email: ${String(error)}</pre>`);
+				}
+			});
 
 		return () => {
 			cancelled = true;

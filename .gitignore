@@ -46,3 +46,5 @@ coverage
 docs/sessions
 # Claude Code scheduled-tasks lock file
 .claude/scheduled_tasks.lock
+# MCP server configs can embed API keys; keep them local
+.mcp.json

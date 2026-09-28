@@ -52,8 +52,8 @@ Pre-commit hooks (LeftHook) automatically enforce these checks.
 
 ## Important Files
 
-- `app/server/db/schema.ts` - Database schema (triggers migration generation)
-- `biome.json` - Linting configuration
+- `src/server/db/schema/` - Database schema (changes trigger migration generation)
+- `biome.jsonc` - Linting configuration
 
 ## Pull Request Guidelines
 

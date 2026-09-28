@@ -8,16 +8,24 @@ const isDevelopment = process.env.NODE_ENV === "development";
 
 type LogLevel = "debug" | "info" | "error";
 
-const consoleLog = (level: LogLevel, _message: string, data?: Record<string, unknown>) => {
-	const _timestamp = new Date().toISOString();
-	const _logData = data ? `\n${JSON.stringify(data, null, 2)}` : "";
+// The logger is the one sanctioned console sink (Biome's noConsole applies
+// everywhere else).
+const consoleLog = (level: LogLevel, message: string, data?: Record<string, unknown>) => {
+	const line = `[${new Date().toISOString()}] ${level.toUpperCase()} ${message}`;
+	const args = data ? [line, data] : [line];
 
 	switch (level) {
 		case "debug":
+			// biome-ignore lint/suspicious/noConsole: logger console sink
+			console.debug(...args);
 			break;
 		case "info":
+			// biome-ignore lint/suspicious/noConsole: logger console sink
+			console.info(...args);
 			break;
 		case "error":
+			// biome-ignore lint/suspicious/noConsole: logger console sink
+			console.error(...args);
 			break;
 	}
 };
@@ -50,20 +58,21 @@ export const logger = {
 		if (isDevelopment || !axiom) {
 			consoleLog("info", message, data);
 		}
-		logToAxiom("info", message, data);
+		// logToAxiom catches its own failures; fire-and-forget is intended.
+		void logToAxiom("info", message, data);
 	},
 
 	error: (message: string, data?: Record<string, unknown>) => {
 		if (isDevelopment || !axiom) {
 			consoleLog("error", message, data);
 		}
-		logToAxiom("error", message, data);
+		void logToAxiom("error", message, data);
 	},
 
 	debug: (message: string, data?: Record<string, unknown>) => {
 		if (isDevelopment) {
 			consoleLog("debug", message, data);
-			logToAxiom("debug", message, data);
+			void logToAxiom("debug", message, data);
 		}
 	},
 };

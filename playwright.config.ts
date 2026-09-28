@@ -61,6 +61,9 @@ const config: PlaywrightTestConfig = {
 		url: "http://localhost:3000",
 		stdout: "pipe",
 		stderr: "pipe",
+		// Stop the dev server cleanly after the run instead of leaving it orphaned
+		// (notably on Windows).
+		gracefulShutdown: { signal: "SIGTERM", timeout: 500 },
 		timeout: 120000, // 2 minutes
 	},
 

@@ -89,7 +89,7 @@
   4. Proper error handling
   5. Appropriate timeouts and waits
 - File organization:
-  1. Tests in app/e2e directory
+  1. Tests in src/e2e directory
 - Development workflow:
   1. Run dev server separately
   2. Use VSCode test explorer for development
@@ -226,7 +226,7 @@
 - Tabs for indentation (not spaces)
 - Double quotes for strings
 - Follow Biome's import organization
-- Match biome.json linting rules
+- Match biome.jsonc linting rules
   </code_style>
 
 <automation_preferences>
