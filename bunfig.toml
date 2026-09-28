@@ -7,5 +7,6 @@ linker = "hoisted"
 exact = true
 # Don't resolve versions published less than 3 days ago (supply-chain window;
 # matches `bun run deps`, which is taze with --maturity-period 3). For an urgent
-# fix, list the package in minimumReleaseAgeExcludes for that one install.
+# fix, override it on that one command: `bun add <pkg>@<ver> --minimum-release-age=0`.
+# Don't add minimumReleaseAgeExcludes here: an entry exempts every later install too.
 minimumReleaseAge = 259200
