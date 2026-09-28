@@ -27,6 +27,19 @@ const initializeApp = async () => {
 		environment: env.APP_ENV || "development",
 		captureUncaught: false,
 		captureUnhandledRejections: false,
+		// Build-time release (vite.config.ts define). Rollbar applies an uploaded
+		// source map only to items with the same code_version.
+		...(import.meta.env.PUBLIC_RELEASE_VERSION && {
+			payload: {
+				client: {
+					javascript: {
+						source_map_enabled: true,
+						code_version: import.meta.env.PUBLIC_RELEASE_VERSION,
+						guess_uncaught_frames: true,
+					},
+				},
+			},
+		}),
 	};
 
 	hydrateRoot(

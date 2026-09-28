@@ -1,15 +1,18 @@
 /**
- * Rollbar Deploy and Source Map Upload Integration
+ * Rollbar Deploy Notification
  *
- * This module handles source map uploads to Rollbar during the build process.
- * It runs as part of the post-build process and uses Cloudflare Pages environment variables.
+ * Tells Rollbar a new release was deployed. Runs from scripts/post-build.ts.
+ * Source maps are uploaded during `vite build` by scripts/vite-rollbar-sourcemaps.ts.
  *
  * @see https://docs.rollbar.com/reference/post-deploy
  */
 
+import { getBuildRelease } from "../env/build-release";
 import { getRelease } from "../env/release";
 
-const ROLLBAR_API = "https://api.rollbar.com/api/1/deploy";
+// ROLLBAR_API_URL points the build at a mock Rollbar (same override as
+// scripts/vite-rollbar-sourcemaps.ts).
+const ROLLBAR_API = `${(process.env.ROLLBAR_API_URL || "https://api.rollbar.com/api/1").replace(/\/+$/, "")}/deploy`;
 
 // Check if source map upload is configured
 export function isSourceMapUploadConfigured(): boolean {
@@ -29,10 +32,10 @@ interface DeployPayload {
 }
 
 /**
- * Notifies Rollbar about source maps for a new deployment.
+ * Notifies Rollbar about a new deployment.
  *
  * This function:
- * 1. Determines the environment based on Cloudflare Pages branch
+ * 1. Determines the environment (APP_ENV, as reported by the Rollbar clients)
  * 2. Gets the release version
  * 3. Sends deployment data to Rollbar
  * 4. Logs the result with the deploy ID
@@ -50,10 +53,13 @@ export async function notifyRollbarDeploy() {
 		return;
 	}
 
-	// Map Cloudflare Pages branch to environment
-	const environment = process.env.CF_PAGES_BRANCH === "main" ? "production" : "preview";
+	// Same environment the Rollbar clients report (APP_ENV), so the deploy shows
+	// up alongside its items. The Cloudflare Pages branch is the legacy fallback.
+	const environment = process.env.APP_ENV || (process.env.CF_PAGES_BRANCH === "main" ? "production" : "preview");
 
-	const revision = getRelease();
+	// The version the source maps were uploaded under, so Rollbar links the
+	// deploy to them.
+	const revision = getBuildRelease() ?? getRelease();
 
 	const payload: DeployPayload = {
 		access_token: token,

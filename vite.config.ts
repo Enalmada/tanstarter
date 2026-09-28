@@ -7,9 +7,13 @@ import viteReact from "@vitejs/plugin-react";
 import { config } from "dotenv";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
+import { rollbarSourceMaps } from "./scripts/vite-rollbar-sourcemaps.ts";
 import { serviceWorker } from "./scripts/vite-service-worker.ts";
+import { getBuildRelease } from "./src/lib/env/build-release.ts";
 
 config();
+
+const buildRelease = getBuildRelease();
 
 export default defineConfig({
 	server: {
@@ -61,6 +65,14 @@ export default defineConfig({
 		// Builds sw.js into the client output before Nitro snapshots it
 		// (see scripts/vite-service-worker.ts for why not @serwist/vite).
 		serviceWorker({ swSrc: "src/sw.ts" }),
+		// With ROLLBAR_SERVER_TOKEN set: hidden client source maps, uploaded to
+		// Rollbar and then deleted before Nitro snapshots the client output.
+		rollbarSourceMaps({
+			accessToken: process.env.ROLLBAR_SERVER_TOKEN,
+			version: buildRelease,
+			appUrl: process.env.PUBLIC_APP_URL,
+			apiUrl: process.env.ROLLBAR_API_URL,
+		}),
 		// serwist({
 		// 	base: "/",
 		// 	scope: "/",
@@ -82,14 +94,18 @@ export default defineConfig({
 		"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
 		"process.env.PUBLIC_APP_URL": JSON.stringify(process.env.PUBLIC_APP_URL),
 		"process.env.PUBLIC_POSTHOG_API_KEY": JSON.stringify(process.env.PUBLIC_POSTHOG_API_KEY),
+		// The client's Rollbar code_version (src/client.tsx). Must equal the
+		// version the source maps were uploaded under.
+		"import.meta.env.PUBLIC_RELEASE_VERSION": JSON.stringify(buildRelease ?? ""),
 	},
 	assetsInclude: ["**/*.po"],
 	// TODO confirm we need this build section.
 	build: {
 		// Support top-level await for ES2022
 		target: "es2022",
-		// Source maps in development only. Production builds ship none, and
-		// nothing uploads them to Rollbar yet.
+		// Source maps in development only. Production builds ship none; with
+		// ROLLBAR_SERVER_TOKEN set, rollbarSourceMaps() generates hidden client
+		// maps for Rollbar and deletes them from the output.
 		sourcemap: process.env.NODE_ENV === "development",
 		rollupOptions: {
 			// Node builtins only. Externalizing a package leaves a bare import

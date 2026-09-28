@@ -11,6 +11,24 @@ This project uses Rollbar for error monitoring, with an abstracted interface tha
 ROLLBAR_ACCESS_TOKEN=your_token_here
 ```
 
+## Source Maps
+
+Production builds upload client source maps to Rollbar when `ROLLBAR_SERVER_TOKEN`
+is set at build time (`scripts/vite-rollbar-sourcemaps.ts`):
+
+- The client environment is built with hidden source maps (no `sourceMappingURL`).
+- Each map is uploaded with `version` = `RELEASE_VERSION` (or the `FLY_IMAGE_REF`
+  tag) and `minified_url` = `PUBLIC_APP_URL` + the asset path.
+- Every `.map` is then deleted from the client output, so none are served.
+
+The client sends the same version as `code_version` (`src/client.tsx`), which is
+how Rollbar matches an item to its maps. Without a version or `PUBLIC_APP_URL`
+the build warns, skips the upload, and still deletes the maps. Upload failures
+warn but don't fail the build.
+
+To test without Rollbar, point `ROLLBAR_API_URL` at a local mock (it replaces
+`https://api.rollbar.com/api/1` for the upload and the deploy notification).
+
 ## Enabling/Disabling
 
 - To enable monitoring: Add the `ROLLBAR_ACCESS_TOKEN` to your `.env`
