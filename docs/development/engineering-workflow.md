@@ -9,6 +9,7 @@ bun run check-types    # tsc --noEmit
 bun run lint           # biome check --fix
 bun run check-tss-2    # bundle-leak check (createServerFn files only)
 bun run test:unit      # vitest
+bun run build          # production vite build (CI: .github/workflows/build.yml)
 ```
 
 `bun run check` runs the whole turbo pipeline including storybook and e2e.
@@ -34,6 +35,10 @@ Drive the preview URL with a real browser, watch the console, scan the rendered 
 - SSR hydration matches the client render for the changed routes.
 - Env validation passes during client hydration of pages that touch the modified config.
 - No `postgres-js` / `drizzle:entityKind` strings in the eager client chunks: `grep -lE 'postgres-js|drizzle:entityKind' .output/public/assets/main-*.js` returns nothing.
+
+### Preview deploys are opt-in (`preview` label)
+
+Preview environments (a `pr-<n>-tanstarter` Fly app plus a `pr-<n>` Neon branch) are **only created when the PR has the `preview` label**. Adding the label deploys; later pushes redeploy while the label stays. Closing the PR always tears the environment down, label or not. Removing the label does not tear it down early. This keeps stacked-PR restacks from redeploying every layer and exhausting Neon's branch limit.
 
 For the Fly review-app workflow, see [.github/workflows/fly-review.yml](.github/workflows/fly-review.yml).
 
