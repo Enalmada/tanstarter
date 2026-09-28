@@ -38,7 +38,7 @@ jobs:
           # Single source of truth: packageManager in package.json
           bun-version-file: package.json
 
-      - run: bun install --ignore-scripts
+      - run: bun install --frozen-lockfile --ignore-scripts
 
       # The build needs no app env vars today (env.config.ts is validated at
       # runtime, not at build time), matching the Docker build, which has none.

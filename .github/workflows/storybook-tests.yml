@@ -48,7 +48,7 @@ jobs:
           bun-version-file: package.json
 
       - name: Install dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
       # The dev server and test-storybook never run a production bundle, so
       # a broken static build only shows up here.
