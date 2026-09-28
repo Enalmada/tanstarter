@@ -1,5 +1,11 @@
 # Serwist + Nitro v3 Integration Investigation
 
+> **Superseded (2026-09):** the post-build workaround below never produced a working
+> service worker. `injectManifest` doesn't bundle, so `sw.js` was the raw TypeScript
+> source, and Nitro only serves files that exist when it builds the server, so it
+> 404'd anyway. `sw.js` is now built inside `vite build` by
+> `scripts/vite-service-worker.ts`. The rest of this document is historical.
+
 **Date:** 2025-11-05
 **Branch:** `serwist_support`
 **Status:** ✅ RESOLVED - Implemented post-build workaround

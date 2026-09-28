@@ -7,30 +7,11 @@ import viteReact from "@vitejs/plugin-react";
 import { config } from "dotenv";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
-import viteRollbar from "vite-plugin-rollbar";
+import { serviceWorker } from "./scripts/vite-service-worker.ts";
 
 config();
 
-// Get release info for build time
-const getBuildRelease = () => {
-	// First check for explicit release version (set in CI)
-	if (process.env.RELEASE_VERSION) {
-		return process.env.RELEASE_VERSION;
-	}
-	// Then try Fly.io image ref
-	if (process.env.FLY_IMAGE_REF) {
-		return process.env.FLY_IMAGE_REF;
-	}
-	// Fallback to development
-	return "development";
-};
-
 export default defineConfig({
-	experimental: {
-		// Vite 8 beta: Enable native plugins for tsconfigPaths
-		// Note: Warning about "native plugins disabled" is a known beta issue - can be ignored
-		enableNativePlugin: true,
-	},
 	server: {
 		hmr: {
 			// PLAYWRIGHT env var is set in playwright.config.ts webServer.env.
@@ -77,16 +58,9 @@ export default defineConfig({
 			},
 		}),
 		lingui(),
-		// TODO: Serwist Vite plugin is currently DISABLED due to Nitro v3 incompatibility
-		// ISSUE: Serwist runs during Vite's build phase but Nitro processes/moves assets
-		//        AFTER that. Result: sw.js gets generated in dist/ but never copied to
-		//        .output/public/ where Nitro serves from.
-		// WORKAROUND: Using post-build script (scripts/generate-sw.ts) that runs after
-		//             Nitro completes. See package.json build:prod script.
-		// FUTURE FIX: This should work once Nitro v3 is stable and has proper integration
-		//             hooks, or if Serwist adds a "closeBundleOrder: post" option to run
-		//             after Nitro's processing.
-		// REFERENCES: docs/sessions/serwist_support.md for full investigation
+		// Builds sw.js into the client output before Nitro snapshots it
+		// (see scripts/vite-service-worker.ts for why not @serwist/vite).
+		serviceWorker({ swSrc: "src/sw.ts" }),
 		// serwist({
 		// 	base: "/",
 		// 	scope: "/",
@@ -96,18 +70,6 @@ export default defineConfig({
 		// 	globDirectory: "dist",
 		// 	rollupFormat: "iife",
 		// }),
-		// Upload source maps to Rollbar after build
-		...(process.env.ROLLBAR_SERVER_TOKEN && process.env.NODE_ENV === "production"
-			? [
-					viteRollbar({
-						accessToken: process.env.ROLLBAR_SERVER_TOKEN,
-						version: getBuildRelease(),
-						baseUrl: process.env.PUBLIC_APP_URL || "http://localhost:3000",
-						ignoreUploadErrors: true,
-						silent: false,
-					}),
-				]
-			: []),
 	],
 	// Only expose PUBLIC_ prefixed vars to client
 	envPrefix: ["PUBLIC_"],
@@ -126,8 +88,8 @@ export default defineConfig({
 	build: {
 		// Support top-level await for ES2022
 		target: "es2022",
-		// Only include source map URLs in development
-		// In production, source maps are uploaded to Rollbar
+		// Source maps in development only. Production builds ship none, and
+		// nothing uploads them to Rollbar yet.
 		sourcemap: process.env.NODE_ENV === "development",
 		rollupOptions: {
 			// Node builtins only. Externalizing a package leaves a bare import
@@ -156,12 +118,14 @@ export default defineConfig({
 		include: [
 			"@tanstack/history",
 			"@tanstack/router-core",
+			"@tanstack/router-core/isServer",
 			"@tanstack/router-core/ssr/client",
 			"@tanstack/router-core/ssr/server",
 			"defu",
 			"nanostores",
 			"seroval",
 			"tiny-invariant",
+			"zod",
 		],
 		exclude: [
 			// better-auth ecosystem — server-only by design (drizzle / postgres

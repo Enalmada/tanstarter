@@ -21,15 +21,18 @@
  * definitions AND was imported by `~/utils/query/queries.ts` /
  * `~/utils/query/mutations.ts` — pulling its server-only chain into the
  * client compile pass. After the split, `queries.ts` / `mutations.ts`
- * import the slim per-handler files; this module is only reached via
- * dynamic imports inside extracted createServerFn handler bodies, which
- * the framework strips from the client bundle.
+ * import the slim per-handler files. Those files still import the
+ * validators from here statically, so this module IS on the client graph:
+ * `getUser` / `loadEntityConfig` are wrapped in `createServerOnlyFn`, whose
+ * body (and its dynamic imports of `~/server/*`) the Start compiler strips
+ * from the client build.
  *
  * See the gell-v2 codebase (`src/functions/{find-first,find-many,
  * delete-entity,update-entity,create-entity}.ts` + `base-service.ts`)
  * for the canonical pattern this mirrors.
  */
 
+import { createServerOnlyFn } from "@tanstack/react-start";
 import { any, object, optional, picklist, string } from "valibot";
 import { ENTITY_TYPES, type EntityType } from "~/lib/entity-types";
 
@@ -126,7 +129,7 @@ type EntityHandle = {
 	schemas: { select: any; insert: any; update: any };
 };
 
-export async function loadEntityConfig(): Promise<Record<EntityType, EntityHandle>> {
+export const loadEntityConfig = createServerOnlyFn(async (): Promise<Record<EntityType, EntityHandle>> => {
 	const db = (await import("~/server/db")).default;
 	const {
 		TaskTable,
@@ -161,9 +164,9 @@ export async function loadEntityConfig(): Promise<Record<EntityType, EntityHandl
 			schemas: { select: userSelectSchema, insert: userInsertSchema, update: userUpdateSchema },
 		},
 	};
-}
+});
 
-export async function getUser() {
+export const getUser = createServerOnlyFn(async () => {
 	// All session-loading semantics (Playwright auth shortcut, getRequest
 	// try/catch, asResponse cookie forwarding, fresh-from-DB query) live in
 	// `~/server/auth/session`. This thin wrapper exists so per-handler files
@@ -171,4 +174,4 @@ export async function getUser() {
 	// registry AND the authed actor in one round trip.
 	const { requireAuthedUser } = await import("~/server/auth/session");
 	return requireAuthedUser({ freshFromDb: true });
-}
+});

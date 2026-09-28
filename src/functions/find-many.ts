@@ -4,7 +4,7 @@
  * for the splitting rationale.
  */
 
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { safeParse } from "valibot";
 import { createWhereSchema, type FindEntityPayload, formatIssues, validateFindMany } from "~/functions/base-service";
 import { BadRequestError } from "~/server/access/http-errors";
@@ -24,7 +24,7 @@ function validateFindManyInput(input: unknown): FindEntityPayload {
 	return payload;
 }
 
-export async function handleFindMany({ data }: { data: FindEntityPayload }) {
+export const handleFindMany = createServerOnlyFn(async ({ data }: { data: FindEntityPayload }) => {
 	const { getColumns } = await import("drizzle-orm");
 	const { accessCheck } = await import("~/server/access/check");
 	const { logger } = await import("~/utils/logger");
@@ -53,6 +53,6 @@ export async function handleFindMany({ data }: { data: FindEntityPayload }) {
 
 	const rows = await query.findMany({ where: whereList, with: data.with });
 	return filterReadableRows(user, data.subject, rows, data.with);
-}
+});
 
-export const findMany = createServerFn({ method: "GET" }).inputValidator(validateFindManyInput).handler(handleFindMany);
+export const findMany = createServerFn({ method: "GET" }).validator(validateFindManyInput).handler(handleFindMany);

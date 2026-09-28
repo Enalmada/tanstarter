@@ -5,7 +5,7 @@
  * Broadcasts to all connected SSE clients via the notification channel.
  */
 
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 
 /**
  * Server function to trigger a new notification
@@ -20,7 +20,7 @@ import { createServerFn } from "@tanstack/react-start";
  * const result = await triggerSSENotification();
  * console.log('Triggered notification #', result.count);
  */
-export async function handleTriggerSSENotification() {
+export const handleTriggerSSENotification = createServerOnlyFn(async () => {
 	// Broadcasts to every connected listener — signed-in users only.
 	const { requireAuthedUser } = await import("~/server/auth/session");
 	await requireAuthedUser();
@@ -35,6 +35,6 @@ export async function handleTriggerSSENotification() {
 		success: true,
 		count,
 	};
-}
+});
 
 export const triggerSSENotification = createServerFn({ method: "POST" }).handler(handleTriggerSSENotification);

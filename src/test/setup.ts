@@ -247,10 +247,13 @@ vi.mock("@tanstack/react-start", () => {
 	});
 
 	return {
+		// Server-only wrapper is a passthrough in tests (the Start compiler
+		// strips its body from the client build).
+		createServerOnlyFn: <T>(fn: T) => fn,
 		createServerFn: vi.fn().mockImplementation(() => ({
 			handler: mockHandler,
 			// biome-ignore lint/suspicious/noExplicitAny: Schema types are inherently any
-			inputValidator: (schema: any) => ({
+			validator: (schema: any) => ({
 				handler:
 					(handler: (params: { data: unknown; context: unknown }) => Promise<unknown>) =>
 					async (input: { data: unknown; context: unknown }) => {
