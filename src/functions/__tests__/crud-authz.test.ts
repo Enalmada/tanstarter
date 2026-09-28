@@ -25,6 +25,15 @@ const state = vi.hoisted(() => ({
 
 vi.mock("~/server/access/check", async (importOriginal) => importOriginal());
 
+// Real predicate, spied, so tests can prove the handlers write through it
+// with the row they authorized (the DB mock itself ignores predicates).
+const writeGuard = vi.hoisted(() => ({ spy: vi.fn() }));
+vi.mock("~/server/access/write-guard", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("~/server/access/write-guard")>();
+	writeGuard.spy.mockImplementation(actual.authorizedRowPredicate);
+	return { authorizedRowPredicate: writeGuard.spy };
+});
+
 vi.mock("~/server/db", () => ({
 	default: {
 		select: () => ({
@@ -99,6 +108,7 @@ beforeEach(() => {
 	state.rows = [];
 	state.selected = [];
 	state.writeReturnsNothing = false;
+	writeGuard.spy.mockClear();
 	state.deleted.mockClear();
 	state.updated.mockClear();
 });
@@ -164,6 +174,22 @@ describe("write predicate", () => {
 		expect(sql).toContain('"user_id"');
 		expect(sql).toContain('"version"');
 		expect(params).toEqual([ownTask.id, ownTask.userId, ownTask.version]);
+	});
+});
+
+describe("handlers write through the guard", () => {
+	it("update passes the authorized row to the write predicate", async () => {
+		state.selected = [ownTask];
+		await handleUpdateEntity({ data: { subject: "Task", id: ownTask.id, data: { version: 1, title: "x" } } });
+		expect(writeGuard.spy).toHaveBeenCalledTimes(1);
+		expect(writeGuard.spy.mock.calls[0]?.[1]).toBe(ownTask);
+	});
+
+	it("delete passes the authorized row to the write predicate", async () => {
+		state.selected = [ownTask];
+		await handleDeleteEntity({ data: { subject: "Task", id: ownTask.id } });
+		expect(writeGuard.spy).toHaveBeenCalledTimes(1);
+		expect(writeGuard.spy.mock.calls[0]?.[1]).toBe(ownTask);
 	});
 });
 
