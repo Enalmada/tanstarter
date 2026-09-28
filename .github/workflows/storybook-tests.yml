@@ -8,6 +8,7 @@ on:
       - 'vitest.config.ts'
       # Storybook's builder loads the root Vite config (plugins, aliases, define)
       - 'vite.config.ts'
+      - 'scripts/vite-service-worker.ts'
       - 'package.json'
       - 'bun.lock'
       - '.github/workflows/storybook-tests.yml'
