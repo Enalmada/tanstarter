@@ -2,9 +2,34 @@ import { defineEnv } from "envin";
 import { fly } from "envin/presets/valibot";
 import * as v from "valibot";
 
+// The production and dev browser bundles. Vitest's happy-dom also defines
+// `window`, but runs in Node with a real `process.env`, so tests keep the
+// server path and still validate.
+const isBrowser = typeof window !== "undefined" && !import.meta.env?.VITEST;
+
 export default defineEnv({
 	// Extend with Fly.io preset for deployment
 	extends: [fly],
+
+	// envin defaults to `process.env`, which the client build replaces with
+	// `{}`, so the browser validated an empty object and threw on APP_ENV. On
+	// the client, pass an explicit allowlist: spreading `import.meta.env` would
+	// inline every `envPrefix` build variable into public JavaScript.
+	env: isBrowser
+		? {
+				NODE_ENV: process.env.NODE_ENV,
+				APP_ENV: process.env.APP_ENV,
+				PUBLIC_APP_URL: import.meta.env.PUBLIC_APP_URL,
+				PUBLIC_ROLLBAR_ACCESS_TOKEN: import.meta.env.PUBLIC_ROLLBAR_ACCESS_TOKEN,
+				PUBLIC_POSTHOG_API_KEY: import.meta.env.PUBLIC_POSTHOG_API_KEY,
+			}
+		: { ...process.env },
+
+	// Validate on the server only. Client values are build-time constants, and
+	// the Docker/Fly build has none (APP_ENV and PUBLIC_* arrive as runtime
+	// secrets), so a required APP_ENV threw before hydration on every page.
+	// Client code treats every value as optional.
+	skip: isBrowser,
 
 	// Server-side environment variables
 	server: {

@@ -31,10 +31,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Latest Bun, and the Dockerfile's install flags (`--ignore-scripts`).
-      - uses: oven-sh/setup-bun@v1
+      # Bun from packageManager (as the Dockerfile), and the Dockerfile's
+      # install flags (`--ignore-scripts`).
+      - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          # Single source of truth: packageManager in package.json
+          bun-version-file: package.json
 
       - run: bun install --ignore-scripts
 
