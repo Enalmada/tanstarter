@@ -5,7 +5,7 @@ Notes on the day-to-day workflow for landing changes safely in this codebase.
 ## Quality gates (run before pushing)
 
 ```bash
-bun run check-types    # tsc --noEmit
+bun run check-types    # tsgo --noEmit
 bun run lint           # biome check --fix
 bun run check-tss-2    # bundle-leak check (createServerFn files only)
 bun run test:unit      # vitest

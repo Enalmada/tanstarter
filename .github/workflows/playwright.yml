@@ -20,13 +20,6 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Install Docker Compose
-        run: |
-          DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-          mkdir -p $DOCKER_CONFIG/cli-plugins
-          curl -SL https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
-          chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
-
       - name: Install dependencies
         run: bun install
         env:
@@ -44,9 +37,8 @@ jobs:
 
       - name: Run Docker Compose
         run: |
-          docker compose -f docker-compose.yml up -d
-          echo "Waiting for database to be ready..."
-          sleep 10
+          # --wait blocks until services with healthchecks (both postgres) are healthy
+          docker compose -f docker-compose.yml up -d --wait --wait-timeout 120
         env:
           DATABASE_URL: "postgres://postgres:postgres@db.localtest.me:5434/tanstarter"
 

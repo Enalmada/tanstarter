@@ -42,7 +42,13 @@ export async function handleUpdateEntity({
 	const { getUser, loadEntityConfig } = await import("~/functions/base-service");
 
 	const user = await getUser();
-	logger.info("updateEntity", { data, userId: user.id });
+	// Metadata only: never log client-supplied values.
+	logger.info("updateEntity", {
+		subject: data.subject,
+		id: data.id,
+		fields: Object.keys(data.data ?? {}),
+		userId: user.id,
+	});
 
 	const config = await loadEntityConfig();
 	const { subject, id, data: entityData } = data;

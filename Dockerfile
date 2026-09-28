@@ -39,7 +39,7 @@ COPY --from=builder /app/public ./public
 USER bun
 # Explicitly specify TCP port
 EXPOSE 3000/tcp
-ENV PORT 3000
+ENV PORT=3000
 
 # Run the built server
 CMD ["bun", "run", ".output/server/index.mjs"] 

@@ -219,7 +219,8 @@ function RootComponent() {
 			}
 		};
 
-		loadSerwist();
+		// loadSerwist catches registration errors itself.
+		void loadSerwist();
 	}, []);
 
 	return (

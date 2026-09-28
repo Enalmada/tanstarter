@@ -8,6 +8,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
 	test: {
+		// Top-level globalSetup runs its teardown once after all projects finish.
+		globalSetup: ["./.storybook/vitest.global-setup.ts"],
 		projects: [
 			// Unit tests project
 			{

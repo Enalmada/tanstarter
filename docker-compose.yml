@@ -7,7 +7,7 @@
 
 services:
   postgres_tanstarter:
-    image: postgres:18
+    image: postgres:18.6
     container_name: postgres_tanstarter
     command: '-d 1'
     volumes:
@@ -27,7 +27,7 @@ services:
       - tanstarter_network
 
   postgres_tanstarter_test:
-    image: postgres:18
+    image: postgres:18.6
     container_name: postgres_tanstarter_test
     command: '-d 1'
     volumes:
@@ -47,7 +47,7 @@ services:
       - tanstarter_network
 
   neon_proxy_tanstarter:
-    image: ghcr.io/timowilhelm/local-neon-http-proxy:main
+    image: ghcr.io/timowilhelm/local-neon-http-proxy:main@sha256:cd2ae14edf2feafbc3330492de5c80506f77274c3bd013154cdef697bdeb768a
     container_name: neon_proxy_tanstarter
     environment:
       - PG_CONNECTION_STRING=postgres://postgres:postgres@postgres_tanstarter:5432/tanstarter
@@ -60,7 +60,7 @@ services:
       - tanstarter_network
 
   neon_proxy_tanstarter_test:
-    image: ghcr.io/timowilhelm/local-neon-http-proxy:main
+    image: ghcr.io/timowilhelm/local-neon-http-proxy:main@sha256:cd2ae14edf2feafbc3330492de5c80506f77274c3bd013154cdef697bdeb768a
     container_name: neon_proxy_tanstarter_test
     environment:
       - PG_CONNECTION_STRING=postgres://postgres:postgres@postgres_tanstarter_test:5432/tanstarter_test
@@ -73,7 +73,7 @@ services:
       - tanstarter_network
 
   pgadmin_tanstarter:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:9.18
     container_name: pgadmin_tanstarter
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@tanstarter.com}

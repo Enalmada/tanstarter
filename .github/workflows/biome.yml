@@ -25,7 +25,7 @@ jobs:
           # version embedded in biome.jsonc's `$schema`. `latest` rides the
           # bleeding edge and surfaces new lint rules that the local toolchain
           # doesn't yet enforce (e.g. 2.4.x added stricter export sort rules).
-          version: 2.3.11
+          version: 2.4.16
 
       - name: Run Biome
         run: biome ci .
