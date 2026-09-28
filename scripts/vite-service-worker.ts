@@ -55,7 +55,9 @@ export function serviceWorker({ swSrc }: { swSrc: string }): Plugin {
 					swSrc: swDest,
 					swDest,
 					globDirectory: outDir,
-					globPatterns: ["**/*.{js,css,html,png,jpg,jpeg,gif,svg,ico,woff,woff2,ttf,eot}", "manifest.json"],
+					// No html: a precached document would be served cache-first, ahead of
+					// src/sw.ts's NetworkOnly navigation rule.
+					globPatterns: ["**/*.{js,css,png,jpg,jpeg,gif,svg,ico,woff,woff2,ttf,eot}", "manifest.json"],
 					globIgnores: ["**/*.map", SW_FILE],
 					injectionPoint: "self.__SW_MANIFEST",
 					// Hashed filenames under assets/ never need a cache-busting revision.

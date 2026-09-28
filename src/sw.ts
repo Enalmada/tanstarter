@@ -22,6 +22,9 @@ declare const self: ServiceWorkerGlobalScope;
 
 const serwist = new Serwist({
 	precacheEntries: self.__SW_MANIFEST ?? [],
+	// Rollback: redeploying a build without /sw.js does NOT uninstall this
+	// worker (the update check just fails). To remove it, ship a /sw.js that
+	// calls skipWaiting(), deletes every cache, and unregisters itself.
 	skipWaiting: true,
 	clientsClaim: true,
 	navigationPreload: true,
