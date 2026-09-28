@@ -6,6 +6,9 @@ on:
       - 'src/**'
       - '.storybook/**'
       - 'vitest.config.ts'
+      # Storybook's builder loads the root Vite config (plugins, aliases, define)
+      - 'vite.config.ts'
+      - 'scripts/vite-service-worker.ts'
       - 'package.json'
       - 'bun.lock'
       - '.github/workflows/storybook-tests.yml'
@@ -46,6 +49,12 @@ jobs:
 
       - name: Install dependencies
         run: bun install
+
+      # The dev server and test-storybook never run a production bundle, so
+      # a broken static build only shows up here.
+      - name: Build static Storybook
+        timeout-minutes: 10
+        run: bun run build-storybook --quiet
 
       - name: Install Playwright browsers
         run: bunx playwright install --with-deps
