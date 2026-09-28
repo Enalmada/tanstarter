@@ -2,7 +2,7 @@
 	"name": "tanstarter",
 	"version": "0.1.0",
 	"scripts": {
-		"build": "vite build",
+		"build": "bun --bun vite build",
 		"build-storybook": "storybook build",
 		"build:prod": "bun run build && bun run drizzle:migrate && bun run scripts/generate-sw.ts && bun run scripts/post-build.ts",
 		"check": "turbo lint check-types knip check-tss-2 check-tss-7 check-stories test:unit test-storybook test:e2e",
