@@ -157,7 +157,10 @@ jobs:
       # would deploy instead when this job runs from a late synchronize run.
       # A missing app (never labeled, or already destroyed) is fine; any other
       # failure (auth, API) fails the step so orphans don't go unnoticed.
+      # `!cancelled()` here and below: a failed Neon delete still fails the job,
+      # but mustn't leave the Fly app running.
       - name: Destroy Fly.io app
+        if: ${{ !cancelled() }}
         run: |
           if ! apps=$(flyctl apps list --json); then
             echo "::error::flyctl apps list failed"
@@ -172,6 +175,7 @@ jobs:
           flyctl apps destroy "$FLY_APP_NAME" -y
 
       - name: Clean up GitHub deployments
+        if: ${{ !cancelled() }}
         uses: strumwolf/delete-deployment-environment@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
