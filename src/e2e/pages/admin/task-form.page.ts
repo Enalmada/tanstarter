@@ -53,20 +53,6 @@ export class AdminTaskFormPage extends BasePage {
 	}
 
 	/**
-	 * Get create task button
-	 */
-	getCreateButton(): Locator {
-		return this.page.getByRole("button", { name: "Create Task" });
-	}
-
-	/**
-	 * Get update task button
-	 */
-	getUpdateButton(): Locator {
-		return this.page.getByRole("button", { name: "Update Task" });
-	}
-
-	/**
 	 * Get delete task button
 	 */
 	getDeleteButton(): Locator {
@@ -138,14 +124,15 @@ export class AdminTaskFormPage extends BasePage {
 	 * Submit the form (create)
 	 */
 	async submit(): Promise<void> {
-		await this.getCreateButton().click();
+		// The admin form labels its button "Submit" for both create and update
+		await this.getSubmitButton().click();
 	}
 
 	/**
 	 * Update the task
 	 */
 	async update(): Promise<void> {
-		await this.getUpdateButton().click();
+		await this.getSubmitButton().click();
 	}
 
 	/**

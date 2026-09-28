@@ -10,8 +10,8 @@
  *     require a session.
  *
  * Both:
- *   - Honor the Playwright test-auth header shortcut via
- *     `~/utils/test/playwright`.
+ *   - Honor the Playwright test-token shortcut (seeded users, dev server
+ *     started by Playwright only) via `~/utils/test/playwright`.
  *   - Resolve the per-request `Request` via `getSessionRequest()` —
  *     handles the `getRequest()` v1.134+ throw-on-missing-context
  *     in ONE place.
@@ -41,7 +41,7 @@ import type { SessionUser } from "~/server/auth/auth";
 
 export async function getOptionalSessionUser(opts?: { freshFromDb?: boolean }): Promise<SessionUser | null> {
 	const playwrightModule = await import("~/utils/test/playwright");
-	const mockUser = playwrightModule.checkPlaywrightTestAuth();
+	const mockUser = await playwrightModule.checkPlaywrightTestAuth();
 	if (mockUser) return mockUser;
 
 	const requestModule = await import("./request");

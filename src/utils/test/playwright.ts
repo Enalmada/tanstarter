@@ -1,59 +1,54 @@
-import { getRequest } from "@tanstack/react-start/server";
-import { UserRole } from "~/lib/enums/user-role";
 import type { SessionUser } from "~/utils/auth-client";
-
-// Mock users for testing - keep in sync with auth-guard.ts
-export const mockTestUser: SessionUser = {
-	id: "test-user-id",
-	email: "test@example.com",
-	name: "Test User",
-	role: UserRole.MEMBER,
-	image: null,
-	emailVerified: false,
-	createdAt: new Date(),
-	updatedAt: new Date(),
-};
-
-export const mockAdminUser: SessionUser = {
-	...mockTestUser,
-	id: "test-admin-id",
-	email: "admin@example.com",
-	name: "Test Admin",
-	role: UserRole.ADMIN,
-};
+import { PLAYWRIGHT_ADMIN_USER, PLAYWRIGHT_MEMBER_USER } from "./playwright-users";
 
 /**
- * Check for Playwright test tokens in development mode
- * Returns mock user if valid test token is found, null otherwise
+ * E2E sign-in shortcut: maps a Playwright test token in the `authorization`
+ * header to the matching seeded user (see ./playwright-users.ts).
+ *
+ * The admin token is a passwordless admin login, so it only works on a dev
+ * server that Playwright started: NODE_ENV=development AND PLAYWRIGHT=true
+ * (set by the webServer command in playwright.config.ts). A plain `bun dev`
+ * server ignores it. Returns null when there's no token, and the caller
+ * falls through to the real session lookup.
  */
-export const checkPlaywrightTestAuth = () => {
-	if (process.env.NODE_ENV !== "development") {
+export const checkPlaywrightTestAuth = async (): Promise<SessionUser | null> => {
+	if (process.env.NODE_ENV !== "development" || process.env.PLAYWRIGHT !== "true") {
 		return null;
 	}
 
-	// TanStack Start v1.134+ requires the per-request AsyncLocalStorage context
-	// for getRequest() to resolve. During SSR initialization / dehydration
-	// the context may not yet be active and the call throws — handle that
-	// gracefully so the auth path falls through to the real session lookup
-	// instead of crashing every page render.
-	let request: Request | undefined;
-	try {
-		request = getRequest();
-	} catch (_error) {
-		return null;
-	}
+	const { getSessionRequest } = await import("~/server/auth/request");
+	const request = await getSessionRequest();
 	if (!request) {
 		return null;
 	}
 
 	const authHeader = request.headers.get("authorization");
-
-	if (authHeader === "playwright-test-token") {
-		return mockTestUser;
-	}
-	if (authHeader === "playwright-admin-test-token") {
-		return mockAdminUser;
+	const seeded = [PLAYWRIGHT_MEMBER_USER, PLAYWRIGHT_ADMIN_USER].find((user) => user.token === authHeader);
+	if (!seeded) {
+		return null;
 	}
 
-	return null;
+	// Look the user up on every request so role changes made by a spec apply.
+	const { eq } = await import("drizzle-orm");
+	const db = (await import("~/server/db")).default;
+	const { UserTable } = await import("~/server/db/schema");
+	const [user] = await db.select().from(UserTable).where(eq(UserTable.email, seeded.email)).limit(1);
+	if (!user) {
+		const { logger } = await import("~/utils/logger");
+		logger.error("Playwright test token used but its user isn't seeded; run `bun run drizzle:seed`", {
+			email: seeded.email,
+		});
+		return null;
+	}
+
+	return {
+		id: user.id,
+		email: user.email,
+		name: user.name ?? "",
+		image: user.image,
+		emailVerified: user.emailVerified,
+		role: user.role,
+		createdAt: user.createdAt,
+		updatedAt: user.updatedAt,
+	} as SessionUser;
 };

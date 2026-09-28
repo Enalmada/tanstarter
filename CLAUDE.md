@@ -24,12 +24,15 @@ bun dev                    # Start dev server (includes Docker)
 bun run check-types       # TypeScript type checking
 bun run lint              # Biome linting with auto-fix
 bun run test:unit         # Unit tests
+bun run knip              # Unused files/exports/dependencies
+bun run test:e2e          # Playwright (seeded users; see src/e2e/TESTING_BEST_PRACTICES.md)
 ```
 
 ### Database
 ```bash
 bun run drizzle:generate  # Generate migrations after schema changes
 bun run docker:up         # Start Docker containers
+bun run drizzle:seed      # Seed the Playwright e2e users (dev DB only)
 ```
 
 ## Quality Requirements
@@ -38,7 +41,8 @@ After any code changes, you MUST run:
 1. `bun run check-types`
 2. `bun run lint`
 3. `bun run test:unit`
-4. `bun run drizzle:generate` (if database schema changed)
+4. `bun run knip` (fails on new unused code; don't add to its baseline)
+5. `bun run drizzle:generate` (if database schema changed)
 
 Pre-commit hooks (LeftHook) automatically enforce these checks.
 

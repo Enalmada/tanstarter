@@ -15,13 +15,6 @@ import { MemberTasksListPage } from "../pages/member/tasks-list.page";
  *    - Use role-based selectors when possible
  */
 test.describe("Member Tasks", () => {
-	test.beforeEach(async ({ context }) => {
-		// Set auth header for all requests in this test
-		await context.setExtraHTTPHeaders({
-			authorization: "playwright-test-token",
-		});
-	});
-
 	test("shows task list page elements", async ({ page }) => {
 		const tasksListPage = new MemberTasksListPage(page);
 		await tasksListPage.goto();
@@ -33,12 +26,32 @@ test.describe("Member Tasks", () => {
 		await expect(tasksListPage.getMainContent()).toBeVisible();
 	});
 
-	test("clears tasks and shows empty state", async ({ page }) => {
-		const tasksListPage = new MemberTasksListPage(page);
-		await tasksListPage.goto();
+	// Specs share the seeded member and run in parallel, so each one works on
+	// its own uniquely named task instead of asserting an empty list.
+	test("creates, updates and deletes its own task", async ({ page }) => {
+		const taskFormPage = new MemberTaskFormPage(page);
+		const title = `E2E member task ${Date.now()}`;
+		const taskLink = (text: string) => page.locator('a[href^="/tasks/tsk_"]', { hasText: text });
 
-		// Check for empty state text
-		await expect(tasksListPage.getEmptyStateText()).toBeVisible();
+		await taskFormPage.goto();
+		await taskFormPage.createTask({ title, description: "Created by e2e" });
+		await expect(page.getByText("Task created successfully")).toBeVisible();
+		await expect(taskLink(title)).toBeVisible();
+
+		await taskLink(title).click();
+		await page.waitForURL(/\/tasks\/tsk_/);
+		const taskUrl = page.url();
+		const updatedTitle = `${title} (updated)`;
+		await taskFormPage.editTask({ title: updatedTitle });
+		await expect(page.getByText("Task updated successfully")).toBeVisible();
+
+		// Saving returns to the list, so reopen the task to delete it
+		await page.goto(taskUrl);
+		await page.waitForLoadState("networkidle");
+		await taskFormPage.delete();
+		await expect(page.getByText("Task deleted successfully")).toBeVisible();
+		await page.waitForURL("/tasks");
+		await expect(taskLink(updatedTitle)).toHaveCount(0);
 	});
 
 	test("shows task form page", async ({ page }) => {
