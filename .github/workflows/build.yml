@@ -31,22 +31,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-
+      # Same Bun and install flags as the Dockerfile (`oven/bun:1.2.5`,
+      # `--ignore-scripts`); keep them in step when the Dockerfile changes.
       - uses: oven-sh/setup-bun@v1
         with:
-          bun-version: latest
+          bun-version: 1.2.5
 
-      - run: bun install
+      - run: bun install --ignore-scripts
 
       # The build needs no app env vars today (env.config.ts is validated at
       # runtime, not at build time), matching the Docker build, which has none.
       # ROLLBAR_SERVER_TOKEN is deliberately left unset so vite.config.ts skips
       # the Rollbar source-map upload plugin.
+      # `--bun`: the oven/bun image has no Node, so there `bun run build` runs
+      # vite under Bun. The runner has Node preinstalled; force Bun to match.
       - name: Production build
-        run: bun run build
+        run: bun --bun run build
         env:
           NODE_ENV: production
 

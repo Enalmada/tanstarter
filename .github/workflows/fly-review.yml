@@ -4,6 +4,8 @@ name: Deploy PR Environment
 # label to a PR to create one; later pushes redeploy it while the label stays.
 # Without the gate, every restack of a stacked-PR series redeploys every layer
 # and can exhaust Neon's branch limit. Closing the PR always tears down.
+# Same-repository PRs only: `pull_request` runs from forks get no Fly/Neon
+# secrets (and must not), so a fork preview could never deploy.
 on:
   pull_request:
     types: [opened, reopened, synchronize, closed, labeled]
@@ -27,6 +29,7 @@ jobs:
   create_environment:
     if: |
       github.head_ref != 'main' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
       (
         (github.event.action == 'labeled' && github.event.label.name == 'preview') ||
         (
@@ -40,12 +43,13 @@ jobs:
       api_url: ${{ steps.deploy_app.outputs.url }}
       pr_open: ${{ steps.pr_state.outputs.open }}
     # Shared with destroy_environment so a PR's create and destroy never overlap.
-    # Only one run holds the group; a newer pending run replaces an older pending
-    # one, which is safe because both jobs reconcile to the PR's live state (see
-    # pr_state).
+    # `queue: max` keeps every pending job: with the default (`single`) a late
+    # create queued behind a running one would replace a pending close-destroy,
+    # and cleanup would then hinge on that create's pr_state check succeeding.
     concurrency:
       group: preview-env-${{ github.event.number }}
       cancel-in-progress: false
+      queue: max
 
     environment:
       name: pr-${{ github.event.number }}
@@ -119,22 +123,35 @@ jobs:
     needs: create_environment
     if: |
       !cancelled() &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
       (github.event.action == 'closed' || needs.create_environment.outputs.pr_open == 'false')
     runs-on: ubuntu-latest
     concurrency:
       group: preview-env-${{ github.event.number }}
       cancel-in-progress: false
+      queue: max
     steps:
       - name: Setup Fly CLI
         uses: superfly/flyctl-actions/setup-flyctl@master
 
+      # Neon API directly, so a missing branch (never labeled, or already
+      # deleted) is a no-op while an auth or API failure fails the job.
       - name: Destroy Neon Database Branch
-        continue-on-error: true
-        uses: neondatabase/delete-branch-action@v3
-        with:
-          project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: pr-${{ github.event.number }}
-          api_key: ${{ secrets.NEON_API_KEY }}
+        env:
+          BRANCH_NAME: pr-${{ github.event.number }}
+        run: |
+          api="https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches"
+          if ! branches=$(curl -fsS -G -H "Authorization: Bearer $NEON_API_KEY" \
+            --data-urlencode "search=$BRANCH_NAME" --data-urlencode "limit=10000" "$api"); then
+            echo "::error::Neon branch list failed"
+            exit 1
+          fi
+          id=$(echo "$branches" | jq -r --arg name "$BRANCH_NAME" '[.branches[] | select(.name == $name) | .id][0] // empty')
+          if [ -z "$id" ]; then
+            echo "::notice::Neon branch $BRANCH_NAME not found; nothing to destroy"
+            exit 0
+          fi
+          curl -fsS -X DELETE -H "Authorization: Bearer $NEON_API_KEY" "$api/$id" > /dev/null
 
       # flyctl directly: fly-pr-review-apps only destroys on a `closed` event and
       # would deploy instead when this job runs from a late synchronize run.
@@ -146,7 +163,9 @@ jobs:
             echo "::error::flyctl apps list failed"
             exit 1
           fi
-          if ! echo "$apps" | jq -e --arg name "$FLY_APP_NAME" 'any(.[]; .Name == $name)' > /dev/null; then
+          # A jq error (unexpected JSON) fails the step rather than reading as "missing".
+          found=$(echo "$apps" | jq --arg name "$FLY_APP_NAME" 'any(.[]; .Name == $name)')
+          if [ "$found" != "true" ]; then
             echo "::notice::Fly app $FLY_APP_NAME not found; nothing to destroy"
             exit 0
           fi
