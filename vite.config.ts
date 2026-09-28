@@ -110,7 +110,7 @@ export default defineConfig({
 			: []),
 	],
 	// Only expose PUBLIC_ prefixed vars to client
-	envPrefix: ["PUBLIC_", "APP_", "FLY_"],
+	envPrefix: ["PUBLIC_"],
 	define: {
 		// TODO - try getting rid of these now that we have envPrefix
 		// Explicitly expose specific environment variables to client
@@ -130,15 +130,10 @@ export default defineConfig({
 		// In production, source maps are uploaded to Rollbar
 		sourcemap: process.env.NODE_ENV === "development",
 		rollupOptions: {
-			external: [
-				"perf_hooks",
-				"crypto",
-				"stream",
-				"@react-email/render",
-				"html-to-text",
-				"prettier",
-				"node:async_hooks",
-			],
+			// Node builtins only. Externalizing a package leaves a bare import
+			// that the browser cannot resolve and that the bundled Nitro output
+			// ships no node_modules for (see src/functions/email-preview.tsx).
+			external: ["perf_hooks", "crypto", "stream", "node:async_hooks"],
 		},
 	},
 	ssr: {

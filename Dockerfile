@@ -1,17 +1,19 @@
-FROM oven/bun:1.2.5 AS base
+# Keep in sync with packageManager in package.json
+FROM oven/bun:1.4.2 AS base
 WORKDIR /app
 
 # Install dependencies into temp directory for better caching
 FROM base AS install
 # Create separate directories for dev and prod dependencies
 RUN mkdir -p /temp/dev /temp/prod
-COPY package.json bun.lock /temp/dev/
+# bunfig.toml pins the hoisted linker (Bun 1.4 defaults fresh installs to isolated)
+COPY package.json bun.lock bunfig.toml /temp/dev/
 # Install dev dependencies with scripts disabled
-RUN cd /temp/dev && bun install --ignore-scripts
+RUN cd /temp/dev && bun install --frozen-lockfile --ignore-scripts
 
 # Install production dependencies only (no dev dependencies)
-COPY package.json bun.lock /temp/prod/
-RUN cd /temp/prod && bun install --ignore-scripts --production
+COPY package.json bun.lock bunfig.toml /temp/prod/
+RUN cd /temp/prod && bun install --frozen-lockfile --ignore-scripts --production
 
 # Build stage with dev dependencies
 FROM base AS builder

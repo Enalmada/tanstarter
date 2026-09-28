@@ -11,9 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          # Single source of truth: packageManager in package.json
+          bun-version-file: package.json
 
       # The script uses grep + ripgrep + bash. ubuntu-latest does NOT ship
       # with ripgrep — install it explicitly.

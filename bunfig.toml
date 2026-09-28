@@ -1,0 +1,5 @@
+[install]
+# Bun 1.4 defaults fresh installs to the isolated linker, which breaks `vite build`
+# ("#tanstack-start-server-fn-resolver is not defined"). Keep the flat node_modules
+# layout that the Dockerfile, CI and Nitro's file tracing are built around.
+linker = "hoisted"

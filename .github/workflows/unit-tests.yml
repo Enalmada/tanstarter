@@ -14,8 +14,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          # Single source of truth: packageManager in package.json
+          bun-version-file: package.json
       - run: bun install
       - run: bun run test:unit
