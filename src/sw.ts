@@ -6,7 +6,7 @@
 
 import { defaultCache } from "@serwist/vite/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist } from "serwist";
+import { NetworkOnly, Serwist } from "serwist";
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -25,7 +25,19 @@ const serwist = new Serwist({
 	skipWaiting: true,
 	clientsClaim: true,
 	navigationPreload: true,
-	runtimeCaching: defaultCache,
+	runtimeCaching: [
+		// Per-user responses never go in Cache Storage: page HTML (SSR renders
+		// the signed-in user's data), server functions and API routes. Without
+		// this, defaultCache's catch-all NetworkFirst rule keeps them for a day
+		// and serves them after sign-out whenever the network is slow.
+		{
+			matcher: ({ request, sameOrigin, url }) =>
+				sameOrigin &&
+				(request.mode === "navigate" || url.pathname.startsWith("/_serverFn/") || url.pathname.startsWith("/api/")),
+			handler: new NetworkOnly(),
+		},
+		...defaultCache,
+	],
 });
 
 serwist.addEventListeners();

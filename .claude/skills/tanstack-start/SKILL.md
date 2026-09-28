@@ -19,7 +19,8 @@ Every `createServerFn` file MUST follow this pattern:
    - Type-only imports (`import type { … }`)
 2. **Schema definitions** next.
 3. **Validator** function (sync) — throws `BadRequestError` with `result.issues.map((i) => i.message).join("; ")`.
-4. **Handler** as inline exported named function — `export async function handleX(...)`. NEVER trailing `export { handleX }` (TanStack Start's handler-body extraction can dangle the reference).
+4. **Handler** as an inline exported const wrapped in `createServerOnlyFn` — `export const handleX = createServerOnlyFn(async (...) => { ... })`. It is exported so unit tests can call it directly. NEVER trailing `export { handleX }` (TanStack Start's handler-body extraction can dangle the reference).
+   - **Why the wrapper:** an exported handler survives client tree-shaking as an export, and Vite 8's bundler (rolldown 1.x) still emits a chunk for every `await import(...)` inside it, even when nothing loads that chunk. The result is better-auth, Drizzle and the session helpers shipped as public files in `.output/public/assets`, and the import-protection plugin fails the build. On the client, the Start compiler replaces the `createServerOnlyFn` body with a throwing stub, so the dynamic imports never reach the client graph. Server-only helpers in client-reachable modules (`getUser` / `loadEntityConfig` in `base-service.ts`) use the same wrapper.
 5. **Dynamic imports** inside the handler for server-only modules (`~/server/db`, `~/server/services/*`, `~/server/auth/*`, `@tanstack/react-start/server`).
 6. **`createServerFn(...)` at the VERY END** of the file, registering the handler.
 
@@ -57,7 +58,7 @@ Handlers throw typed domain errors from [src/server/access/http-errors.ts](src/s
 
 | Class | HTTP | Default `safeMessage` | When to throw |
 |---|---|---|---|
-| `BadRequestError` | 400 | the message | Input-validation failures from `inputValidator` |
+| `BadRequestError` | 400 | the message | Input-validation failures from `validator` |
 | `NotAuthorizedError` | 403 | `"Forbidden"` | Self-actor authorization denial (Pattern A) |
 | `NotFoundError` | 404 | `"Not found"` | Row missing, or info-hiding recast (Pattern B) |
 | `ConflictError` | 409 | the message | Unique-constraint violations, optimistic-concurrency mismatches |

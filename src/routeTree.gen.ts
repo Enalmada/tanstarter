@@ -9,69 +9,34 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./routes/__root";
-import { Route as TermsRouteImport } from "./routes/terms";
-import { Route as TasksRouteImport } from "./routes/tasks";
-import { Route as SignupRouteImport } from "./routes/signup";
-import { Route as SignoutRouteImport } from "./routes/signout";
-import { Route as SigninRouteImport } from "./routes/signin";
-import { Route as ProfileRouteImport } from "./routes/profile";
-import { Route as PrivacyRouteImport } from "./routes/privacy";
-import { Route as HealthRouteImport } from "./routes/health";
-import { Route as AdminRouteImport } from "./routes/admin";
 import { Route as IndexRouteImport } from "./routes/index";
-import { Route as TasksIndexRouteImport } from "./routes/tasks/index";
+import { Route as AdminRouteImport } from "./routes/admin";
+import { Route as HealthRouteImport } from "./routes/health";
+import { Route as PrivacyRouteImport } from "./routes/privacy";
+import { Route as ProfileRouteImport } from "./routes/profile";
+import { Route as SigninRouteImport } from "./routes/signin";
+import { Route as SignoutRouteImport } from "./routes/signout";
+import { Route as SignupRouteImport } from "./routes/signup";
+import { Route as TasksRouteImport } from "./routes/tasks";
+import { Route as TermsRouteImport } from "./routes/terms";
 import { Route as AdminIndexRouteImport } from "./routes/admin/index";
-import { Route as TasksNewRouteImport } from "./routes/tasks/new";
-import { Route as TasksTaskIdRouteImport } from "./routes/tasks/$taskId";
-import { Route as DebugStreamingSseRouteImport } from "./routes/debug/streaming-sse";
 import { Route as DebugMonitoringRouteImport } from "./routes/debug/monitoring";
-import { Route as AdminUsersIndexRouteImport } from "./routes/admin/users/index";
-import { Route as AdminTasksIndexRouteImport } from "./routes/admin/tasks/index";
-import { Route as ApiSseNotificationsRouteImport } from "./routes/api/sse/notifications";
-import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth/$";
-import { Route as AdminUsersUserIdRouteImport } from "./routes/admin/users/$userId";
-import { Route as AdminTasksNewRouteImport } from "./routes/admin/tasks/new";
-import { Route as AdminTasksTaskIdRouteImport } from "./routes/admin/tasks/$taskId";
+import { Route as DebugStreamingSseRouteImport } from "./routes/debug/streaming-sse";
+import { Route as TasksIndexRouteImport } from "./routes/tasks/index";
+import { Route as TasksTaskIdRouteImport } from "./routes/tasks/$taskId";
+import { Route as TasksNewRouteImport } from "./routes/tasks/new";
 import { Route as AdminEmailsWelcomeRouteImport } from "./routes/admin/emails/welcome";
+import { Route as AdminTasksIndexRouteImport } from "./routes/admin/tasks/index";
+import { Route as AdminTasksTaskIdRouteImport } from "./routes/admin/tasks/$taskId";
+import { Route as AdminTasksNewRouteImport } from "./routes/admin/tasks/new";
+import { Route as AdminUsersIndexRouteImport } from "./routes/admin/users/index";
+import { Route as AdminUsersUserIdRouteImport } from "./routes/admin/users/$userId";
+import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth/$";
+import { Route as ApiSseNotificationsRouteImport } from "./routes/api/sse/notifications";
 
-const TermsRoute = TermsRouteImport.update({
-  id: "/terms",
-  path: "/terms",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const TasksRoute = TasksRouteImport.update({
-  id: "/tasks",
-  path: "/tasks",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const SignupRoute = SignupRouteImport.update({
-  id: "/signup",
-  path: "/signup",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const SignoutRoute = SignoutRouteImport.update({
-  id: "/signout",
-  path: "/signout",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const SigninRoute = SigninRouteImport.update({
-  id: "/signin",
-  path: "/signin",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const ProfileRoute = ProfileRouteImport.update({
-  id: "/profile",
-  path: "/profile",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: "/privacy",
-  path: "/privacy",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const HealthRoute = HealthRouteImport.update({
-  id: "/health",
-  path: "/health",
+const IndexRoute = IndexRouteImport.update({
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRouteImport,
 } as any);
 const AdminRoute = AdminRouteImport.update({
@@ -79,9 +44,59 @@ const AdminRoute = AdminRouteImport.update({
   path: "/admin",
   getParentRoute: () => rootRouteImport,
 } as any);
-const IndexRoute = IndexRouteImport.update({
+const HealthRoute = HealthRouteImport.update({
+  id: "/health",
+  path: "/health",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: "/privacy",
+  path: "/privacy",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ProfileRoute = ProfileRouteImport.update({
+  id: "/profile",
+  path: "/profile",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const SigninRoute = SigninRouteImport.update({
+  id: "/signin",
+  path: "/signin",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const SignoutRoute = SignoutRouteImport.update({
+  id: "/signout",
+  path: "/signout",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const SignupRoute = SignupRouteImport.update({
+  id: "/signup",
+  path: "/signup",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const TasksRoute = TasksRouteImport.update({
+  id: "/tasks",
+  path: "/tasks",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const TermsRoute = TermsRouteImport.update({
+  id: "/terms",
+  path: "/terms",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AdminIndexRoute = AdminIndexRouteImport.update({
   id: "/",
   path: "/",
+  getParentRoute: () => AdminRoute,
+} as any);
+const DebugMonitoringRoute = DebugMonitoringRouteImport.update({
+  id: "/debug/monitoring",
+  path: "/debug/monitoring",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const DebugStreamingSseRoute = DebugStreamingSseRouteImport.update({
+  id: "/debug/streaming-sse",
+  path: "/debug/streaming-sse",
   getParentRoute: () => rootRouteImport,
 } as any);
 const TasksIndexRoute = TasksIndexRouteImport.update({
@@ -89,34 +104,19 @@ const TasksIndexRoute = TasksIndexRouteImport.update({
   path: "/",
   getParentRoute: () => TasksRoute,
 } as any);
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: "/",
-  path: "/",
-  getParentRoute: () => AdminRoute,
+const TasksTaskIdRoute = TasksTaskIdRouteImport.update({
+  id: "/$taskId",
+  path: "/$taskId",
+  getParentRoute: () => TasksRoute,
 } as any);
 const TasksNewRoute = TasksNewRouteImport.update({
   id: "/new",
   path: "/new",
   getParentRoute: () => TasksRoute,
 } as any);
-const TasksTaskIdRoute = TasksTaskIdRouteImport.update({
-  id: "/$taskId",
-  path: "/$taskId",
-  getParentRoute: () => TasksRoute,
-} as any);
-const DebugStreamingSseRoute = DebugStreamingSseRouteImport.update({
-  id: "/debug/streaming-sse",
-  path: "/debug/streaming-sse",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const DebugMonitoringRoute = DebugMonitoringRouteImport.update({
-  id: "/debug/monitoring",
-  path: "/debug/monitoring",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
-  id: "/users/",
-  path: "/users/",
+const AdminEmailsWelcomeRoute = AdminEmailsWelcomeRouteImport.update({
+  id: "/emails/welcome",
+  path: "/emails/welcome",
   getParentRoute: () => AdminRoute,
 } as any);
 const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
@@ -124,19 +124,9 @@ const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
   path: "/tasks/",
   getParentRoute: () => AdminRoute,
 } as any);
-const ApiSseNotificationsRoute = ApiSseNotificationsRouteImport.update({
-  id: "/api/sse/notifications",
-  path: "/api/sse/notifications",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: "/api/auth/$",
-  path: "/api/auth/$",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
-  id: "/users/$userId",
-  path: "/users/$userId",
+const AdminTasksTaskIdRoute = AdminTasksTaskIdRouteImport.update({
+  id: "/tasks/$taskId",
+  path: "/tasks/$taskId",
   getParentRoute: () => AdminRoute,
 } as any);
 const AdminTasksNewRoute = AdminTasksNewRouteImport.update({
@@ -144,15 +134,25 @@ const AdminTasksNewRoute = AdminTasksNewRouteImport.update({
   path: "/tasks/new",
   getParentRoute: () => AdminRoute,
 } as any);
-const AdminTasksTaskIdRoute = AdminTasksTaskIdRouteImport.update({
-  id: "/tasks/$taskId",
-  path: "/tasks/$taskId",
+const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
+  id: "/users/",
+  path: "/users/",
   getParentRoute: () => AdminRoute,
 } as any);
-const AdminEmailsWelcomeRoute = AdminEmailsWelcomeRouteImport.update({
-  id: "/emails/welcome",
-  path: "/emails/welcome",
+const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
+  id: "/users/$userId",
+  path: "/users/$userId",
   getParentRoute: () => AdminRoute,
+} as any);
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: "/api/auth/$",
+  path: "/api/auth/$",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ApiSseNotificationsRoute = ApiSseNotificationsRouteImport.update({
+  id: "/api/sse/notifications",
+  path: "/api/sse/notifications",
+  getParentRoute: () => rootRouteImport,
 } as any);
 
 export interface FileRoutesByFullPath {
@@ -330,60 +330,11 @@ export interface RootRouteChildren {
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    "/terms": {
-      id: "/terms";
-      path: "/terms";
-      fullPath: "/terms";
-      preLoaderRoute: typeof TermsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/tasks": {
-      id: "/tasks";
-      path: "/tasks";
-      fullPath: "/tasks";
-      preLoaderRoute: typeof TasksRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/signup": {
-      id: "/signup";
-      path: "/signup";
-      fullPath: "/signup";
-      preLoaderRoute: typeof SignupRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/signout": {
-      id: "/signout";
-      path: "/signout";
-      fullPath: "/signout";
-      preLoaderRoute: typeof SignoutRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/signin": {
-      id: "/signin";
-      path: "/signin";
-      fullPath: "/signin";
-      preLoaderRoute: typeof SigninRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/profile": {
-      id: "/profile";
-      path: "/profile";
-      fullPath: "/profile";
-      preLoaderRoute: typeof ProfileRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/privacy": {
-      id: "/privacy";
-      path: "/privacy";
-      fullPath: "/privacy";
-      preLoaderRoute: typeof PrivacyRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/health": {
-      id: "/health";
-      path: "/health";
-      fullPath: "/health";
-      preLoaderRoute: typeof HealthRouteImport;
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/admin": {
@@ -393,11 +344,81 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AdminRouteImport;
       parentRoute: typeof rootRouteImport;
     };
-    "/": {
-      id: "/";
+    "/health": {
+      id: "/health";
+      path: "/health";
+      fullPath: "/health";
+      preLoaderRoute: typeof HealthRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/privacy": {
+      id: "/privacy";
+      path: "/privacy";
+      fullPath: "/privacy";
+      preLoaderRoute: typeof PrivacyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/profile": {
+      id: "/profile";
+      path: "/profile";
+      fullPath: "/profile";
+      preLoaderRoute: typeof ProfileRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/signin": {
+      id: "/signin";
+      path: "/signin";
+      fullPath: "/signin";
+      preLoaderRoute: typeof SigninRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/signout": {
+      id: "/signout";
+      path: "/signout";
+      fullPath: "/signout";
+      preLoaderRoute: typeof SignoutRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/signup": {
+      id: "/signup";
+      path: "/signup";
+      fullPath: "/signup";
+      preLoaderRoute: typeof SignupRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/tasks": {
+      id: "/tasks";
+      path: "/tasks";
+      fullPath: "/tasks";
+      preLoaderRoute: typeof TasksRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/terms": {
+      id: "/terms";
+      path: "/terms";
+      fullPath: "/terms";
+      preLoaderRoute: typeof TermsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/": {
+      id: "/admin/";
       path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
+      fullPath: "/admin/";
+      preLoaderRoute: typeof AdminIndexRouteImport;
+      parentRoute: typeof AdminRoute;
+    };
+    "/debug/monitoring": {
+      id: "/debug/monitoring";
+      path: "/debug/monitoring";
+      fullPath: "/debug/monitoring";
+      preLoaderRoute: typeof DebugMonitoringRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/debug/streaming-sse": {
+      id: "/debug/streaming-sse";
+      path: "/debug/streaming-sse";
+      fullPath: "/debug/streaming-sse";
+      preLoaderRoute: typeof DebugStreamingSseRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/tasks/": {
@@ -407,12 +428,12 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof TasksIndexRouteImport;
       parentRoute: typeof TasksRoute;
     };
-    "/admin/": {
-      id: "/admin/";
-      path: "/";
-      fullPath: "/admin/";
-      preLoaderRoute: typeof AdminIndexRouteImport;
-      parentRoute: typeof AdminRoute;
+    "/tasks/$taskId": {
+      id: "/tasks/$taskId";
+      path: "/$taskId";
+      fullPath: "/tasks/$taskId";
+      preLoaderRoute: typeof TasksTaskIdRouteImport;
+      parentRoute: typeof TasksRoute;
     };
     "/tasks/new": {
       id: "/tasks/new";
@@ -421,32 +442,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof TasksNewRouteImport;
       parentRoute: typeof TasksRoute;
     };
-    "/tasks/$taskId": {
-      id: "/tasks/$taskId";
-      path: "/$taskId";
-      fullPath: "/tasks/$taskId";
-      preLoaderRoute: typeof TasksTaskIdRouteImport;
-      parentRoute: typeof TasksRoute;
-    };
-    "/debug/streaming-sse": {
-      id: "/debug/streaming-sse";
-      path: "/debug/streaming-sse";
-      fullPath: "/debug/streaming-sse";
-      preLoaderRoute: typeof DebugStreamingSseRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/debug/monitoring": {
-      id: "/debug/monitoring";
-      path: "/debug/monitoring";
-      fullPath: "/debug/monitoring";
-      preLoaderRoute: typeof DebugMonitoringRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/admin/users/": {
-      id: "/admin/users/";
-      path: "/users";
-      fullPath: "/admin/users/";
-      preLoaderRoute: typeof AdminUsersIndexRouteImport;
+    "/admin/emails/welcome": {
+      id: "/admin/emails/welcome";
+      path: "/emails/welcome";
+      fullPath: "/admin/emails/welcome";
+      preLoaderRoute: typeof AdminEmailsWelcomeRouteImport;
       parentRoute: typeof AdminRoute;
     };
     "/admin/tasks/": {
@@ -456,25 +456,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AdminTasksIndexRouteImport;
       parentRoute: typeof AdminRoute;
     };
-    "/api/sse/notifications": {
-      id: "/api/sse/notifications";
-      path: "/api/sse/notifications";
-      fullPath: "/api/sse/notifications";
-      preLoaderRoute: typeof ApiSseNotificationsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/auth/$": {
-      id: "/api/auth/$";
-      path: "/api/auth/$";
-      fullPath: "/api/auth/$";
-      preLoaderRoute: typeof ApiAuthSplatRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/admin/users/$userId": {
-      id: "/admin/users/$userId";
-      path: "/users/$userId";
-      fullPath: "/admin/users/$userId";
-      preLoaderRoute: typeof AdminUsersUserIdRouteImport;
+    "/admin/tasks/$taskId": {
+      id: "/admin/tasks/$taskId";
+      path: "/tasks/$taskId";
+      fullPath: "/admin/tasks/$taskId";
+      preLoaderRoute: typeof AdminTasksTaskIdRouteImport;
       parentRoute: typeof AdminRoute;
     };
     "/admin/tasks/new": {
@@ -484,19 +470,33 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AdminTasksNewRouteImport;
       parentRoute: typeof AdminRoute;
     };
-    "/admin/tasks/$taskId": {
-      id: "/admin/tasks/$taskId";
-      path: "/tasks/$taskId";
-      fullPath: "/admin/tasks/$taskId";
-      preLoaderRoute: typeof AdminTasksTaskIdRouteImport;
+    "/admin/users/": {
+      id: "/admin/users/";
+      path: "/users";
+      fullPath: "/admin/users/";
+      preLoaderRoute: typeof AdminUsersIndexRouteImport;
       parentRoute: typeof AdminRoute;
     };
-    "/admin/emails/welcome": {
-      id: "/admin/emails/welcome";
-      path: "/emails/welcome";
-      fullPath: "/admin/emails/welcome";
-      preLoaderRoute: typeof AdminEmailsWelcomeRouteImport;
+    "/admin/users/$userId": {
+      id: "/admin/users/$userId";
+      path: "/users/$userId";
+      fullPath: "/admin/users/$userId";
+      preLoaderRoute: typeof AdminUsersUserIdRouteImport;
       parentRoute: typeof AdminRoute;
+    };
+    "/api/auth/$": {
+      id: "/api/auth/$";
+      path: "/api/auth/$";
+      fullPath: "/api/auth/$";
+      preLoaderRoute: typeof ApiAuthSplatRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/sse/notifications": {
+      id: "/api/sse/notifications";
+      path: "/api/sse/notifications";
+      fullPath: "/api/sse/notifications";
+      preLoaderRoute: typeof ApiSseNotificationsRouteImport;
+      parentRoute: typeof rootRouteImport;
     };
   }
 }

@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 
 /**
  * Render the welcome email preview HTML on the server.
@@ -8,7 +8,7 @@ import { createServerFn } from "@tanstack/react-start";
  * `external` list left a bare `@react-email/render` import that the browser
  * cannot resolve, breaking hydration on every page in production.
  */
-export async function handleRenderWelcomePreview() {
+export const handleRenderWelcomePreview = createServerOnlyFn(async () => {
 	const { requireAuthedUser } = await import("~/server/auth/session");
 	const user = await requireAuthedUser();
 	if (user.role !== "ADMIN") {
@@ -22,6 +22,6 @@ export async function handleRenderWelcomePreview() {
 		import("~/emails/preview-data"),
 	]);
 	return render(<WelcomeEmail {...welcomeEmailPreview} />);
-}
+});
 
 export const renderWelcomePreview = createServerFn({ method: "GET" }).handler(handleRenderWelcomePreview);
