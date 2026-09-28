@@ -47,8 +47,13 @@ export async function handleDeleteEntity({ data: { subject, id } }: { data: { su
 
 	accessCheck(user, "delete", subject, entity);
 
+	// Delete only if owner and version are still the ones just authorized.
+	const { authorizedRowPredicate } = await import("~/server/access/write-guard");
 	// biome-ignore lint/suspicious/noExplicitAny: dynamic-imported entity table is `any`
-	const deleted = (await db.delete(table).where(eq(table.id, id)).returning()) as any[];
+	const deleted = (await db.delete(table).where(authorizedRowPredicate(table, entity)).returning()) as any[];
+	if (deleted.length === 0) {
+		throw new NotFoundError(`${subject} ${id} not found`);
+	}
 	return deleted[0];
 }
 

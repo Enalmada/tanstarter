@@ -97,7 +97,7 @@
  */
 
 import { createCspMiddleware } from "@enalmada/start-secure";
-import { createStart } from "@tanstack/react-start";
+import { createCsrfMiddleware, createStart } from "@tanstack/react-start";
 import { cspRules } from "~/config/cspRules";
 import { authErrorTranslator } from "~/server/access/middleware";
 
@@ -125,8 +125,12 @@ export const startInstance = createStart(() => ({
 			options: { isDev: process.env.NODE_ENV !== "production" },
 		}),
 
-		// Add additional middleware here if needed
-		// Example: authentication, logging, rate limiting, etc.
+		// CSRF: server functions are cookie-authenticated POST RPCs, so reject
+		// cross-site calls (Sec-Fetch-Site, falling back to Origin/Referer).
+		// /api/auth is covered by better-auth's own origin check.
+		createCsrfMiddleware({
+			filter: (ctx) => ctx.handlerType === "serverFn",
+		}),
 	],
 	functionMiddleware: [
 		// Translates typed domain errors (BadRequestError, NotAuthorizedError,

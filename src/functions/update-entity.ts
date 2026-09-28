@@ -94,8 +94,17 @@ export async function handleUpdateEntity({
 	// can't move their task to another user's `userId`.
 	accessCheck(user, "update", subject, { ...entity, ...updateWith });
 
-	// biome-ignore lint/suspicious/noExplicitAny: dynamic-imported entity table is `any`
-	const updated = (await db.update(table).set(updateWith).where(eq(table.id, id)).returning()) as any[];
+	// Write only if owner and version are still the ones just authorized.
+	const { authorizedRowPredicate } = await import("~/server/access/write-guard");
+	const updated = (await db
+		.update(table)
+		.set(updateWith)
+		.where(authorizedRowPredicate(table, entity))
+		// biome-ignore lint/suspicious/noExplicitAny: dynamic-imported entity table is `any`
+		.returning()) as any[];
+	if (updated.length === 0) {
+		throw new ConflictError(`${subject} has changed since loading.  Please reload and try again.`);
+	}
 	return updated[0];
 }
 

@@ -18,6 +18,7 @@ const otherTask = { id: "tsk_other", userId: "usr_other", title: "theirs", versi
 const state = vi.hoisted(() => ({
 	rows: [] as Record<string, unknown>[],
 	selected: [] as Record<string, unknown>[],
+	writeReturnsNothing: false,
 	deleted: vi.fn(),
 	updated: vi.fn(),
 }));
@@ -39,7 +40,7 @@ vi.mock("~/server/db", () => ({
 			where: () => ({
 				returning: async () => {
 					state.deleted();
-					return state.selected;
+					return state.writeReturnsNothing ? [] : state.selected;
 				},
 			}),
 		}),
@@ -48,7 +49,7 @@ vi.mock("~/server/db", () => ({
 				where: () => ({
 					returning: async () => {
 						state.updated(values);
-						return [{ ...state.selected[0], ...values }];
+						return state.writeReturnsNothing ? [] : [{ ...state.selected[0], ...values }];
 					},
 				}),
 			}),
@@ -97,6 +98,7 @@ vi.mock("valibot", async (importOriginal) => {
 beforeEach(() => {
 	state.rows = [];
 	state.selected = [];
+	state.writeReturnsNothing = false;
 	state.deleted.mockClear();
 	state.updated.mockClear();
 });
@@ -104,12 +106,14 @@ beforeEach(() => {
 describe("findFirst", () => {
 	it("treats another user's task exactly like a missing one", async () => {
 		state.rows = [otherTask];
-		const forbidden = handleFindFirst({ data: { subject: "Task", where: { id: otherTask.id } } });
-		await expect(forbidden).rejects.toBeInstanceOf(NotFoundError);
+		await expect(handleFindFirst({ data: { subject: "Task", where: { id: otherTask.id } } })).rejects.toBeInstanceOf(
+			NotFoundError,
+		);
 
 		state.rows = [];
-		const missing = handleFindFirst({ data: { subject: "Task", where: { id: "nope" } } });
-		await expect(missing).rejects.toBeInstanceOf(NotFoundError);
+		await expect(handleFindFirst({ data: { subject: "Task", where: { id: "nope" } } })).rejects.toBeInstanceOf(
+			NotFoundError,
+		);
 	});
 
 	it("returns the caller's own task", async () => {
@@ -150,7 +154,38 @@ describe("deleteEntity", () => {
 	});
 });
 
+describe("write predicate", () => {
+	it("requires the authorized owner and version, not just the id", async () => {
+		const { PgDialect } = await import("drizzle-orm/pg-core");
+		const { authorizedRowPredicate } = await import("~/server/access/write-guard");
+		const { loadEntityConfig } = await import("~/functions/base-service");
+		const { table } = (await loadEntityConfig()).Task;
+		const { sql, params } = new PgDialect().sqlToQuery(authorizedRowPredicate(table, ownTask));
+		expect(sql).toContain('"user_id"');
+		expect(sql).toContain('"version"');
+		expect(params).toEqual([ownTask.id, ownTask.userId, ownTask.version]);
+	});
+});
+
+describe("deleteEntity race", () => {
+	it("reports not found when the row changed between check and delete", async () => {
+		state.selected = [ownTask];
+		state.writeReturnsNothing = true;
+		await expect(handleDeleteEntity({ data: { subject: "Task", id: ownTask.id } })).rejects.toBeInstanceOf(
+			NotFoundError,
+		);
+	});
+});
+
 describe("updateEntity", () => {
+	it("returns a conflict when the row changed between check and write", async () => {
+		state.selected = [ownTask];
+		state.writeReturnsNothing = true;
+		await expect(
+			handleUpdateEntity({ data: { subject: "Task", id: ownTask.id, data: { version: 1, title: "x" } } }),
+		).rejects.toBeInstanceOf(ConflictError);
+	});
+
 	it("reports another user's task as not found before any version check", async () => {
 		state.selected = [otherTask];
 		const stale = handleUpdateEntity({ data: { subject: "Task", id: otherTask.id, data: { version: 99 } } });
