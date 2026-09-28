@@ -2,6 +2,13 @@
 
 This guide helps AI assistants maintain consistent patterns when working with TanStack Start server functions.
 
+> **Client-bundle rule (TSS-2) applies to every example below.** The examples
+> show only the DAL split. In a real server-function file, import `*.db.ts` and
+> other server modules **dynamically inside the handler**, and wrap an exported
+> handler in `createServerOnlyFn`. A top-level `import ... from "./user.db"` puts
+> Drizzle and postgres in the client bundle. See
+> `.claude/skills/tanstack-start/SKILL.md` and [user-role.ts](user-role.ts).
+
 ## Core Principle: Separation of Concerns
 
 **Business logic** (server functions) should be separate from **data access** (database queries).
@@ -95,10 +102,8 @@ export async function updateUserRole(userId: string, role: UserRole, updatedById
 }
 
 // user-role.ts
-import { getUserById, updateUserRole } from "./user.db";
-
-export const makeUserAdmin = createServerFn()
-  .handler(async ({ data: { userId, role } }) => {
+export const handleMakeUserAdmin = createServerOnlyFn(async ({ data: { userId, role } }) => {
+    const { getUserById, updateUserRole } = await import("./user.db");
     const [user] = await getUserById(userId);
 
     if (!user) {
@@ -107,7 +112,11 @@ export const makeUserAdmin = createServerFn()
 
     const [updated] = await updateUserRole(userId, role, currentUser.id);
     return updated;
-  });
+});
+
+export const makeUserAdmin = createServerFn({ method: "POST" })
+  .validator(validateMakeAdmin)
+  .handler(handleMakeUserAdmin);
 ```
 
 ### Example 2: Complex Queries with Parallel Execution
