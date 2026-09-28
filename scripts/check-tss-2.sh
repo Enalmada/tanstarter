@@ -62,7 +62,7 @@ fi
 #
 # `~/server/access/http-errors` is excluded by construction — the regex
 # only matches `check|ability|middleware` under `~/server/access/`.
-PATTERN='^import(?![[:space:]]+type[[:space:]])([[:space:]]+[^"\047]*)?["\047](~/server/db(?!/schema/[^"\047]*-schemas["\047])(/[^"\047]*)?|~/server/access/(check|ability|middleware)|~/server/services(/[^"\047]*)?|~/server/auth(/[^"\047]*)?|~/server/lib(/[^"\047]*)?|~/functions/[^"\047/]+/[^"\047]*\.db|~/utils/logger|@tanstack/react-start/server|drizzle-orm)["\047]'
+PATTERN='^import(?![[:space:]]+type[[:space:]])([[:space:]]+[^"\047]*)?["\047](~/server/db(?!/schema/[^"\047]*-schemas["\047])(/[^"\047]*)?|~/server/access/(check|ability|middleware)|~/server/services(/[^"\047]*)?|~/server/auth(/[^"\047]*)?|~/server/lib(/[^"\047]*)?|~/functions/[^"\047/]+/[^"\047]*\.db|\./[^"\047]*\.db|~/utils/logger|@tanstack/react-start/server|drizzle-orm)["\047]'
 
 hits=0
 for f in $files; do
@@ -79,6 +79,27 @@ if [ "$hits" -gt 0 ]; then
 	echo "❌ TSS-2 check failed: $hits files with top-level server-only imports."
 	echo "   Convert each to a dynamic import inside the handler."
 	echo "   See .claude/skills/tanstack-start/SKILL.md for the canonical pattern."
+	exit 1
+fi
+
+# Exported handlers must be `export const handleX = createServerOnlyFn(...)`.
+# A plain exported function survives client tree-shaking as an export, and
+# rolldown still emits a public chunk for every `await import("~/server/...")`
+# inside it (that shipped better-auth's server build as a client asset).
+unwrapped=0
+for f in $files; do
+	matches=$(grep -nE '^export[[:space:]]+(async[[:space:]]+)?function[[:space:]]' "$f" || true)
+	if [ -n "$matches" ]; then
+		unwrapped=$((unwrapped + 1))
+		echo "  TSS-2 UNWRAPPED HANDLER: $f"
+		echo "$matches" | sed 's/^/    /'
+	fi
+done
+
+if [ "$unwrapped" -gt 0 ]; then
+	echo ""
+	echo "❌ TSS-2 check failed: $unwrapped files export a plain function."
+	echo "   Use: export const handleX = createServerOnlyFn(async (...) => { ... });"
 	exit 1
 fi
 
