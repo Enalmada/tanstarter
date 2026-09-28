@@ -8,6 +8,10 @@ import { PUBLIC_RUNTIME_ENV_KEYS } from "../../lib/env/public-env";
  * HTML, because Docker/Fly builds have none of those values at build time.
  * Guards what reaches public HTML, that CSP lets it run, and that it runs
  * before the client entry reads it.
+ *
+ * Under the dev server the build-time fallback in env.config.ts holds the
+ * same values, so this can't prove the client used the snapshot rather than
+ * the fallback. That needs a build with no public env (the Docker image).
  */
 test.describe("Runtime public env", () => {
 	test("SSR HTML carries only the allowlisted snapshot, nonce'd, before the client entry", async ({ request }) => {
