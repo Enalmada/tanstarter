@@ -1,0 +1,54 @@
+name: Build
+
+# Production build gate. Every other job runs dev-mode tooling (tsgo, vitest,
+# `vite dev` under Playwright); until this job existed the only production
+# compile was the Fly deploy on `main`, so a broken `vite build` surfaced after
+# merge. This mirrors the Dockerfile's builder stage (`NODE_ENV=production bun
+# run build`, no .env, no secrets).
+#
+# `build:prod` is intentionally NOT used: it also runs `drizzle:migrate`, which
+# needs a live database, and production (Dockerfile) only runs `bun run build`.
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main
+
+# Separate groups for push vs pull_request runs so one never cancels the other;
+# a newer commit on the same branch/PR cancels the older run of the same kind.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      # The build needs no app env vars today (env.config.ts is validated at
+      # runtime, not at build time), matching the Docker build, which has none.
+      # ROLLBAR_SERVER_TOKEN is deliberately left unset so vite.config.ts skips
+      # the Rollbar source-map upload plugin.
+      - name: Production build
+        run: bun run build
+        env:
+          NODE_ENV: production
+
+      - name: Check build output
+        run: test -f .output/server/index.mjs
