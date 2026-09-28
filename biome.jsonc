@@ -9,6 +9,8 @@
 		"ignoreUnknown": true,
 		"includes": [
 			"**",
+			"!.agents",
+			"!.claude",
 			"!.nitro",
 			"!.tanstack",
 			"!.tanstack-start",
