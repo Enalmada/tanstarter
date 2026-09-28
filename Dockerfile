@@ -2,23 +2,16 @@
 FROM oven/bun:1.4.2 AS base
 WORKDIR /app
 
-# Install dependencies into temp directory for better caching
+# Install dependencies into a separate stage for better layer caching
 FROM base AS install
-# Create separate directories for dev and prod dependencies
-RUN mkdir -p /temp/dev /temp/prod
 # bunfig.toml pins the hoisted linker (Bun 1.4 defaults fresh installs to isolated)
-COPY package.json bun.lock bunfig.toml /temp/dev/
-# Install dev dependencies with scripts disabled
-RUN cd /temp/dev && bun install --frozen-lockfile --ignore-scripts
+COPY package.json bun.lock bunfig.toml ./
+# Install all dependencies (the build needs devDependencies) with scripts disabled
+RUN bun install --frozen-lockfile --ignore-scripts
 
-# Install production dependencies only (no dev dependencies)
-COPY package.json bun.lock bunfig.toml /temp/prod/
-RUN cd /temp/prod && bun install --frozen-lockfile --ignore-scripts --production
-
-# Build stage with dev dependencies
+# Build stage
 FROM base AS builder
-# Copy dev dependencies
-COPY --from=install /temp/dev/node_modules node_modules
+COPY --from=install /app/node_modules node_modules
 # Copy source files
 COPY . .
 # Set production environment for build
@@ -29,13 +22,11 @@ RUN bun run build
 # Final production image
 FROM base AS runner
 ENV NODE_ENV=production
-# Copy only production dependencies
-COPY --from=install /temp/prod/node_modules node_modules
-# Copy built application files
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/bun.lock ./bun.lock
+# .output is self-contained: Nitro bundles every server dependency into
+# .output/server (there is no .output/server/node_modules) and copies public/
+# into .output/public, so the runner needs no node_modules, package.json or
+# public/ of its own.
 COPY --from=builder /app/.output ./.output
-COPY --from=builder /app/public ./public
 
 # Set the user for security
 USER bun
@@ -44,4 +35,4 @@ EXPOSE 3000/tcp
 ENV PORT=3000
 
 # Run the built server
-CMD ["bun", "run", ".output/server/index.mjs"] 
+CMD ["bun", "run", ".output/server/index.mjs"]

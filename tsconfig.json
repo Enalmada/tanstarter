@@ -19,7 +19,7 @@
 
 		// Path configuration
 		// No `baseUrl`: since TS 5.0 `paths` resolves relative to this tsconfig's
-		// directory without it. Verified with tsgo (TS 7) and Vite/Vitest.
+		// directory without it. Verified with TypeScript 7 and Vite/Vitest.
 		"paths": {
 			"~/*": ["./src/*"]
 		},

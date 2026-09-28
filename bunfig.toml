@@ -3,3 +3,9 @@
 # ("#tanstack-start-server-fn-resolver is not defined"). Keep the flat node_modules
 # layout that the Dockerfile, CI and Nitro's file tracing are built around.
 linker = "hoisted"
+# `bun add` writes exact versions; package.json pins everything exactly.
+exact = true
+# Don't resolve versions published less than 3 days ago (supply-chain window;
+# matches `bun run deps`, which is taze with --maturity-period 3). For an urgent
+# fix, list the package in minimumReleaseAgeExcludes for that one install.
+minimumReleaseAge = 259200

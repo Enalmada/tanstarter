@@ -1,6 +1,6 @@
 name: Build
 
-# Production build gate. Every other job runs dev-mode tooling (tsgo, vitest,
+# Production build gate. Every other job runs dev-mode tooling (tsc, vitest,
 # `vite dev` under Playwright); until this job existed the only production
 # compile was the Fly deploy on `main`, so a broken `vite build` surfaced after
 # merge. This mirrors the Dockerfile's builder stage (`NODE_ENV=production bun
