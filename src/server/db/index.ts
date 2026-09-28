@@ -11,7 +11,6 @@ import { neon, neonConfig, Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { drizzle as drizzleServerless } from "drizzle-orm/neon-serverless";
 import { buildEnv, env } from "~/env";
-import * as schema from "./schema";
 import { relations } from "./schema";
 
 // Type for database instance
@@ -35,7 +34,7 @@ function getDb(): DB {
 			throw new Error("DATABASE_URL not available");
 		}
 		const neonClient = neon(dbUrl);
-		_db = drizzle({ client: neonClient, schema, relations });
+		_db = drizzle({ client: neonClient, relations });
 	}
 	return _db;
 }
@@ -52,13 +51,13 @@ export default db;
 
 // Generic transaction wrapper
 export async function withTransaction<T>(
-	operation: (db: ReturnType<typeof drizzleServerless<typeof schema>>) => Promise<T>,
+	operation: (db: ReturnType<typeof drizzleServerless<typeof relations>>) => Promise<T>,
 ): Promise<T> {
 	let pool: Pool | undefined;
 	try {
 		pool = new Pool({ connectionString: env.DATABASE_URL });
 
-		const dbWithTx = drizzleServerless({ client: pool, schema, relations });
+		const dbWithTx = drizzleServerless({ client: pool, relations });
 
 		return await operation(dbWithTx);
 	} finally {

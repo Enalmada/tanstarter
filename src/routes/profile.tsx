@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import { makeUserAdmin } from "~/functions/user-role";
+import { getRoleSelfService, makeUserAdmin } from "~/functions/user-role";
 import { UserRole } from "~/lib/enums/user-role";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
@@ -21,13 +21,15 @@ export const Route = createFileRoute("/profile")({
 			throw redirect({ to: "/signin" });
 		}
 	},
-	loader: ({ context }) => ({
+	loader: async ({ context }) => ({
 		user: context.user ?? null,
+		// Self-service role toggle is local-dev / DEMO_MODE only (server decides).
+		roleSelfService: await getRoleSelfService(),
 	}),
 });
 
 function ProfilePage() {
-	const { user: initialUser } = Route.useLoaderData();
+	const { user: initialUser, roleSelfService } = Route.useLoaderData();
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [isUpdatingRole, setIsUpdatingRole] = useState(false);
@@ -153,8 +155,8 @@ function ProfilePage() {
 							</div>
 						</div>
 
-						{/* Admin Testing Section */}
-						{user.role !== UserRole.ADMIN && (
+						{/* Admin Testing Section — only where the server allows self-service */}
+						{roleSelfService && user.role !== UserRole.ADMIN && (
 							<div className="border-t pt-6">
 								<h4 className="text-md font-medium mb-3">Development & Testing</h4>
 								<p className="text-sm text-muted-foreground mb-4">
@@ -173,19 +175,21 @@ function ProfilePage() {
 										🎉 You have admin privileges! You can access the Admin panel from the dropdown menu.
 									</AlertDescription>
 								</Alert>
-								<div className="mt-4">
-									<h4 className="text-md font-medium mb-3">Development & Testing</h4>
-									<p className="text-sm text-muted-foreground mb-4">
-										Remove admin privileges to test member functionality.
-									</p>
-									<Button onClick={handleRemoveAdmin} disabled={isUpdatingRole} variant="outline">
-										{isUpdatingRole ? "Processing..." : "Remove Admin (Dev Only)"}
-									</Button>
-								</div>
+								{roleSelfService && (
+									<div className="mt-4">
+										<h4 className="text-md font-medium mb-3">Development & Testing</h4>
+										<p className="text-sm text-muted-foreground mb-4">
+											Remove admin privileges to test member functionality.
+										</p>
+										<Button onClick={handleRemoveAdmin} disabled={isUpdatingRole} variant="outline">
+											{isUpdatingRole ? "Processing..." : "Remove Admin (Dev Only)"}
+										</Button>
+									</div>
+								)}
 							</div>
 						)}
 
-						{user.role === UserRole.ADMIN && isUpdatingRole && (
+						{roleSelfService && user.role === UserRole.ADMIN && isUpdatingRole && (
 							<div className="border-t pt-6">
 								<div className="mt-4">
 									<h4 className="text-md font-medium mb-3">Development & Testing</h4>

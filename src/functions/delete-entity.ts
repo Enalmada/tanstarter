@@ -37,8 +37,12 @@ export async function handleDeleteEntity({ data: { subject, id } }: { data: { su
 	const { table } = config[subject];
 	const [entity] = await db.select().from(table).where(eq(table.id, id));
 
-	if (!entity) {
-		throw new Error(`${subject} ${id} not found`);
+	// Missing and unreadable are indistinguishable (no existence oracle);
+	// readable-but-not-deletable is a 403.
+	const { NotFoundError } = await import("~/server/access/http-errors");
+	const { filterReadableRow } = await import("~/server/access/read-filter");
+	if (!entity || !filterReadableRow(user, subject, entity, undefined)) {
+		throw new NotFoundError(`${subject} ${id} not found`);
 	}
 
 	accessCheck(user, "delete", subject, entity);

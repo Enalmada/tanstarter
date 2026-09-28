@@ -64,7 +64,9 @@ A production starter template for TanStack Start.
 
    The development server should be now running at [http://localhost:3000](http://localhost:3000).
 
-5. Check out the **real-time streaming demo** at [http://localhost:3000/debug/streaming-sse](http://localhost:3000/debug/streaming-sse) to see Server-Sent Events in action.
+5. **Become admin.** Locally (`APP_ENV=development`, dev server), sign in and use **Make Admin** on the profile page. On deployed environments that button is hidden; instead, list your address in `ADMIN_EMAILS` (comma-separated) and sign in with Google. Only verified emails are promoted, and only when the account is first created. Set `DEMO_MODE=true` to show the button on a public demo.
+
+6. Check out the **real-time streaming demo** at [http://localhost:3000/debug/streaming-sse](http://localhost:3000/debug/streaming-sse) to see Server-Sent Events in action.
 
 ## Building for production
 

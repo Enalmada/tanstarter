@@ -25,26 +25,31 @@ function validateFindFirstInput(input: unknown): FindEntityPayload {
 }
 
 export async function handleFindFirst({ data }: { data: FindEntityPayload }) {
-	const { accessCheck } = await import("~/server/access/check");
+	const { getColumns } = await import("drizzle-orm");
 	const { logger } = await import("~/utils/logger");
 	const { buildWhereClause } = await import("~/server/db/DrizzleOrm");
 	const { getUser, loadEntityConfig } = await import("~/functions/base-service");
+	const { NotFoundError } = await import("~/server/access/http-errors");
+	const { assertSafeWhere, assertSafeWith, filterReadableRow } = await import("~/server/access/read-filter");
 
 	const user = await getUser();
 	logger.info("findFirst", { data, userId: user.id });
 
 	const config = await loadEntityConfig();
 	const { table, query } = config[data.subject];
+	assertSafeWhere(data.where, Object.keys(getColumns(table)));
+	assertSafeWith(data.subject, data.with);
 	const whereList = buildWhereClause(table, data.where);
 
 	const result = await query.findFirst({ where: whereList, with: data.with });
+	const readable = result ? filterReadableRow(user, data.subject, result, data.with) : null;
 
-	if (!result) {
-		throw new Error(`${data.subject} ${data.where?.id ?? "record"} not found`);
+	// Missing and forbidden look identical, so callers can't probe which
+	// records (e.g. which emails) exist.
+	if (!readable) {
+		throw new NotFoundError(`${data.subject} ${data.where?.id ?? "record"} not found or not readable`);
 	}
-
-	accessCheck(user, "read", data.subject, result);
-	return result;
+	return readable;
 }
 
 export const findFirst = createServerFn({ method: "GET" })

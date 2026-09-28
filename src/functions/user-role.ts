@@ -29,14 +29,24 @@ export async function handleMakeUserAdmin({ data }: { data: { userId: string; ro
 
 	const { logger } = await import("~/utils/logger");
 	const { getUserById, updateUserRole } = await import("./user.db");
-	const { NotFoundError } = await import("~/server/access/http-errors");
+	const { NotAuthorizedError, NotFoundError } = await import("~/server/access/http-errors");
 	const { requireAuthedUser, getOptionalSessionUser } = await import("~/server/auth/session");
+	const { isRoleSelfServiceEnabled } = await import("~/server/access/role-self-service");
 
 	// requireAuthedUser handles the Playwright test-auth shortcut, the v1.134+
 	// getRequest() defensive try/catch, asResponse cookie forwarding, and the
 	// 401-on-no-session throw — all centralized in ~/server/auth/session.
 	const currentUser = await requireAuthedUser({ freshFromDb: true });
 	logger.info("makeUserAdmin", { userId, role, currentUserId: currentUser.id });
+
+	// Admins may change anyone's role. Everyone else may only flip their OWN
+	// role, and only where self-service is enabled (local dev or DEMO_MODE) —
+	// otherwise any member could promote themselves or demote real admins.
+	const isAdmin = currentUser.role === "ADMIN";
+	const isSelfService = userId === currentUser.id && isRoleSelfServiceEnabled();
+	if (!isAdmin && !isSelfService) {
+		throw new NotAuthorizedError(`User ${currentUser.id} may not change the role of ${userId}`);
+	}
 
 	// Find the user to update
 	const [userToUpdate] = await getUserById(userId);
@@ -60,3 +70,11 @@ export async function handleMakeUserAdmin({ data }: { data: { userId: string; ro
 export const makeUserAdmin = createServerFn({ method: "POST" })
 	.inputValidator(validateMakeAdmin)
 	.handler(handleMakeUserAdmin);
+
+export async function handleGetRoleSelfService() {
+	const { isRoleSelfServiceEnabled } = await import("~/server/access/role-self-service");
+	return isRoleSelfServiceEnabled();
+}
+
+/** Whether the Profile page should offer the self-service role toggle. */
+export const getRoleSelfService = createServerFn({ method: "GET" }).handler(handleGetRoleSelfService);
