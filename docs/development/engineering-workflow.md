@@ -38,7 +38,12 @@ Drive the preview URL with a real browser, watch the console, scan the rendered 
 
 ### Preview deploys are opt-in (`preview` label)
 
-Preview environments (a `pr-<n>-tanstarter` Fly app plus a `pr-<n>` Neon branch) are **only created when the PR has the `preview` label**. Adding the label deploys; later pushes redeploy while the label stays. Closing the PR always tears the environment down, label or not. Removing the label does not tear it down early. This keeps stacked-PR restacks from redeploying every layer and exhausting Neon's branch limit.
+Preview environments (a `pr-<n>-tanstarter` Fly app plus a `pr-<n>` Neon branch) are **only created when the PR has the `preview` label**. Adding the label deploys; later pushes redeploy while the label stays. Closing the PR tears the environment down, label or not. Removing the label does not tear it down early. This keeps stacked-PR restacks from redeploying every layer and exhausting Neon's branch limit.
+
+Two limits:
+
+- Previews are for same-repository branches only. Fork PRs get no Fly or Neon secrets, so the workflow skips them.
+- GitHub starts no workflow for events caused by `GITHUB_TOKEN`. A PR closed (or labeled) by automation using that token doesn't tear down (or deploy); delete the `pr-<n>-tanstarter` Fly app and `pr-<n>` Neon branch by hand, or have the automation use an App token.
 
 For the Fly review-app workflow, see [.github/workflows/fly-review.yml](.github/workflows/fly-review.yml).
 
