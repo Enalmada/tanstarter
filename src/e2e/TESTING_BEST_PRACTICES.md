@@ -39,19 +39,23 @@ src/e2e/
 │   └── public/              # Public pages
 │       └── marketing.page.ts
 │
-├── admin/                    # Admin tests
+├── auth/                     # Setup projects: check each test token signs in
+│   ├── admin.setup.ts
+│   └── member.setup.ts
+├── admin/                    # Admin project (seeded admin)
 │   ├── tasks.test.ts
 │   ├── access.test.ts
 │   └── users.test.ts
-├── member/                   # Member tests
+├── member/                   # Member project (seeded member)
 │   ├── tasks.test.ts
 │   └── access.test.ts
-├── public/                   # Public tests
-│   └── marketing.test.ts
-└── authenticated/            # Integration tests
-    ├── admin-task.test.ts
-    └── task.test.ts
+└── public/                   # Public project (signed out)
+    └── marketing.test.ts
 ```
+
+A spec only runs if it sits under a project's `testDir` (`admin/`, `member/`, `public/`)
+or matches a setup project's `testMatch`. Anything else is silently skipped, so
+`bun run check:e2e-specs` (and the Static Analysis workflow) fails on orphaned specs.
 
 ---
 
@@ -184,10 +188,8 @@ import { expect, test } from "@playwright/test";
 import { AdminTasksListPage } from "../pages/admin/tasks-list.page";
 import { AdminTaskFormPage } from "../pages/admin/task-form.page";
 
+// Lives in src/e2e/admin/, so it runs signed in as the seeded admin
 test.describe("Feature Name", () => {
-  // Setup auth state
-  test.use({ storageState: "playwright/.auth/admin.json" });
-
   // Setup before each test
   test.beforeEach(async ({ page }) => {
     const tasksListPage = new AdminTasksListPage(page);
@@ -250,18 +252,35 @@ test("should create and display new task", async ({ page }) => {
 
 ### 1. Authentication
 
-Use pre-authenticated storage states:
+Specs sign in by folder, not per test. Put a spec in `admin/` or `member/` and it runs
+as that project's seeded user; put it in `public/` to run signed out.
 
-```typescript
-// For admin tests
-test.use({ storageState: "playwright/.auth/admin.json" });
+| Project | Signs in as | Token (`authorization` header) |
+| --- | --- | --- |
+| `member` | `member@playwright.local` (MEMBER) | `playwright-test-token` |
+| `admin` | `admin@playwright.local` (ADMIN) | `playwright-admin-test-token` |
+| `public` | nobody | none |
 
-// For member tests
-test.use({ storageState: "playwright/.auth/member.json" });
+How it works:
 
-// For public tests (no auth needed)
-// Don't specify storageState
-```
+- `bun run drizzle:seed` creates both users (idempotent). The Playwright webServer
+  command runs it before starting the dev server. The users have no password.
+- Each project sends its token via `extraHTTPHeaders` in `playwright.config.ts`
+  (storageState doesn't persist headers, so the saved `.auth/*.json` files stay empty).
+- `src/utils/test/playwright.ts` maps the token to the seeded user, looked up fresh on
+  every request. It only works when the dev server runs with `NODE_ENV=development`
+  **and** `PLAYWRIGHT=true`, which the webServer command sets. The admin token is a
+  passwordless admin login, so a plain `bun dev` server ignores it.
+- User definitions live in `src/utils/test/playwright-users.ts`. Specs import them from
+  there rather than hard-coding emails.
+
+Because `reuseExistingServer` is on, a dev server you already started with `bun dev`
+gets reused and the tokens won't work. The setup projects fail with a hint when that
+happens. Stop it, or start the server with `PLAYWRIGHT=true`.
+
+The dev server and the e2e run share one database, and specs create and delete the
+seeded users' data in parallel. Give test data unique names (see Dynamic Test Data)
+and don't assert on global state like an empty task list.
 
 ### 2. Waiting for Page Load
 

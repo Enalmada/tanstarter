@@ -28,21 +28,21 @@ export class MemberTaskFormPage extends BasePage {
 	 * Get create button - dynamic locator for button state
 	 */
 	getCreateButton(): Locator {
-		return this.page.getByRole("button", { name: /create/i });
+		return this.page.getByRole("button", { name: "Create Task" });
 	}
 
 	/**
 	 * Get save button for edit mode
 	 */
 	getSaveButton(): Locator {
-		return this.page.getByRole("button", { name: /save/i });
+		return this.page.getByRole("button", { name: "Update Task" });
 	}
 
 	/**
 	 * Get delete button
 	 */
 	getDeleteButton(): Locator {
-		return this.page.getByRole("button", { name: /delete/i });
+		return this.page.getByRole("button", { name: "Delete Task" });
 	}
 
 	/**
