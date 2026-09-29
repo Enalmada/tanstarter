@@ -127,7 +127,7 @@ Both `getOptionalSessionUser` and `requireAuthedUser` automatically:
 
 ### Failure mode that this design prevents
 
-`getRequest()` from `@tanstack/react-start/server` resolves the per-request `Request` from TanStack Start's AsyncLocalStorage context. Since v1.134+ the call **throws** (not returns `undefined`) when the context isn't active — which happens routinely during SSR query prefetch / dehydration. An unhandled throw poisons the React Query cache (`fetchFailureReason: TypeError`) on every SSR page render, breaks `setResponseHeader("Set-Cookie", …)` calls that depend on getting `request` first, and noisily alerts Sentry / Rollbar / Axiom.
+`getRequest()` from `@tanstack/react-start/server` resolves the per-request `Request` from TanStack Start's AsyncLocalStorage context. Since v1.134+ the call **throws** (not returns `undefined`) when the context isn't active — which happens routinely during SSR query prefetch / dehydration. An unhandled throw poisons the React Query cache (`fetchFailureReason: TypeError`) on every SSR page render, breaks `setResponseHeader("Set-Cookie", …)` calls that depend on getting `request` first, and noisily alerts error tracking (PostHog) and Axiom.
 
 Before the helpers landed, the defensive try/catch lived inline in five separate call sites and getting one of them wrong (which this PR's earlier commits did, twice) broke session refresh + SSR-time error monitoring. **The whole point of routing through the helpers is that the rule can't be forgotten.** If TanStack Start changes the semantics again (it has, twice — 1.134 and 1.167), one edit in `~/server/auth/request.ts` propagates everywhere.
 

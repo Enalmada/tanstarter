@@ -1,8 +1,7 @@
 /**
  * Get release information for the current deployment
  * Used by:
- * - Rollbar error monitoring (runtime)
- * - Source map uploads (build time)
+ * - PostHog server error tracking (`app_release` on exceptions)
  * - Debug information
  */
 
@@ -35,18 +34,3 @@ export const getRelease = () => {
 	// Finally fallback to development
 	return "development";
 };
-
-/**
- * Debug helper for Rollbar configuration during build
- * Only use this in build scripts where process.env is available
- */
-export const getRollbarDebugInfo = () => ({
-	token: process.env.ROLLBAR_SERVER_TOKEN ? "set" : "not set",
-	baseUrl: process.env.PUBLIC_APP_URL || "http://localhost:3000",
-	version: getRelease(),
-	environment: {
-		FLY_APP_NAME: process.env.FLY_APP_NAME,
-		FLY_REGION: process.env.FLY_REGION,
-		NODE_ENV: process.env.NODE_ENV,
-	},
-});

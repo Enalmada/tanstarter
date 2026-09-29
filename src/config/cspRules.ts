@@ -89,13 +89,6 @@ export const cspRules: CspRule[] = [
 		"connect-src": "https://o32548.ingest.sentry.io", // Error reporting endpoint
 	},
 
-	// Rollbar Error Tracking
-	// Alternative/additional error monitoring service
-	{
-		description: "rollbar",
-		"connect-src": "'self' https://api.rollbar.com https://*.rollbar.com", // Error reporting
-	},
-
 	// Image Demonstrations & Samples
 	// Used in UI demos and example components
 	{
@@ -124,7 +117,7 @@ export const cspRules: CspRule[] = [
 		"connect-src": "https://cdn.jsdelivr.net", // Asset fetching
 	},
 
-	// PostHog Analytics
+	// PostHog: analytics and error tracking
 	// Product analytics and feature flags
 	{
 		description: "posthog",

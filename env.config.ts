@@ -28,8 +28,6 @@ export default defineEnv({
 					NODE_ENV: process.env.NODE_ENV,
 					APP_ENV: runtime.APP_ENV ?? process.env.APP_ENV,
 					PUBLIC_APP_URL: runtime.PUBLIC_APP_URL ?? import.meta.env.PUBLIC_APP_URL,
-					PUBLIC_ROLLBAR_ACCESS_TOKEN:
-						runtime.PUBLIC_ROLLBAR_ACCESS_TOKEN ?? import.meta.env.PUBLIC_ROLLBAR_ACCESS_TOKEN,
 					PUBLIC_POSTHOG_API_KEY: runtime.PUBLIC_POSTHOG_API_KEY ?? import.meta.env.PUBLIC_POSTHOG_API_KEY,
 				};
 			})()
@@ -54,7 +52,6 @@ export default defineEnv({
 		DB_MAX_RETRIES: v.optional(v.pipe(v.string(), v.transform(Number), v.number())),
 		AXIOM_DATASET_NAME: v.optional(v.string()),
 		AXIOM_TOKEN: v.optional(v.string()),
-		ROLLBAR_SERVER_TOKEN: v.optional(v.string()),
 		// Comma-separated emails promoted to ADMIN when their account is first
 		// created by a verified (OAuth) sign-in. See src/server/auth/admin-emails.ts.
 		ADMIN_EMAILS: v.optional(v.string()),
@@ -72,7 +69,6 @@ export default defineEnv({
 	// Client-side environment variables (prefixed with PUBLIC_)
 	clientPrefix: "PUBLIC_",
 	client: {
-		PUBLIC_ROLLBAR_ACCESS_TOKEN: v.optional(v.string()),
 		PUBLIC_POSTHOG_API_KEY: v.optional(v.string()),
 	},
 

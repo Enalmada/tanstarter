@@ -13,6 +13,7 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { Button } from "~/components/ui/button";
+import { useReportError } from "~/lib/monitoring/report";
 
 export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 	const router = useRouter();
@@ -20,6 +21,7 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 		strict: false,
 		select: (state) => state.id === rootRouteId,
 	});
+	useReportError(error, "router");
 
 	return (
 		<div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-6 p-4">

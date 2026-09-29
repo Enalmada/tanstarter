@@ -42,8 +42,6 @@ jobs:
 
       # The build needs no app env vars today (env.config.ts is validated at
       # runtime, not at build time), matching the Docker build, which has none.
-      # ROLLBAR_SERVER_TOKEN is deliberately left unset so vite.config.ts skips
-      # the Rollbar source-map upload plugin.
       # The build script runs vite under Bun (`bun --bun`), as in the Docker
       # image (which has no Node), even though the runner has Node installed.
       - name: Production build

@@ -100,6 +100,7 @@ import { createCspMiddleware } from "@enalmada/start-secure";
 import { createCsrfMiddleware, createStart } from "@tanstack/react-start";
 import { cspRules } from "~/config/cspRules";
 import { authErrorTranslator } from "~/server/access/middleware";
+import { errorReporter, requestErrorReporter } from "~/server/monitoring/middleware";
 
 /**
  * TanStack Start instance with CSP middleware
@@ -110,6 +111,7 @@ import { authErrorTranslator } from "~/server/access/middleware";
  * `functionMiddleware` runs around every `createServerFn` handler. The
  * authErrorTranslator inspects thrown errors for `HttpErrorHints` and
  * maps them to safe HTTP responses — see ~/server/access/http-errors.
+ * errorReporter (inside it) sends unexpected errors to PostHog.
  */
 export const startInstance = createStart(() => ({
 	requestMiddleware: [
@@ -131,10 +133,18 @@ export const startInstance = createStart(() => ({
 		createCsrfMiddleware({
 			filter: (ctx) => ctx.handlerType === "serverFn",
 		}),
+
+		// Reports unexpected errors thrown by server routes (/api/*, /health) to
+		// PostHog, then rethrows. Start answers those itself, so Nitro's error
+		// hook never sees them.
+		requestErrorReporter,
 	],
 	functionMiddleware: [
 		// Translates typed domain errors (BadRequestError, NotAuthorizedError,
 		// NotFoundError, ConflictError, …) to HTTP status + safe wire message.
 		authErrorTranslator,
+		// Reports unexpected errors (not 4xx domain errors) to PostHog with the
+		// user id, then rethrows. Inner, so it sees the original error.
+		errorReporter,
 	],
 }));
