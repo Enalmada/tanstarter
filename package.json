@@ -48,7 +48,7 @@
 		"ui": "bunx shadcn@latest"
 	},
 	"dependencies": {
-		"@axiomhq/js": "1.6.1",
+		"@axiomhq/js": "2.0.0",
 		"@base-ui/react": "1.5.0",
 		"@better-auth/drizzle-adapter": "1.7.6",
 		"@casl/ability": "6.8.1",
@@ -75,7 +75,7 @@
 		"drizzle-valibot": "0.4.2",
 		"envin": "1.2.0",
 		"lucide-react": "1.17.0",
-		"nanoid": "5.1.11",
+		"nanoid": "6.0.1",
 		"postgres": "3.4.9",
 		"posthog-js": "1.434.14",
 		"posthog-node": "5.54.1",
