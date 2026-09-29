@@ -1,139 +1,67 @@
 # Error Monitoring
 
-This project uses Rollbar for error monitoring, with an abstracted interface that could support other providers in the future.
+Errors go to [PostHog error tracking](https://posthog.com/docs/error-tracking), the same project as product analytics. The `ErrorMonitor` interface (`types.ts`) keeps call sites provider-agnostic.
 
 ## Setup
 
-1. Get a Rollbar access token from [Rollbar](https://rollbar.com)
-2. Add the token to your `.env` file:
+Set the PostHog project API key (`phc_...`, public) in `.env`:
 
 ```env
-ROLLBAR_ACCESS_TOKEN=your_token_here
+PUBLIC_POSTHOG_API_KEY=phc_your_key
 ```
 
-## Enabling/Disabling
+Errors are reported only when `APP_ENV` isn't `development`, so local dev doesn't mix into real issues. To try it locally, run a production build with `APP_ENV=staging`. Analytics runs whenever the key is set.
 
-- To enable monitoring: Add the `ROLLBAR_ACCESS_TOKEN` to your `.env`
-- To disable monitoring: Comment out or remove the `ROLLBAR_ACCESS_TOKEN` from your `.env`
+## What gets captured
+
+| Where | How | Code |
+| --- | --- | --- |
+| Browser: uncaught errors, unhandled rejections | posthog-js `capture_exceptions` | `client.ts` |
+| Browser: errors caught by router error components (loaders, render) | `useReportError` in `DefaultCatchBoundary` and route `errorComponent`s | `report.ts` |
+| Browser: manual | `useMonitor().error()` / `.warn()` | `hooks.ts`, `client.ts` |
+| Server functions | global function middleware, with the signed-in user's id | `src/server/monitoring/middleware.ts` |
+| Server routes (`/api/*`, `/health`) | global request middleware, with the signed-in user's id when there is one | `src/server/monitoring/middleware.ts` |
+| Everything else on the server (`uncaughtException`, `unhandledRejection`, errors outside the handlers above) | Nitro `error` hook; flushed on the `close` hook (SIGTERM) | `src/server/monitoring/nitro-plugin.ts` |
+
+**Not captured (expected errors):** router `redirect()`/`notFound()`, 4xx domain errors (`BadRequestError`, `NotAuthorizedError`, `NotFoundError`, `ConflictError`, anything with `HttpErrorHints` below 500), and server functions that set a 4xx status before throwing. See `expected-errors.ts`.
+
+**Privacy:** exception properties carry metadata only: source, path (no query string), server function name, and caller-chosen primitive values. Request payloads and nested objects are dropped (`capture.ts`).
+
+**Not yet:** source maps. Production stack traces are minified until hidden source maps are uploaded with the PostHog CLI (a follow-up).
+
+## Usage
+
+### Manual reporting
+
+```tsx
+import { useMonitor } from "~/lib/monitoring/hooks";
+
+function MyComponent() {
+	const monitor = useMonitor();
+
+	try {
+		// Some risky operation
+	} catch (error) {
+		monitor.error("Operation failed", error);
+	}
+}
+```
+
+`info`, `debug` and `breadcrumb` add exception steps: context attached to the next captured exception, not issues of their own.
+
+### Route error components
+
+`DefaultCatchBoundary` (the router default) already reports. A route with its own `errorComponent` should call `useReportError(error, "router:/path")`.
+
+### Server code outside server functions
+
+```ts
+const { captureServerException } = await import("~/server/monitoring/posthog");
+captureServerException(error, { properties: { source: "cron" } });
+```
+
+Import it dynamically from anything reachable from a client route (TSS-2).
 
 ## Testing
 
-Visit `/debug/monitoring` to test various monitoring features:
-
-1. Error Boundary Testing
-
-   - Click "Trigger Error Boundary" to test React error boundaries
-   - The error will be caught and displayed with a fallback UI
-
-2. Direct Error Testing
-
-   - "Trigger Uncaught Error" - Throws an uncaught error
-   - "Trigger Async Error" - Tests async error handling
-   - "Trigger API Error" - Tests API error handling
-
-3. Message Testing
-
-   - "Send Error Message" - Sends a test error
-   - "Send Warning Message" - Sends a test warning
-   - "Send Info Message" - Sends a test info message
-
-4. User Context Testing
-
-   - "Set Regular User" - Sets a test user context
-   - "Set Admin User" - Sets an admin test user context
-   - "Clear User" - Removes user context
-
-5. Breadcrumb Testing
-   - "Add Breadcrumb" - Adds a test breadcrumb to track user actions
-
-## Usage in Code
-
-### Error Boundaries
-
-```tsx
-import { ErrorBoundary } from "~/lib/monitoring";
-
-function MyComponent() {
-  return (
-    <ErrorBoundary fallback={<div>Something went wrong</div>}>
-      <ComponentThatMightError />
-    </ErrorBoundary>
-  );
-}
-```
-
-### Manual Error Logging
-
-```tsx
-import { useMonitor } from "~/lib/monitoring";
-
-function MyComponent() {
-  const monitor = useMonitor();
-
-  try {
-    // Some risky operation
-  } catch (error) {
-    monitor.error("Operation failed", error);
-  }
-}
-```
-
-### User Context
-
-```tsx
-import { useMonitor } from "~/lib/monitoring";
-
-function MyComponent() {
-  const monitor = useMonitor();
-  const { user } = useAuth();
-
-  useEffect(() => {
-    if (user) {
-      monitor.setUser({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      });
-    }
-  }, [user]);
-}
-```
-
-### Breadcrumbs
-
-```tsx
-import { useMonitor } from "~/lib/monitoring";
-
-function MyComponent() {
-  const monitor = useMonitor();
-
-  const handleImportantAction = () => {
-    monitor.breadcrumb("User started important action", {
-      timestamp: new Date().toISOString(),
-      metadata: {
-        /* additional context */
-      },
-    });
-    // ... rest of the action
-  };
-}
-```
-
-## Architecture
-
-The monitoring setup is designed to be provider-agnostic:
-
-1. `types.ts` - Defines the monitoring interface
-2. `hooks.ts` - Provides React hooks for monitoring
-3. `rollbar.ts` - Implements the interface using Rollbar
-4. `MonitoringProvider.tsx` - Provides monitoring context
-5. `index.ts` - Exports the public API
-
-This abstraction allows for:
-
-- Easy testing with the debug page
-- Potential future provider swapping
-- Consistent monitoring API across the application
-- Safe SSR handling
-- Environment-aware configuration
+Visit `/debug/monitoring`. It covers the error boundary, uncaught errors, unhandled rejections, caught errors, monitor messages and steps, and (for admins) server-function errors: one unexpected (reported with your user id) and one expected 404 (not reported).

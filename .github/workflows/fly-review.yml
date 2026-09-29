@@ -110,8 +110,6 @@ jobs:
             GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             NODE_ENV=production
-            PUBLIC_ROLLBAR_ACCESS_TOKEN=${{ vars.PUBLIC_ROLLBAR_ACCESS_TOKEN }}
-            ROLLBAR_SERVER_TOKEN=${{ secrets.ROLLBAR_SERVER_TOKEN }}
 
   # DESTROY RESOURCES (PR closed, with or without the `preview` label, or a late
   # create_environment run found it no longer open).

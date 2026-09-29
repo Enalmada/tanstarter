@@ -9,4 +9,6 @@ export default defineConfig({
 	// at runtime (react-dom/server.bun.js), which was never copied into .output, and
 	// every SSR request 500s with "Cannot find module 'react-dom/server'".
 	preset: "bun",
+	// PostHog error tracking: Nitro's error hook, and a flush on shutdown
+	plugins: ["./src/server/monitoring/nitro-plugin.ts"],
 });

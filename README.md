@@ -33,7 +33,7 @@ A production starter template for TanStack Start.
 - [Vitest](https://vitest.dev/) unit testing
 - [Playwright](https://playwright.dev/) E2E testing
 - [Storybook](https://storybook.js.org/) component development and testing
-- [Rollbar](https://rollbar.com/) error tracking and release monitoring
+- [PostHog](https://posthog.com/) product analytics and error tracking
 
 ### Tools
 

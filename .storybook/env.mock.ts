@@ -30,7 +30,6 @@ export default {
 	BETTER_AUTH_SECRET: "mock-secret-for-storybook",
 
 	// Client vars
-	PUBLIC_ROLLBAR_ACCESS_TOKEN: "mock-rollbar-token",
 	PUBLIC_POSTHOG_API_KEY: "mock-posthog-key",
 
 	// Other optional vars
@@ -38,5 +37,4 @@ export default {
 	DB_MAX_RETRIES: 3,
 	AXIOM_DATASET_NAME: "mock-dataset",
 	AXIOM_TOKEN: "mock-axiom-token",
-	ROLLBAR_SERVER_TOKEN: "mock-rollbar-server-token",
 };

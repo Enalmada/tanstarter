@@ -1,28 +1,14 @@
 import { useRouter } from "@tanstack/react-router";
 import posthog from "posthog-js";
 import { useEffect, useLayoutEffect } from "react";
-import { env } from "~/env";
+import { initPosthog } from "~/lib/monitoring/client";
 import { Route } from "~/routes/__root";
 import type { SessionUser } from "~/utils/auth-client";
 
+// One PostHog init for analytics and error tracking (idempotent; src/client.tsx
+// usually runs it first).
 export function initializeAnalytics() {
-	if (typeof window === "undefined") return;
-
-	if (env.PUBLIC_POSTHOG_API_KEY) {
-		posthog.init(env.PUBLIC_POSTHOG_API_KEY, {
-			api_host: "https://us.i.posthog.com",
-			person_profiles: "identified_only",
-			loaded: (posthog) => {
-				if (window.location.href.includes("localhost")) {
-					posthog.debug();
-				}
-			},
-			// Disable features in development
-			disable_session_recording: process.env.NODE_ENV !== "production",
-			enable_heatmaps: process.env.NODE_ENV === "production",
-			capture_performance: process.env.NODE_ENV === "production",
-		});
-	}
+	initPosthog();
 }
 
 export function identifyUser(user: SessionUser | null) {

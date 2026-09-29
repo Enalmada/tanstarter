@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { Button } from "~/components/ui/button";
+import { throwExpectedServerError, throwUnexpectedServerError } from "~/functions/debug-monitoring";
 import { useMonitor } from "~/lib/monitoring/hooks";
-import { ErrorBoundary } from "~/lib/monitoring/rollbar";
-import type { MonitorUser } from "~/lib/monitoring/types";
+import { reportError } from "~/lib/monitoring/report";
 
 function BuggyComponent() {
 	const [shouldError, setShouldError] = useState(false);
@@ -27,25 +28,10 @@ export const Route = createFileRoute("/debug/monitoring")({
 	component: MonitoringDebug,
 });
 
-const testUsers: MonitorUser[] = [
-	{
-		id: "1",
-		email: "test@example.com",
-		name: "Test User",
-		role: "user",
-	},
-	{
-		id: "2",
-		email: "admin@example.com",
-		name: "Admin User",
-		role: "admin",
-	},
-];
-
 function MonitoringDebug() {
 	const monitor = useMonitor();
-	const [currentUserIndex, setCurrentUserIndex] = useState<number | null>(null);
-	const [breadcrumbCount, setBreadcrumbCount] = useState(0);
+	const [stepCount, setStepCount] = useState(0);
+	const [serverResult, setServerResult] = useState<string | null>(null);
 
 	const triggerError = () => {
 		throw new Error("Test error from button click");
@@ -64,68 +50,59 @@ function MonitoringDebug() {
 	};
 
 	const triggerAsyncError = async () => {
-		try {
-			monitor.breadcrumb("Starting async operation");
-			await Promise.reject(new Error("Test async error"));
-		} catch (error) {
-			monitor.breadcrumb("Async operation failed");
-			monitor.error("Async error caught:", error);
-			throw error;
-		}
+		monitor.breadcrumb("Starting async operation");
+		// Unhandled rejection: PostHog autocapture reports it
+		await Promise.reject(new Error("Test async error"));
 	};
 
-	const triggerApiError = async () => {
+	const triggerCaughtError = async () => {
 		try {
 			monitor.breadcrumb("Starting API call");
-			await fetch("/api/non-existent-endpoint");
+			const response = await fetch("/api/non-existent-endpoint");
+			if (!response.ok) throw new Error(`API returned ${response.status}`);
 		} catch (error) {
-			monitor.breadcrumb("API call failed");
 			monitor.error("API error caught:", error);
-			throw error;
 		}
 	};
 
-	const setTestUser = (index: number | null) => {
-		monitor.breadcrumb("Changing test user", { index });
-		setCurrentUserIndex(index);
-		monitor.setUser(index === null ? null : testUsers[index]);
+	const callServer = async (fn: () => Promise<unknown>, label: string) => {
+		try {
+			await fn();
+			setServerResult(`${label}: no error`);
+		} catch (error) {
+			setServerResult(`${label}: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`);
+		}
 	};
 
-	const addBreadcrumb = () => {
-		const count = breadcrumbCount + 1;
-		setBreadcrumbCount(count);
-		monitor.breadcrumb(`Test breadcrumb ${count}`, {
-			count,
-			timestamp: new Date().toISOString(),
-		});
+	const addStep = () => {
+		const count = stepCount + 1;
+		setStepCount(count);
+		monitor.breadcrumb(`Test step ${count}`, { count });
 	};
 
 	return (
 		<div className="container max-w-2xl mx-auto py-8">
 			<div className="flex flex-col gap-8">
-				<h1 className="text-3xl font-bold tracking-tight">Monitoring Debug</h1>
-
-				<div className="flex flex-col gap-4">
-					<h2 className="font-bold">User Context Test</h2>
-					<Button onClick={() => setTestUser(0)} variant={currentUserIndex === 0 ? "default" : "secondary"}>
-						Set Regular User
-					</Button>
-					<Button onClick={() => setTestUser(1)} variant={currentUserIndex === 1 ? "default" : "secondary"}>
-						Set Admin User
-					</Button>
-					<Button onClick={() => setTestUser(null)} variant={currentUserIndex === null ? "default" : "secondary"}>
-						Clear User
-					</Button>
+				<div className="flex flex-col gap-2">
+					<h1 className="text-3xl font-bold tracking-tight">Monitoring Debug</h1>
+					<p className="text-sm text-muted-foreground">
+						Errors go to PostHog when <code>PUBLIC_POSTHOG_API_KEY</code> is set and <code>APP_ENV</code> isn't{" "}
+						<code>development</code>. Watch for <code>$exception</code> requests in the network tab.
+					</p>
 				</div>
 
 				<div className="flex flex-col gap-4">
-					<h2 className="font-bold">Breadcrumb Test</h2>
-					<Button onClick={addBreadcrumb}>Add Breadcrumb ({breadcrumbCount})</Button>
+					<h2 className="font-bold">Exception Steps</h2>
+					<p className="text-sm text-muted-foreground">Attached to the next captured exception.</p>
+					<Button onClick={addStep}>Add Step ({stepCount})</Button>
 				</div>
 
 				<div className="flex flex-col gap-4">
 					<h2 className="font-bold">Error Boundary Test</h2>
-					<ErrorBoundary fallback={<ErrorFallback />}>
+					<ErrorBoundary
+						fallback={<ErrorFallback />}
+						onError={(error) => reportError(error, { source: "debug-boundary" })}
+					>
 						<BuggyComponent />
 					</ErrorBoundary>
 				</div>
@@ -136,11 +113,22 @@ function MonitoringDebug() {
 						Trigger Uncaught Error
 					</Button>
 					<Button onClick={triggerAsyncError} variant="destructive">
-						Trigger Async Error
+						Trigger Unhandled Rejection
 					</Button>
-					<Button onClick={triggerApiError} variant="destructive">
-						Trigger API Error
+					<Button onClick={triggerCaughtError} variant="destructive">
+						Trigger Caught API Error
 					</Button>
+				</div>
+
+				<div className="flex flex-col gap-4">
+					<h2 className="font-bold">Server Function Tests (admin only)</h2>
+					<Button onClick={() => callServer(() => throwUnexpectedServerError(), "Unexpected")} variant="destructive">
+						Throw Unexpected Server Error (reported)
+					</Button>
+					<Button onClick={() => callServer(() => throwExpectedServerError(), "Expected")} variant="outline">
+						Throw Expected 404 (not reported)
+					</Button>
+					{serverResult ? <p className="text-sm text-muted-foreground">{serverResult}</p> : null}
 				</div>
 
 				<div className="flex flex-col gap-4">
@@ -151,7 +139,7 @@ function MonitoringDebug() {
 					<Button onClick={triggerMonitorWarning} variant="outline">
 						Send Warning Message
 					</Button>
-					<Button onClick={triggerMonitorInfo}>Send Info Message</Button>
+					<Button onClick={triggerMonitorInfo}>Send Info Message (step)</Button>
 				</div>
 			</div>
 		</div>

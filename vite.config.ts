@@ -76,7 +76,6 @@ export default defineConfig({
 	define: {
 		// TODO - try getting rid of these now that we have envPrefix
 		// Explicitly expose specific environment variables to client
-		"process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN": JSON.stringify(process.env.PUBLIC_ROLLBAR_ACCESS_TOKEN),
 		// Environment and release info
 		"process.env.APP_ENV": JSON.stringify(process.env.APP_ENV),
 		"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
@@ -88,8 +87,8 @@ export default defineConfig({
 	build: {
 		// Support top-level await for ES2022
 		target: "es2022",
-		// Source maps in development only. Production builds ship none, and
-		// nothing uploads them to Rollbar yet.
+		// Source maps in development only. Production builds ship none; uploading
+		// hidden maps to PostHog is a follow-up (needs the PostHog CLI in the build).
 		sourcemap: process.env.NODE_ENV === "development",
 		rollupOptions: {
 			// Node builtins only. Externalizing a package leaves a bare import

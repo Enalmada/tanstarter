@@ -5,6 +5,8 @@
 	"entry": [
 		// Service worker, bundled by scripts/vite-service-worker.ts during vite build
 		"src/sw.ts",
+		// Nitro runtime plugin, registered by path in nitro.config.ts
+		"src/server/monitoring/nitro-plugin.ts",
 		// resolve.alias targets in .storybook/main.ts and vitest configs, which knip can't trace
 		"src/storybook/**/*.{ts,tsx}",
 		"src/test/mocks/*.ts",
@@ -21,7 +23,6 @@
 		".storybook/vite.config.ts",
 		"src/emails/index.ts",
 		"src/functions/helpers.ts",
-		"src/lib/monitoring/index.ts",
 		"src/lib/vite/server-guard{,-config}.ts",
 		"src/server/db/types.ts",
 		"src/utils/{env,index}.ts",

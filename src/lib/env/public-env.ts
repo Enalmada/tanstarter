@@ -13,12 +13,7 @@
  * Kept free of framework imports: env.config.ts pulls this in.
  */
 
-export const PUBLIC_RUNTIME_ENV_KEYS = [
-	"APP_ENV",
-	"PUBLIC_APP_URL",
-	"PUBLIC_ROLLBAR_ACCESS_TOKEN",
-	"PUBLIC_POSTHOG_API_KEY",
-] as const;
+export const PUBLIC_RUNTIME_ENV_KEYS = ["APP_ENV", "PUBLIC_APP_URL", "PUBLIC_POSTHOG_API_KEY"] as const;
 
 export type PublicRuntimeEnvKey = (typeof PUBLIC_RUNTIME_ENV_KEYS)[number];
 export type PublicRuntimeEnv = Partial<Record<PublicRuntimeEnvKey, string>>;

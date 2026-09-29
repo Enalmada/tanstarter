@@ -7,18 +7,16 @@ describe("pickPublicRuntimeEnv", () => {
 			APP_ENV: "preview",
 			NODE_ENV: "production",
 			PUBLIC_APP_URL: "https://example.test",
-			PUBLIC_ROLLBAR_ACCESS_TOKEN: "rollbar-client",
 			PUBLIC_POSTHOG_API_KEY: "phc_test",
 			PUBLIC_NOT_ALLOWLISTED: "nope",
 			DATABASE_URL: "postgres://secret",
 			BETTER_AUTH_SECRET: "secret",
-			ROLLBAR_SERVER_TOKEN: "secret",
+			AXIOM_TOKEN: "secret",
 		});
 
 		expect(picked).toEqual({
 			APP_ENV: "preview",
 			PUBLIC_APP_URL: "https://example.test",
-			PUBLIC_ROLLBAR_ACCESS_TOKEN: "rollbar-client",
 			PUBLIC_POSTHOG_API_KEY: "phc_test",
 		});
 	});

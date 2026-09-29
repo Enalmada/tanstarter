@@ -4,10 +4,11 @@
  * Includes task creation link and handles task status updates
  */
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, type ErrorComponentProps } from "@tanstack/react-router";
 import { TaskList } from "~/components/tasks/TaskList";
 import { TaskListError } from "~/components/tasks/TaskListError";
 import { TaskListSkeleton } from "~/components/tasks/TaskListSkeleton";
+import { useReportError } from "~/lib/monitoring/report";
 import { preloadQueries, queries, useSuspenseQueries } from "~/utils/query/queries";
 
 function getRouteQueries(userId?: string) {
@@ -22,8 +23,13 @@ export const Route = createFileRoute("/tasks/")({
 	},
 	component: TaskListPage,
 	pendingComponent: TaskListSkeleton,
-	errorComponent: ({ error }) => <TaskListError error={error} resetErrorBoundary={() => {}} />,
+	errorComponent: TasksError,
 });
+
+function TasksError({ error }: ErrorComponentProps) {
+	useReportError(error, "router:/tasks");
+	return <TaskListError error={error} resetErrorBoundary={() => {}} />;
+}
 
 function TaskListPage() {
 	const { userId } = Route.useLoaderData();

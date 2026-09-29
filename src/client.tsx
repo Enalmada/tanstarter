@@ -6,12 +6,14 @@
 
 import { StartClient } from "@tanstack/react-start/client";
 import { hydrateRoot } from "react-dom/client";
-import { env } from "~/env";
-import { MonitoringProvider } from "~/lib/monitoring/MonitoringProvider";
 import { activateLanguage, DEFAULT_LANGUAGE, normalizeLocale } from "~/locales/locale";
 
 // Initialize i18n with browser language - avoid top-level await for hydration safety
 const initializeApp = async () => {
+	// PostHog (analytics + exception autocapture) as early as possible, without
+	// holding up hydration or putting posthog-js in the main chunk.
+	import("~/lib/monitoring/client").then((mod) => mod.initPosthog()).catch(() => {});
+
 	try {
 		const browserLocale = normalizeLocale(navigator.language);
 		await activateLanguage(browserLocale);
@@ -19,22 +21,7 @@ const initializeApp = async () => {
 		await activateLanguage(DEFAULT_LANGUAGE);
 	}
 
-	// Create safe client-side monitoring config
-	const hasToken = Boolean(env.PUBLIC_ROLLBAR_ACCESS_TOKEN);
-	const safeClientConfig = {
-		enabled: hasToken,
-		accessToken: env.PUBLIC_ROLLBAR_ACCESS_TOKEN || "",
-		environment: env.APP_ENV || "development",
-		captureUncaught: false,
-		captureUnhandledRejections: false,
-	};
-
-	hydrateRoot(
-		document,
-		<MonitoringProvider config={safeClientConfig}>
-			<StartClient />
-		</MonitoringProvider>,
-	);
+	hydrateRoot(document, <StartClient />);
 };
 
 // Start the application
