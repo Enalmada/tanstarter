@@ -81,6 +81,25 @@
 				"noUnusedImports": "error",
 				"noUnusedFunctionParameters": "off"
 			},
+			"style": {
+				// The global `i18n` singleton and `t` from core/macro are shared across requests on the server.
+				// Use `useLingui()` in components or the per-request `i18n` from the start context instead.
+				"noRestrictedImports": {
+					"level": "error",
+					"options": {
+						"paths": {
+							"@lingui/core": {
+								"importNames": ["i18n"],
+								"message": "The global i18n singleton is shared across requests. Use useLingui() or the per-request i18n from context."
+							},
+							"@lingui/core/macro": {
+								"importNames": ["t"],
+								"message": "t from core/macro uses the global i18n singleton. Use useLingui() from @lingui/react/macro, or msg for lazy messages."
+							}
+						}
+					}
+				}
+			},
 			"performance": {
 				"noBarrelFile": "error"
 			}

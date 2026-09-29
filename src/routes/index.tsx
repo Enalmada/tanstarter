@@ -1,3 +1,4 @@
+import { Plural, Trans } from "@lingui/react/macro";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Image } from "@unpic/react";
 import { DefaultLayout } from "~/components/layouts/DefaultLayout";
@@ -21,23 +22,28 @@ function HomeLayout() {
 	);
 }
 
+// Features shown in the cards below (demonstrates plural forms)
+const FEATURE_COUNT = 3;
+
 function Home() {
 	return (
 		<Container size="lg">
 			<div className="flex flex-col gap-12 py-12">
 				{/* Hero Section */}
 				<div className="flex flex-col items-center gap-4 text-center">
-					<h1 className="text-4xl font-bold tracking-tight">TanStarter Todo</h1>
+					<h1 className="text-4xl font-bold tracking-tight">
+						<Trans>TanStarter Todo</Trans>
+					</h1>
 					<p className="text-xl text-muted-foreground max-w-[600px] mx-auto">
-						A modern, type-safe todo application built with TanStack Start.
+						<Trans>A modern, type-safe todo application built with TanStack Start.</Trans>
 					</p>
 					<div className="flex gap-4 mt-4">
 						<Link to="/tasks" className={buttonVariants({ size: "lg" })}>
-							Get Started
+							<Trans>Get Started</Trans>
 						</Link>
 						<a href="https://github.com/Enalmada/tanstarter" target="_blank" rel="noopener noreferrer">
 							<Button variant="outline" size="lg" className="bg-accent/10 hover:bg-accent/20">
-								View on GitHub
+								<Trans>View on GitHub</Trans>
 							</Button>
 						</a>
 					</div>
@@ -45,34 +51,47 @@ function Home() {
 
 				{/* Features Section */}
 				<div className="flex flex-col gap-8">
-					<h2 className="text-3xl font-bold tracking-tight text-center">Features</h2>
+					<h2 className="text-3xl font-bold tracking-tight text-center">
+						<Trans>Features</Trans>
+					</h2>
+					<p className="text-center text-muted-foreground">
+						<Plural value={FEATURE_COUNT} one="# feature" other="# features" />
+					</p>
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 						<Card>
 							<CardHeader>
-								<CardTitle>Type Safety</CardTitle>
+								<CardTitle>
+									<Trans>Type Safety</Trans>
+								</CardTitle>
 							</CardHeader>
 							<CardContent>
 								<p className="text-muted-foreground">
-									End-to-end type safety with TypeScript, Drizzle ORM, and Valibot validation.
+									<Trans>End-to-end type safety with TypeScript, Drizzle ORM, and Valibot validation.</Trans>
 								</p>
 							</CardContent>
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle>Modern Stack</CardTitle>
+								<CardTitle>
+									<Trans>Modern Stack</Trans>
+								</CardTitle>
 							</CardHeader>
 							<CardContent>
 								<p className="text-muted-foreground">
-									Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui components.
+									<Trans>Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui components.</Trans>
 								</p>
 							</CardContent>
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle>Great DX</CardTitle>
+								<CardTitle>
+									<Trans>Great DX</Trans>
+								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<p className="text-muted-foreground">Fast refresh, automatic type generation, and error handling.</p>
+								<p className="text-muted-foreground">
+									<Trans>Fast refresh, automatic type generation, and error handling.</Trans>
+								</p>
 							</CardContent>
 						</Card>
 					</div>
