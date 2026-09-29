@@ -32,7 +32,7 @@ How data gets from the database to a component and back.
 
 ## Server functions and the data-access layer
 
-- One `createServerFn` per file under `src/functions/`, with the handler exported separately for unit tests. The rules (TSS-2, TSS-6, dynamic imports inside handlers, error vocabulary) are in the [tanstack-start skill](../.claude/skills/tanstack-start/SKILL.md), and `bun run check-tss-7` checks part of them mechanically.
+- The CRUD operations are one `createServerFn` per file under `src/functions/`, with the handler exported separately for unit tests; follow that for new entity-style functions. The rules (TSS-2, TSS-6, dynamic imports inside handlers, error vocabulary) are in the [tanstack-start skill](../.claude/skills/tanstack-start/SKILL.md), and `bun run check-tss-7` checks part of them mechanically.
 - The generic CRUD lives in `src/functions/base-service.ts` (an entity registry) and the per-operation files `create-entity`, `find-first`, `find-many`, `update-entity`, `delete-entity`. Add a new entity to the registry rather than writing another set of handlers. Each operation applies CASL rules (`src/server/access/`): a read filter for reads and a write guard for writes.
 - Throw the typed errors from `src/server/access/http-errors.ts`. The global `authErrorTranslator` middleware turns them into an HTTP status and a safe message; never attach `cause` or internal details to what reaches the client.
 - Every server function that needs a user has `authMiddleware` or `freshAuthMiddleware` (see [Auth](auth.md)).

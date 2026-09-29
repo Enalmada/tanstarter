@@ -9,7 +9,7 @@ TanStarter is a production-ready starter for TanStack Start apps. These rules ap
 - Add UI components with the pinned shadcn CLI: `bun run ui add <component>` (see [UI](.agents/ui.md) before re-pulling anything).
 - Use `lucide-react` for icons.
 - Keep UI copy user-centered: describe outcomes and next actions concisely, without exposing providers, internal states or implementation details. Wrap translatable text for Lingui (see [i18n](.agents/i18n.md)).
-- Environment variables are declared and validated in `env.config.ts`, and read through `~/env`. Only names prefixed `PUBLIC_` reach the browser. Never read `.env` files or print secret values.
+- Environment variables are declared and validated in `env.config.ts`, and read through `~/env`. Only `APP_ENV` and the allowlisted `PUBLIC_` names reach the browser (`src/lib/env/public-env.ts`). Never read `.env` files or print secret values.
 - Don't run a full build after every small change. Run the narrowest relevant checks from the quality gates below; run a production build when you touch bundler, SSR, env or dependency wiring.
 
 ## Code style
@@ -39,7 +39,7 @@ bun run check-stories   # every component needs a Storybook story
 bun run test-storybook
 ```
 
-Also `bun run check-tss-7` and, after `bun run build`, `bun run check-client-leaks`. `bun run check` runs the whole pipeline including e2e. Git hooks run the fast subset on commit.
+Also `bun run check-tss-7` and, after `bun run build`, `bun run check-client-leaks`. `bun run check` runs the lint, type, knip, TSS-7, story, unit, Storybook and e2e gates; the build, client-leak, i18n, doc-link and secret checks are separate (CI runs them). Git hooks run the fast subset on commit.
 
 ## Git and pull requests
 

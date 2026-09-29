@@ -24,7 +24,7 @@ Every `createServerFn` file MUST follow this pattern:
 5. **Dynamic imports** inside the handler for server-only modules (`~/server/db`, `~/server/services/*`, `~/server/auth/*`, `@tanstack/react-start/server`).
 6. **`createServerFn(...)` at the VERY END** of the file, registering the handler.
 
-Reference example: see [src/functions/user-role.ts](src/functions/user-role.ts).
+Reference example: see [src/functions/user-role.ts](../../../src/functions/user-role.ts).
 
 ## One createServerFn per file (REQUIRED — TSS-6)
 
@@ -34,7 +34,7 @@ Each `createServerFn(...)` lives in its own per-handler file. **Do not** collect
 
 Per-handler files keep the server-only chain off the client graph. They still import `base-service.ts` statically for its validators, so its server-only helper (`loadEntityConfig`) is wrapped in `createServerOnlyFn`, like the exported handlers. The Start compiler replaces those bodies, and their dynamic imports of `~/server/*`, with a throwing stub in the client build.
 
-Pattern in this repo: [src/functions/find-first.ts](src/functions/find-first.ts), [src/functions/find-many.ts](src/functions/find-many.ts), [src/functions/create-entity.ts](src/functions/create-entity.ts), [src/functions/update-entity.ts](src/functions/update-entity.ts), [src/functions/delete-entity.ts](src/functions/delete-entity.ts) each export exactly one createServerFn; [src/functions/base-service.ts](src/functions/base-service.ts) houses only the shared entity registry, validators, error formatter, and the `loadEntityConfig` helper (no createServerFn).
+Pattern in this repo: [src/functions/find-first.ts](../../../src/functions/find-first.ts), [src/functions/find-many.ts](../../../src/functions/find-many.ts), [src/functions/create-entity.ts](../../../src/functions/create-entity.ts), [src/functions/update-entity.ts](../../../src/functions/update-entity.ts), [src/functions/delete-entity.ts](../../../src/functions/delete-entity.ts) each export exactly one createServerFn; [src/functions/base-service.ts](../../../src/functions/base-service.ts) houses only the shared entity registry, validators, error formatter, and the `loadEntityConfig` helper (no createServerFn).
 
 ## TSS Rules (mechanical checks)
 
@@ -54,7 +54,7 @@ Pattern in this repo: [src/functions/find-first.ts](src/functions/find-first.ts)
 
 ## HTTP Status Codes — Domain Errors + Global Middleware
 
-Handlers throw typed domain errors from [src/server/access/http-errors.ts](src/server/access/http-errors.ts); the `authErrorTranslator` middleware in [src/server/access/middleware.ts](src/server/access/middleware.ts) translates them to HTTP.
+Handlers throw typed domain errors from [src/server/access/http-errors.ts](../../../src/server/access/http-errors.ts); the `authErrorTranslator` middleware in [src/server/access/middleware.ts](../../../src/server/access/middleware.ts) translates them to HTTP.
 
 | Class | HTTP | Default `safeMessage` | When to throw |
 |---|---|---|---|
@@ -82,7 +82,7 @@ After a pre-write existence check confirms a row, if the write returns null it m
 
 - `@tanstack/react-start` (the framework)
 - `valibot` / `zod` (pure JS)
-- `~/lib/*` (client-safe enums and constants, e.g. [src/lib/enums/user-role.ts](src/lib/enums/user-role.ts), [src/lib/enums/task-status.ts](src/lib/enums/task-status.ts), [src/lib/entity-types.ts](src/lib/entity-types.ts))
+- `~/lib/*` (client-safe enums and constants, e.g. [src/lib/enums/user-role.ts](../../../src/lib/enums/user-role.ts), [src/lib/enums/task-status.ts](../../../src/lib/enums/task-status.ts), [src/lib/entity-types.ts](../../../src/lib/entity-types.ts))
 - `~/server/access/http-errors` (intentionally client-safe — no Drizzle/auth imports)
 - `~/server/db/schema/*-schemas.ts` (Drizzle-free valibot sibling files — when shared across 2+ handlers)
 - Type-only imports (`import type { X }`)
@@ -103,9 +103,9 @@ After a pre-write existence check confirms a row, if the write returns null it m
 
 Any TypeScript enum or constant used in BOTH client components AND server code must live in `~/lib/`. Examples in this repo:
 
-- `UserRole` → [src/lib/enums/user-role.ts](src/lib/enums/user-role.ts), re-exported by [src/server/db/schema/auth.schema.ts](src/server/db/schema/auth.schema.ts).
-- `TaskStatus` → [src/lib/enums/task-status.ts](src/lib/enums/task-status.ts), re-exported by [src/server/db/schema/task.schema.ts](src/server/db/schema/task.schema.ts).
-- `ENTITY_TYPES` → [src/lib/entity-types.ts](src/lib/entity-types.ts), re-exported by [src/server/access/ability.ts](src/server/access/ability.ts).
+- `UserRole` → [src/lib/enums/user-role.ts](../../../src/lib/enums/user-role.ts), re-exported by [src/server/db/schema/auth.schema.ts](../../../src/server/db/schema/auth.schema.ts).
+- `TaskStatus` → [src/lib/enums/task-status.ts](../../../src/lib/enums/task-status.ts), re-exported by [src/server/db/schema/task.schema.ts](../../../src/server/db/schema/task.schema.ts).
+- `ENTITY_TYPES` → [src/lib/entity-types.ts](../../../src/lib/entity-types.ts), re-exported by [src/server/access/ability.ts](../../../src/server/access/ability.ts).
 
 **Why this matters:** importing a value like `TaskStatus` from `~/server/db/schema` pulls in `pgTable("task", { … })` side effects via the schema barrel, leaking Drizzle into the client bundle. The `~/lib/` carve-out keeps client imports Drizzle-free while server code continues to import everything from `~/server/db/schema` via the barrel.
 
@@ -115,13 +115,13 @@ Three central helpers in `~/server/auth/` own every session-loading flow in the 
 
 | Helper | Returns | Use when |
 |---|---|---|
-| [`getSessionRequest()`](src/server/auth/request.ts) | `Request \| null` | You need the raw `Request` and want the `getRequest()` v1.134+ throw-on-missing-context handled in one place. |
-| [`getOptionalSessionUser({ freshFromDb? })`](src/server/auth/session.ts) | `SessionUser \| null` | The anonymous path is valid (session probes, marketing pages, optional auth). |
-| [`requireAuthedUser({ freshFromDb? })`](src/server/auth/session.ts) | `SessionUser` (throws 401 otherwise) | The handler already requires a session — typical authed action. |
+| [`getSessionRequest()`](../../../src/server/auth/request.ts) | `Request \| null` | You need the raw `Request` and want the `getRequest()` v1.134+ throw-on-missing-context handled in one place. |
+| [`getOptionalSessionUser({ freshFromDb? })`](../../../src/server/auth/session.ts) | `SessionUser \| null` | The anonymous path is valid (session probes, marketing pages, optional auth). |
+| [`requireAuthedUser({ freshFromDb? })`](../../../src/server/auth/session.ts) | `SessionUser` (throws 401 otherwise) | The handler already requires a session — typical authed action. |
 
 ### Requiring a user in a server function: middleware
 
-For a server function that needs a signed-in user, don't call `requireAuthedUser` in the handler. Add the middleware from [src/functions/auth-middleware.ts](src/functions/auth-middleware.ts) and read `context.user`:
+For a server function that needs a signed-in user, don't call `requireAuthedUser` in the handler. Add the middleware from [src/functions/auth-middleware.ts](../../../src/functions/auth-middleware.ts) and read `context.user`:
 
 | Middleware | Session read | Use when |
 |---|---|---|
@@ -153,7 +153,7 @@ Both `getOptionalSessionUser` and `requireAuthedUser` automatically:
 
 Pages are grouped by who may see them, using pathless layout routes (the folder name starts with `_`, so it adds no URL segment):
 
-| Folder | Who | Guard ([src/lib/auth/guards.ts](src/lib/auth/guards.ts)) |
+| Folder | Who | Guard ([src/lib/auth/guards.ts](../../../src/lib/auth/guards.ts)) |
 |---|---|---|
 | `src/routes/*.tsx` (home, privacy, terms, `signout`) | anyone | none |
 | `src/routes/_guest/` (`/signin`, `/signup`) | signed-out visitors | `redirectIfSignedIn` sends a signed-in user to `?redirect=` or `/tasks` |
@@ -161,7 +161,7 @@ Pages are grouped by who may see them, using pathless layout routes (the folder 
 | `src/routes/_authed/_admin/` (`/admin/**`, `/debug/monitoring`) | admins | `requireAdmin` sends members to `/tasks?error=...` |
 
 - Put a new protected page in the matching folder and its `createFileRoute("/_authed/...")` string follows the file path (the router plugin rewrites it on save). Don't write per-route `beforeLoad` checks.
-- The session lives in one query, `sessionQueryOptions()` in [src/lib/auth/session.ts](src/lib/auth/session.ts) (key `["user", "session"]`). Components call `useSessionUser()`; loaders under `_authed` read `context.user`. The root route only primes that query, so the user is never copied into router context or loader data.
+- The session lives in one query, `sessionQueryOptions()` in [src/lib/auth/session.ts](../../../src/lib/auth/session.ts) (key `["user", "session"]`). Components call `useSessionUser()`; loaders under `_authed` read `context.user`. The root route only primes that query, so the user is never copied into router context or loader data.
 - After changing the session user (role change, profile edit) call `queryClient.invalidateQueries({ queryKey: sessionQueryOptions().queryKey })` and then `router.invalidate()` so the guards re-run.
 - `?redirect=` values go through `safeRedirect`: only same-origin paths, never `//host`, backslashes, control characters or the auth pages. Use it for any new place that redirects to a user-supplied path.
 - Guards decide where to send people; they are not the security boundary. Every server function still needs `authMiddleware` or `freshAuthMiddleware` (`auth-wiring.test.ts` enforces it), and API routes check the session themselves.
@@ -210,7 +210,7 @@ Before the helpers landed, the defensive try/catch lived inline in five separate
 
 `auth.api.getSession({ asResponse: true })` returns a `Response`. The obvious "wrap in `new Response(JSON.stringify(payload))`" approach round-trips Dates to ISO strings, breaking any test that asserts a full user object including `createdAt: fixedDate` (a Date instance) against `accessCheck` calls.
 
-The codebase exports `makeMockSessionResponse(payload)` from [src/test/setup.ts](src/test/setup.ts) — use it instead of constructing the shape inline:
+The codebase exports `makeMockSessionResponse(payload)` from [src/test/setup.ts](../../../src/test/setup.ts) — use it instead of constructing the shape inline:
 
 ```typescript
 // ✅ Preserves Date instances — `json()` returns the original reference

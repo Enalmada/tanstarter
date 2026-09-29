@@ -6,7 +6,7 @@ How changes land safely in this codebase.
 
 The tools behind the scripts, in one place so a tool swap edits one section:
 
-- Formatter and linter: Biome (`bun run lint`, config in `biome.json`).
+- Formatter and linter: Biome (`bun run lint`, config in `biome.jsonc`).
 - Git hooks: lefthook (`lefthook.yml`): Biome, secret scan, type check, story coverage and migration check on commit.
 - Task runner: turbo (`bun run check`).
 - Tests: Vitest (unit), Storybook test runner, Playwright (e2e).
@@ -25,7 +25,7 @@ bun run build          # production vite build (CI: .github/workflows/build.yml)
 bun run check-client-leaks  # no server-only code in the client bundle (run after build)
 ```
 
-`bun run check` runs the whole pipeline including storybook and e2e.
+`bun run check` runs the lint, type, knip, TSS-7, story, unit, Storybook and e2e gates. The build, client-leak, i18n, doc-link and secret checks are separate (CI runs them).
 
 ## Real-browser validation for bundling-shaped PRs
 
@@ -36,7 +36,7 @@ When a PR touches any of the following, run real-browser validation **before** m
 - Anything chunk-graph-shaped (manual chunks, side-effect annotations, externals)
 - SSR boundaries
 - Env-validation ([env.config.ts](../env.config.ts), [src/env.ts](../src/env.ts))
-- The TSS-2 carve-outs (`~/lib/`, `~/server/access/http-errors`, `~/server/db/schema/*-schemas.ts`)
+- The TSS-2 carve-outs (`~/lib/` and `~/server/access/http-errors`)
 - Major framework upgrades (TanStack Start, Vite, Nitro)
 
 Static analysis + unit tests + CI E2E all pass against shapes that can still crash in the real browser bundle. The right validation surface is a **preview deploy** (Fly review app), not a local `bun run start` — `.env.test.local` is intentionally missing prod vars.
@@ -47,7 +47,7 @@ Drive the preview URL with a real browser, watch the console, scan the rendered 
 - No `Failed to resolve import` or `Cannot read properties of undefined` in the browser console.
 - SSR hydration matches the client render for the changed routes.
 - Env validation passes during client hydration of pages that touch the modified config.
-- No `postgres-js` / `drizzle:entityKind` strings in the eager client chunks: `grep -lE 'postgres-js|drizzle:entityKind' .output/public/assets/main-*.js` returns nothing.
+- No `postgres-js` / `drizzle:entityKind` strings in the eager client chunks: `bun run check-client-leaks` after a build finds no driver, ORM or server-SDK markers in `.output/public`.
 
 ### Preview deploys are opt-in (`preview` label)
 
