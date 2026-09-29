@@ -1,6 +1,8 @@
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { object, picklist, safeParse, string } from "valibot";
+import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { BadRequestError } from "~/server/access/http-errors";
+import type { SessionUser } from "~/server/auth/auth";
 import type { UserRole } from "~/server/db/schema";
 
 // Mirror the schema's role union as a pure-valibot picklist so this file
@@ -25,19 +27,18 @@ function validateMakeAdmin(input: unknown) {
 }
 
 export const handleMakeUserAdmin = createServerOnlyFn(
-	async ({ data }: { data: { userId: string; role: UserRoleLiteral } }) => {
+	async ({ data, context }: { data: { userId: string; role: UserRoleLiteral }; context: { user: SessionUser } }) => {
 		const { userId, role } = data;
 
 		const { logger } = await import("~/utils/logger");
 		const { getUserById, updateUserRole } = await import("./user.db");
 		const { NotAuthorizedError, NotFoundError } = await import("~/server/access/http-errors");
-		const { requireAuthedUser, getOptionalSessionUser } = await import("~/server/auth/session");
+		const { getOptionalSessionUser } = await import("~/server/auth/session");
 		const { isRoleSelfServiceEnabled } = await import("~/server/access/role-self-service");
 
-		// requireAuthedUser handles the Playwright test-auth shortcut, the v1.134+
-		// getRequest() defensive try/catch, asResponse cookie forwarding, and the
-		// 401-on-no-session throw — all centralized in ~/server/auth/session.
-		const currentUser = await requireAuthedUser({ freshFromDb: true });
+		// freshAuthMiddleware already rejected anonymous callers (401) and read the
+		// role from the DB rather than the cookie cache.
+		const currentUser = context.user;
 		logger.info("makeUserAdmin", { userId, role, currentUserId: currentUser.id });
 
 		// Admins may change anyone's role. Everyone else may only flip their OWN
@@ -70,6 +71,7 @@ export const handleMakeUserAdmin = createServerOnlyFn(
 );
 
 export const makeUserAdmin = createServerFn({ method: "POST" })
+	.middleware([freshAuthMiddleware])
 	.validator(validateMakeAdmin)
 	.handler(handleMakeUserAdmin);
 
