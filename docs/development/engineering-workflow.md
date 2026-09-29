@@ -9,6 +9,8 @@ bun run check-types    # tsgo --noEmit
 bun run lint           # biome check --fix
 bun run check-tss-2    # bundle-leak check (createServerFn files only)
 bun run test:unit      # vitest
+bun run knip           # unused files, exports, dependencies (knip.jsonc)
+bun run scan:secrets   # Betterleaks over this branch's commits (needs betterleaks installed)
 bun run build          # production vite build (CI: .github/workflows/build.yml)
 ```
 

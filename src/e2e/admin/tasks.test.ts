@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { PLAYWRIGHT_ADMIN_USER } from "~/utils/test/playwright-users";
 import { AdminTaskFormPage } from "../pages/admin/task-form.page";
 import { AdminTasksListPage } from "../pages/admin/tasks-list.page";
 
@@ -38,14 +39,6 @@ import { AdminTasksListPage } from "../pages/admin/tasks-list.page";
  * - Tests use isolated test data via test-specific API endpoints
  */
 test.describe("Admin Tasks", () => {
-	// TODO consider using email login instead
-	test.beforeEach(async ({ context }) => {
-		// Set auth header for all requests in this test
-		await context.setExtraHTTPHeaders({
-			authorization: "playwright-admin-test-token",
-		});
-	});
-
 	test("shows admin task list page elements", async ({ page }) => {
 		const tasksListPage = new AdminTasksListPage(page);
 		await tasksListPage.goto();
@@ -104,5 +97,41 @@ test.describe("Admin Tasks", () => {
 		await expect(fields.description).toBeVisible();
 		await expect(fields.dueDate).toBeVisible();
 		await expect(fields.status).toBeVisible();
+	});
+
+	test("creates, updates and deletes a task", async ({ page }) => {
+		const taskFormPage = new AdminTaskFormPage(page);
+		const title = `E2E admin task ${Date.now()}`;
+		const updatedTitle = `${title} (updated)`;
+		const row = (text: string) => page.getByRole("row", { name: text });
+
+		// The admin form sets the owner explicitly; use the seeded admin's id
+		await page.goto("/admin/users");
+		await page.waitForLoadState("networkidle");
+		await page.getByRole("cell", { name: PLAYWRIGHT_ADMIN_USER.email }).click();
+		await page.waitForURL(/\/admin\/users\/usr_/);
+		const adminId = new URL(page.url()).pathname.split("/").pop() ?? "";
+
+		await taskFormPage.gotoAndWaitForReady();
+		await page.getByLabel("User ID").fill(adminId);
+		await taskFormPage.createTask({ title, description: "Created by e2e" });
+		await expect(page.getByText("Task created successfully")).toBeVisible();
+		await taskFormPage.waitForUrl("/admin/tasks");
+
+		await row(title).click();
+		await taskFormPage.waitForUrl(/\/admin\/tasks\/tsk_/);
+		const taskUrl = page.url();
+		await taskFormPage.waitForFormReady();
+		expect(await taskFormPage.getTitleValue()).toBe(title);
+
+		await taskFormPage.editTask({ title: updatedTitle });
+		await expect(page.getByText("Task updated successfully")).toBeVisible();
+
+		// Saving returns to the list, so reopen the task to delete it
+		await page.goto(taskUrl);
+		await page.waitForLoadState("networkidle");
+		await taskFormPage.delete();
+		await expect(page.getByText("Task deleted successfully")).toBeVisible();
+		await expect(row(updatedTitle)).toHaveCount(0);
 	});
 });

@@ -1,0 +1,36 @@
+name: Static Analysis
+
+on: [pull_request]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  static-analysis:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      # Unused files, exports and dependencies (knip.jsonc)
+      - name: knip
+        run: bun run knip
+
+      # Every spec under src/e2e belongs to a Playwright project (no browsers needed)
+      - name: E2E spec coverage
+        run: bun run check:e2e-specs

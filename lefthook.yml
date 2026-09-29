@@ -24,4 +24,6 @@ pre-commit:
       run: bun run check-stories
       fail_text: "❌ Missing Storybook stories detected! Components need stories for testing. Run 'bun run check-stories' to see which components need stories."
 
-
+    secrets:
+      # Skips with a warning until betterleaks is installed; CI still runs it
+      run: bun run scan:secrets --pre-commit
