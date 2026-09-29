@@ -38,7 +38,6 @@ import type { SessionUser } from "~/server/auth/auth";
 // destructured `const { fn } = await import(...)` captured the ORIGINAL
 // reference and won't see the spy. Calling `mod.fn()` keeps the indirection
 // so tests can intercept at the helper layer.
-// (See gell-v2 PR #190 R1 / SKILL.md "Vitest mock limitations".)
 
 export async function getOptionalSessionUser(opts?: { freshFromDb?: boolean }): Promise<SessionUser | null> {
 	const playwrightModule = await import("~/utils/test/playwright");

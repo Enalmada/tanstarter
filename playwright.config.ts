@@ -35,9 +35,9 @@ const config: PlaywrightTestConfig = {
 	// (one worker per logical core) multiple tests race the dep-optimization
 	// reload window the dev server hits on first request after a dep bump
 	// — every test in that 10-15s window flakes. 50% halves the race surface
-	// and aligns with gell-v2's ENG-220 lesson. Tracked as a follow-up to
-	// migrate CI to the production Nitro bundle (matches gell-v2 ENG-220),
-	// which would let us safely return to 100%.
+	// and matches what we saw on other TanStack Start projects. A follow-up is
+	// to run CI against the production Nitro bundle, which would let us safely
+	// return to 100%.
 	workers: isCI ? "50%" : "80%",
 	// Cold `vite dev` first-paint can land in the 10-15s range after a major
 	// dep bump (better-auth + tanstack family). 30s default left no headroom.

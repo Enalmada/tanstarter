@@ -599,7 +599,6 @@ If tests are flaky:
 - [Playwright Documentation](https://playwright.dev/docs/intro)
 - [Page Object Model Guide](https://playwright.dev/docs/pom)
 - [Best Practices](https://playwright.dev/docs/best-practices)
-- [FrontlineIQ POM Learnings](../../../POM_LEARNINGS_FROM_FRONTLINEIQ.md)
 
 ---
 

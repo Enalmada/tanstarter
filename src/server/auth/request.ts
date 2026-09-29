@@ -24,7 +24,6 @@ import "@tanstack/react-start/server-only";
 export async function getSessionRequest(): Promise<Request | null> {
 	// Namespace dynamic-import (not destructured) so unit tests can
 	// `vi.spyOn(module, "getRequest")` and have the spy intercept.
-	// See gell-v2 PR #190 R1 / SKILL.md "Vitest mock limitations".
 	const serverModule = await import("@tanstack/react-start/server");
 	try {
 		return serverModule.getRequest() ?? null;

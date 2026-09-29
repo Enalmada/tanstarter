@@ -28,9 +28,8 @@
  * body (and its dynamic imports of `~/server/*`) the Start compiler strips
  * from the client build.
  *
- * See the gell-v2 codebase (`src/functions/{find-first,find-many,
- * delete-entity,update-entity,create-entity}.ts` + `base-service.ts`)
- * for the canonical pattern this mirrors.
+ * The per-handler server functions (`find-first`, `find-many`, `delete-entity`,
+ * `update-entity`, `create-entity`) are the pattern this mirrors.
  */
 
 import { createServerOnlyFn } from "@tanstack/react-start";
