@@ -21,4 +21,19 @@ test.describe("Member Access", () => {
 		await page.goto("/signin");
 		await expect(page).toHaveURL(/\/tasks$/);
 	});
+
+	// Encoded separators must stay on this origin (server redirect on load, and the client router)
+	for (const target of [
+		"/%2f%2fevil.test",
+		"/%2F/evil.test",
+		"/%5cevil.test",
+		"/%09/evil.test",
+		"/..%2f..%2fevil.test",
+	]) {
+		test(`keeps ?redirect=${target} on this origin`, async ({ page }) => {
+			await page.goto(`/signin?redirect=${encodeURIComponent(target)}`);
+			await page.waitForLoadState("networkidle");
+			expect(new URL(page.url()).origin).toBe("http://localhost:3000");
+		});
+	}
 });
