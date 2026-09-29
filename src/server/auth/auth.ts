@@ -5,6 +5,7 @@ import { env } from "~/env";
 import db from "~/server/db";
 import * as schema from "~/server/db/schema";
 import { nanoString, type UserRole } from "~/server/db/schema";
+import { authIpAddress } from "./ip-address";
 import { authDisabledPaths, userAdditionalFields, userDatabaseHooks } from "./user-fields";
 
 export const auth = betterAuth({
@@ -56,6 +57,8 @@ export const auth = betterAuth({
 		modelName: "VerificationTable",
 	},
 	advanced: {
+		// Client IP for rate limiting comes from Fly's proxy header: see ./ip-address.
+		ipAddress: authIpAddress,
 		database: {
 			generateId: () => nanoString("usr"),
 		},
