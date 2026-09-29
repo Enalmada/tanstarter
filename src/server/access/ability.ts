@@ -1,4 +1,4 @@
-import { AbilityBuilder, createMongoAbility, type PureAbility } from "@casl/ability";
+import { AbilityBuilder, createMongoAbility, type MongoAbility } from "@casl/ability";
 import { ENTITY_TYPES } from "~/lib/entity-types";
 import type { SessionUser } from "~/server/auth/auth";
 import type { Task, UserRole } from "../db/schema";
@@ -13,7 +13,7 @@ export type SubjectType = (typeof ENTITY_TYPES)[number] | "all";
 
 type AppAbilities = [Action, SubjectType | { __caslSubjectType__: SubjectType } | Task];
 
-export type AppAbility = PureAbility<AppAbilities>;
+export type AppAbility = MongoAbility<AppAbilities>;
 
 type DefinePermissions = (user: SessionUser, builder: AbilityBuilder<AppAbility>) => void;
 
@@ -43,8 +43,7 @@ const rolePermissions: Record<Roles, DefinePermissions> = {
 };
 
 export function defineAbilitiesFor(user: SessionUser | undefined) {
-	// biome-ignore lint/suspicious/noExplicitAny: createMongoAbility type requires any
-	const builder = new AbilityBuilder<AppAbility>(createMongoAbility as any);
+	const builder = new AbilityBuilder<AppAbility>(createMongoAbility);
 
 	if (user) {
 		// Type assertion to tell TypeScript that user.role is definitely a valid key
