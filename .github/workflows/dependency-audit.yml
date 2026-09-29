@@ -1,0 +1,34 @@
+name: Dependency Audit
+
+# Fails on high/critical advisories in production dependencies, or critical ones
+# in any dependency (bun audit reads bun.lock; no install needed). Ported from
+# UseFrank/frank#41.
+#
+# Report-only for now: weekly + manual, not on pull requests. The current lock
+# has a backlog (mostly transitive vite 7 / ws / picomatch copies) that the
+# dependency-upgrade layers of the Sept 2026 update clear; add the
+# `pull_request` trigger (paths: package.json, bun.lock) once it is green.
+on:
+  schedule:
+    - cron: '0 14 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - run: bun run audit:deps

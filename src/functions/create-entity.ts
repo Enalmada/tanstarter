@@ -32,7 +32,8 @@ export async function handleCreateEntity({ data }: { data: { subject: EntityType
 	const { getUser, loadEntityConfig } = await import("~/functions/base-service");
 
 	const user = await getUser();
-	logger.info("createEntity", { data, userId: user.id });
+	// Metadata only: never log client-supplied values.
+	logger.info("createEntity", { subject: data.subject, fields: Object.keys(data.data ?? {}), userId: user.id });
 
 	const config = await loadEntityConfig();
 	const { subject, data: entityData } = data;
