@@ -17,13 +17,17 @@ if [ ! -d "$dir" ]; then
 	exit 2
 fi
 
-# Strings that only exist in the database driver, ORM and server SDKs.
+# Strings that only exist in the database driver, ORM and server SDKs, plus the
+# stub Vite emits when client code reaches a Node built-in (an unmarked server
+# module such as an SSE channel that pulls in node:events).
 markers='drizzle:entityKind
 neonConfig
 @neondatabase
 drizzle-orm/neon
 pg-pool
-posthog-node'
+posthog-node
+better-sse
+__vite-browser-external'
 
 status=0
 while IFS= read -r marker; do

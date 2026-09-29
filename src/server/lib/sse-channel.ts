@@ -5,6 +5,7 @@
  * Uses @enalmada/start-streaming library for standards-compliant SSE implementation.
  */
 
+import "@tanstack/react-start/server-only";
 import type { SSEEvent } from "@enalmada/start-streaming";
 import { createSSEChannelManager } from "@enalmada/start-streaming/server";
 
