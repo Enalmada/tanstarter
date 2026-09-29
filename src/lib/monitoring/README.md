@@ -1,4 +1,4 @@
-# Error Monitoring
+# Monitoring
 
 Errors go to [PostHog error tracking](https://posthog.com/docs/error-tracking), the same project as product analytics. The `ErrorMonitor` interface (`types.ts`) keeps call sites provider-agnostic.
 
@@ -63,6 +63,15 @@ captureServerException(error, { properties: { source: "cron" } });
 ```
 
 Import it dynamically from anything reachable from a client route (TSS-2).
+
+## Logging
+
+`logger` (`src/utils/logger.ts`, server only) writes structured lines: `logger.info`, `logger.error` and, in development only, `logger.debug`. Log ids and metadata, never request bodies, tokens or personal data.
+
+- **Development** (`APP_ENV=development`): console only. A local `.env` with an Axiom token never ships logs.
+- **Elsewhere**, with `AXIOM_TOKEN` and `AXIOM_DATASET_NAME` set: events are batched to Axiom about once a second, and info goes only there. Error lines also always go to the console, so Fly's log stream keeps them when Axiom is unreachable. Set `AXIOM_URL` for an EU-region dataset (for example `https://api.eu.axiom.co`).
+- **Failures:** Axiom's `ingest` returns nothing, so there is no promise to catch. Send failures land in the client's `onError`, which writes one `Axiom ingest failed` console line.
+- **Shutdown:** the Nitro `close` hook (`src/server/monitoring/nitro-plugin.ts`) flushes the queue and PostHog together, capped at 3 seconds so it fits inside Fly's 5 second kill timeout. `auto_stop_machines = 'suspend'` freezes the process instead, so queued events go out late, not lost.
 
 ## Testing
 

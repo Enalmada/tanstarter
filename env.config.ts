@@ -52,6 +52,8 @@ export default defineEnv({
 		DB_MAX_RETRIES: v.optional(v.pipe(v.string(), v.transform(Number), v.number())),
 		AXIOM_DATASET_NAME: v.optional(v.string()),
 		AXIOM_TOKEN: v.optional(v.string()),
+		// Axiom API base URL, for an EU-region dataset (https://api.eu.axiom.co) or a local stub
+		AXIOM_URL: v.optional(v.string()),
 		// Comma-separated emails promoted to ADMIN when their account is first
 		// created by a verified (OAuth) sign-in. See src/server/auth/admin-emails.ts.
 		ADMIN_EMAILS: v.optional(v.string()),
