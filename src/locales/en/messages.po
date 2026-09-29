@@ -13,6 +13,155 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: app/routes/index.tsx:27
-msgid "Go to Dashboard"
-msgstr "Go to Dashboard"
+#: src/routes/index.tsx
+msgid "{FEATURE_COUNT, plural, one {# feature} other {# features}}"
+msgstr "{FEATURE_COUNT, plural, one {# feature} other {# features}}"
+
+#: src/routes/index.tsx
+msgid "A modern, type-safe todo application built with TanStack Start."
+msgstr "A modern, type-safe todo application built with TanStack Start."
+
+#: src/components/Navbar.tsx
+msgid "Admin"
+msgstr "Admin"
+
+#: src/routes/index.tsx
+msgid "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui components."
+msgstr "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui components."
+
+#: src/routes/signin.tsx
+msgid "Continue with Google"
+msgstr "Continue with Google"
+
+#: src/routes/signin.tsx
+msgid "Don't have an account? Sign up"
+msgstr "Don't have an account? Sign up"
+
+#: src/routes/signin.tsx
+msgid "Email"
+msgstr "Email"
+
+#: src/routes/index.tsx
+msgid "End-to-end type safety with TypeScript, Drizzle ORM, and Valibot validation."
+msgstr "End-to-end type safety with TypeScript, Drizzle ORM, and Valibot validation."
+
+#: src/routes/signin.tsx
+msgid "Enter your email"
+msgstr "Enter your email"
+
+#: src/routes/signin.tsx
+msgid "Enter your password"
+msgstr "Enter your password"
+
+#: src/routes/index.tsx
+msgid "Fast refresh, automatic type generation, and error handling."
+msgstr "Fast refresh, automatic type generation, and error handling."
+
+#: src/routes/index.tsx
+msgid "Features"
+msgstr "Features"
+
+#: src/routes/index.tsx
+msgid "Get Started"
+msgstr "Get Started"
+
+#: src/routes/index.tsx
+msgid "Great DX"
+msgstr "Great DX"
+
+#: src/routes/signin.tsx
+msgid "Incorrect password. Please try again."
+msgstr "Incorrect password. Please try again."
+
+#: src/routes/signin.tsx
+msgid "Invalid password"
+msgstr "Invalid password"
+
+#: src/components/LocaleSwitcher.tsx
+msgid "Language"
+msgstr "Language"
+
+#: src/routes/signin.tsx
+msgid "Loading..."
+msgstr "Loading..."
+
+#: src/routes/index.tsx
+msgid "Modern Stack"
+msgstr "Modern Stack"
+
+#: src/routes/signin.tsx
+msgid "Need an account?"
+msgstr "Need an account?"
+
+#: src/components/Navbar.tsx
+msgid "New Task"
+msgstr "New Task"
+
+#: src/routes/signin.tsx
+msgid "No account found with this email or password combination."
+msgstr "No account found with this email or password combination."
+
+#: src/routes/signin.tsx
+msgid "Or continue with"
+msgstr "Or continue with"
+
+#: src/routes/signin.tsx
+msgid "Password"
+msgstr "Password"
+
+#: src/routes/signin.tsx
+msgid "Password must be at least 8 characters"
+msgstr "Password must be at least 8 characters"
+
+#: src/routes/signin.tsx
+msgid "Please enter a valid email address"
+msgstr "Please enter a valid email address"
+
+#: src/components/Navbar.tsx
+msgid "Profile"
+msgstr "Profile"
+
+#: src/components/Navbar.tsx
+#: src/routes/signin.tsx
+msgid "Sign in"
+msgstr "Sign in"
+
+#: src/routes/signin.tsx
+msgid "Sign in failed. Please check your credentials and try again."
+msgstr "Sign in failed. Please check your credentials and try again."
+
+#: src/routes/signin.tsx
+msgid "Sign in failed. Please check your email and password."
+msgstr "Sign in failed. Please check your email and password."
+
+#: src/routes/signin.tsx
+msgid "Sign in to access your tasks"
+msgstr "Sign in to access your tasks"
+
+#: src/components/Navbar.tsx
+msgid "Sign out"
+msgstr "Sign out"
+
+#: src/routes/signin.tsx
+msgid "Sign up here"
+msgstr "Sign up here"
+
+#: src/routes/signin.tsx
+msgid "Signing in..."
+msgstr "Signing in..."
+
+#: src/routes/index.tsx
+msgid "TanStarter Todo"
+msgstr "TanStarter Todo"
+
+#: src/routes/index.tsx
+msgid "Type Safety"
+msgstr "Type Safety"
+
+#: src/routes/index.tsx
+msgid "View on GitHub"
+msgstr "View on GitHub"
+
+#: src/routes/signin.tsx
+msgid "Welcome back!"
+msgstr "Welcome back!"

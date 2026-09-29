@@ -1,5 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { lingui, linguiTransformerBabelPreset } from "@lingui/vite-plugin";
+import babel from "@rolldown/plugin-babel";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
@@ -13,6 +15,7 @@ export default defineConfig({
 		projects: [
 			// Unit tests project
 			{
+				plugins: [babel({ presets: [linguiTransformerBabelPreset()] }), lingui()],
 				resolve: {
 					alias: {
 						"~": path.resolve(__dirname, "./src"),
@@ -30,7 +33,11 @@ export default defineConfig({
 			},
 			// Storybook tests project
 			{
-				plugins: [storybookTest({ configDir: path.join(__dirname, ".storybook") })],
+				plugins: [
+					babel({ presets: [linguiTransformerBabelPreset()] }),
+					lingui(),
+					storybookTest({ configDir: path.join(__dirname, ".storybook") }),
+				],
 				resolve: {
 					alias: {
 						"~/functions/session": path.resolve(__dirname, "./src/storybook/MockServerFunctions.ts"),
@@ -63,6 +70,8 @@ export default defineConfig({
 				optimizeDeps: {
 					include: [
 						"@storybook/react",
+						"@lingui/core",
+						"@lingui/react",
 						"react/jsx-dev-runtime",
 						"@tanstack/react-query",
 						"react",

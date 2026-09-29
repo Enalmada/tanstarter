@@ -8,7 +8,7 @@
  * 1. Creates query client for server-state management
  * 2. Configures router with routes, context, and defaults
  * 3. Integrates CSP nonce for script execution security
- * 4. Sets up error boundaries and i18n wrapper
+ * 4. Sets up error boundaries and the per-request i18n instance (src/lib/i18n)
  *
  * ## CSP Nonce Integration
  *
@@ -123,12 +123,11 @@
  * - Docs: https://github.com/Enalmada/start-secure
  */
 
-import { i18n } from "@lingui/core";
-import { I18nProvider } from "@lingui/react";
+import { type I18n, setupI18n } from "@lingui/core";
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
-import type { ReactNode } from "react";
+import { routerWithLingui } from "~/lib/i18n/router-plugin";
 import type { SessionUser } from "~/utils/auth-client";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
 import { NotFound } from "./components/NotFound";
@@ -158,21 +157,27 @@ declare module "@tanstack/react-router" {
 interface RouterContext {
 	queryClient: QueryClient;
 	user: SessionUser | null | undefined;
+	i18n: I18n;
 }
 
 export async function getRouter() {
-	// Get nonce on server (client doesn't need it, uses meta tag)
+	// Nonce and the per-request i18n instance come from the start context on the
+	// server. The client needs no nonce (it uses the meta tag) and builds an empty
+	// i18n instance that routerWithLingui hydrates from the dehydrated catalog.
 	let nonce: string | undefined;
+	let i18n: I18n | undefined;
 	if (typeof window === "undefined") {
 		try {
 			// Dynamic import ensures server-only code stays out of client bundle
 			const { getStartContext } = await import("@tanstack/start-storage-context");
 			const context = getStartContext();
 			nonce = context.contextAfterGlobalMiddlewares?.nonce;
+			i18n = context.contextAfterGlobalMiddlewares?.i18n;
 		} catch (_error) {
 			nonce = undefined;
 		}
 	}
+	i18n ??= setupI18n();
 
 	const queryClient = new QueryClient({
 		defaultOptions: {
@@ -187,7 +192,7 @@ export async function getRouter() {
 
 	const router = createRouter({
 		routeTree,
-		context: { queryClient, user: undefined } as RouterContext,
+		context: { queryClient, user: undefined, i18n } as RouterContext,
 		defaultPreload: "intent",
 		// TODO: confirm this is the best approach
 		// react-query will handle data fetching & caching
@@ -197,7 +202,6 @@ export async function getRouter() {
 		defaultNotFoundComponent: NotFound,
 		scrollRestoration: true,
 		defaultStructuralSharing: true,
-		Wrap: ({ children }: { children: ReactNode }) => <I18nProvider i18n={i18n}>{children}</I18nProvider>,
 
 		/**
 		 * CSP Nonce Support - Critical for Security
@@ -265,5 +269,5 @@ export async function getRouter() {
 		wrapQueryClient: true,
 	});
 
-	return router;
+	return routerWithLingui(router, i18n);
 }

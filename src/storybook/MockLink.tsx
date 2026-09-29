@@ -24,6 +24,7 @@ export function Link({ children, className, to, ...props }: SimpleLinkProps) {
 export function useRouter() {
 	return {
 		navigate: () => Promise.resolve(),
+		invalidate: () => Promise.resolve(),
 		state: { location: { pathname: "/" } },
 		store: {
 			__store: {},

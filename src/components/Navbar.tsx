@@ -4,8 +4,10 @@
  * Includes responsive design with mobile menu
  */
 
+import { Trans } from "@lingui/react/macro";
 import { Link } from "@tanstack/react-router";
 import { useId } from "react";
+import { LocaleSwitcher } from "~/components/LocaleSwitcher";
 import ThemeToggle from "~/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { buttonVariants } from "~/components/ui/button";
@@ -51,6 +53,7 @@ export function Navbar({ user }: NavbarProps) {
 			</Link>
 
 			<div className="flex items-center gap-4">
+				<LocaleSwitcher />
 				<ThemeToggle />
 
 				{user ? (
@@ -71,24 +74,28 @@ export function Navbar({ user }: NavbarProps) {
 								</DropdownMenuGroup>
 								<DropdownMenuSeparator />
 								<DropdownMenuGroup>
-									<DropdownMenuItem render={<Link to="/profile" />}>Profile</DropdownMenuItem>
+									<DropdownMenuItem render={<Link to="/profile" />}>
+										<Trans>Profile</Trans>
+									</DropdownMenuItem>
 									{user.role === UserRole.ADMIN && (
-										<DropdownMenuItem render={<Link to="/admin" />}>Admin</DropdownMenuItem>
+										<DropdownMenuItem render={<Link to="/admin" />}>
+											<Trans>Admin</Trans>
+										</DropdownMenuItem>
 									)}
 									<DropdownMenuItem className="text-destructive" render={<Link to="/signout" />}>
-										Sign out
+										<Trans>Sign out</Trans>
 									</DropdownMenuItem>
 								</DropdownMenuGroup>
 							</DropdownMenuContent>
 						</DropdownMenu>
 
 						<Link to="/tasks/new" className={buttonVariants()}>
-							New Task
+							<Trans>New Task</Trans>
 						</Link>
 					</>
 				) : (
 					<Link to="/signin" className={buttonVariants()}>
-						Sign in
+						<Trans>Sign in</Trans>
 					</Link>
 				)}
 			</div>
