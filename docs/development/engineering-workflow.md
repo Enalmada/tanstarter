@@ -32,7 +32,7 @@ Static analysis + unit tests + CI E2E all pass against shapes that can still cra
 
 Drive the preview URL with a real browser, watch the console, scan the rendered DOM. Hypotheses worth verifying:
 
-- `typeof Buffer === "undefined"` while the UI renders cleanly (validates the dynamic-import layer is the only bundle-leak defense, not a `vite.config.ts` `Buffer` shim).
+- `typeof Buffer === "undefined"` while the UI renders cleanly (validates the dynamic-import layer and the server-only markers (with `bun run check-client-leaks`) are the bundle-leak defense, not a `vite.config.ts` `Buffer` shim).
 - No `Failed to resolve import` or `Cannot read properties of undefined` in the browser console.
 - SSR hydration matches the client render for the changed routes.
 - Env validation passes during client hydration of pages that touch the modified config.

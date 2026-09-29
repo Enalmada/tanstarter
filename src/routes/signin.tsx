@@ -116,8 +116,8 @@ function SigninForm() {
 					throw new Error(error.message || error.code || "Authentication failed");
 				}
 
-				// Success: better-auth sets the session cookie but does not redirect after email sign-up, so go to the
-				// app explicitly with a document load (fresh session context, caches and analytics identity)
+				// Success: better-auth already redirects to callbackURL for sign-in; navigating explicitly with a
+				// document load keeps this form the same as sign-up (fresh session context, caches, analytics identity)
 				await router.navigate({ to: "/tasks", reloadDocument: true });
 			} catch (err) {
 				setIsLoading(false);

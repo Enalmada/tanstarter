@@ -5,7 +5,9 @@ import { SignInPage, SignUpPage } from "../pages/public/auth.page";
  * Real better-auth flow: this project sends no test token, so sign-up, sign-in,
  * sessions and sign-out all go through better-auth and the database adapter
  * (the member and admin projects authenticate with a token header instead).
- * Each test creates its own throwaway user.
+ * One throwaway user per group run (new on every retry, so a retry never hits "user
+ * already exists"). Users are removed by `bun run drizzle:seed`, which the Playwright
+ * webServer command runs on a cold start; with a reused dev server they linger until then.
  */
 function newUser() {
 	const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -15,7 +17,11 @@ function newUser() {
 test.describe.configure({ mode: "serial" });
 
 test.describe("Email and password auth", () => {
-	const user = newUser();
+	let user: ReturnType<typeof newUser>;
+
+	test.beforeAll(() => {
+		user = newUser();
+	});
 
 	test("signs up, lands on tasks and has a database-backed session", async ({ page }) => {
 		const signUp = new SignUpPage(page);

@@ -183,7 +183,7 @@ The global default mock in `src/test/setup.ts` also returns this duck-typed shap
 
 Two mechanical checks replaced the old source-grep script (`check-tss-2.sh`, retired):
 
-- **Markers.** `import "@tanstack/react-start/server-only"` at the top of `~/server/db`, `~/server/auth/{auth,session,request}`, `~/server/access/{ability,check,write-guard,read-filter}`, `~/functions/user.db`, `~/utils/logger` and `~/server/monitoring/posthog`. Start's import protection fails the client build with the import chain when client code reaches one (Storybook removes the Start plugins, so it has no such check; it only fails if the module cannot bundle for the browser). Do **not** mark modules `src/start.ts` imports (they are in the client bundle too), or `db/schema/*` (stories and drizzle-kit load it).
+- **Markers.** `import "@tanstack/react-start/server-only"` at the top of `~/server/db`, `~/server/auth/{auth,session,request}`, `~/server/access/{ability,check,write-guard,read-filter}`, `~/functions/user.db`, `~/server/lib/sse-channel`, `~/utils/logger` and `~/server/monitoring/posthog`. Start's import protection fails the client build with the import chain when client code reaches one (Storybook removes the Start plugins, so it has no such check; it only fails if the module cannot bundle for the browser). Do **not** mark modules `src/start.ts` imports (they are in the client bundle too), or `db/schema/*` (stories and drizzle-kit load it).
 - **Output check.** `bun run check-client-leaks` (CI: the Build workflow) greps `.output/public` for driver, ORM and server-SDK markers.
 
 Convention is unchanged: a `createServerFn` file imports server code dynamically inside the handler.
