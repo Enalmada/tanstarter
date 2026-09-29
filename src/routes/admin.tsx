@@ -12,7 +12,7 @@ export const Route = createFileRoute("/admin")({
 			throw redirect({
 				to: "/signin",
 				search: {
-					returnTo: location.pathname,
+					redirect: location.href,
 				},
 			});
 		}

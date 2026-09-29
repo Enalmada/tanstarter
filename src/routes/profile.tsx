@@ -13,11 +13,11 @@ import { UserRole } from "~/lib/enums/user-role";
 
 export const Route = createFileRoute("/profile")({
 	component: ProfilePage,
-	beforeLoad: async ({ context }) => {
+	beforeLoad: async ({ context, location }) => {
 		const user = context.user;
 
 		if (!user) {
-			throw redirect({ to: "/signin" });
+			throw redirect({ to: "/signin", search: { redirect: location.href } });
 		}
 	},
 	loader: async () => ({

@@ -10,15 +10,16 @@
 
 import { Route as rootRouteImport } from "./routes/__root";
 import { Route as IndexRouteImport } from "./routes/index";
+import { Route as GuestRouteRouteImport } from "./routes/_guest/route";
 import { Route as AdminRouteImport } from "./routes/admin";
 import { Route as HealthRouteImport } from "./routes/health";
 import { Route as PrivacyRouteImport } from "./routes/privacy";
 import { Route as ProfileRouteImport } from "./routes/profile";
-import { Route as SigninRouteImport } from "./routes/signin";
 import { Route as SignoutRouteImport } from "./routes/signout";
-import { Route as SignupRouteImport } from "./routes/signup";
 import { Route as TasksRouteImport } from "./routes/tasks";
 import { Route as TermsRouteImport } from "./routes/terms";
+import { Route as GuestSigninRouteImport } from "./routes/_guest/signin";
+import { Route as GuestSignupRouteImport } from "./routes/_guest/signup";
 import { Route as AdminIndexRouteImport } from "./routes/admin/index";
 import { Route as DebugMonitoringRouteImport } from "./routes/debug/monitoring";
 import { Route as DebugStreamingSseRouteImport } from "./routes/debug/streaming-sse";
@@ -37,6 +38,10 @@ import { Route as ApiSseNotificationsRouteImport } from "./routes/api/sse/notifi
 const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const GuestRouteRoute = GuestRouteRouteImport.update({
+  id: "/_guest",
   getParentRoute: () => rootRouteImport,
 } as any);
 const AdminRoute = AdminRouteImport.update({
@@ -59,19 +64,9 @@ const ProfileRoute = ProfileRouteImport.update({
   path: "/profile",
   getParentRoute: () => rootRouteImport,
 } as any);
-const SigninRoute = SigninRouteImport.update({
-  id: "/signin",
-  path: "/signin",
-  getParentRoute: () => rootRouteImport,
-} as any);
 const SignoutRoute = SignoutRouteImport.update({
   id: "/signout",
   path: "/signout",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const SignupRoute = SignupRouteImport.update({
-  id: "/signup",
-  path: "/signup",
   getParentRoute: () => rootRouteImport,
 } as any);
 const TasksRoute = TasksRouteImport.update({
@@ -83,6 +78,16 @@ const TermsRoute = TermsRouteImport.update({
   id: "/terms",
   path: "/terms",
   getParentRoute: () => rootRouteImport,
+} as any);
+const GuestSigninRoute = GuestSigninRouteImport.update({
+  id: "/signin",
+  path: "/signin",
+  getParentRoute: () => GuestRouteRoute,
+} as any);
+const GuestSignupRoute = GuestSignupRouteImport.update({
+  id: "/signup",
+  path: "/signup",
+  getParentRoute: () => GuestRouteRoute,
 } as any);
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: "/",
@@ -161,11 +166,11 @@ export interface FileRoutesByFullPath {
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
   "/profile": typeof ProfileRoute;
-  "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
-  "/signup": typeof SignupRoute;
   "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
+  "/signin": typeof GuestSigninRoute;
+  "/signup": typeof GuestSignupRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
   "/debug/streaming-sse": typeof DebugStreamingSseRoute;
   "/tasks/$taskId": typeof TasksTaskIdRoute;
@@ -186,10 +191,10 @@ export interface FileRoutesByTo {
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
   "/profile": typeof ProfileRoute;
-  "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
-  "/signup": typeof SignupRoute;
   "/terms": typeof TermsRoute;
+  "/signin": typeof GuestSigninRoute;
+  "/signup": typeof GuestSignupRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
   "/debug/streaming-sse": typeof DebugStreamingSseRoute;
   "/tasks/$taskId": typeof TasksTaskIdRoute;
@@ -208,15 +213,16 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/": typeof IndexRoute;
+  "/_guest": typeof GuestRouteRouteWithChildren;
   "/admin": typeof AdminRouteWithChildren;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
   "/profile": typeof ProfileRoute;
-  "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
-  "/signup": typeof SignupRoute;
   "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
+  "/_guest/signin": typeof GuestSigninRoute;
+  "/_guest/signup": typeof GuestSignupRoute;
   "/debug/monitoring": typeof DebugMonitoringRoute;
   "/debug/streaming-sse": typeof DebugStreamingSseRoute;
   "/tasks/$taskId": typeof TasksTaskIdRoute;
@@ -240,11 +246,11 @@ export interface FileRouteTypes {
     | "/health"
     | "/privacy"
     | "/profile"
-    | "/signin"
     | "/signout"
-    | "/signup"
     | "/tasks"
     | "/terms"
+    | "/signin"
+    | "/signup"
     | "/debug/monitoring"
     | "/debug/streaming-sse"
     | "/tasks/$taskId"
@@ -265,10 +271,10 @@ export interface FileRouteTypes {
     | "/health"
     | "/privacy"
     | "/profile"
-    | "/signin"
     | "/signout"
-    | "/signup"
     | "/terms"
+    | "/signin"
+    | "/signup"
     | "/debug/monitoring"
     | "/debug/streaming-sse"
     | "/tasks/$taskId"
@@ -286,15 +292,16 @@ export interface FileRouteTypes {
   id:
     | "__root__"
     | "/"
+    | "/_guest"
     | "/admin"
     | "/health"
     | "/privacy"
     | "/profile"
-    | "/signin"
     | "/signout"
-    | "/signup"
     | "/tasks"
     | "/terms"
+    | "/_guest/signin"
+    | "/_guest/signup"
     | "/debug/monitoring"
     | "/debug/streaming-sse"
     | "/tasks/$taskId"
@@ -313,13 +320,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
+  GuestRouteRoute: typeof GuestRouteRouteWithChildren;
   AdminRoute: typeof AdminRouteWithChildren;
   HealthRoute: typeof HealthRoute;
   PrivacyRoute: typeof PrivacyRoute;
   ProfileRoute: typeof ProfileRoute;
-  SigninRoute: typeof SigninRoute;
   SignoutRoute: typeof SignoutRoute;
-  SignupRoute: typeof SignupRoute;
   TasksRoute: typeof TasksRouteWithChildren;
   TermsRoute: typeof TermsRoute;
   DebugMonitoringRoute: typeof DebugMonitoringRoute;
@@ -335,6 +341,13 @@ declare module "@tanstack/react-router" {
       path: "/";
       fullPath: "/";
       preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_guest": {
+      id: "/_guest";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof GuestRouteRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/admin": {
@@ -365,25 +378,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ProfileRouteImport;
       parentRoute: typeof rootRouteImport;
     };
-    "/signin": {
-      id: "/signin";
-      path: "/signin";
-      fullPath: "/signin";
-      preLoaderRoute: typeof SigninRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
     "/signout": {
       id: "/signout";
       path: "/signout";
       fullPath: "/signout";
       preLoaderRoute: typeof SignoutRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/signup": {
-      id: "/signup";
-      path: "/signup";
-      fullPath: "/signup";
-      preLoaderRoute: typeof SignupRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/tasks": {
@@ -399,6 +398,20 @@ declare module "@tanstack/react-router" {
       fullPath: "/terms";
       preLoaderRoute: typeof TermsRouteImport;
       parentRoute: typeof rootRouteImport;
+    };
+    "/_guest/signin": {
+      id: "/_guest/signin";
+      path: "/signin";
+      fullPath: "/signin";
+      preLoaderRoute: typeof GuestSigninRouteImport;
+      parentRoute: typeof GuestRouteRoute;
+    };
+    "/_guest/signup": {
+      id: "/_guest/signup";
+      path: "/signup";
+      fullPath: "/signup";
+      preLoaderRoute: typeof GuestSignupRouteImport;
+      parentRoute: typeof GuestRouteRoute;
     };
     "/admin/": {
       id: "/admin/";
@@ -501,6 +514,20 @@ declare module "@tanstack/react-router" {
   }
 }
 
+interface GuestRouteRouteChildren {
+  GuestSigninRoute: typeof GuestSigninRoute;
+  GuestSignupRoute: typeof GuestSignupRoute;
+}
+
+const GuestRouteRouteChildren: GuestRouteRouteChildren = {
+  GuestSigninRoute: GuestSigninRoute,
+  GuestSignupRoute: GuestSignupRoute,
+};
+
+const GuestRouteRouteWithChildren = GuestRouteRoute._addFileChildren(
+  GuestRouteRouteChildren,
+);
+
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute;
   AdminEmailsWelcomeRoute: typeof AdminEmailsWelcomeRoute;
@@ -539,13 +566,12 @@ const TasksRouteWithChildren = TasksRoute._addFileChildren(TasksRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GuestRouteRoute: GuestRouteRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   HealthRoute: HealthRoute,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
-  SigninRoute: SigninRoute,
   SignoutRoute: SignoutRoute,
-  SignupRoute: SignupRoute,
   TasksRoute: TasksRouteWithChildren,
   TermsRoute: TermsRoute,
   DebugMonitoringRoute: DebugMonitoringRoute,

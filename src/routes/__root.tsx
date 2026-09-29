@@ -92,7 +92,7 @@ export const Route = createRootRouteWithContext<{
 		const isProtectedRoute = location.pathname.startsWith("/tasks") || location.pathname.startsWith("/admin");
 
 		if (isProtectedRoute && !user) {
-			throw redirect({ to: "/signin" });
+			throw redirect({ to: "/signin", search: { redirect: location.href } });
 		}
 
 		return { user };
