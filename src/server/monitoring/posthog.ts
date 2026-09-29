@@ -9,6 +9,7 @@
  * Nitro plugin and the SSR bundle can each get their own copy of this module.
  */
 
+import "@tanstack/react-start/server-only";
 import { PostHog } from "posthog-node";
 import { env, getAppEnv, shouldReportErrors } from "~/env";
 import { getRelease } from "~/lib/env/release";

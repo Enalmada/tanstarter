@@ -8,6 +8,7 @@
  * row changed underneath the caller.
  */
 
+import "@tanstack/react-start/server-only";
 import { and, eq, getColumns, isNull, type SQL } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 

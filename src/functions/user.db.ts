@@ -1,3 +1,4 @@
+import "@tanstack/react-start/server-only";
 import { eq } from "drizzle-orm";
 import db from "~/server/db";
 import { type UserRole, UserTable } from "~/server/db/schema";

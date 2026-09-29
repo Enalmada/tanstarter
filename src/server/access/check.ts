@@ -1,3 +1,4 @@
+import "@tanstack/react-start/server-only";
 import type { SessionUser } from "~/server/auth/auth";
 import { type Action, defineAbilitiesFor, type SubjectType } from "./ability";
 // Re-export from the central HTTP error vocabulary so callers keep importing

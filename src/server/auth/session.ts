@@ -29,6 +29,7 @@
  * client route (v1.167+ import-protection plugin).
  */
 
+import "@tanstack/react-start/server-only";
 import type { SessionUser } from "~/server/auth/auth";
 
 // All cross-module calls below go through the IMPORTED MODULE NAMESPACE, not

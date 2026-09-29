@@ -17,6 +17,7 @@
  * Server-only (imports CASL) — dynamic-import it from handlers.
  */
 
+import "@tanstack/react-start/server-only";
 import type { EntityType } from "~/lib/entity-types";
 import type { SessionUser } from "~/server/auth/auth";
 import { defineAbilitiesFor } from "./ability";
