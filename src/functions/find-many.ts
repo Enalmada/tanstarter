@@ -25,21 +25,28 @@ function validateFindManyInput(input: unknown): FindEntityPayload {
 }
 
 export async function handleFindMany({ data }: { data: FindEntityPayload }) {
+	const { getColumns } = await import("drizzle-orm");
 	const { accessCheck } = await import("~/server/access/check");
 	const { logger } = await import("~/utils/logger");
 	const { buildWhereClause } = await import("~/server/db/DrizzleOrm");
 	const { getUser, loadEntityConfig } = await import("~/functions/base-service");
+	const { assertSafeWhere, assertSafeWith, filterReadableRows } = await import("~/server/access/read-filter");
 
 	const user = await getUser();
 	logger.info("findMany", { data, userId: user.id });
 
 	const config = await loadEntityConfig();
 	const { table, query } = config[data.subject];
+	assertSafeWhere(data.where, Object.keys(getColumns(table)));
+	assertSafeWith(data.subject, data.with);
 	const whereList = buildWhereClause(table, data.where);
 
+	// Plain-equality `where` (enforced above) is what the CASL `list` rule
+	// can reason about; each returned row is still re-checked with `read`.
 	accessCheck(user, "list", data.subject, data.where);
 
-	return query.findMany({ where: whereList, with: data.with });
+	const rows = await query.findMany({ where: whereList, with: data.with });
+	return filterReadableRows(user, data.subject, rows, data.with);
 }
 
 export const findMany = createServerFn({ method: "GET" }).inputValidator(validateFindManyInput).handler(handleFindMany);

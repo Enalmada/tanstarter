@@ -5,6 +5,7 @@ import { env } from "~/env";
 import db from "~/server/db";
 import * as schema from "~/server/db/schema";
 import { nanoString, type UserRole } from "~/server/db/schema";
+import { authDisabledPaths, userAdditionalFields, userDatabaseHooks } from "./user-fields";
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
@@ -36,13 +37,11 @@ export const auth = betterAuth({
 	trustedOrigins: [env.PUBLIC_APP_URL || "http://localhost:3000"],
 	user: {
 		modelName: "UserTable",
-		additionalFields: {
-			role: {
-				type: "string",
-				defaultValue: "MEMBER",
-			},
-		},
+		// Server-owned fields, ADMIN_EMAILS hook and disabled paths: see ./user-fields.
+		additionalFields: userAdditionalFields,
 	},
+	databaseHooks: userDatabaseHooks,
+	disabledPaths: authDisabledPaths,
 	session: {
 		modelName: "SessionTable",
 		cookieCache: {

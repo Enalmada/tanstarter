@@ -54,14 +54,8 @@ export interface UpdateEntityPayload extends BaseEntityPayload {
 
 export interface FindEntityPayload extends BaseEntityPayload {
 	where?: Record<string, unknown>;
-	with?: {
-		[key: string]:
-			| true
-			| {
-					where?: Record<string, unknown>;
-					with?: Record<string, true>;
-			  };
-	};
+	/** Relation names from `READABLE_RELATIONS` (~/server/access/read-filter), one level deep. */
+	with?: Record<string, true>;
 }
 
 // -----------------------------------------------------------------------------

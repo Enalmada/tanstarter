@@ -335,6 +335,17 @@ export async function getActiveDiscussions() { /* ... */ }
 export async function getDiscussionById(id: string) { /* ... */ }
 ```
 
+## Generic CRUD handlers (`find-first`, `find-many`, `update-entity`, `delete-entity`)
+
+These take client-supplied queries, so they are locked down in `~/server/access/read-filter.ts`:
+
+- `where` accepts only plain equality on real columns. Operators, `OR`/`AND`/`NOT`/`RAW` and relation filters are rejected with `BadRequestError`.
+- `with` accepts only relations listed in `READABLE_RELATIONS`, one level deep, as `true`. Never add `accounts` or `sessions` (password hashes, OAuth and session tokens).
+- Every returned row, and every loaded relation row, is checked against CASL `read`. Rows the caller cannot read come back as `NotFoundError` (single) or are dropped (lists), so existence is not leaked.
+- Updates check `update` against both the stored row and the merged row, so a member cannot move a task to another user. `id`, `createdAt`, `createdById` and `emailVerified` are always stripped from the patch.
+
+When adding a relation or subject, extend `READABLE_RELATIONS` and add a case to `src/functions/__tests__/crud-authz.test.ts`.
+
 ## Questions?
 
 Refer to this guide and the reference implementations listed above for guidance on data access layer patterns.

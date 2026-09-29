@@ -20,6 +20,18 @@ export default defineEnv({
 		AXIOM_DATASET_NAME: v.optional(v.string()),
 		AXIOM_TOKEN: v.optional(v.string()),
 		ROLLBAR_SERVER_TOKEN: v.optional(v.string()),
+		// Comma-separated emails promoted to ADMIN when their account is first
+		// created by a verified (OAuth) sign-in. See src/server/auth/admin-emails.ts.
+		ADMIN_EMAILS: v.optional(v.string()),
+		// "true" re-enables the profile page's self-service role toggle outside
+		// local dev (public demo sites). Gives every signed-in visitor admin —
+		// only use with a throwaway database.
+		DEMO_MODE: v.optional(
+			v.pipe(
+				v.picklist(["true", "false"]),
+				v.transform((value) => value === "true"),
+			),
+		),
 	},
 
 	// Client-side environment variables (prefixed with PUBLIC_)
