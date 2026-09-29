@@ -152,7 +152,6 @@ vi.mock("~/env", () => {
 		default: {
 			DATABASE_URL: "test-db-url",
 			DATABASE_AUTH_TOKEN: "test-token",
-			AXIOM_TOKEN: "test-axiom-token",
 		},
 		buildEnv: {
 			isDev: false,
@@ -161,8 +160,9 @@ vi.mock("~/env", () => {
 		env: {
 			DATABASE_URL: "test-db-url",
 			DATABASE_AUTH_TOKEN: "test-token",
-			AXIOM_TOKEN: "test-axiom-token",
 		},
+		// No AXIOM_TOKEN: a handler test that reaches the real logger must not talk to Axiom
+		shouldReportErrors: () => false,
 	};
 });
 
