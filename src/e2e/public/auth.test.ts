@@ -56,6 +56,52 @@ test.describe("Email and password auth", () => {
 		await expect(page).toHaveURL(/\/signin/);
 	});
 
+	test("sends a signed-out visitor back to the page they asked for after signing in", async ({ page }) => {
+		const signIn = new SignInPage(page);
+		await page.goto("/tasks/new");
+		await expect(page).toHaveURL(/\/signin\?redirect=%2Ftasks%2Fnew$/);
+		await signIn.waitForPageLoad(); // hydrated, or the click submits a native GET form
+
+		await signIn.submit(user.email, user.password);
+		await expect(page).toHaveURL(/\/tasks\/new$/, { timeout: 20_000 });
+	});
+
+	test("ignores an off-site ?redirect= after signing in", async ({ page }) => {
+		const signIn = new SignInPage(page);
+		await page.goto("/signin?redirect=https://evil.test/phish");
+		await signIn.waitForPageLoad();
+		await signIn.submit(user.email, user.password);
+		await expect(page).toHaveURL(/\/tasks$/, { timeout: 20_000 });
+		expect(new URL(page.url()).origin).toBe("http://localhost:3000");
+	});
+
+	test("moves a signed-in user off the sign-in page, to ?redirect= when it is local", async ({ page }) => {
+		await new SignInPage(page).goto();
+		await new SignInPage(page).submit(user.email, user.password);
+		await expect(page).toHaveURL(/\/tasks$/, { timeout: 20_000 });
+
+		await page.goto("/signin");
+		await expect(page).toHaveURL(/\/tasks$/);
+		await page.goto("/signup?redirect=%2Fprofile");
+		await expect(page).toHaveURL(/\/profile$/);
+		await page.goto("/signin?redirect=https://evil.test");
+		await expect(page).toHaveURL(/\/tasks$/);
+	});
+
+	test("shows no protected content when going back after signing out", async ({ page }) => {
+		await new SignInPage(page).goto();
+		await new SignInPage(page).submit(user.email, user.password);
+		await expect(page).toHaveURL(/\/tasks$/, { timeout: 20_000 });
+		await page.goto("/profile");
+		await expect(page.getByText(user.email).first()).toBeVisible();
+
+		await page.goto("/signout");
+		await expect(page).toHaveURL(/\/(signin)?$/);
+		await page.goBack();
+		await expect(page).toHaveURL(/\/signin\?redirect=%2Fprofile$/);
+		await expect(page.getByText(user.email)).toHaveCount(0);
+	});
+
 	test("signs out and loses access to protected pages", async ({ page }) => {
 		const signIn = new SignInPage(page);
 		await signIn.goto();
