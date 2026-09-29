@@ -173,7 +173,7 @@ function SignupForm() {
 							disabled={isLoading}
 						/>
 						{field.state.meta.errors.length > 0 && (
-							<p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+							<p className="text-sm text-destructive-strong">{field.state.meta.errors[0]}</p>
 						)}
 					</div>
 				)}
@@ -206,7 +206,7 @@ function SignupForm() {
 							disabled={isLoading}
 						/>
 						{field.state.meta.errors.length > 0 && (
-							<p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+							<p className="text-sm text-destructive-strong">{field.state.meta.errors[0]}</p>
 						)}
 					</div>
 				)}
@@ -214,7 +214,7 @@ function SignupForm() {
 
 			{error && (
 				<div className="rounded-md bg-destructive/15 p-3 text-sm">
-					<p className="text-destructive">{error}</p>
+					<p className="text-destructive-strong">{error}</p>
 					{isUserExists && (
 						<p className="mt-2 text-muted-foreground">
 							Already have an account?{" "}

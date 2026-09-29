@@ -18,7 +18,7 @@
   --color-secondary-foreground: hsl(var(--secondary-foreground));
 
   --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-strong: hsl(var(--destructive-strong));
 
   --color-muted: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
@@ -110,7 +110,20 @@
     --accent-foreground: 240 5.9% 10%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    /*
+     * Destructive palette by role. Only the combinations below are checked (see
+     * src/styles/__tests__/theme-contrast.test.ts); anything else is unmeasured.
+     *
+     *   text      text-destructive-strong, over --background, --card, --accent,
+     *             --muted, or a bg-destructive tint up to /15. Never text-destructive:
+     *             it is below 4.5:1 on --background and --card.
+     *   surfaces  bg-destructive at /10-/15 only; a deeper tint drops the ink below 4.5:1.
+     *   borders   border-destructive / ring-destructive, non-text (3:1).
+     *
+     * There is no solid destructive fill and no destructive foreground token: near-white on
+     * an opaque bg-destructive is below 4.5:1 in light mode, so that pattern is unavailable.
+     */
+    --destructive-strong: 0 74% 42%;
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
@@ -142,7 +155,11 @@
     --accent-foreground: 220 13% 85%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 220 13% 85%;
+    /*
+     * See the :root note. Tints go to /30. Not covered by the test: border-destructive
+     * on --background is about 2:1 in dark mode, under the 3:1 non-text floor.
+     */
+    --destructive-strong: 0 91% 71%;
 
     --border: 215 27.9% 16.9%;
     --input: 215 27.9% 16.9%;

@@ -21,7 +21,7 @@ function BuggyComponent() {
 }
 
 function ErrorFallback() {
-	return <p className="text-destructive">Error boundary caught an error!</p>;
+	return <p className="text-destructive-strong">Error boundary caught an error!</p>;
 }
 
 export const Route = createFileRoute("/_authed/_admin/debug/monitoring")({

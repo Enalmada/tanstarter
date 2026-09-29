@@ -121,7 +121,7 @@ export function FormGenerator<TData extends Record<string, unknown>>({
 				})}
 			</div>
 
-			{error && <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>}
+			{error && <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive-strong">{error}</div>}
 
 			<Button type="submit" className="w-full" disabled={isSubmitting || form.state.isSubmitting}>
 				{isSubmitting || form.state.isSubmitting ? (

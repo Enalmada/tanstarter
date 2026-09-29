@@ -82,7 +82,7 @@ export function Navbar({ user }: NavbarProps) {
 											<Trans>Admin</Trans>
 										</DropdownMenuItem>
 									)}
-									<DropdownMenuItem className="text-destructive" render={<Link to="/signout" />}>
+									<DropdownMenuItem className="text-destructive-strong" render={<Link to="/signout" />}>
 										<Trans>Sign out</Trans>
 									</DropdownMenuItem>
 								</DropdownMenuGroup>

@@ -47,7 +47,7 @@ function AdminEditUser() {
 				</Button>
 				<Button
 					variant="ghost"
-					className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+					className="text-destructive-strong hover:bg-destructive/10 hover:text-destructive-strong"
 					onClick={() => deleteMutation.mutate({ entityId: user.id })}
 					disabled={deleteMutation.isPending}
 				>
