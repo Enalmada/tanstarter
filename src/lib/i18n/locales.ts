@@ -25,8 +25,11 @@ export function isLocale(value: unknown): value is Locale {
 	return typeof value === "string" && Object.hasOwn(LOCALES, value);
 }
 
-/** Loads one compiled catalog (a separate chunk per locale) and activates it. */
-export async function dynamicActivate(i18n: I18n, locale: Locale) {
+/**
+ * Loads one compiled catalog (a separate chunk per locale) and activates it.
+ * `shouldActivate` lets a caller drop a stale switch that was superseded while loading.
+ */
+export async function dynamicActivate(i18n: I18n, locale: Locale, shouldActivate: () => boolean = () => true) {
 	const { messages } = await import(`../../locales/${locale}/messages.po`);
-	i18n.loadAndActivate({ locale, messages });
+	if (shouldActivate()) i18n.loadAndActivate({ locale, messages });
 }

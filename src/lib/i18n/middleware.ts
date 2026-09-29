@@ -31,11 +31,15 @@ export const i18nMiddleware = createMiddleware({ type: "request" }).server(async
 	}
 
 	const result = await next({ context: { i18n } });
+	const { headers } = result.response;
+	// The page depends on the cookie and Accept-Language: shared caches must key on them
+	if ((headers.get("content-type") ?? "").includes("text/html")) {
+		headers.append("Vary", "Cookie, Accept-Language");
+	}
 	if (persist && activeLocale === locale) {
-		result.response.headers.append(
-			"Set-Cookie",
-			serializeLocaleCookie(locale, { secure: process.env.NODE_ENV === "production" }),
-		);
+		headers.append("Set-Cookie", serializeLocaleCookie(locale, { secure: process.env.NODE_ENV === "production" }));
+		// Never let a shared cache store (and replay) a response that sets the preference cookie
+		headers.set("Cache-Control", "private, no-store");
 	}
 	return result;
 });

@@ -14,6 +14,7 @@ test.describe("Locale resolution", () => {
 		expect(html).toContain('<html lang="en"');
 		expect(html).toContain("Get Started");
 		expect(response.headers()["set-cookie"]).toBeUndefined();
+		expect(response.headers().vary).toMatch(/Cookie/i);
 	});
 
 	test("uses Accept-Language and maps regional variants", async ({ request }) => {
@@ -26,6 +27,7 @@ test.describe("Locale resolution", () => {
 	test("?locale= sets a persistent cookie", async ({ request }) => {
 		const response = await request.get("/?locale=es");
 		expect(response.headers()["set-cookie"]).toMatch(/locale=es;.*Max-Age=31536000.*SameSite=Lax/i);
+		expect(response.headers()["cache-control"]).toBe("private, no-store");
 		expect(await response.text()).toContain('<html lang="es"');
 	});
 

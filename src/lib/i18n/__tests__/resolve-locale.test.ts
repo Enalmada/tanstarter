@@ -43,6 +43,17 @@ describe("resolveLocale", () => {
 		});
 		expect(resolve({ url: "not a url", cookieHeader: "locale=es" }).locale).toBe("es");
 	});
+
+	it("treats a malformed cookie as absent instead of throwing", () => {
+		expect(resolve({ cookieHeader: "locale=%", acceptLanguage: "es" }).locale).toBe("es");
+		expect(resolve({ cookieHeader: "locale=%E0%A4%A" }).locale).toBe("en");
+	});
+
+	it("ignores Accept-Language entries with an invalid weight", () => {
+		expect(resolve({ acceptLanguage: "es;q=2,en;q=0.5" }).locale).toBe("en");
+		expect(resolve({ acceptLanguage: "es;q=0.5garbage,en;q=0.1" }).locale).toBe("en");
+		expect(resolve({ acceptLanguage: "es;q=0.5,en;q=0.1" }).locale).toBe("es");
+	});
 });
 
 describe("serializeLocaleCookie", () => {

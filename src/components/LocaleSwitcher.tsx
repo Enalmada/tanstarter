@@ -1,6 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useRef } from "react";
 import { updateLocale } from "~/functions/locale";
 import { dynamicActivate, isLocale, LOCALES } from "~/lib/i18n/locales";
 
@@ -13,10 +14,18 @@ export function LocaleSwitcher() {
 	const router = useRouter();
 	const saveLocale = useServerFn(updateLocale);
 
+	// Only the latest selection wins when the user changes their mind mid-load
+	const latest = useRef(0);
+
 	async function onChange(value: string) {
-		if (!isLocale(value) || value === i18n.locale) return;
-		await Promise.all([saveLocale({ data: value }), dynamicActivate(i18n, value)]);
-		await router.invalidate();
+		if (!isLocale(value)) return;
+		const request = ++latest.current;
+		const persisted = saveLocale({ data: value });
+		if (value !== i18n.locale) {
+			await dynamicActivate(i18n, value, () => request === latest.current);
+		}
+		await persisted;
+		if (request === latest.current) await router.invalidate();
 	}
 
 	return (

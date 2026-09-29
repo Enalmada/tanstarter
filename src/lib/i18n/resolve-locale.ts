@@ -28,10 +28,19 @@ export interface ResolvedLocale {
 
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
+// RFC 9110 qvalue: 0 to 1 with at most three decimals
+const QVALUE = /^(?:0(?:\.\d{0,3})?|1(?:\.0{0,3})?)$/;
+
 function readCookie(cookieHeader: string | null, name: string): string | undefined {
 	for (const part of cookieHeader?.split(";") ?? []) {
 		const [key, ...rest] = part.trim().split("=");
-		if (key === name) return decodeURIComponent(rest.join("="));
+		if (key !== name) continue;
+		try {
+			return decodeURIComponent(rest.join("="));
+		} catch {
+			// Malformed percent-encoding: treat the cookie as absent instead of failing the request
+			return undefined;
+		}
 	}
 	return undefined;
 }
@@ -42,8 +51,10 @@ function fromAcceptLanguage(header: string | null): Locale | undefined {
 		.map((entry) => {
 			const [tag = "", ...params] = entry.trim().split(";");
 			const q = params.map((param) => param.trim()).find((param) => param.startsWith("q="));
-			const weight = q ? Number.parseFloat(q.slice(2)) : 1;
-			return { base: tag.trim().toLowerCase().split("-")[0], weight: Number.isNaN(weight) ? 0 : weight };
+			const raw = q?.slice(2).trim();
+			// An invalid weight drops the entry rather than guessing
+			const weight = raw === undefined ? 1 : QVALUE.test(raw) ? Number.parseFloat(raw) : 0;
+			return { base: tag.trim().toLowerCase().split("-")[0], weight };
 		})
 		.filter((entry) => entry.weight > 0)
 		.sort((a, b) => b.weight - a.weight);

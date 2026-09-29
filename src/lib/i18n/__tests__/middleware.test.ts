@@ -40,6 +40,20 @@ describe("i18nMiddleware", () => {
 		expect((await result).response.headers.get("set-cookie")).toMatch(/^locale=es;/);
 	});
 
+	it("varies HTML on the inputs that choose the locale", async () => {
+		const next = vi.fn(async () => ({
+			response: new Response("<html>", { headers: { "content-type": "text/html; charset=utf-8" } }),
+		}));
+		const { response } = await handler({ request: new Request("https://app.test/"), next, handlerType: "router" });
+		expect(response.headers.get("vary")).toBe("Cookie, Accept-Language");
+		expect(response.headers.get("cache-control")).toBeNull();
+	});
+
+	it("keeps a response that sets the cookie out of shared caches", async () => {
+		const { result } = run({}, "https://app.test/?locale=es");
+		expect((await result).response.headers.get("cache-control")).toBe("private, no-store");
+	});
+
 	it("leaves server functions alone", async () => {
 		const { next, contexts, result } = run({ "accept-language": "es" }, "https://app.test/", "serverFn");
 		await result;
