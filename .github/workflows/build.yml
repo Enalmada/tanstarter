@@ -61,11 +61,14 @@ jobs:
       # The page renders without a database (a failed session lookup counts as signed out).
       - name: Check cache headers of the build
         run: |
-          PORT=3100 DATABASE_URL="postgres://postgres:postgres@127.0.0.1:1/none" \
-            BETTER_AUTH_SECRET=ci-placeholder-secret-0123456789abcdef \
-            GOOGLE_CLIENT_ID=ci GOOGLE_CLIENT_SECRET=ci APP_ENV=staging \
-            bun run .output/server/index.mjs > /tmp/server.log 2>&1 &
+          PORT=3100 bun run .output/server/index.mjs > /tmp/server.log 2>&1 &
           for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:3100/ && break; sleep 1; done
           bash scripts/check-asset-headers.sh http://localhost:3100 || { cat /tmp/server.log; exit 1; }
         env:
           NODE_ENV: production
+          APP_ENV: staging
+          # Placeholders only: the server boots for a header check and never connects
+          DATABASE_URL: "postgres://postgres:postgres@127.0.0.1:1/none"
+          BETTER_AUTH_SECRET: "placeholder-not-a-secret" # betterleaks:allow
+          GOOGLE_CLIENT_ID: placeholder
+          GOOGLE_CLIENT_SECRET: placeholder # betterleaks:allow
