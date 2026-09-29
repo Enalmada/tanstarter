@@ -22,7 +22,8 @@ function findComponents(dir, components = []) {
 			// Check if this looks like a component (starts with capital letter or is index.tsx)
 			if (file[0] === file[0].toUpperCase() || file === "index.tsx") {
 				// Skip certain patterns that typically don't need stories
-				const skipPatterns = ["Layout.tsx", "CatchBoundary.tsx", "ErrorBoundary.tsx", "Error.tsx"];
+				// Devtools.tsx is dev-only tooling (lazy-loaded behind ENABLE_DEVTOOLS in the root route)
+				const skipPatterns = ["Layout.tsx", "CatchBoundary.tsx", "ErrorBoundary.tsx", "Error.tsx", "Devtools.tsx"];
 
 				const shouldSkip = skipPatterns.some((pattern) => file.includes(pattern));
 				if (!shouldSkip) {
