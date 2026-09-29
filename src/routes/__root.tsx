@@ -2,6 +2,8 @@
 // TODO: Re-enable when Serwist Vite plugin is working with Nitro v3
 // import { getSerwist } from "virtual:serwist";
 
+import type { I18n } from "@lingui/core";
+import { useLingui } from "@lingui/react";
 import type { TanStackDevtoolsReactInit } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, HeadContent, Outlet, redirect, ScriptOnce, Scripts } from "@tanstack/react-router";
@@ -71,6 +73,7 @@ const AnalyticsProvider = lazy(() =>
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
 	user: SessionUser | null | undefined;
+	i18n: I18n;
 }>()({
 	beforeLoad: async ({ context, location }) => {
 		const queryClient = context.queryClient;
@@ -224,8 +227,9 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { readonly children: ReactNode }) {
+	const { i18n } = useLingui();
 	return (
-		<html suppressHydrationWarning lang="en">
+		<html suppressHydrationWarning lang={i18n.locale}>
 			<head>
 				<HeadContent />
 			</head>

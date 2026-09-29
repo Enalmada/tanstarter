@@ -99,6 +99,7 @@
 import { createCspMiddleware } from "@enalmada/start-secure";
 import { createCsrfMiddleware, createStart } from "@tanstack/react-start";
 import { cspRules } from "~/config/cspRules";
+import { i18nMiddleware } from "~/lib/i18n/middleware";
 import { authErrorTranslator } from "~/server/access/middleware";
 import { errorReporter, requestErrorReporter } from "~/server/monitoring/middleware";
 
@@ -138,6 +139,10 @@ export const startInstance = createStart(() => ({
 		// PostHog, then rethrows. Start answers those itself, so Nitro's error
 		// hook never sees them.
 		requestErrorReporter,
+
+		// A fresh Lingui instance per request with the resolved locale loaded
+		// (query, cookie, Accept-Language); the router reads it from the start context.
+		i18nMiddleware,
 	],
 	functionMiddleware: [
 		// Translates typed domain errors (BadRequestError, NotAuthorizedError,
