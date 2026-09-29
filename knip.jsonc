@@ -12,9 +12,8 @@
 		"src/test/mocks/*.ts",
 		"src/utils/query/__tests__/mocks/*.ts",
 		".storybook/env.mock.ts",
-		// Lingui CLI config and its compiled catalogs (no knip plugin for Lingui)
+		// Lingui CLI config (no knip plugin for Lingui)
 		"lingui.config.js",
-		"src/locales/*/messages.js",
 		// Vendored shadcn/Base UI component library: keep the full component API
 		// even when a component or sub-component isn't used yet
 		"src/components/ui/**/*.tsx",
@@ -54,8 +53,6 @@
 	"ignoreDependencies": [
 		// Baseline: dependencies that were already unused when knip was adopted.
 		// Remove each one (or start using it), then drop it from this list.
-		"@lingui/macro",
-		"@lingui/loader",
 		"@storybook/addon-a11y",
 		"@storybook/addon-coverage",
 		"@storybook/addon-links",

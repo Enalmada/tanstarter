@@ -1,4 +1,5 @@
-import { lingui } from "@lingui/vite-plugin";
+import { lingui, linguiTransformerBabelPreset } from "@lingui/vite-plugin";
+import babel from "@rolldown/plugin-babel";
 // TODO: Re-enable when Serwist Vite plugin works with Nitro v3
 // import { serwist } from "@serwist/vite";
 import tailwindcss from "@tailwindcss/vite";
@@ -42,21 +43,11 @@ export default defineConfig({
 		}),
 		// https://tanstack.com/start/latest/docs/framework/react/hosting#using-nitro-v3-beta
 		nitro(),
-		viteReact({
-			// https://react.dev/learn/react-compiler
-			jsxRuntime: "automatic",
-			babel: {
-				plugins: [
-					[
-						"babel-plugin-react-compiler",
-						{
-							target: "19",
-						},
-					],
-					"@lingui/babel-plugin-lingui-macro",
-				],
-			},
-		}),
+		// Expands Lingui macros before the React compiler turns JSX into calls.
+		// The filter only sends files that import a Lingui macro through Babel.
+		babel({ presets: [linguiTransformerBabelPreset()] }),
+		// React compiler (oxc, no Babel): https://react.dev/learn/react-compiler
+		viteReact({ compiler: true }),
 		lingui(),
 		// Builds sw.js into the client output before Nitro snapshots it
 		// (see scripts/vite-service-worker.ts for why not @serwist/vite).
@@ -82,7 +73,6 @@ export default defineConfig({
 		"process.env.PUBLIC_APP_URL": JSON.stringify(process.env.PUBLIC_APP_URL),
 		"process.env.PUBLIC_POSTHOG_API_KEY": JSON.stringify(process.env.PUBLIC_POSTHOG_API_KEY),
 	},
-	assetsInclude: ["**/*.po"],
 	// TODO confirm we need this build section.
 	build: {
 		// Support top-level await for ES2022
