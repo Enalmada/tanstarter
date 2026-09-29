@@ -232,4 +232,4 @@ Convention is unchanged: a `createServerFn` file imports server code dynamically
 
 ## Real-browser validation for bundling PRs
 
-When a PR touches `vite.config.ts`, the bundler config, the dynamic-import / shim layer, anything chunk-graph-shaped, SSR boundaries, or env-validation — drive a preview deploy in a real browser before merging. See [docs/development/engineering-workflow.md](docs/development/engineering-workflow.md).
+When a PR touches `vite.config.ts`, the bundler config, the dynamic-import / shim layer, anything chunk-graph-shaped, SSR boundaries, or env-validation — drive a preview deploy in a real browser before merging. See [.agents/workflow.md](../../../.agents/workflow.md).

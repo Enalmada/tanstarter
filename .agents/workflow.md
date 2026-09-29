@@ -1,12 +1,23 @@
-# Engineering Workflow
+# Workflow
 
-Notes on the day-to-day workflow for landing changes safely in this codebase.
+How changes land safely in this codebase.
+
+## Toolchain
+
+The tools behind the scripts, in one place so a tool swap edits one section:
+
+- Formatter and linter: Biome (`bun run lint`, config in `biome.json`).
+- Git hooks: lefthook (`lefthook.yml`): Biome, secret scan, type check, story coverage and migration check on commit.
+- Task runner: turbo (`bun run check`).
+- Tests: Vitest (unit), Storybook test runner, Playwright (e2e).
+
+Everything else in these docs refers to `bun run <script>`.
 
 ## Quality gates (run before pushing)
 
 ```bash
 bun run check-types    # tsc --noEmit (TypeScript 7)
-bun run lint           # biome check --fix
+bun run lint           # formatter + linter, with auto-fix
 bun run test:unit      # vitest
 bun run knip           # unused files, exports, dependencies (knip.jsonc)
 bun run scan:secrets   # Betterleaks over this branch's commits (needs betterleaks installed)
@@ -14,17 +25,17 @@ bun run build          # production vite build (CI: .github/workflows/build.yml)
 bun run check-client-leaks  # no server-only code in the client bundle (run after build)
 ```
 
-`bun run check` runs the whole turbo pipeline including storybook and e2e.
+`bun run check` runs the whole pipeline including storybook and e2e.
 
 ## Real-browser validation for bundling-shaped PRs
 
 When a PR touches any of the following, run real-browser validation **before** merging:
 
-- [vite.config.ts](vite.config.ts) or any other bundler config
+- [vite.config.ts](../vite.config.ts) or any other bundler config
 - The dynamic-import / shim layer
 - Anything chunk-graph-shaped (manual chunks, side-effect annotations, externals)
 - SSR boundaries
-- Env-validation ([env.config.ts](env.config.ts), [src/env.ts](src/env.ts))
+- Env-validation ([env.config.ts](../env.config.ts), [src/env.ts](../src/env.ts))
 - The TSS-2 carve-outs (`~/lib/`, `~/server/access/http-errors`, `~/server/db/schema/*-schemas.ts`)
 - Major framework upgrades (TanStack Start, Vite, Nitro)
 
@@ -47,11 +58,11 @@ Two limits:
 - Previews are for same-repository branches only. Fork PRs get no Fly or Neon secrets, so the workflow skips them.
 - GitHub starts no workflow for events caused by `GITHUB_TOKEN`. A PR closed (or labeled) by automation using that token doesn't tear down (or deploy); delete the `pr-<n>-tanstarter` Fly app and `pr-<n>` Neon branch by hand, or have the automation use an App token.
 
-For the Fly review-app workflow, see [.github/workflows/fly-review.yml](.github/workflows/fly-review.yml).
+For the Fly review-app workflow, see [.github/workflows/fly-review.yml](../.github/workflows/fly-review.yml).
 
 ## Adding a page
 
-1. Pick the folder by audience (see "Routes and guards" in the [tanstack-start skill](.claude/skills/tanstack-start/SKILL.md)): `src/routes/` for public pages, `_guest/` for sign-in style pages, `_authed/` for signed-in users, `_authed/_admin/` for admins. The layout's guard does the access check.
+1. Pick the folder by audience (see "Routes and guards" in the [tanstack-start skill](../.claude/skills/tanstack-start/SKILL.md)): `src/routes/` for public pages, `_guest/` for sign-in style pages, `_authed/` for signed-in users, `_authed/_admin/` for admins. The layout's guard does the access check.
 2. Read the user with `useSessionUser()` in components, or `context.user` in a loader under `_authed`.
 3. Commit the regenerated `src/routeTree.gen.ts` (the dev server or `bun run build` rewrites it).
 4. If the page has translatable text (or you moved a file that does), run `bun run extract` and commit the catalogs: `bun run i18n:check` (CI) fails on stale source references.
@@ -59,4 +70,4 @@ For the Fly review-app workflow, see [.github/workflows/fly-review.yml](.github/
 
 ## Server function patterns
 
-For createServerFn structure, the HTTP error vocabulary, and the TSS rule set, see the [tanstack-start skill](.claude/skills/tanstack-start/SKILL.md).
+For createServerFn structure, the HTTP error vocabulary, and the TSS rule set, see the [tanstack-start skill](../.claude/skills/tanstack-start/SKILL.md).

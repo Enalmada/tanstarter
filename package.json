@@ -6,6 +6,7 @@
 		"build-storybook": "storybook build",
 		"build:prod": "bun run build && bun run drizzle:migrate",
 		"check": "turbo lint check-types knip check-tss-7 check-stories test:unit test-storybook test:e2e",
+		"check:doc-links": "bun scripts/check-doc-links.ts",
 		"check:e2e-specs": "bun scripts/check-e2e-specs.ts",
 		"check-stories": "bun scripts/check-component-coverage.cjs --quiet",
 		"check-client-leaks": "bash scripts/check-client-leaks.sh",

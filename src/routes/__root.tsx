@@ -19,13 +19,6 @@ import appCss from "~/styles/app.css?url";
 // The service worker (src/sw.ts) is built into sw.js by scripts/vite-service-worker.ts
 // during `vite build`, so registration is production-only. It needs HTTPS or localhost.
 // To try it: `bun run build`, serve the build, then check DevTools > Application > Service Workers.
-const _ENABLE_SERVICE_WORKER = import.meta.env.PROD;
-//   2. Test in production build (bun run build && bun run start)
-//   3. Verify sw.js is accessible at /sw.js in browser
-//   4. Check browser DevTools > Application > Service Workers
-//
-// NOTE: Service worker only works with HTTPS or localhost
-// See docs/sessions/serwist_support.md for full details
 const ENABLE_SERVICE_WORKER = import.meta.env.PROD;
 const ENABLE_DEVTOOLS = false; // Set to true to show DevTools button in development
 

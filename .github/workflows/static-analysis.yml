@@ -32,6 +32,10 @@ jobs:
       - name: knip
         run: bun run knip
 
+      # Relative links in Markdown docs resolve to real files
+      - name: Doc links
+        run: bun run check:doc-links
+
       # Every spec under src/e2e belongs to a Playwright project (no browsers needed)
       - name: E2E spec coverage
         run: bun run check:e2e-specs
