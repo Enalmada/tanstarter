@@ -3,15 +3,11 @@ import { DefaultLayout } from "~/components/layouts/DefaultLayout";
 
 export const Route = createFileRoute("/privacy")({
 	component: PrivacyPolicy,
-	loader: ({ context }) => ({
-		user: context.user ?? null,
-	}),
 });
 
 function PrivacyPolicy() {
-	const { user } = Route.useLoaderData();
 	return (
-		<DefaultLayout user={user}>
+		<DefaultLayout>
 			<div className="@auto dark:bg-neutral-900 p-6 prose">
 				<h1>Privacy Policy</h1>
 				<h2>Data Collection</h2>

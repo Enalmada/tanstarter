@@ -8,9 +8,8 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { getRoleSelfService, makeUserAdmin } from "~/functions/user-role";
+import { sessionQueryOptions, useSessionUser } from "~/lib/auth/session";
 import { UserRole } from "~/lib/enums/user-role";
-import type { SessionUser } from "~/utils/auth-client";
-import { queries } from "~/utils/query/queries";
 
 export const Route = createFileRoute("/profile")({
 	component: ProfilePage,
@@ -21,43 +20,34 @@ export const Route = createFileRoute("/profile")({
 			throw redirect({ to: "/signin" });
 		}
 	},
-	loader: async ({ context }) => ({
-		user: context.user ?? null,
+	loader: async () => ({
 		// Self-service role toggle is local-dev / DEMO_MODE only (server decides).
 		roleSelfService: await getRoleSelfService(),
 	}),
 });
 
 function ProfilePage() {
-	const { user: initialUser, roleSelfService } = Route.useLoaderData();
+	const { roleSelfService } = Route.useLoaderData();
+	const sessionUser = useSessionUser();
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [isUpdatingRole, setIsUpdatingRole] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
-	const [prevInitialUser, setPrevInitialUser] = useState(initialUser);
-	const [optimisticUser, setOptimisticUser] = useState<SessionUser | null>(initialUser);
+	// Shown immediately while the role change round-trips; the session query is the source of truth.
+	const [optimisticRole, setOptimisticRole] = useState<UserRole | null>(null);
 
-	// Re-sync optimistic state to server state when the loader re-runs
-	// (e.g. after router.invalidate()), per React's "adjusting state during
-	// render" pattern: https://react.dev/learn/you-might-not-need-an-effect
-	if (initialUser !== prevInitialUser) {
-		setPrevInitialUser(initialUser);
-		setOptimisticUser(initialUser);
+	if (!sessionUser) {
+		return null; // beforeLoad redirects anonymous visitors; this narrows the type
 	}
 
-	if (!initialUser) {
-		return null; // This shouldn't happen due to beforeLoad, but TypeScript needs it
-	}
-
-	// Use optimistic user for UI, fallback to initial user
-	const user = optimisticUser || initialUser;
+	const user = optimisticRole ? { ...sessionUser, role: optimisticRole } : sessionUser;
 
 	const handleMakeAdmin = async () => {
 		setIsUpdatingRole(true);
 		setMessage(null);
 
 		// Optimistic update - immediately update UI
-		setOptimisticUser((prevUser) => (prevUser ? { ...prevUser, role: UserRole.ADMIN } : prevUser));
+		setOptimisticRole(UserRole.ADMIN);
 
 		try {
 			await makeUserAdmin({
@@ -70,14 +60,13 @@ function ProfilePage() {
 			setMessage("Success! You are now an admin.");
 
 			// Invalidate user session query and router data to sync with server
-			await queryClient.invalidateQueries({ queryKey: queries.user.session.queryKey });
+			await queryClient.invalidateQueries({ queryKey: sessionQueryOptions().queryKey });
 			await router.invalidate();
 		} catch (error) {
-			// Revert optimistic update on error
-			setOptimisticUser(initialUser);
 			const errorMessage = error instanceof Error ? error.message : "Unknown error";
 			setMessage(`Failed to update role: ${errorMessage}`);
 		} finally {
+			setOptimisticRole(null);
 			setIsUpdatingRole(false);
 		}
 	};
@@ -87,7 +76,7 @@ function ProfilePage() {
 		setMessage(null);
 
 		// Optimistic update - immediately update UI
-		setOptimisticUser((prevUser) => (prevUser ? { ...prevUser, role: UserRole.MEMBER } : prevUser));
+		setOptimisticRole(UserRole.MEMBER);
 
 		try {
 			await makeUserAdmin({
@@ -100,14 +89,13 @@ function ProfilePage() {
 			setMessage("Success! You are now a member.");
 
 			// Invalidate user session query and router data to sync with server
-			await queryClient.invalidateQueries({ queryKey: queries.user.session.queryKey });
+			await queryClient.invalidateQueries({ queryKey: sessionQueryOptions().queryKey });
 			await router.invalidate();
 		} catch (error) {
-			// Revert optimistic update on error
-			setOptimisticUser(initialUser);
 			const errorMessage = error instanceof Error ? error.message : "Unknown error";
 			setMessage(`Failed to update role: ${errorMessage}`);
 		} finally {
+			setOptimisticRole(null);
 			setIsUpdatingRole(false);
 		}
 	};
@@ -126,7 +114,7 @@ function ProfilePage() {
 	const avatarUrl = user.image ?? (user.email ? getGravatarUrl(user.email) : undefined);
 
 	return (
-		<DefaultLayout user={user}>
+		<DefaultLayout>
 			<div className="container max-w-2xl mx-auto p-6">
 				<div className="flex justify-between items-center mb-4">
 					<Button variant="ghost" onClick={() => router.navigate({ to: "/tasks" })}>

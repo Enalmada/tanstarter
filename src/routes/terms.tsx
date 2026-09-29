@@ -3,15 +3,11 @@ import { DefaultLayout } from "~/components/layouts/DefaultLayout";
 
 export const Route = createFileRoute("/terms")({
 	component: TermsOfService,
-	loader: ({ context }) => ({
-		user: context.user ?? null,
-	}),
 });
 
 function TermsOfService() {
-	const { user } = Route.useLoaderData();
 	return (
-		<DefaultLayout user={user}>
+		<DefaultLayout>
 			<div className="@auto dark:bg-neutral-900 p-6 prose">
 				<h1>Terms of Service</h1>
 				<h2>1. Acceptance of Terms</h2>

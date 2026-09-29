@@ -2,15 +2,15 @@ import { Outlet } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Footer } from "~/components/marketing/Footer";
 import { Navbar } from "~/components/Navbar";
+import { useSessionUser } from "~/lib/auth/session";
 import { cn } from "~/lib/utils";
-import type { SessionUser } from "~/utils/auth-client";
 
 interface DefaultLayoutProps {
-	user: SessionUser | null;
 	children?: ReactNode;
 }
 
-export function DefaultLayout({ user, children }: DefaultLayoutProps) {
+export function DefaultLayout({ children }: DefaultLayoutProps) {
+	const user = useSessionUser();
 	return (
 		<div className="relative min-h-screen flex flex-col">
 			<header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">

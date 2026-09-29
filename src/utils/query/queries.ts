@@ -13,7 +13,7 @@
  * ```ts
  * // Define route queries once
  * function getRouteQueries(taskId: string) {
- *   return [queries.task.byId(taskId), queries.user.session] as const;
+ *   return [queries.task.byId(taskId), queries.task.list()] as const;
  * }
  *
  * // Route loader
@@ -35,7 +35,7 @@ import { type QueryClient, useSuspenseQueries as useSuspenseQueriesBuiltIn } fro
 import { useServerFn } from "@tanstack/react-start";
 import { findFirst } from "~/functions/find-first";
 import { findMany } from "~/functions/find-many";
-import { getSessionUser } from "~/functions/session";
+import { sessionQueryOptions } from "~/lib/auth/session";
 import type { Task, User } from "~/server/db/schema";
 
 /**
@@ -75,11 +75,10 @@ export async function preloadQueries(queryClient: QueryClient, queries: readonly
  *
  * @example
  * ```ts
- * const [tasks, user] = useSuspenseQueries([
+ * const [tasks, users] = useSuspenseQueries([
  *   queries.task.list(),
- *   queries.user.session,
+ *   queries.user.list(),
  * ]);
- * // tasks: Task[], user: User
  * ```
  */
 // biome-ignore lint/suspicious/noExplicitAny: Any is needed for the config type
@@ -87,7 +86,6 @@ export function useSuspenseQueries<T extends readonly unknown[]>(configs: T): an
 	// Convert raw queries to useServerFn-wrapped versions automatically
 	const _serverFindMany = useServerFn(findMany);
 	const _serverFindFirst = useServerFn(findFirst);
-	const serverGetSessionUser = useServerFn(getSessionUser);
 
 	// Map raw queries to server-function-wrapped versions
 	// biome-ignore lint/suspicious/noExplicitAny: Any is needed for the config type
@@ -98,11 +96,6 @@ export function useSuspenseQueries<T extends readonly unknown[]>(configs: T): an
 		return {
 			...config,
 			queryFn: async () => {
-				// If this is a session query, use the wrapped session function
-				if (config.queryKey?.[1] === "session") {
-					return await serverGetSessionUser();
-				}
-
 				// For other queries, we need to intercept and wrap the server function calls
 				// This is a simplified approach - in a real implementation you might want
 				// more sophisticated wrapping
@@ -150,12 +143,7 @@ export const queries = {
 	task: createCrudQueries<Task>("Task"),
 	user: {
 		...createCrudQueries<User>("User"),
-		session: {
-			queryKey: ["user", "session"] as const,
-			queryFn: async () => {
-				return await getSessionUser();
-			},
-		},
+		session: sessionQueryOptions(),
 	},
 };
 

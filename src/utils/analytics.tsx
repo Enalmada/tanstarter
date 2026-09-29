@@ -1,8 +1,8 @@
 import { useRouter } from "@tanstack/react-router";
 import posthog from "posthog-js";
 import { useEffect, useLayoutEffect } from "react";
+import { useSessionUser } from "~/lib/auth/session";
 import { initPosthog } from "~/lib/monitoring/client";
-import { Route } from "~/routes/__root";
 import type { SessionUser } from "~/utils/auth-client";
 
 // One PostHog init for analytics and error tracking (idempotent; src/client.tsx
@@ -46,7 +46,7 @@ export { posthog };
 
 export function AnalyticsProvider() {
 	const router = useRouter();
-	const { user } = Route.useLoaderData();
+	const user = useSessionUser();
 
 	useLayoutEffect(() => {
 		initializeAnalytics();

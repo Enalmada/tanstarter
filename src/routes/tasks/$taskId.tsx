@@ -8,6 +8,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { TaskForm, type TaskFormData } from "~/components/TaskForm";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
+import { useSessionUser } from "~/lib/auth/session";
 import type { Task } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { preloadQueries, queries, useSuspenseQueries } from "~/utils/query/queries";
@@ -17,7 +18,7 @@ import { preloadQueries, queries, useSuspenseQueries } from "~/utils/query/queri
  * Used by both loader (raw) and component (useServerFn wrapped)
  */
 function getRouteQueries(taskId: string) {
-	return [queries.task.byId(taskId), queries.user.session] as const;
+	return [queries.task.byId(taskId)] as const;
 }
 
 export const Route = createFileRoute("/tasks/$taskId")({
@@ -33,7 +34,8 @@ function EditTask() {
 	const navigate = useNavigate();
 
 	// Same queries as loader, automatically wrapped with useServerFn
-	const [task, user] = useSuspenseQueries(getRouteQueries(taskId));
+	const [task] = useSuspenseQueries(getRouteQueries(taskId));
+	const user = useSessionUser();
 
 	const { updateMutation, deleteMutation } = useEntityMutations<Task, TaskFormData>({
 		entityName: "Task",
