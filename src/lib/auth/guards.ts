@@ -13,7 +13,24 @@ import { UserRole } from "~/lib/enums/user-role";
 export const DEFAULT_REDIRECT = "/tasks";
 
 // Sending someone back to a sign-in or sign-out page would loop or sign them out.
-const AUTH_PAGES = /^\/(?:signin|signup|signout)(?:[/?#]|$)/;
+const AUTH_PAGES = /^\/(?:signin|signup|signout)(?:\/|$)/;
+
+// The path the router would match: dot segments resolved (URL parsing), percent
+// escapes decoded (repeatedly, so %2573 cannot hide an "s"), case folded.
+// null when it cannot be decoded, which callers treat as unsafe.
+function canonicalPathname(value: string): string | null {
+	try {
+		let pathname = new URL(value, "http://localhost").pathname;
+		for (let i = 0; i < 4; i++) {
+			const decoded = decodeURIComponent(pathname);
+			if (decoded === pathname) return new URL(decoded, "http://localhost").pathname.toLowerCase();
+			pathname = new URL(decoded, "http://localhost").pathname;
+		}
+		return null;
+	} catch {
+		return null;
+	}
+}
 
 /**
  * Validates a `?redirect=` value. Only same-origin paths are accepted; anything
@@ -25,7 +42,8 @@ export function safeRedirect(value: unknown, fallback: string = DEFAULT_REDIRECT
 	if (!value.startsWith("/") || value.startsWith("//")) return fallback;
 	// biome-ignore lint/suspicious/noControlCharactersInRegex: rejecting control characters is the point
 	if (/[\\\u0000-\u001f\u007f]/.test(value)) return fallback;
-	if (AUTH_PAGES.test(value)) return fallback;
+	const pathname = canonicalPathname(value);
+	if (pathname === null || AUTH_PAGES.test(pathname)) return fallback;
 	return value;
 }
 
