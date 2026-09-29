@@ -7,11 +7,11 @@ Notes on the day-to-day workflow for landing changes safely in this codebase.
 ```bash
 bun run check-types    # tsc --noEmit (TypeScript 7)
 bun run lint           # biome check --fix
-bun run check-tss-2    # bundle-leak check (createServerFn files only)
 bun run test:unit      # vitest
 bun run knip           # unused files, exports, dependencies (knip.jsonc)
 bun run scan:secrets   # Betterleaks over this branch's commits (needs betterleaks installed)
 bun run build          # production vite build (CI: .github/workflows/build.yml)
+bun run check-client-leaks  # no server-only code in the client bundle (run after build)
 ```
 
 `bun run check` runs the whole turbo pipeline including storybook and e2e.
