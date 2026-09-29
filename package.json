@@ -8,6 +8,7 @@
 		"check": "turbo lint check-types knip check-tss-2 check-tss-7 check-stories test:unit test-storybook test:e2e",
 		"check:e2e-specs": "bun scripts/check-e2e-specs.ts",
 		"check-stories": "bun scripts/check-component-coverage.cjs --quiet",
+		"check-client-leaks": "bash scripts/check-client-leaks.sh",
 		"check-tss-2": "bash scripts/check-tss-2.sh",
 		"check-tss-7": "bash scripts/check-tss-7.sh",
 		"audit:deps": "sh scripts/audit-deps.sh",

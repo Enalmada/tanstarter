@@ -51,3 +51,8 @@ jobs:
 
       - name: Check build output
         run: test -f .output/server/index.mjs
+
+      # No database driver, ORM or server SDK in the client bundle (server-only markers
+      # fail the build on a static import; this checks the output too)
+      - name: Check client bundle for server code
+        run: bun run check-client-leaks
