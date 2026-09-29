@@ -101,7 +101,7 @@ export default defineConfig({
 		// before Playwright is allowed to send its first navigation (the
 		// readiness check on the dev server is HTTP, not just TCP).
 		//
-		// Mirrors gell-v2/vite.config.ts. If the dep tree shifts, watch for
+		// If the dep tree shifts, watch for
 		// "✨ new dependencies optimized" lines that aren't on this list
 		// and add them.
 		include: [

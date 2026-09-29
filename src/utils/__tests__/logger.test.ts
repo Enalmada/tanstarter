@@ -133,7 +133,9 @@ describe("logger with Axiom enabled", () => {
 
 		first.logger.info("from the SSR bundle");
 		await second.flushLogs(); // what the Nitro plugin does
-		expect(fetchMock).toHaveBeenCalledTimes(1);
+		// Count the event, not the requests: a leftover client from an earlier test may send its own batch late
+		const sent = (await Promise.all(fetchMock.mock.calls.map((_, call) => requestEvents(call)))).flat();
+		expect(sent.filter((event) => event.message === "from the SSR bundle")).toHaveLength(1);
 	});
 });
 

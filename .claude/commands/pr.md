@@ -13,5 +13,5 @@ When creating a PR for this repository:
 
 - **Base branch**: `main` 
 - **Title format**: descriptive of problem
-- **Description**: Generate from commits using `git log develop..HEAD`
+- **Description**: Generate from commits using `git log main..HEAD`
 - **Update planning doc**: If `.plan/plans/<branch-name>/README.md` exists, add PR link to Resources section

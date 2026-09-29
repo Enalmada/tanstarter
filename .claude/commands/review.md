@@ -10,7 +10,7 @@ You can also use: `/review`
 ## Conventions
 
 ### What to Review
-Review `git diff develop...HEAD` using "ultrathink" for thorough analysis:
+Review `git diff main...HEAD` using "ultrathink" for thorough analysis:
 
 **Core Issues**
 - Behavioral changes: Unintended side effects? Multi-tenancy implications?

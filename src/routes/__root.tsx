@@ -16,25 +16,9 @@ import { sessionQueryOptions } from "~/lib/auth/session";
 import { pickPublicRuntimeEnv, serializePublicRuntimeEnv } from "~/lib/env/public-env";
 import appCss from "~/styles/app.css?url";
 
-// TODO: Enable service worker when you're ready to use PWA features
-// The service worker is built by scripts/vite-service-worker.ts during `vite build`
-//
-// BEST PRACTICE: Service workers should run in BOTH dev and prod:
-//   - Dev mode: Uses NetworkOnly strategy (no caching, always fresh)
-//   - Prod mode: Uses full caching strategies (offline support)
-//   Benefits: Test SW lifecycle in dev, catch bugs early, develop PWA features
-//
-// CURRENT LIMITATION: sw.js is only built by `vite build`
-//   (scripts/vite-service-worker.ts), so registration is production-only.
-//
-// To enable:
-//   1. Change to: const ENABLE_SERVICE_WORKER = import.meta.env.PROD;
-//   2. Test in production build (bun run build && bun run start)
-//   3. Verify sw.js is accessible at /sw.js in browser
-//   4. Check browser DevTools > Application > Service Workers
-//
-// NOTE: Service worker only works with HTTPS or localhost
-// See docs/sessions/serwist_support.md for full details
+// The service worker (src/sw.ts) is built into sw.js by scripts/vite-service-worker.ts
+// during `vite build`, so registration is production-only. It needs HTTPS or localhost.
+// To try it: `bun run build`, serve the build, then check DevTools > Application > Service Workers.
 const ENABLE_SERVICE_WORKER = import.meta.env.PROD;
 const ENABLE_DEVTOOLS = false; // Set to true to show DevTools button in development
 

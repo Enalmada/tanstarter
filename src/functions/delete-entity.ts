@@ -2,7 +2,7 @@
  * `deleteEntity` server function — generic delete CRUD over the entity
  * registry in `~/functions/base-service`.
  *
- * Split out of `base-service.ts` per the gell-v2 convention: each
+ * Split out of `base-service.ts` by convention: each
  * createServerFn lives in its own per-handler file so client-reachable
  * modules (e.g. `~/utils/query/mutations.ts`) can import this surface
  * without dragging the server-only imports inside `base-service.ts`

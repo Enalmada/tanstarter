@@ -302,7 +302,7 @@ vi.mock("@tanstack/react-start", () => {
  * ORIGINAL object reference, preserving Date fidelity.
  *
  * Centralizing this factory means individual tests can override the payload
- * without re-discovering the shape. See gell-v2 PR #190 R1.
+ * without re-discovering the shape.
  */
 export function makeMockSessionResponse(sessionData: unknown): {
 	headers: { getSetCookie: () => string[] };

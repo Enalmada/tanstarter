@@ -115,6 +115,6 @@ export const WithoutUnsubscribe: Story = {
 export const CustomBranding: Story = {
 	args: {
 		...welcomeEmailPreview,
-		appName: "FrontlineIQ",
+		appName: "Acme",
 	},
 };
