@@ -55,6 +55,42 @@ describe("sanitizeExceptionEvent", () => {
 		expect(JSON.stringify(event)).not.toMatch(/a@b\.c|secret/);
 	});
 
+	it("replaces the message of a database driver error, which can echo a rejected value", () => {
+		const event = sanitizeExceptionEvent(
+			exceptionEvent({
+				$exception_list: [
+					{ type: "NeonDbError", value: 'invalid input syntax for type integer: "a@b.c"' },
+					{ type: "DatabaseError", value: "Server error (HTTP status 500): a@b.c" },
+					{ type: "Error", value: "kept" },
+				],
+			}),
+		);
+		const list = event?.properties?.$exception_list as Array<{ type: string; value: string }>;
+		expect(list.map((entry) => entry.value)).toEqual([
+			"[redacted database error]",
+			"[redacted database error]",
+			"kept",
+		]);
+		expect(JSON.stringify(event)).not.toContain("a@b.c");
+	});
+
+	it("removes source lines from stack frames", () => {
+		const frame = {
+			filename: "ssr.mjs",
+			function: "GET",
+			context_line: "throw new Error(email)",
+			pre_context: ["a"],
+			post_context: ["b"],
+		};
+		const event = sanitizeExceptionEvent(
+			exceptionEvent({ $exception_list: [{ type: "Error", value: "x", stacktrace: { frames: [frame] } }] }),
+		);
+		const list = event?.properties?.$exception_list as unknown as Array<{
+			stacktrace: { frames: Array<Record<string, unknown>> };
+		}>;
+		expect(list[0]?.stacktrace.frames[0]).toEqual({ filename: "ssr.mjs", function: "GET" });
+	});
+
 	it("strips query strings from stack frame filenames", () => {
 		const event = sanitizeExceptionEvent(
 			exceptionEvent({

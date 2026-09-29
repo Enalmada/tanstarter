@@ -6,7 +6,11 @@
  * own (`$current_url`, exception messages and cause chains) after that.
  * - URLs lose their query string and fragment (they can carry tokens).
  * - Drizzle's "Failed query" message ends with the bound parameters, which are
- *   row values (emails, titles): everything from `params:` on is dropped.
+ *   row values (emails, titles): everything from `params:` on is dropped. Its
+ *   cause is the driver's error (Neon, Postgres), whose message can carry a
+ *   rejected literal or a raw HTTP body: the whole message is replaced.
+ * - Stack frames lose their source lines (`context_line` and friends): posthog-node
+ *   adds them for server code, and they are not needed to group an issue.
  * - Unhandled rejections of expected errors (which bypass `isExpectedError`
  *   because PostHog captures them itself) are dropped by error name.
  *
@@ -18,7 +22,7 @@ import { isExpectedErrorName } from "./expected-errors";
 interface ExceptionEntry {
 	type?: unknown;
 	value?: unknown;
-	stacktrace?: { frames?: Array<{ filename?: unknown }> };
+	stacktrace?: { frames?: Array<Record<string, unknown>> };
 }
 
 interface EventLike {
@@ -41,6 +45,12 @@ const URL_PROPERTIES = [
 export function stripUrlDetails(url: string): string {
 	return url.replace(/[?#].*$/s, "");
 }
+
+// Database driver errors: their messages can echo the value that was rejected
+const DATABASE_ERROR_TYPES = new Set(["NeonDbError", "DatabaseError", "PostgresError"]);
+const REDACTED_DATABASE_ERROR = "[redacted database error]";
+
+const SOURCE_CONTEXT_FIELDS = ["context_line", "pre_context", "post_context"];
 
 export function redactExceptionMessage(message: string): string {
 	const index = message.indexOf("\nparams:");
@@ -65,9 +75,15 @@ export function sanitizeExceptionEvent<T extends EventLike>(event: T | null): T 
 		const entries = list as ExceptionEntry[];
 		if (entries.some((entry) => typeof entry.type === "string" && isExpectedErrorName(entry.type))) return null;
 		for (const entry of entries) {
-			if (typeof entry.value === "string") entry.value = redactExceptionMessage(entry.value);
+			if (typeof entry.value === "string") {
+				entry.value =
+					typeof entry.type === "string" && DATABASE_ERROR_TYPES.has(entry.type)
+						? REDACTED_DATABASE_ERROR
+						: redactExceptionMessage(entry.value);
+			}
 			for (const frame of entry.stacktrace?.frames ?? []) {
 				if (typeof frame.filename === "string") frame.filename = stripUrlDetails(frame.filename);
+				for (const field of SOURCE_CONTEXT_FIELDS) delete frame[field];
 			}
 		}
 	}
