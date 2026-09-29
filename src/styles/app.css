@@ -162,6 +162,13 @@
 }
 
 @layer base {
+  /* Native controls, scrollbars and form fields follow the theme (set with the class by the theme script) */
+  :root {
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
+  }
   * {
     @apply border-border;
   }

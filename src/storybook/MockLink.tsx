@@ -132,7 +132,8 @@ export const HeadContent = ({ children }: { children?: React.ReactNode }) => <>{
 export const Scripts = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
 
 // TanStack Start specific components
-export const ScriptOnce = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
+// Renders nothing: the real ScriptOnce emits an inline script, which would show up as text here
+export const ScriptOnce = (_props: { children?: React.ReactNode }) => null;
 
 export const Await = ({
 	promise: _promise,

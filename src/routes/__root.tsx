@@ -10,6 +10,7 @@ import { createRootRouteWithContext, HeadContent, Outlet, ScriptOnce, Scripts } 
 import { type ComponentType, lazy, type ReactNode, Suspense, useEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
+import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/toast";
 import { env } from "~/env";
 import { sessionQueryOptions } from "~/lib/auth/session";
@@ -90,6 +91,7 @@ export const Route = createRootRouteWithContext<{
 				name: "viewport",
 				content: "width=device-width, initial-scale=1",
 			},
+			{ name: "color-scheme", content: "light dark" },
 			{ title: "TanStarter" },
 			{
 				name: "description",
@@ -211,14 +213,10 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 			<body>
 				{/* Must precede <Scripts />: env.config.ts reads it when the client entry loads. */}
 				<ScriptOnce>{PUBLIC_ENV_SCRIPT}</ScriptOnce>
-				<ScriptOnce>
-					{`document.documentElement.classList.toggle(
-						'dark',
-						localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
-					)`}
-				</ScriptOnce>
-				{children}
-				<Toaster />
+				<ThemeProvider>
+					{children}
+					<Toaster />
+				</ThemeProvider>
 				{SHOW_DEVTOOLS && (
 					<Suspense>
 						<TanStackDevtools
