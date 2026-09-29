@@ -186,12 +186,10 @@ export const Route = createRootRouteWithContext<{
 			},
 		],
 	}),
+	// The HTML document wraps every match, including the error and not-found views
+	shellComponent: RootDocument,
 	component: RootComponent,
-	errorComponent: (props) => (
-		<RootDocument>
-			<DefaultCatchBoundary {...props} />
-		</RootDocument>
-	),
+	errorComponent: DefaultCatchBoundary,
 	notFoundComponent: () => <NotFound />,
 });
 
@@ -219,11 +217,7 @@ function RootComponent() {
 		void loadSerwist();
 	}, []);
 
-	return (
-		<RootDocument>
-			<Outlet />
-		</RootDocument>
-	);
+	return <Outlet />;
 }
 
 function RootDocument({ children }: { readonly children: ReactNode }) {
