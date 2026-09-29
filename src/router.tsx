@@ -194,10 +194,10 @@ export async function getRouter() {
 		routeTree,
 		context: { queryClient, user: undefined, i18n } as RouterContext,
 		defaultPreload: "intent",
-		// TODO: confirm this is the best approach
-		// react-query will handle data fetching & caching
+		// react-query owns data fetching and caching (its staleTime above), so the
+		// router must not add its own preload cache on top.
 		// https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#passing-all-loader-events-to-an-external-cache
-		defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
+		defaultPreloadStaleTime: 0,
 		defaultErrorComponent: DefaultCatchBoundary,
 		defaultNotFoundComponent: NotFound,
 		scrollRestoration: true,

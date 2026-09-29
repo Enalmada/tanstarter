@@ -80,7 +80,7 @@ export const Route = createRootRouteWithContext<{
 		let user: SessionUser | null = null;
 
 		try {
-			user = await context.queryClient.ensureQueryData(queries.user.session);
+			user = await context.queryClient.query(queries.user.session);
 		} catch (_error) {
 			// Handle error silently
 		}

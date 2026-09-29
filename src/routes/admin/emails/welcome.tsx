@@ -21,7 +21,7 @@ function EmailPreview() {
 }
 
 export const Route = createFileRoute("/admin/emails/welcome")({
-	loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(emailQueries.welcomePreview),
+	loader: ({ context: { queryClient } }) => queryClient.query(emailQueries.welcomePreview),
 	component: WelcomeEmailPreview,
 });
 

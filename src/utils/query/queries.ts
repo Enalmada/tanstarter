@@ -58,12 +58,13 @@ type AllowUndefined<T> = { [P in keyof T]?: T[P] | undefined };
 export async function preloadQueries(queryClient: QueryClient, queries: readonly unknown[]) {
 	if (!queries.length) return;
 
-	// Use Promise.all to preload all queries in parallel
+	// Use Promise.all to preload all queries in parallel. `query()` respects the
+	// query's staleTime and throws on failure, so the route's errorComponent shows it.
 	await Promise.all(
 		queries.map((query) =>
 			// @ts-expect-error - The QueryClient's type system needs exact matches,
 			// but we know these are valid query objects
-			queryClient.prefetchQuery(query),
+			queryClient.query(query),
 		),
 	);
 }
