@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 
 /**
  * Returns the currently authenticated user, or null if anonymous.
@@ -9,9 +9,9 @@ import { createServerFn } from "@tanstack/react-start";
  * `getRequest()` v1.134+ defensive try/catch in one place so this
  * file stays a thin createServerFn shell.
  */
-export async function handleGetSessionUser() {
+export const handleGetSessionUser = createServerOnlyFn(async () => {
 	const { getOptionalSessionUser } = await import("~/server/auth/session");
 	return getOptionalSessionUser();
-}
+});
 
 export const getSessionUser = createServerFn({ method: "GET" }).handler(handleGetSessionUser);

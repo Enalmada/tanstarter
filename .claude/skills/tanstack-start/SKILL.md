@@ -19,7 +19,8 @@ Every `createServerFn` file MUST follow this pattern:
    - Type-only imports (`import type { … }`)
 2. **Schema definitions** next.
 3. **Validator** function (sync) — throws `BadRequestError` with `result.issues.map((i) => i.message).join("; ")`.
-4. **Handler** as inline exported named function — `export async function handleX(...)`. NEVER trailing `export { handleX }` (TanStack Start's handler-body extraction can dangle the reference).
+4. **Handler** as an inline exported const wrapped in `createServerOnlyFn` — `export const handleX = createServerOnlyFn(async (...) => { ... })`. It is exported so unit tests can call it directly. NEVER trailing `export { handleX }` (TanStack Start's handler-body extraction can dangle the reference).
+   - **Why the wrapper:** an exported handler survives client tree-shaking as an export, and Vite 8's bundler (rolldown 1.x) still emits a chunk for every `await import(...)` inside it, even when nothing loads that chunk. The result is better-auth, Drizzle and the session helpers shipped as public files in `.output/public/assets`, and the import-protection plugin fails the build. On the client, the Start compiler replaces the `createServerOnlyFn` body with a throwing stub, so the dynamic imports never reach the client graph. Server-only helpers in client-reachable modules (`getUser` / `loadEntityConfig` in `base-service.ts`) use the same wrapper.
 5. **Dynamic imports** inside the handler for server-only modules (`~/server/db`, `~/server/services/*`, `~/server/auth/*`, `@tanstack/react-start/server`).
 6. **`createServerFn(...)` at the VERY END** of the file, registering the handler.
 
@@ -31,7 +32,7 @@ Each `createServerFn(...)` lives in its own per-handler file. **Do not** collect
 
 **Why this is load-bearing**: `@tanstack/react-start` v1.167+ ships a `tanstack-start-core:import-protection` Vite plugin that walks the import graph and rejects any module reachable from a client route that imports `@tanstack/react-start/server` — even via dynamic `await import(...)`. If a shared file houses both the createServerFn definitions AND server-only helpers (e.g. `getUser`, `loadEntityConfig`), then a single client-reachable importer (`~/utils/query/queries.ts`, `~/utils/query/mutations.ts`, any route loader) drags the whole server-only chain into the client compile pass and the dev server / build fails.
 
-Per-handler files keep `base-service.ts`-style modules off the client-reachable graph: the per-handler file only re-exports its `createServerFn`, and the framework's compile-time handler extraction strips the body (with its dynamic imports of the helpers) before the client bundle is emitted.
+Per-handler files keep the server-only chain off the client graph. They still import `base-service.ts` statically for its validators, so its server-only helpers (`getUser`, `loadEntityConfig`) are wrapped in `createServerOnlyFn`, like the exported handlers. The Start compiler replaces those bodies, and their dynamic imports of `~/server/*`, with a throwing stub in the client build.
 
 Pattern in this repo: [src/functions/find-first.ts](src/functions/find-first.ts), [src/functions/find-many.ts](src/functions/find-many.ts), [src/functions/create-entity.ts](src/functions/create-entity.ts), [src/functions/update-entity.ts](src/functions/update-entity.ts), [src/functions/delete-entity.ts](src/functions/delete-entity.ts) each export exactly one createServerFn; [src/functions/base-service.ts](src/functions/base-service.ts) houses only the shared entity registry, validators, error formatter, and the `getUser` / `loadEntityConfig` helpers (no createServerFn).
 
@@ -57,7 +58,7 @@ Handlers throw typed domain errors from [src/server/access/http-errors.ts](src/s
 
 | Class | HTTP | Default `safeMessage` | When to throw |
 |---|---|---|---|
-| `BadRequestError` | 400 | the message | Input-validation failures from `inputValidator` |
+| `BadRequestError` | 400 | the message | Input-validation failures from `validator` |
 | `NotAuthorizedError` | 403 | `"Forbidden"` | Self-actor authorization denial (Pattern A) |
 | `NotFoundError` | 404 | `"Not found"` | Row missing, or info-hiding recast (Pattern B) |
 | `ConflictError` | 409 | the message | Unique-constraint violations, optimistic-concurrency mismatches |

@@ -23,7 +23,7 @@ COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 # Set production environment for build
 ENV NODE_ENV=production
-# Build the app
+# Build the app (includes sw.js; see scripts/vite-service-worker.ts)
 RUN bun run build
 
 # Final production image

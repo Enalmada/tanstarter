@@ -9,7 +9,7 @@
  * through the `@tanstack/react-start` v1.167 import-protection plugin.
  */
 
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { safeParse } from "valibot";
 import { formatIssues, validateDeleteEntity } from "~/functions/base-service";
 import type { EntityType } from "~/lib/entity-types";
@@ -23,40 +23,42 @@ function validateDeleteEntityInput(input: unknown) {
 	return result.output;
 }
 
-export async function handleDeleteEntity({ data: { subject, id } }: { data: { subject: EntityType; id: string } }) {
-	const { eq } = await import("drizzle-orm");
-	const db = (await import("~/server/db")).default;
-	const { accessCheck } = await import("~/server/access/check");
-	const { logger } = await import("~/utils/logger");
-	const { getUser, loadEntityConfig } = await import("~/functions/base-service");
+export const handleDeleteEntity = createServerOnlyFn(
+	async ({ data: { subject, id } }: { data: { subject: EntityType; id: string } }) => {
+		const { eq } = await import("drizzle-orm");
+		const db = (await import("~/server/db")).default;
+		const { accessCheck } = await import("~/server/access/check");
+		const { logger } = await import("~/utils/logger");
+		const { getUser, loadEntityConfig } = await import("~/functions/base-service");
 
-	const user = await getUser();
-	logger.info("deleteEntity", { subject, id, userId: user.id });
+		const user = await getUser();
+		logger.info("deleteEntity", { subject, id, userId: user.id });
 
-	const config = await loadEntityConfig();
-	const { table } = config[subject];
-	const [entity] = await db.select().from(table).where(eq(table.id, id));
+		const config = await loadEntityConfig();
+		const { table } = config[subject];
+		const [entity] = await db.select().from(table).where(eq(table.id, id));
 
-	// Missing and unreadable are indistinguishable (no existence oracle);
-	// readable-but-not-deletable is a 403.
-	const { NotFoundError } = await import("~/server/access/http-errors");
-	const { filterReadableRow } = await import("~/server/access/read-filter");
-	if (!entity || !filterReadableRow(user, subject, entity, undefined)) {
-		throw new NotFoundError(`${subject} ${id} not found`);
-	}
+		// Missing and unreadable are indistinguishable (no existence oracle);
+		// readable-but-not-deletable is a 403.
+		const { NotFoundError } = await import("~/server/access/http-errors");
+		const { filterReadableRow } = await import("~/server/access/read-filter");
+		if (!entity || !filterReadableRow(user, subject, entity, undefined)) {
+			throw new NotFoundError(`${subject} ${id} not found`);
+		}
 
-	accessCheck(user, "delete", subject, entity);
+		accessCheck(user, "delete", subject, entity);
 
-	// Delete only if owner and version are still the ones just authorized.
-	const { authorizedRowPredicate } = await import("~/server/access/write-guard");
-	// biome-ignore lint/suspicious/noExplicitAny: dynamic-imported entity table is `any`
-	const deleted = (await db.delete(table).where(authorizedRowPredicate(table, entity)).returning()) as any[];
-	if (deleted.length === 0) {
-		throw new NotFoundError(`${subject} ${id} not found`);
-	}
-	return deleted[0];
-}
+		// Delete only if owner and version are still the ones just authorized.
+		const { authorizedRowPredicate } = await import("~/server/access/write-guard");
+		// biome-ignore lint/suspicious/noExplicitAny: dynamic-imported entity table is `any`
+		const deleted = (await db.delete(table).where(authorizedRowPredicate(table, entity)).returning()) as any[];
+		if (deleted.length === 0) {
+			throw new NotFoundError(`${subject} ${id} not found`);
+		}
+		return deleted[0];
+	},
+);
 
 export const deleteEntity = createServerFn({ method: "POST" })
-	.inputValidator(validateDeleteEntityInput)
+	.validator(validateDeleteEntityInput)
 	.handler(handleDeleteEntity);

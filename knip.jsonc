@@ -3,7 +3,7 @@
 	// Docs: https://knip.dev/reference/configuration
 	"$schema": "https://unpkg.com/knip@6/schema.json",
 	"entry": [
-		// Service worker, compiled by scripts/generate-sw.ts during build:prod
+		// Service worker, bundled by scripts/vite-service-worker.ts during vite build
 		"src/sw.ts",
 		// resolve.alias targets in .storybook/main.ts and vitest configs, which knip can't trace
 		"src/storybook/**/*.{ts,tsx}",

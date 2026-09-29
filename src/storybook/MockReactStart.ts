@@ -10,11 +10,12 @@ export const createServerFn = (_options?: any) => {
 		handler: (fn: any) => fn,
 		// biome-ignore lint/suspicious/noExplicitAny: Mock validator needs flexible typing for compatibility
 		validator: (_fn: any) => chainable,
-		// biome-ignore lint/suspicious/noExplicitAny: Mock inputValidator needs flexible typing for compatibility
-		inputValidator: (_fn: any) => chainable,
 	};
 	return chainable;
 };
+
+// Server-only wrapper: passthrough (bodies never run in Storybook)
+export const createServerOnlyFn = <T>(fn: T) => fn;
 
 // biome-ignore lint/suspicious/noExplicitAny: Mock StartClient component needs flexible props typing
 export const StartClient = ({ children, ..._props }: any) => {
@@ -61,6 +62,7 @@ export const createStartHandler = (_options?: any) => {
 // Mock other exports that might be imported
 export default {
 	createServerFn,
+	createServerOnlyFn,
 	StartClient,
 	useServerFn,
 	createClientRpc,

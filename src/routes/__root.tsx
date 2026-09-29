@@ -1,33 +1,34 @@
 /// <reference types="vite/client" />
 // TODO: Re-enable when Serwist Vite plugin is working with Nitro v3
 // import { getSerwist } from "virtual:serwist";
+
+import type { TanStackDevtoolsReactInit } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, HeadContent, Outlet, redirect, ScriptOnce, Scripts } from "@tanstack/react-router";
 import { type ComponentType, lazy, type ReactNode, Suspense, useEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import { Toaster } from "~/components/ui/sonner";
+import { env } from "~/env";
+import { pickPublicRuntimeEnv, serializePublicRuntimeEnv } from "~/lib/env/public-env";
 import appCss from "~/styles/app.css?url";
 import type { SessionUser } from "~/utils/auth-client";
 import { queries } from "~/utils/query/queries";
 
 // TODO: Enable service worker when you're ready to use PWA features
-// The service worker is generated via scripts/generate-sw.ts (runs during build:prod)
+// The service worker is built by scripts/vite-service-worker.ts during `vite build`
 //
 // BEST PRACTICE: Service workers should run in BOTH dev and prod:
 //   - Dev mode: Uses NetworkOnly strategy (no caching, always fresh)
 //   - Prod mode: Uses full caching strategies (offline support)
 //   Benefits: Test SW lifecycle in dev, catch bugs early, develop PWA features
 //
-// CURRENT LIMITATION: sw.js only generated during production builds
-//   TODO: To enable in dev, either:
-//     1. Re-enable Serwist Vite plugin when Nitro v3 is stable (auto-generates in dev)
-//     2. Add dev mode generation to generate-sw.ts script
-//   For now, only enable in production builds.
+// CURRENT LIMITATION: sw.js is only built by `vite build`
+//   (scripts/vite-service-worker.ts), so registration is production-only.
 //
 // To enable:
 //   1. Change to: const ENABLE_SERVICE_WORKER = import.meta.env.PROD;
-//   2. Test in production build (bun run build:prod && bun run start)
+//   2. Test in production build (bun run build && bun run start)
 //   3. Verify sw.js is accessible at /sw.js in browser
 //   4. Check browser DevTools > Application > Service Workers
 //
@@ -36,38 +37,30 @@ import { queries } from "~/utils/query/queries";
 const ENABLE_SERVICE_WORKER = import.meta.env.PROD;
 const ENABLE_DEVTOOLS = false; // Set to true to show DevTools button in development
 
-// biome-ignore lint/suspicious/noExplicitAny: DevTools components have complex prop types that are correctly inferred at call sites
-const lazyLoadDevtool = <P = any>(loader: () => Promise<{ default: ComponentType<P> }>): ComponentType<P> => {
-	if (import.meta.env.PROD || !ENABLE_DEVTOOLS) {
-		// Return a component that renders nothing
-		return (() => null) as ComponentType<P>;
-	}
-	return lazy(loader);
-};
+// Allowlisted APP_ENV/PUBLIC_* values for the browser, read from the server's
+// runtime env (Fly secrets) instead of being baked in at build time. See
+// src/lib/env/public-env.ts. Server-only: ScriptOnce renders nothing on the client.
+const PUBLIC_ENV_SCRIPT = typeof window === "undefined" ? serializePublicRuntimeEnv(pickPublicRuntimeEnv(env)) : "";
 
-const TanStackDevtools = lazyLoadDevtool(
-	() =>
-		import("@tanstack/react-devtools").then((res) => ({
-			default: res.TanStackDevtools,
-			// biome-ignore lint/suspicious/noExplicitAny: Type assertion needed for dynamic import compatibility
-		})) as Promise<{ default: ComponentType<any> }>,
-);
+// Devtools load only in dev with ENABLE_DEVTOOLS on. The check must stay a
+// build-time constant around each `import(...)`: the bundler emits a chunk for
+// every dynamic import it can still see, even one inside a function that never
+// runs. In production that pulled the devtools UI (browser-only Solid
+// templates) into a shared server chunk, and SSR threw on every request.
+const SHOW_DEVTOOLS = import.meta.env.DEV && ENABLE_DEVTOOLS;
+const NoDevtool: ComponentType = () => null;
 
-const ReactQueryDevtoolsPanel = lazyLoadDevtool(
-	() =>
-		import("@tanstack/react-query-devtools").then((res) => ({
-			default: res.ReactQueryDevtoolsPanel,
-			// biome-ignore lint/suspicious/noExplicitAny: Type assertion needed for dynamic import compatibility
-		})) as Promise<{ default: ComponentType<any> }>,
-);
+const TanStackDevtools: ComponentType<TanStackDevtoolsReactInit> = SHOW_DEVTOOLS
+	? lazy(() => import("@tanstack/react-devtools").then((res) => ({ default: res.TanStackDevtools })))
+	: NoDevtool;
 
-const TanStackRouterDevtoolsPanel = lazyLoadDevtool(
-	() =>
-		import("@tanstack/router-devtools").then((res) => ({
-			default: res.TanStackRouterDevtoolsPanel,
-			// biome-ignore lint/suspicious/noExplicitAny: Type assertion needed for dynamic import compatibility
-		})) as Promise<{ default: ComponentType<any> }>,
-);
+const ReactQueryDevtoolsPanel: ComponentType = SHOW_DEVTOOLS
+	? lazy(() => import("@tanstack/react-query-devtools").then((res) => ({ default: res.ReactQueryDevtoolsPanel })))
+	: NoDevtool;
+
+const TanStackRouterDevtoolsPanel: ComponentType = SHOW_DEVTOOLS
+	? lazy(() => import("@tanstack/router-devtools").then((res) => ({ default: res.TanStackRouterDevtoolsPanel })))
+	: NoDevtool;
 
 const AnalyticsProvider = lazy(() =>
 	import("~/utils/analytics").then((mod) => ({
@@ -237,6 +230,8 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
+				{/* Must precede <Scripts />: env.config.ts reads it when the client entry loads. */}
+				<ScriptOnce>{PUBLIC_ENV_SCRIPT}</ScriptOnce>
 				<ScriptOnce>
 					{`document.documentElement.classList.toggle(
 						'dark',
@@ -245,20 +240,22 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 				</ScriptOnce>
 				{children}
 				<Toaster position="bottom-right" />
-				<Suspense>
-					<TanStackDevtools
-						plugins={[
-							{
-								name: "TanStack Query",
-								render: <ReactQueryDevtoolsPanel />,
-							},
-							{
-								name: "TanStack Router",
-								render: <TanStackRouterDevtoolsPanel />,
-							},
-						]}
-					/>
-				</Suspense>
+				{SHOW_DEVTOOLS && (
+					<Suspense>
+						<TanStackDevtools
+							plugins={[
+								{
+									name: "TanStack Query",
+									render: <ReactQueryDevtoolsPanel />,
+								},
+								{
+									name: "TanStack Router",
+									render: <TanStackRouterDevtoolsPanel />,
+								},
+							]}
+						/>
+					</Suspense>
+				)}
 				<Scripts />
 				<Suspense fallback={null}>
 					<AnalyticsProvider />

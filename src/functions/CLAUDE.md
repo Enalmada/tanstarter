@@ -2,6 +2,13 @@
 
 This guide helps AI assistants maintain consistent patterns when working with TanStack Start server functions.
 
+> **Client-bundle rule (TSS-2) applies to every example below.** The examples
+> show only the DAL split. In a real server-function file, import `*.db.ts` and
+> other server modules **dynamically inside the handler**, and wrap an exported
+> handler in `createServerOnlyFn`. A top-level `import ... from "./user.db"` puts
+> Drizzle and postgres in the client bundle. See
+> `.claude/skills/tanstack-start/SKILL.md` and [user-role.ts](user-role.ts).
+
 ## Core Principle: Separation of Concerns
 
 **Business logic** (server functions) should be separate from **data access** (database queries).
@@ -50,7 +57,7 @@ src/functions/
 
 **❌ Before (inline queries):**
 ```typescript
-// user-role.ts
+// user-role.ts (also breaks TSS-2: these top-level imports reach the client)
 import { eq } from "drizzle-orm";
 import db from "~/server/db";
 import { UserTable } from "~/server/db/schema";
@@ -95,19 +102,21 @@ export async function updateUserRole(userId: string, role: UserRole, updatedById
 }
 
 // user-role.ts
-import { getUserById, updateUserRole } from "./user.db";
+export const handleMakeUserAdmin = createServerOnlyFn(async ({ data: { userId, role } }) => {
+  const { getUserById, updateUserRole } = await import("./user.db");
+  const [user] = await getUserById(userId);
 
-export const makeUserAdmin = createServerFn()
-  .handler(async ({ data: { userId, role } }) => {
-    const [user] = await getUserById(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
 
-    if (!user) {
-      throw new Error("User not found");
-    }
+  const [updated] = await updateUserRole(userId, role, currentUser.id);
+  return updated;
+});
 
-    const [updated] = await updateUserRole(userId, role, currentUser.id);
-    return updated;
-  });
+export const makeUserAdmin = createServerFn({ method: "POST" })
+  .validator(validateMakeAdmin)
+  .handler(handleMakeUserAdmin);
 ```
 
 ### Example 2: Complex Queries with Parallel Execution
@@ -139,18 +148,21 @@ export async function getVoteCountsByCommentIds(commentIds: string[]) {
 }
 
 // batch-comment-counts.ts
-import { getReplyCountsByCommentIds, getVoteCountsByCommentIds } from "./comment.db";
+export const handleBatchCommentCounts = createServerOnlyFn(async ({ data: { commentIds } }) => {
+  const { getReplyCountsByCommentIds, getVoteCountsByCommentIds } = await import("./comment.db");
 
-export const batchCommentCounts = createServerFn()
-  .handler(async ({ data: { commentIds } }) => {
-    // Clear business intent, parallel execution
-    const [replyCounts, voteCounts] = await Promise.all([
-      getReplyCountsByCommentIds(commentIds),
-      getVoteCountsByCommentIds(commentIds),
-    ]);
+  // Clear business intent, parallel execution
+  const [replyCounts, voteCounts] = await Promise.all([
+    getReplyCountsByCommentIds(commentIds),
+    getVoteCountsByCommentIds(commentIds),
+  ]);
 
-    return buildResponse(replyCounts, voteCounts);
-  });
+  return buildResponse(replyCounts, voteCounts);
+});
+
+export const batchCommentCounts = createServerFn({ method: "POST" })
+  .validator(validateBatchCommentCounts)
+  .handler(handleBatchCommentCounts);
 ```
 
 ### Example 3: Condition Builders (Acceptable in Business Logic)
@@ -158,25 +170,30 @@ export const batchCommentCounts = createServerFn()
 **✅ Build conditions in business logic, execute in DAL:**
 ```typescript
 // discussion-list.ts
-import { and, eq, notInArray } from "drizzle-orm";
-import { getActiveDiscussions } from "./discussion.db";
+export const handleListDiscussions = createServerOnlyFn(async ({ data: { pastIds, includeArchived } }) => {
+  // drizzle-orm and the schema are server-only too (TSS-2)
+  const { and, eq, notInArray } = await import("drizzle-orm");
+  const { DiscussionTable } = await import("~/server/db/schema");
+  const { getActiveDiscussions } = await import("./discussion.db");
 
-export const listDiscussions = createServerFn()
-  .handler(async ({ data: { pastIds, includeArchived } }) => {
-    // Build conditions based on business rules
-    const conditions = [eq(DiscussionTable.active, true)];
+  // Build conditions based on business rules
+  const conditions = [eq(DiscussionTable.active, true)];
 
-    if (pastIds.length > 0) {
-      conditions.push(notInArray(DiscussionTable.id, pastIds));
-    }
+  if (pastIds.length > 0) {
+    conditions.push(notInArray(DiscussionTable.id, pastIds));
+  }
 
-    if (!includeArchived) {
-      conditions.push(eq(DiscussionTable.archived, false));
-    }
+  if (!includeArchived) {
+    conditions.push(eq(DiscussionTable.archived, false));
+  }
 
-    // Pass conditions to DAL
-    return getActiveDiscussions(and(...conditions), { limit: 10 });
-  });
+  // Pass conditions to DAL
+  return getActiveDiscussions(and(...conditions), { limit: 10 });
+});
+
+export const listDiscussions = createServerFn({ method: "GET" })
+  .validator(validateListDiscussions)
+  .handler(handleListDiscussions);
 
 // discussion.db.ts
 export async function getActiveDiscussions(
@@ -216,15 +233,17 @@ export async function createImmediateMembership(
 }
 
 // group-join.ts
-import { createImmediateMembership } from "./group.db";
+export const handleJoinGroup = createServerOnlyFn(async ({ data: { groupId, userId } }) => {
+  const { createImmediateMembership, getGroupById } = await import("./group.db");
+  const group = await getGroupById(groupId);
 
-export const joinGroup = createServerFn()
-  .handler(async ({ data: { groupId, userId } }) => {
-    const group = await getGroupById(groupId);
+  // Clean, atomic operation
+  return createImmediateMembership(groupId, userId, group.memberCount);
+});
 
-    // Clean, atomic operation
-    return createImmediateMembership(groupId, userId, group.memberCount);
-  });
+export const joinGroup = createServerFn({ method: "POST" })
+  .validator(validateJoinGroup)
+  .handler(handleJoinGroup);
 ```
 
 ## Naming Conventions

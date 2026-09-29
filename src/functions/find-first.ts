@@ -4,7 +4,7 @@
  * header for the splitting rationale.
  */
 
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { safeParse } from "valibot";
 import { createWhereSchema, type FindEntityPayload, formatIssues, validateFindFirst } from "~/functions/base-service";
 import { BadRequestError } from "~/server/access/http-errors";
@@ -24,7 +24,7 @@ function validateFindFirstInput(input: unknown): FindEntityPayload {
 	return payload;
 }
 
-export async function handleFindFirst({ data }: { data: FindEntityPayload }) {
+export const handleFindFirst = createServerOnlyFn(async ({ data }: { data: FindEntityPayload }) => {
 	const { getColumns } = await import("drizzle-orm");
 	const { logger } = await import("~/utils/logger");
 	const { buildWhereClause } = await import("~/server/db/DrizzleOrm");
@@ -56,8 +56,6 @@ export async function handleFindFirst({ data }: { data: FindEntityPayload }) {
 		throw new NotFoundError(`${data.subject} ${data.where?.id ?? "record"} not found or not readable`);
 	}
 	return readable;
-}
+});
 
-export const findFirst = createServerFn({ method: "GET" })
-	.inputValidator(validateFindFirstInput)
-	.handler(handleFindFirst);
+export const findFirst = createServerFn({ method: "GET" }).validator(validateFindFirstInput).handler(handleFindFirst);

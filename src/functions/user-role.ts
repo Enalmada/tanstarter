@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { object, picklist, safeParse, string } from "valibot";
 import { BadRequestError } from "~/server/access/http-errors";
 import type { UserRole } from "~/server/db/schema";
@@ -24,57 +24,59 @@ function validateMakeAdmin(input: unknown) {
 	return result.output;
 }
 
-export async function handleMakeUserAdmin({ data }: { data: { userId: string; role: UserRoleLiteral } }) {
-	const { userId, role } = data;
+export const handleMakeUserAdmin = createServerOnlyFn(
+	async ({ data }: { data: { userId: string; role: UserRoleLiteral } }) => {
+		const { userId, role } = data;
 
-	const { logger } = await import("~/utils/logger");
-	const { getUserById, updateUserRole } = await import("./user.db");
-	const { NotAuthorizedError, NotFoundError } = await import("~/server/access/http-errors");
-	const { requireAuthedUser, getOptionalSessionUser } = await import("~/server/auth/session");
-	const { isRoleSelfServiceEnabled } = await import("~/server/access/role-self-service");
+		const { logger } = await import("~/utils/logger");
+		const { getUserById, updateUserRole } = await import("./user.db");
+		const { NotAuthorizedError, NotFoundError } = await import("~/server/access/http-errors");
+		const { requireAuthedUser, getOptionalSessionUser } = await import("~/server/auth/session");
+		const { isRoleSelfServiceEnabled } = await import("~/server/access/role-self-service");
 
-	// requireAuthedUser handles the Playwright test-auth shortcut, the v1.134+
-	// getRequest() defensive try/catch, asResponse cookie forwarding, and the
-	// 401-on-no-session throw — all centralized in ~/server/auth/session.
-	const currentUser = await requireAuthedUser({ freshFromDb: true });
-	logger.info("makeUserAdmin", { userId, role, currentUserId: currentUser.id });
+		// requireAuthedUser handles the Playwright test-auth shortcut, the v1.134+
+		// getRequest() defensive try/catch, asResponse cookie forwarding, and the
+		// 401-on-no-session throw — all centralized in ~/server/auth/session.
+		const currentUser = await requireAuthedUser({ freshFromDb: true });
+		logger.info("makeUserAdmin", { userId, role, currentUserId: currentUser.id });
 
-	// Admins may change anyone's role. Everyone else may only flip their OWN
-	// role, and only where self-service is enabled (local dev or DEMO_MODE) —
-	// otherwise any member could promote themselves or demote real admins.
-	const isAdmin = currentUser.role === "ADMIN";
-	const isSelfService = userId === currentUser.id && isRoleSelfServiceEnabled();
-	if (!isAdmin && !isSelfService) {
-		throw new NotAuthorizedError(`User ${currentUser.id} may not change the role of ${userId}`);
-	}
+		// Admins may change anyone's role. Everyone else may only flip their OWN
+		// role, and only where self-service is enabled (local dev or DEMO_MODE) —
+		// otherwise any member could promote themselves or demote real admins.
+		const isAdmin = currentUser.role === "ADMIN";
+		const isSelfService = userId === currentUser.id && isRoleSelfServiceEnabled();
+		if (!isAdmin && !isSelfService) {
+			throw new NotAuthorizedError(`User ${currentUser.id} may not change the role of ${userId}`);
+		}
 
-	// Find the user to update
-	const [userToUpdate] = await getUserById(userId);
-	if (!userToUpdate) {
-		throw new NotFoundError(`User ${userId} not found`);
-	}
+		// Find the user to update
+		const [userToUpdate] = await getUserById(userId);
+		if (!userToUpdate) {
+			throw new NotFoundError(`User ${userId} not found`);
+		}
 
-	// Update the user's role
-	const [updatedUser] = await updateUserRole(userId, role as UserRole, currentUser.id);
+		// Update the user's role
+		const [updatedUser] = await updateUserRole(userId, role as UserRole, currentUser.id);
 
-	// Refresh the session cookie cache so a hard refresh observes the new role.
-	// Best-effort: `getOptionalSessionUser({ freshFromDb: true })` re-queries the
-	// DB AND forwards the Set-Cookie headers via the helper. If the
-	// AsyncLocalStorage context isn't active for some reason, the helper
-	// returns null and we just skip silently.
-	await getOptionalSessionUser({ freshFromDb: true });
+		// Refresh the session cookie cache so a hard refresh observes the new role.
+		// Best-effort: `getOptionalSessionUser({ freshFromDb: true })` re-queries the
+		// DB AND forwards the Set-Cookie headers via the helper. If the
+		// AsyncLocalStorage context isn't active for some reason, the helper
+		// returns null and we just skip silently.
+		await getOptionalSessionUser({ freshFromDb: true });
 
-	return updatedUser;
-}
+		return updatedUser;
+	},
+);
 
 export const makeUserAdmin = createServerFn({ method: "POST" })
-	.inputValidator(validateMakeAdmin)
+	.validator(validateMakeAdmin)
 	.handler(handleMakeUserAdmin);
 
-export async function handleGetRoleSelfService() {
+export const handleGetRoleSelfService = createServerOnlyFn(async () => {
 	const { isRoleSelfServiceEnabled } = await import("~/server/access/role-self-service");
 	return isRoleSelfServiceEnabled();
-}
+});
 
 /** Whether the Profile page should offer the self-service role toggle. */
 export const getRoleSelfService = createServerFn({ method: "GET" }).handler(handleGetRoleSelfService);

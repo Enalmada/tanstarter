@@ -62,7 +62,7 @@ fi
 #
 # `~/server/access/http-errors` is excluded by construction — the regex
 # only matches `check|ability|middleware` under `~/server/access/`.
-PATTERN='^import(?![[:space:]]+type[[:space:]])([[:space:]]+[^"\047]*)?["\047](~/server/db(?!/schema/[^"\047]*-schemas["\047])(/[^"\047]*)?|~/server/access/(check|ability|middleware)|~/server/services(/[^"\047]*)?|~/server/auth(/[^"\047]*)?|~/server/lib(/[^"\047]*)?|~/functions/[^"\047/]+/[^"\047]*\.db|~/utils/logger|@tanstack/react-start/server|drizzle-orm)["\047]'
+PATTERN='^import(?![[:space:]]+type[[:space:]])([[:space:]]+[^"\047]*)?["\047](~/server/db(?!/schema/[^"\047]*-schemas["\047])(/[^"\047]*)?|~/server/access/(check|ability|middleware)|~/server/services(/[^"\047]*)?|~/server/auth(/[^"\047]*)?|~/server/lib(/[^"\047]*)?|(?:\.\./|\./|~/functions/)[^"\047]*\.db(?:\.[a-z]+)?|~/utils/logger|@tanstack/react-start/server|drizzle-orm)["\047]'
 
 hits=0
 for f in $files; do
@@ -79,6 +79,41 @@ if [ "$hits" -gt 0 ]; then
 	echo "❌ TSS-2 check failed: $hits files with top-level server-only imports."
 	echo "   Convert each to a dynamic import inside the handler."
 	echo "   See .claude/skills/tanstack-start/SKILL.md for the canonical pattern."
+	exit 1
+fi
+
+# Dynamic imports of server code must sit inside `createServerOnlyFn(...)`
+# (or an inline `.handler(async ...)`), which the Start compiler strips from
+# the client build. An exported plain function or async arrow survives client
+# tree-shaking as an export, and rolldown still emits a public chunk for every
+# `import(...)` inside it (that shipped better-auth's server build as a client
+# asset). Scans every src/functions module except tests and `.db.ts` files,
+# because modules like base-service.ts are on the client graph without calling
+# createServerFn. A top-level block ends at a line starting with `}` or `)`.
+fn_files=$(find src/functions -type f \( -name '*.ts' -o -name '*.tsx' \) \
+	| grep -v '__tests__' \
+	| grep -v '\.test\.' \
+	| grep -v '\.db\.ts$' \
+	|| true)
+unwrapped=$(awk '
+	FNR == 1 { inblk = 0 }
+	/^export[[:space:]]+(default[[:space:]]+)?(async[[:space:]]+)?function[[:space:]]/ ||
+	/^export[[:space:]]+const[[:space:]]+[A-Za-z0-9_$]+[[:space:]]*(:[^=]*)?=[[:space:]]*(async[[:space:]]*)?(\(|function)/ {
+		inblk = 1; start = FNR; hdr = $0
+	}
+	inblk && /import\(/ && !seen[FILENAME ":" start]++ { print "    " FILENAME ":" start ": " hdr }
+	inblk && FNR != start && /^[})]/ { inblk = 0 }
+' $fn_files)
+# `export { handleX }` after a plain function also dangles the handler-body
+# extraction (see SKILL.md); `export type { ... }` is fine.
+lists=$(grep -nE '^export[[:space:]]*\{' $files /dev/null || true)
+
+if [ -n "$unwrapped" ] || [ -n "$lists" ]; then
+	[ -n "$unwrapped" ] && printf "  TSS-2 UNWRAPPED DYNAMIC IMPORT:\n%s\n" "$unwrapped"
+	[ -n "$lists" ] && printf "  TSS-2 EXPORT LIST:\n%s\n" "$lists" | sed 's/^\([^ ]\)/    \1/'
+	echo ""
+	echo "❌ TSS-2 check failed: server-only code outside createServerOnlyFn."
+	echo "   Use: export const handleX = createServerOnlyFn(async (...) => { ... });"
 	exit 1
 fi
 
