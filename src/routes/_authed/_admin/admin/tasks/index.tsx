@@ -64,7 +64,7 @@ function getRouteQueries() {
 	return [queries.task.list()] as const;
 }
 
-export const Route = createFileRoute("/admin/tasks/")({
+export const Route = createFileRoute("/_authed/_admin/admin/tasks/")({
 	component: TasksPage,
 	loader: async ({ context: { queryClient } }) => {
 		await preloadQueries(queryClient, getRouteQueries());

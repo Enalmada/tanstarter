@@ -15,9 +15,9 @@ function getRouteQueries(userId?: string) {
 	return [queries.task.list({ userId })] as const;
 }
 
-export const Route = createFileRoute("/tasks/")({
+export const Route = createFileRoute("/_authed/tasks/")({
 	loader: async ({ context }) => {
-		const userId = context.user?.id;
+		const userId = context.user.id;
 		await preloadQueries(context.queryClient, getRouteQueries(userId));
 		return { userId };
 	},

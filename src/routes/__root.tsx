@@ -6,16 +6,15 @@ import type { I18n } from "@lingui/core";
 import { useLingui } from "@lingui/react";
 import type { TanStackDevtoolsReactInit } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
-import { createRootRouteWithContext, HeadContent, Outlet, redirect, ScriptOnce, Scripts } from "@tanstack/react-router";
+import { createRootRouteWithContext, HeadContent, Outlet, ScriptOnce, Scripts } from "@tanstack/react-router";
 import { type ComponentType, lazy, type ReactNode, Suspense, useEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import { Toaster } from "~/components/ui/sonner";
 import { env } from "~/env";
+import { sessionQueryOptions } from "~/lib/auth/session";
 import { pickPublicRuntimeEnv, serializePublicRuntimeEnv } from "~/lib/env/public-env";
 import appCss from "~/styles/app.css?url";
-import type { SessionUser } from "~/utils/auth-client";
-import { queries } from "~/utils/query/queries";
 
 // TODO: Enable service worker when you're ready to use PWA features
 // The service worker is built by scripts/vite-service-worker.ts during `vite build`
@@ -72,35 +71,17 @@ const AnalyticsProvider = lazy(() =>
 
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
-	user: SessionUser | null | undefined;
 	i18n: I18n;
 }>()({
-	beforeLoad: async ({ context, location }) => {
-		const queryClient = context.queryClient;
-		let user: SessionUser | null = null;
-
+	// Prime the session in the query cache: the layout and analytics read it on
+	// every page, and the _guest/_authed guards reuse it.
+	beforeLoad: async ({ context }) => {
 		try {
-			user = await context.queryClient.query(queries.user.session);
+			await context.queryClient.query(sessionQueryOptions());
 		} catch (_error) {
-			// Handle error silently
+			// A failed session lookup is treated as signed out
+			context.queryClient.setQueryData(sessionQueryOptions().queryKey, null);
 		}
-
-		// Cache the user data
-		queryClient.setQueryData(queries.user.session.queryKey, user);
-
-		// Check if this is a protected route
-		const isProtectedRoute = location.pathname.startsWith("/tasks") || location.pathname.startsWith("/admin");
-
-		if (isProtectedRoute && !user) {
-			throw redirect({ to: "/signin", search: { redirect: location.href } });
-		}
-
-		return { user };
-	},
-	loader: ({ context }) => {
-		return {
-			user: context.user ?? null,
-		};
 	},
 	head: () => ({
 		meta: [

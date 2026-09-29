@@ -6,8 +6,9 @@
  */
 
 import type { QueryClient } from "@tanstack/react-query";
-import { redirect } from "@tanstack/react-router";
+import { type ParsedLocation, redirect } from "@tanstack/react-router";
 import { sessionQueryOptions } from "~/lib/auth/session";
+import { UserRole } from "~/lib/enums/user-role";
 
 export const DEFAULT_REDIRECT = "/tasks";
 
@@ -33,5 +34,21 @@ export async function redirectIfSignedIn(queryClient: QueryClient, redirectTo: u
 	const user = await queryClient.query(sessionQueryOptions());
 	if (user) {
 		throw redirect({ href: safeRedirect(redirectTo) });
+	}
+}
+
+/** Signed-out visitors go to the sign-in page, which sends them back afterwards. */
+export async function requireUser(queryClient: QueryClient, location: Pick<ParsedLocation, "href">) {
+	const user = await queryClient.query(sessionQueryOptions());
+	if (!user) {
+		throw redirect({ to: "/signin", search: { redirect: location.href } });
+	}
+	return user;
+}
+
+/** Signed-in members who open an admin page land on the task list with a notice. */
+export function requireAdmin(user: { role?: string | null | undefined }) {
+	if (user.role !== UserRole.ADMIN) {
+		throw redirect({ to: "/tasks", search: { error: "Access denied. Admin privileges required." } });
 	}
 }

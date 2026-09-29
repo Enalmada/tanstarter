@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { DefaultLayout } from "~/components/layouts/DefaultLayout";
 import { Alert, AlertDescription } from "~/components/ui/alert";
@@ -11,15 +11,8 @@ import { getRoleSelfService, makeUserAdmin } from "~/functions/user-role";
 import { sessionQueryOptions, useSessionUser } from "~/lib/auth/session";
 import { UserRole } from "~/lib/enums/user-role";
 
-export const Route = createFileRoute("/profile")({
+export const Route = createFileRoute("/_authed/profile")({
 	component: ProfilePage,
-	beforeLoad: async ({ context, location }) => {
-		const user = context.user;
-
-		if (!user) {
-			throw redirect({ to: "/signin", search: { redirect: location.href } });
-		}
-	},
 	loader: async () => ({
 		// Self-service role toggle is local-dev / DEMO_MODE only (server decides).
 		roleSelfService: await getRoleSelfService(),
@@ -37,7 +30,7 @@ function ProfilePage() {
 	const [optimisticRole, setOptimisticRole] = useState<UserRole | null>(null);
 
 	if (!sessionUser) {
-		return null; // beforeLoad redirects anonymous visitors; this narrows the type
+		return null; // _authed redirects anonymous visitors; this narrows the type
 	}
 
 	const user = optimisticRole ? { ...sessionUser, role: optimisticRole } : sessionUser;

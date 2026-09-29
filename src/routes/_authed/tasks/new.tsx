@@ -19,10 +19,10 @@ type TaskFormData = {
 	userId: string;
 };
 
-export const Route = createFileRoute("/tasks/new")({
+export const Route = createFileRoute("/_authed/tasks/new")({
 	component: NewTask,
 	loader: async ({ context }) => {
-		return { userId: context.user?.id };
+		return { userId: context.user.id };
 	},
 });
 

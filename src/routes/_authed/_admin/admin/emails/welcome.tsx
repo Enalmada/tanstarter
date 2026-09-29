@@ -20,7 +20,7 @@ function EmailPreview() {
 	return <iframe title="Email Preview" srcDoc={emailHtml} className="w-full h-[600px] border-none" />;
 }
 
-export const Route = createFileRoute("/admin/emails/welcome")({
+export const Route = createFileRoute("/_authed/_admin/admin/emails/welcome")({
 	loader: ({ context: { queryClient } }) => queryClient.query(emailQueries.welcomePreview),
 	component: WelcomeEmailPreview,
 });

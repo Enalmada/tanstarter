@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DefaultLayout } from "~/components/layouts/DefaultLayout";
 
-export const Route = createFileRoute("/tasks")({
+export const Route = createFileRoute("/_authed/tasks")({
 	component: TasksLayout,
 });
 
