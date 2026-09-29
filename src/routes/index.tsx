@@ -8,15 +8,11 @@ import { Container } from "~/components/ui/container";
 
 export const Route = createFileRoute("/")({
 	component: HomeLayout,
-	loader: ({ context }) => ({
-		user: context.user ?? null,
-	}),
 });
 
 function HomeLayout() {
-	const { user } = Route.useLoaderData();
 	return (
-		<DefaultLayout user={user}>
+		<DefaultLayout>
 			<Home />
 		</DefaultLayout>
 	);

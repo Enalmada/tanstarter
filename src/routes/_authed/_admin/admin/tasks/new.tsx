@@ -6,10 +6,10 @@ import type { Task } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { queries } from "~/utils/query/queries";
 
-export const Route = createFileRoute("/admin/tasks/new")({
+export const Route = createFileRoute("/_authed/_admin/admin/tasks/new")({
 	component: AdminNewTask,
 	loader: async ({ context }) => {
-		return { userId: context.user?.id };
+		return { userId: context.user.id };
 	},
 });
 

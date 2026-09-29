@@ -1,11 +1,13 @@
+import { Trans, useLingui } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import { email, minLength, parse, pipe, string } from "valibot";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { safeRedirect } from "~/lib/auth/guards";
 import authClient from "~/utils/auth-client";
 
 function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -58,18 +60,16 @@ function GoogleButton({ disabled = false, className = "", children, onClick, typ
 	);
 }
 
-export const Route = createFileRoute("/signup")({
-	component: SignupLayout,
-	beforeLoad: async ({ context }) => {
-		if (context.user) {
-			throw redirect({
-				to: "/tasks",
-			});
-		}
-	},
+export const Route = createFileRoute("/_guest/signin")({
+	component: SigninLayout,
 });
 
-function SignupLayout() {
+// Where to go after signing in: the validated ?redirect= value, else /tasks.
+function useRedirectTarget() {
+	return safeRedirect(Route.useSearch().redirect);
+}
+
+function SigninLayout() {
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background">
 			<AuthPage />
@@ -77,11 +77,13 @@ function SignupLayout() {
 	);
 }
 
-function SignupForm() {
-	const router = useRouter();
+function SigninForm() {
+	const search = Route.useSearch();
+	const { t } = useLingui();
+	const redirectTarget = useRedirectTarget();
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [isUserExists, setIsUserExists] = useState(false);
+	const [isUserNotFound, setIsUserNotFound] = useState(false);
 
 	const form = useForm({
 		defaultValues: {
@@ -92,25 +94,31 @@ function SignupForm() {
 			try {
 				setIsLoading(true);
 				setError(null);
-				setIsUserExists(false);
+				setIsUserNotFound(false);
 
-				const result = await authClient.signUp.email({
+				// Add timeout to prevent indefinite hanging
+				const timeoutPromise = new Promise((_, reject) => {
+					setTimeout(() => reject(new Error("Request timed out. Please try again.")), 10000);
+				});
+
+				const authPromise = authClient.signIn.email({
 					email: value.email,
 					password: value.password,
-					name: value.email.split("@")[0], // Use email prefix as default name
-					callbackURL: "/tasks",
+					callbackURL: redirectTarget,
 				});
+
+				const result = await Promise.race([authPromise, timeoutPromise]);
 
 				// Check if the result contains an error
 				if (result && typeof result === "object" && "error" in result && result.error) {
 					// Better Auth returns errors in result.error, not as thrown exceptions
 					const error = result.error as { message?: string; code?: string };
-					throw new Error(error.message || error.code || "Sign up failed");
+					throw new Error(error.message || error.code || "Authentication failed");
 				}
 
-				// Success: better-auth sets the session cookie but does not redirect after email sign-up, so go to the
-				// app explicitly with a document load (fresh session context, caches and analytics identity)
-				await router.navigate({ to: "/tasks", reloadDocument: true });
+				// Success: better-auth already redirects to callbackURL for sign-in; navigating explicitly with a
+				// document load keeps this form the same as sign-up (fresh session context, caches, analytics identity)
+				window.location.assign(redirectTarget);
 			} catch (err) {
 				setIsLoading(false);
 
@@ -118,20 +126,23 @@ function SignupForm() {
 				if (err instanceof Error) {
 					const errorMessage = err.message.toLowerCase();
 
-					// Check for "user already exists" error patterns
+					// Check for Better Auth specific error codes and patterns
 					if (
-						errorMessage.includes("user already exists") ||
-						errorMessage.includes("email already exists") ||
-						errorMessage.includes("user exists") ||
-						errorMessage.includes("email is already registered")
+						errorMessage.includes("invalid_email_or_password") ||
+						errorMessage.includes("invalid email or password") ||
+						errorMessage.includes("user not found") ||
+						errorMessage.includes("unauthorized") ||
+						errorMessage.includes("user does not exist")
 					) {
-						setError("An account with this email already exists.");
-						setIsUserExists(true);
+						setError(t`No account found with this email or password combination.`);
+						setIsUserNotFound(true);
+					} else if (errorMessage.includes("invalid password") || errorMessage.includes("incorrect password")) {
+						setError(t`Incorrect password. Please try again.`);
 					} else {
-						setError(err.message);
+						setError(t`Sign in failed. Please check your credentials and try again.`);
 					}
 				} else {
-					setError("Sign up failed. Please try again.");
+					setError(t`Sign in failed. Please check your email and password.`);
 				}
 			}
 		},
@@ -154,14 +165,16 @@ function SignupForm() {
 							parse(pipe(string(), email()), value);
 							return undefined;
 						} catch {
-							return "Please enter a valid email address";
+							return t`Please enter a valid email address`;
 						}
 					},
 				}}
 			>
 				{(field) => (
 					<div className="space-y-2">
-						<Label htmlFor={field.name}>Email</Label>
+						<Label htmlFor={field.name}>
+							<Trans>Email</Trans>
+						</Label>
 						<Input
 							id={field.name}
 							name={field.name}
@@ -169,7 +182,7 @@ function SignupForm() {
 							value={field.state.value}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
-							placeholder="Enter your email"
+							placeholder={t`Enter your email`}
 							disabled={isLoading}
 						/>
 						{field.state.meta.errors.length > 0 && (
@@ -184,17 +197,19 @@ function SignupForm() {
 				validators={{
 					onChange: ({ value }) => {
 						try {
-							parse(pipe(string(), minLength(8, "Password must be at least 8 characters")), value);
+							parse(pipe(string(), minLength(8, t`Password must be at least 8 characters`)), value);
 							return undefined;
 						} catch (err) {
-							return err instanceof Error ? err.message : "Invalid password";
+							return err instanceof Error ? err.message : t`Invalid password`;
 						}
 					},
 				}}
 			>
 				{(field) => (
 					<div className="space-y-2">
-						<Label htmlFor={field.name}>Password</Label>
+						<Label htmlFor={field.name}>
+							<Trans>Password</Trans>
+						</Label>
 						<Input
 							id={field.name}
 							name={field.name}
@@ -202,7 +217,7 @@ function SignupForm() {
 							value={field.state.value}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
-							placeholder="Enter your password (8+ characters)"
+							placeholder={t`Enter your password`}
 							disabled={isLoading}
 						/>
 						{field.state.meta.errors.length > 0 && (
@@ -215,11 +230,15 @@ function SignupForm() {
 			{error && (
 				<div className="rounded-md bg-destructive/15 p-3 text-sm">
 					<p className="text-destructive">{error}</p>
-					{isUserExists && (
+					{isUserNotFound && (
 						<p className="mt-2 text-muted-foreground">
-							Already have an account?{" "}
-							<Link to="/signin" className="text-foreground underline hover:no-underline">
-								Sign in here
+							<Trans>Need an account?</Trans>{" "}
+							<Link
+								to="/signup"
+								search={{ redirect: search.redirect }}
+								className="text-foreground underline hover:no-underline"
+							>
+								<Trans>Sign up here</Trans>
 							</Link>
 						</p>
 					)}
@@ -230,16 +249,20 @@ function SignupForm() {
 				{isLoading ? (
 					<>
 						<div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-						Creating account...
+						<Trans>Signing in...</Trans>
 					</>
 				) : (
-					"Create account"
+					t`Sign in`
 				)}
 			</Button>
 
 			<div className="text-center">
-				<Link to="/signin" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-					Already have an account? Sign in
+				<Link
+					to="/signup"
+					search={{ redirect: search.redirect }}
+					className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+				>
+					<Trans>Don't have an account? Sign up</Trans>
 				</Link>
 			</div>
 		</form>
@@ -247,24 +270,32 @@ function SignupForm() {
 }
 
 function AuthPage() {
+	const _search = Route.useSearch();
+	const redirectTarget = useRedirectTarget();
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
 	return (
 		<div className="container max-w-md mx-auto px-4">
 			<div className="text-center">
-				<h1 className="text-3xl font-bold tracking-tight">Create your account</h1>
-				<p className="text-sm text-muted-foreground mt-2">Just email and password - quick and simple</p>
+				<h1 className="text-3xl font-bold tracking-tight">
+					<Trans>Welcome back!</Trans>
+				</h1>
+				<p className="text-sm text-muted-foreground mt-2">
+					<Trans>Sign in to access your tasks</Trans>
+				</p>
 			</div>
 
 			<Card className="mt-8 p-6 border-0 bg-white dark:bg-gray-800 shadow-md">
-				<SignupForm />
+				<SigninForm />
 
 				<div className="relative my-6">
 					<div className="absolute inset-0 flex items-center">
 						<span className="w-full border-t" />
 					</div>
 					<div className="relative flex justify-center text-xs uppercase">
-						<span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+						<span className="bg-background px-2 text-muted-foreground">
+							<Trans>Or continue with</Trans>
+						</span>
 					</div>
 				</div>
 
@@ -277,7 +308,7 @@ function AuthPage() {
 							setIsGoogleLoading(true);
 							await authClient.signIn.social({
 								provider: "google",
-								callbackURL: "/tasks",
+								callbackURL: redirectTarget,
 							});
 						} catch (_error) {
 							// Reset loading state if authentication fails
@@ -285,7 +316,7 @@ function AuthPage() {
 						}
 					}}
 				>
-					{isGoogleLoading ? "Loading..." : "Continue with Google"}
+					{isGoogleLoading ? <Trans>Loading...</Trans> : <Trans>Continue with Google</Trans>}
 				</GoogleButton>
 			</Card>
 		</div>

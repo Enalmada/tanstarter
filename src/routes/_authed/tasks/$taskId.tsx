@@ -1,36 +1,50 @@
+/**
+ * Task edit route component - demonstrates new routeQueries pattern
+ * Shows how to define queries once and use them in both loaders and components
+ * with automatic useServerFn wrapping for proper error handling
+ */
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AdminTaskForm, type TaskFormData } from "~/components/admin/TaskForm";
+import { TaskForm, type TaskFormData } from "~/components/TaskForm";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
+import { useSessionUser } from "~/lib/auth/session";
 import type { Task } from "~/server/db/schema";
 import { useEntityMutations } from "~/utils/query/mutations";
 import { preloadQueries, queries, useSuspenseQueries } from "~/utils/query/queries";
 
+/**
+ * Route queries definition - single source of truth
+ * Used by both loader (raw) and component (useServerFn wrapped)
+ */
 function getRouteQueries(taskId: string) {
 	return [queries.task.byId(taskId)] as const;
 }
 
-export const Route = createFileRoute("/admin/tasks/$taskId")({
-	component: AdminEditTask,
+export const Route = createFileRoute("/_authed/tasks/$taskId")({
+	component: EditTask,
 	loader: async ({ context, params }) => {
+		// Preload queries for server-side rendering
 		await preloadQueries(context.queryClient, getRouteQueries(params.taskId));
 	},
 });
 
-function AdminEditTask() {
+function EditTask() {
 	const { taskId } = Route.useParams();
 	const navigate = useNavigate();
 
+	// Same queries as loader, automatically wrapped with useServerFn
 	const [task] = useSuspenseQueries(getRouteQueries(taskId));
+	const user = useSessionUser();
 
 	const { updateMutation, deleteMutation } = useEntityMutations<Task, TaskFormData>({
 		entityName: "Task",
 		entity: task,
 		subject: "Task",
-		listKeys: [queries.task.list().queryKey],
+		listKeys: [queries.task.list({ userId: user?.id }).queryKey],
 		detailKey: (id) => queries.task.byId(id).queryKey,
-		navigateTo: "/admin/tasks",
-		navigateBack: `/admin/tasks/${task.id}`,
+		navigateTo: "/tasks",
+		navigateBack: `/tasks/${task.id}`,
 		createOptimisticEntity: (data: TaskFormData) => ({
 			...task,
 			...data,
@@ -42,7 +56,7 @@ function AdminEditTask() {
 	return (
 		<div className="container mx-auto space-y-4 p-6">
 			<div className="flex justify-between items-center">
-				<Button variant="ghost" onClick={() => navigate({ to: "/admin/tasks" })}>
+				<Button variant="ghost" onClick={() => navigate({ to: "/tasks" })}>
 					← Back to Tasks
 				</Button>
 				<Button
@@ -56,14 +70,18 @@ function AdminEditTask() {
 
 			<Card>
 				<CardContent className="pt-6 space-y-4">
-					<AdminTaskForm
-						defaultValues={task}
+					<TaskForm
+						defaultValues={{
+							...task,
+							userId: user?.id ?? "",
+						}}
 						onSubmit={(values) =>
 							updateMutation.mutate({
 								data: values,
 							})
 						}
 						isSubmitting={updateMutation.isPending}
+						userId={user?.id ?? ""}
 					/>
 				</CardContent>
 			</Card>

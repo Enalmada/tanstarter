@@ -9,4 +9,9 @@ test.describe("Admin Access", () => {
 		await expect(page.getByRole("heading", { name: "Tasks" })).toBeVisible();
 		await expect(tasksListPage.getAddNewButton()).toBeVisible();
 	});
+
+	test("can open the admin-only monitoring page", async ({ page }) => {
+		await page.goto("/debug/monitoring");
+		await expect(page.getByRole("heading", { name: "Monitoring Debug" })).toBeVisible();
+	});
 });

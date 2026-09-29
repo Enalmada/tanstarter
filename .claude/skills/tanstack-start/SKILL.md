@@ -141,13 +141,31 @@ export const thing = createServerFn({ method: "POST" })
 
 Anonymous callers are rejected (401) before the handler runs. The middleware dynamic-imports `~/server/auth/session` inside `.server()` (TSS-2). Tests call the exported handler with `context: { user }` and test the middleware itself in `src/functions/__tests__/auth-middleware.test.ts`.
 
-Routes and non-server-function code (loaders, route `beforeLoad`, SSE endpoints) still use the helpers directly.
+Route loaders read the session from the router context set by the layout guards (see "Routes and guards" below); SSE endpoints and other non-server-function code still use the helpers directly.
 
 Both `getOptionalSessionUser` and `requireAuthedUser` automatically:
 - Honor the Playwright test-auth header shortcut.
 - Wrap `getRequest()` in the defensive try/catch (no caller-visible throw on missing AsyncLocalStorage context).
 - Call `auth.api.getSession({ asResponse: true })` and forward `Set-Cookie` headers from session refresh.
 - Accept `{ freshFromDb: true }` to bypass better-auth's cookie cache when the caller needs to observe a role/permission change written earlier in the same session.
+
+## Routes and guards
+
+Pages are grouped by who may see them, using pathless layout routes (the folder name starts with `_`, so it adds no URL segment):
+
+| Folder | Who | Guard ([src/lib/auth/guards.ts](src/lib/auth/guards.ts)) |
+|---|---|---|
+| `src/routes/*.tsx` (home, privacy, terms, `signout`) | anyone | none |
+| `src/routes/_guest/` (`/signin`, `/signup`) | signed-out visitors | `redirectIfSignedIn` sends a signed-in user to `?redirect=` or `/tasks` |
+| `src/routes/_authed/` (`/tasks`, `/profile`, `/debug/streaming-sse`) | signed-in users | `requireUser` redirects to `/signin?redirect=<where they were going>` and puts a non-null `user` on the route context |
+| `src/routes/_authed/_admin/` (`/admin/**`, `/debug/monitoring`) | admins | `requireAdmin` sends members to `/tasks?error=...` |
+
+- Put a new protected page in the matching folder and its `createFileRoute("/_authed/...")` string follows the file path (the router plugin rewrites it on save). Don't write per-route `beforeLoad` checks.
+- The session lives in one query, `sessionQueryOptions()` in [src/lib/auth/session.ts](src/lib/auth/session.ts) (key `["user", "session"]`). Components call `useSessionUser()`; loaders under `_authed` read `context.user`. The root route only primes that query, so the user is never copied into router context or loader data.
+- After changing the session user (role change, profile edit) call `queryClient.invalidateQueries({ queryKey: sessionQueryOptions().queryKey })` and then `router.invalidate()` so the guards re-run.
+- `?redirect=` values go through `safeRedirect`: only same-origin paths, never `//host`, backslashes, control characters or the auth pages. Use it for any new place that redirects to a user-supplied path.
+- Guards decide where to send people; they are not the security boundary. Every server function still needs `authMiddleware` or `freshAuthMiddleware` (`auth-wiring.test.ts` enforces it), and API routes check the session themselves.
+- Data loading in loaders: `queryClient.query(...)` (through `preloadQueries`) for reads; the router's `defaultPreloadStaleTime` is 0 because React Query owns caching.
 
 ### Failure mode that this design prevents
 

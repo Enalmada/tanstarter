@@ -24,7 +24,7 @@ function ErrorFallback() {
 	return <p className="text-destructive">Error boundary caught an error!</p>;
 }
 
-export const Route = createFileRoute("/debug/monitoring")({
+export const Route = createFileRoute("/_authed/_admin/debug/monitoring")({
 	component: MonitoringDebug,
 });
 

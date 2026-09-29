@@ -11,7 +11,7 @@ import { Button } from "~/components/ui/button";
 import { triggerSSENotification } from "~/functions/sse-trigger";
 import type { NotificationEvent } from "~/server/lib/sse-channel";
 
-export const Route = createFileRoute("/debug/streaming-sse")({
+export const Route = createFileRoute("/_authed/debug/streaming-sse")({
 	component: StreamingSSEPage,
 });
 

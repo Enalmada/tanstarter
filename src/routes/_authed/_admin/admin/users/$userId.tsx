@@ -10,7 +10,7 @@ function getRouteQueries(userId: string) {
 	return [queries.user.byId(userId)] as const;
 }
 
-export const Route = createFileRoute("/admin/users/$userId")({
+export const Route = createFileRoute("/_authed/_admin/admin/users/$userId")({
 	component: AdminEditUser,
 	loader: async ({ context, params }) => {
 		await preloadQueries(context.queryClient, getRouteQueries(params.userId));

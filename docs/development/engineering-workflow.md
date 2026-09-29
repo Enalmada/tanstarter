@@ -49,6 +49,14 @@ Two limits:
 
 For the Fly review-app workflow, see [.github/workflows/fly-review.yml](.github/workflows/fly-review.yml).
 
+## Adding a page
+
+1. Pick the folder by audience (see "Routes and guards" in the [tanstack-start skill](.claude/skills/tanstack-start/SKILL.md)): `src/routes/` for public pages, `_guest/` for sign-in style pages, `_authed/` for signed-in users, `_authed/_admin/` for admins. The layout's guard does the access check.
+2. Read the user with `useSessionUser()` in components, or `context.user` in a loader under `_authed`.
+3. Commit the regenerated `src/routeTree.gen.ts` (the dev server or `bun run build` rewrites it).
+4. If the page has translatable text (or you moved a file that does), run `bun run extract` and commit the catalogs: `bun run i18n:check` (CI) fails on stale source references.
+5. Add an e2e spec under `src/e2e/member`, `admin` or `public` for who may and may not open it.
+
 ## Server function patterns
 
 For createServerFn structure, the HTTP error vocabulary, and the TSS rule set, see the [tanstack-start skill](.claude/skills/tanstack-start/SKILL.md).

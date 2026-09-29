@@ -128,7 +128,6 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { routerWithLingui } from "~/lib/i18n/router-plugin";
-import type { SessionUser } from "~/utils/auth-client";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
 import { NotFound } from "./components/NotFound";
 import { routeTree } from "./routeTree.gen";
@@ -156,7 +155,6 @@ declare module "@tanstack/react-router" {
 
 interface RouterContext {
 	queryClient: QueryClient;
-	user: SessionUser | null | undefined;
 	i18n: I18n;
 }
 
@@ -192,12 +190,12 @@ export async function getRouter() {
 
 	const router = createRouter({
 		routeTree,
-		context: { queryClient, user: undefined, i18n } as RouterContext,
+		context: { queryClient, i18n } satisfies RouterContext,
 		defaultPreload: "intent",
-		// TODO: confirm this is the best approach
-		// react-query will handle data fetching & caching
+		// react-query owns data fetching and caching (its staleTime above), so the
+		// router must not add its own preload cache on top.
 		// https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#passing-all-loader-events-to-an-external-cache
-		defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes
+		defaultPreloadStaleTime: 0,
 		defaultErrorComponent: DefaultCatchBoundary,
 		defaultNotFoundComponent: NotFound,
 		scrollRestoration: true,

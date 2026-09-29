@@ -10,38 +10,44 @@
 
 import { Route as rootRouteImport } from "./routes/__root";
 import { Route as IndexRouteImport } from "./routes/index";
-import { Route as AdminRouteImport } from "./routes/admin";
+import { Route as AuthedRouteRouteImport } from "./routes/_authed/route";
+import { Route as GuestRouteRouteImport } from "./routes/_guest/route";
 import { Route as HealthRouteImport } from "./routes/health";
 import { Route as PrivacyRouteImport } from "./routes/privacy";
-import { Route as ProfileRouteImport } from "./routes/profile";
-import { Route as SigninRouteImport } from "./routes/signin";
 import { Route as SignoutRouteImport } from "./routes/signout";
-import { Route as SignupRouteImport } from "./routes/signup";
-import { Route as TasksRouteImport } from "./routes/tasks";
 import { Route as TermsRouteImport } from "./routes/terms";
-import { Route as AdminIndexRouteImport } from "./routes/admin/index";
-import { Route as DebugMonitoringRouteImport } from "./routes/debug/monitoring";
-import { Route as DebugStreamingSseRouteImport } from "./routes/debug/streaming-sse";
-import { Route as TasksIndexRouteImport } from "./routes/tasks/index";
-import { Route as TasksTaskIdRouteImport } from "./routes/tasks/$taskId";
-import { Route as TasksNewRouteImport } from "./routes/tasks/new";
-import { Route as AdminEmailsWelcomeRouteImport } from "./routes/admin/emails/welcome";
-import { Route as AdminTasksIndexRouteImport } from "./routes/admin/tasks/index";
-import { Route as AdminTasksTaskIdRouteImport } from "./routes/admin/tasks/$taskId";
-import { Route as AdminTasksNewRouteImport } from "./routes/admin/tasks/new";
-import { Route as AdminUsersIndexRouteImport } from "./routes/admin/users/index";
-import { Route as AdminUsersUserIdRouteImport } from "./routes/admin/users/$userId";
+import { Route as AuthedAdminRouteRouteImport } from "./routes/_authed/_admin/route";
+import { Route as AuthedProfileRouteImport } from "./routes/_authed/profile";
+import { Route as AuthedTasksRouteRouteImport } from "./routes/_authed/tasks/route";
+import { Route as GuestSigninRouteImport } from "./routes/_guest/signin";
+import { Route as GuestSignupRouteImport } from "./routes/_guest/signup";
+import { Route as AuthedAdminAdminRouteRouteImport } from "./routes/_authed/_admin/admin/route";
+import { Route as AuthedDebugStreamingSseRouteImport } from "./routes/_authed/debug/streaming-sse";
+import { Route as AuthedTasksIndexRouteImport } from "./routes/_authed/tasks/index";
+import { Route as AuthedTasksTaskIdRouteImport } from "./routes/_authed/tasks/$taskId";
+import { Route as AuthedTasksNewRouteImport } from "./routes/_authed/tasks/new";
 import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth/$";
 import { Route as ApiSseNotificationsRouteImport } from "./routes/api/sse/notifications";
+import { Route as AuthedAdminAdminIndexRouteImport } from "./routes/_authed/_admin/admin/index";
+import { Route as AuthedAdminDebugMonitoringRouteImport } from "./routes/_authed/_admin/debug/monitoring";
+import { Route as AuthedAdminAdminEmailsWelcomeRouteImport } from "./routes/_authed/_admin/admin/emails/welcome";
+import { Route as AuthedAdminAdminTasksIndexRouteImport } from "./routes/_authed/_admin/admin/tasks/index";
+import { Route as AuthedAdminAdminTasksTaskIdRouteImport } from "./routes/_authed/_admin/admin/tasks/$taskId";
+import { Route as AuthedAdminAdminTasksNewRouteImport } from "./routes/_authed/_admin/admin/tasks/new";
+import { Route as AuthedAdminAdminUsersIndexRouteImport } from "./routes/_authed/_admin/admin/users/index";
+import { Route as AuthedAdminAdminUsersUserIdRouteImport } from "./routes/_authed/_admin/admin/users/$userId";
 
 const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any);
-const AdminRoute = AdminRouteImport.update({
-  id: "/admin",
-  path: "/admin",
+const AuthedRouteRoute = AuthedRouteRouteImport.update({
+  id: "/_authed",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const GuestRouteRoute = GuestRouteRouteImport.update({
+  id: "/_guest",
   getParentRoute: () => rootRouteImport,
 } as any);
 const HealthRoute = HealthRouteImport.update({
@@ -54,29 +60,9 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: "/privacy",
   getParentRoute: () => rootRouteImport,
 } as any);
-const ProfileRoute = ProfileRouteImport.update({
-  id: "/profile",
-  path: "/profile",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const SigninRoute = SigninRouteImport.update({
-  id: "/signin",
-  path: "/signin",
-  getParentRoute: () => rootRouteImport,
-} as any);
 const SignoutRoute = SignoutRouteImport.update({
   id: "/signout",
   path: "/signout",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const SignupRoute = SignupRouteImport.update({
-  id: "/signup",
-  path: "/signup",
-  getParentRoute: () => rootRouteImport,
-} as any);
-const TasksRoute = TasksRouteImport.update({
-  id: "/tasks",
-  path: "/tasks",
   getParentRoute: () => rootRouteImport,
 } as any);
 const TermsRoute = TermsRouteImport.update({
@@ -84,65 +70,54 @@ const TermsRoute = TermsRouteImport.update({
   path: "/terms",
   getParentRoute: () => rootRouteImport,
 } as any);
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: "/",
-  path: "/",
-  getParentRoute: () => AdminRoute,
+const AuthedAdminRouteRoute = AuthedAdminRouteRouteImport.update({
+  id: "/_admin",
+  getParentRoute: () => AuthedRouteRoute,
 } as any);
-const DebugMonitoringRoute = DebugMonitoringRouteImport.update({
-  id: "/debug/monitoring",
-  path: "/debug/monitoring",
-  getParentRoute: () => rootRouteImport,
+const AuthedProfileRoute = AuthedProfileRouteImport.update({
+  id: "/profile",
+  path: "/profile",
+  getParentRoute: () => AuthedRouteRoute,
 } as any);
-const DebugStreamingSseRoute = DebugStreamingSseRouteImport.update({
+const AuthedTasksRouteRoute = AuthedTasksRouteRouteImport.update({
+  id: "/tasks",
+  path: "/tasks",
+  getParentRoute: () => AuthedRouteRoute,
+} as any);
+const GuestSigninRoute = GuestSigninRouteImport.update({
+  id: "/signin",
+  path: "/signin",
+  getParentRoute: () => GuestRouteRoute,
+} as any);
+const GuestSignupRoute = GuestSignupRouteImport.update({
+  id: "/signup",
+  path: "/signup",
+  getParentRoute: () => GuestRouteRoute,
+} as any);
+const AuthedAdminAdminRouteRoute = AuthedAdminAdminRouteRouteImport.update({
+  id: "/admin",
+  path: "/admin",
+  getParentRoute: () => AuthedAdminRouteRoute,
+} as any);
+const AuthedDebugStreamingSseRoute = AuthedDebugStreamingSseRouteImport.update({
   id: "/debug/streaming-sse",
   path: "/debug/streaming-sse",
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthedRouteRoute,
 } as any);
-const TasksIndexRoute = TasksIndexRouteImport.update({
+const AuthedTasksIndexRoute = AuthedTasksIndexRouteImport.update({
   id: "/",
   path: "/",
-  getParentRoute: () => TasksRoute,
+  getParentRoute: () => AuthedTasksRouteRoute,
 } as any);
-const TasksTaskIdRoute = TasksTaskIdRouteImport.update({
+const AuthedTasksTaskIdRoute = AuthedTasksTaskIdRouteImport.update({
   id: "/$taskId",
   path: "/$taskId",
-  getParentRoute: () => TasksRoute,
+  getParentRoute: () => AuthedTasksRouteRoute,
 } as any);
-const TasksNewRoute = TasksNewRouteImport.update({
+const AuthedTasksNewRoute = AuthedTasksNewRouteImport.update({
   id: "/new",
   path: "/new",
-  getParentRoute: () => TasksRoute,
-} as any);
-const AdminEmailsWelcomeRoute = AdminEmailsWelcomeRouteImport.update({
-  id: "/emails/welcome",
-  path: "/emails/welcome",
-  getParentRoute: () => AdminRoute,
-} as any);
-const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
-  id: "/tasks/",
-  path: "/tasks/",
-  getParentRoute: () => AdminRoute,
-} as any);
-const AdminTasksTaskIdRoute = AdminTasksTaskIdRouteImport.update({
-  id: "/tasks/$taskId",
-  path: "/tasks/$taskId",
-  getParentRoute: () => AdminRoute,
-} as any);
-const AdminTasksNewRoute = AdminTasksNewRouteImport.update({
-  id: "/tasks/new",
-  path: "/tasks/new",
-  getParentRoute: () => AdminRoute,
-} as any);
-const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
-  id: "/users/",
-  path: "/users/",
-  getParentRoute: () => AdminRoute,
-} as any);
-const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
-  id: "/users/$userId",
-  path: "/users/$userId",
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AuthedTasksRouteRoute,
 } as any);
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: "/api/auth/$",
@@ -154,109 +129,159 @@ const ApiSseNotificationsRoute = ApiSseNotificationsRouteImport.update({
   path: "/api/sse/notifications",
   getParentRoute: () => rootRouteImport,
 } as any);
+const AuthedAdminAdminIndexRoute = AuthedAdminAdminIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => AuthedAdminAdminRouteRoute,
+} as any);
+const AuthedAdminDebugMonitoringRoute =
+  AuthedAdminDebugMonitoringRouteImport.update({
+    id: "/debug/monitoring",
+    path: "/debug/monitoring",
+    getParentRoute: () => AuthedAdminRouteRoute,
+  } as any);
+const AuthedAdminAdminEmailsWelcomeRoute =
+  AuthedAdminAdminEmailsWelcomeRouteImport.update({
+    id: "/emails/welcome",
+    path: "/emails/welcome",
+    getParentRoute: () => AuthedAdminAdminRouteRoute,
+  } as any);
+const AuthedAdminAdminTasksIndexRoute =
+  AuthedAdminAdminTasksIndexRouteImport.update({
+    id: "/tasks/",
+    path: "/tasks/",
+    getParentRoute: () => AuthedAdminAdminRouteRoute,
+  } as any);
+const AuthedAdminAdminTasksTaskIdRoute =
+  AuthedAdminAdminTasksTaskIdRouteImport.update({
+    id: "/tasks/$taskId",
+    path: "/tasks/$taskId",
+    getParentRoute: () => AuthedAdminAdminRouteRoute,
+  } as any);
+const AuthedAdminAdminTasksNewRoute =
+  AuthedAdminAdminTasksNewRouteImport.update({
+    id: "/tasks/new",
+    path: "/tasks/new",
+    getParentRoute: () => AuthedAdminAdminRouteRoute,
+  } as any);
+const AuthedAdminAdminUsersIndexRoute =
+  AuthedAdminAdminUsersIndexRouteImport.update({
+    id: "/users/",
+    path: "/users/",
+    getParentRoute: () => AuthedAdminAdminRouteRoute,
+  } as any);
+const AuthedAdminAdminUsersUserIdRoute =
+  AuthedAdminAdminUsersUserIdRouteImport.update({
+    id: "/users/$userId",
+    path: "/users/$userId",
+    getParentRoute: () => AuthedAdminAdminRouteRoute,
+  } as any);
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
-  "/admin": typeof AdminRouteWithChildren;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
-  "/profile": typeof ProfileRoute;
-  "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
-  "/signup": typeof SignupRoute;
-  "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
-  "/debug/monitoring": typeof DebugMonitoringRoute;
-  "/debug/streaming-sse": typeof DebugStreamingSseRoute;
-  "/tasks/$taskId": typeof TasksTaskIdRoute;
-  "/tasks/new": typeof TasksNewRoute;
-  "/admin/": typeof AdminIndexRoute;
-  "/tasks/": typeof TasksIndexRoute;
-  "/admin/emails/welcome": typeof AdminEmailsWelcomeRoute;
-  "/admin/tasks/$taskId": typeof AdminTasksTaskIdRoute;
-  "/admin/tasks/new": typeof AdminTasksNewRoute;
-  "/admin/users/$userId": typeof AdminUsersUserIdRoute;
+  "/tasks": typeof AuthedTasksRouteRouteWithChildren;
+  "/profile": typeof AuthedProfileRoute;
+  "/signin": typeof GuestSigninRoute;
+  "/signup": typeof GuestSignupRoute;
+  "/admin": typeof AuthedAdminAdminRouteRouteWithChildren;
+  "/debug/streaming-sse": typeof AuthedDebugStreamingSseRoute;
+  "/tasks/$taskId": typeof AuthedTasksTaskIdRoute;
+  "/tasks/new": typeof AuthedTasksNewRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
   "/api/sse/notifications": typeof ApiSseNotificationsRoute;
-  "/admin/tasks/": typeof AdminTasksIndexRoute;
-  "/admin/users/": typeof AdminUsersIndexRoute;
+  "/tasks/": typeof AuthedTasksIndexRoute;
+  "/debug/monitoring": typeof AuthedAdminDebugMonitoringRoute;
+  "/admin/": typeof AuthedAdminAdminIndexRoute;
+  "/admin/emails/welcome": typeof AuthedAdminAdminEmailsWelcomeRoute;
+  "/admin/tasks/$taskId": typeof AuthedAdminAdminTasksTaskIdRoute;
+  "/admin/tasks/new": typeof AuthedAdminAdminTasksNewRoute;
+  "/admin/users/$userId": typeof AuthedAdminAdminUsersUserIdRoute;
+  "/admin/tasks/": typeof AuthedAdminAdminTasksIndexRoute;
+  "/admin/users/": typeof AuthedAdminAdminUsersIndexRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
-  "/profile": typeof ProfileRoute;
-  "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
-  "/signup": typeof SignupRoute;
   "/terms": typeof TermsRoute;
-  "/debug/monitoring": typeof DebugMonitoringRoute;
-  "/debug/streaming-sse": typeof DebugStreamingSseRoute;
-  "/tasks/$taskId": typeof TasksTaskIdRoute;
-  "/tasks/new": typeof TasksNewRoute;
-  "/admin": typeof AdminIndexRoute;
-  "/tasks": typeof TasksIndexRoute;
-  "/admin/emails/welcome": typeof AdminEmailsWelcomeRoute;
-  "/admin/tasks/$taskId": typeof AdminTasksTaskIdRoute;
-  "/admin/tasks/new": typeof AdminTasksNewRoute;
-  "/admin/users/$userId": typeof AdminUsersUserIdRoute;
+  "/profile": typeof AuthedProfileRoute;
+  "/signin": typeof GuestSigninRoute;
+  "/signup": typeof GuestSignupRoute;
+  "/debug/streaming-sse": typeof AuthedDebugStreamingSseRoute;
+  "/tasks/$taskId": typeof AuthedTasksTaskIdRoute;
+  "/tasks/new": typeof AuthedTasksNewRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
   "/api/sse/notifications": typeof ApiSseNotificationsRoute;
-  "/admin/tasks": typeof AdminTasksIndexRoute;
-  "/admin/users": typeof AdminUsersIndexRoute;
+  "/tasks": typeof AuthedTasksIndexRoute;
+  "/debug/monitoring": typeof AuthedAdminDebugMonitoringRoute;
+  "/admin": typeof AuthedAdminAdminIndexRoute;
+  "/admin/emails/welcome": typeof AuthedAdminAdminEmailsWelcomeRoute;
+  "/admin/tasks/$taskId": typeof AuthedAdminAdminTasksTaskIdRoute;
+  "/admin/tasks/new": typeof AuthedAdminAdminTasksNewRoute;
+  "/admin/users/$userId": typeof AuthedAdminAdminUsersUserIdRoute;
+  "/admin/tasks": typeof AuthedAdminAdminTasksIndexRoute;
+  "/admin/users": typeof AuthedAdminAdminUsersIndexRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/": typeof IndexRoute;
-  "/admin": typeof AdminRouteWithChildren;
+  "/_authed": typeof AuthedRouteRouteWithChildren;
+  "/_guest": typeof GuestRouteRouteWithChildren;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
-  "/profile": typeof ProfileRoute;
-  "/signin": typeof SigninRoute;
   "/signout": typeof SignoutRoute;
-  "/signup": typeof SignupRoute;
-  "/tasks": typeof TasksRouteWithChildren;
   "/terms": typeof TermsRoute;
-  "/debug/monitoring": typeof DebugMonitoringRoute;
-  "/debug/streaming-sse": typeof DebugStreamingSseRoute;
-  "/tasks/$taskId": typeof TasksTaskIdRoute;
-  "/tasks/new": typeof TasksNewRoute;
-  "/admin/": typeof AdminIndexRoute;
-  "/tasks/": typeof TasksIndexRoute;
-  "/admin/emails/welcome": typeof AdminEmailsWelcomeRoute;
-  "/admin/tasks/$taskId": typeof AdminTasksTaskIdRoute;
-  "/admin/tasks/new": typeof AdminTasksNewRoute;
-  "/admin/users/$userId": typeof AdminUsersUserIdRoute;
+  "/_authed/_admin": typeof AuthedAdminRouteRouteWithChildren;
+  "/_authed/tasks": typeof AuthedTasksRouteRouteWithChildren;
+  "/_authed/profile": typeof AuthedProfileRoute;
+  "/_guest/signin": typeof GuestSigninRoute;
+  "/_guest/signup": typeof GuestSignupRoute;
+  "/_authed/_admin/admin": typeof AuthedAdminAdminRouteRouteWithChildren;
+  "/_authed/debug/streaming-sse": typeof AuthedDebugStreamingSseRoute;
+  "/_authed/tasks/$taskId": typeof AuthedTasksTaskIdRoute;
+  "/_authed/tasks/new": typeof AuthedTasksNewRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
   "/api/sse/notifications": typeof ApiSseNotificationsRoute;
-  "/admin/tasks/": typeof AdminTasksIndexRoute;
-  "/admin/users/": typeof AdminUsersIndexRoute;
+  "/_authed/tasks/": typeof AuthedTasksIndexRoute;
+  "/_authed/_admin/debug/monitoring": typeof AuthedAdminDebugMonitoringRoute;
+  "/_authed/_admin/admin/": typeof AuthedAdminAdminIndexRoute;
+  "/_authed/_admin/admin/emails/welcome": typeof AuthedAdminAdminEmailsWelcomeRoute;
+  "/_authed/_admin/admin/tasks/$taskId": typeof AuthedAdminAdminTasksTaskIdRoute;
+  "/_authed/_admin/admin/tasks/new": typeof AuthedAdminAdminTasksNewRoute;
+  "/_authed/_admin/admin/users/$userId": typeof AuthedAdminAdminUsersUserIdRoute;
+  "/_authed/_admin/admin/tasks/": typeof AuthedAdminAdminTasksIndexRoute;
+  "/_authed/_admin/admin/users/": typeof AuthedAdminAdminUsersIndexRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | "/"
-    | "/admin"
     | "/health"
     | "/privacy"
+    | "/signout"
+    | "/terms"
+    | "/tasks"
     | "/profile"
     | "/signin"
-    | "/signout"
     | "/signup"
-    | "/tasks"
-    | "/terms"
-    | "/debug/monitoring"
+    | "/admin"
     | "/debug/streaming-sse"
     | "/tasks/$taskId"
     | "/tasks/new"
-    | "/admin/"
+    | "/api/auth/$"
+    | "/api/sse/notifications"
     | "/tasks/"
+    | "/debug/monitoring"
+    | "/admin/"
     | "/admin/emails/welcome"
     | "/admin/tasks/$taskId"
     | "/admin/tasks/new"
     | "/admin/users/$userId"
-    | "/api/auth/$"
-    | "/api/sse/notifications"
     | "/admin/tasks/"
     | "/admin/users/";
   fileRoutesByTo: FileRoutesByTo;
@@ -264,66 +289,64 @@ export interface FileRouteTypes {
     | "/"
     | "/health"
     | "/privacy"
+    | "/signout"
+    | "/terms"
     | "/profile"
     | "/signin"
-    | "/signout"
     | "/signup"
-    | "/terms"
-    | "/debug/monitoring"
     | "/debug/streaming-sse"
     | "/tasks/$taskId"
     | "/tasks/new"
-    | "/admin"
+    | "/api/auth/$"
+    | "/api/sse/notifications"
     | "/tasks"
+    | "/debug/monitoring"
+    | "/admin"
     | "/admin/emails/welcome"
     | "/admin/tasks/$taskId"
     | "/admin/tasks/new"
     | "/admin/users/$userId"
-    | "/api/auth/$"
-    | "/api/sse/notifications"
     | "/admin/tasks"
     | "/admin/users";
   id:
     | "__root__"
     | "/"
-    | "/admin"
+    | "/_authed"
+    | "/_guest"
     | "/health"
     | "/privacy"
-    | "/profile"
-    | "/signin"
     | "/signout"
-    | "/signup"
-    | "/tasks"
     | "/terms"
-    | "/debug/monitoring"
-    | "/debug/streaming-sse"
-    | "/tasks/$taskId"
-    | "/tasks/new"
-    | "/admin/"
-    | "/tasks/"
-    | "/admin/emails/welcome"
-    | "/admin/tasks/$taskId"
-    | "/admin/tasks/new"
-    | "/admin/users/$userId"
+    | "/_authed/_admin"
+    | "/_authed/tasks"
+    | "/_authed/profile"
+    | "/_guest/signin"
+    | "/_guest/signup"
+    | "/_authed/_admin/admin"
+    | "/_authed/debug/streaming-sse"
+    | "/_authed/tasks/$taskId"
+    | "/_authed/tasks/new"
     | "/api/auth/$"
     | "/api/sse/notifications"
-    | "/admin/tasks/"
-    | "/admin/users/";
+    | "/_authed/tasks/"
+    | "/_authed/_admin/debug/monitoring"
+    | "/_authed/_admin/admin/"
+    | "/_authed/_admin/admin/emails/welcome"
+    | "/_authed/_admin/admin/tasks/$taskId"
+    | "/_authed/_admin/admin/tasks/new"
+    | "/_authed/_admin/admin/users/$userId"
+    | "/_authed/_admin/admin/tasks/"
+    | "/_authed/_admin/admin/users/";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
-  AdminRoute: typeof AdminRouteWithChildren;
+  AuthedRouteRoute: typeof AuthedRouteRouteWithChildren;
+  GuestRouteRoute: typeof GuestRouteRouteWithChildren;
   HealthRoute: typeof HealthRoute;
   PrivacyRoute: typeof PrivacyRoute;
-  ProfileRoute: typeof ProfileRoute;
-  SigninRoute: typeof SigninRoute;
   SignoutRoute: typeof SignoutRoute;
-  SignupRoute: typeof SignupRoute;
-  TasksRoute: typeof TasksRouteWithChildren;
   TermsRoute: typeof TermsRoute;
-  DebugMonitoringRoute: typeof DebugMonitoringRoute;
-  DebugStreamingSseRoute: typeof DebugStreamingSseRoute;
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
   ApiSseNotificationsRoute: typeof ApiSseNotificationsRoute;
 }
@@ -337,11 +360,18 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
-    "/admin": {
-      id: "/admin";
-      path: "/admin";
-      fullPath: "/admin";
-      preLoaderRoute: typeof AdminRouteImport;
+    "/_authed": {
+      id: "/_authed";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof AuthedRouteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_guest": {
+      id: "/_guest";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof GuestRouteRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/health": {
@@ -358,39 +388,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PrivacyRouteImport;
       parentRoute: typeof rootRouteImport;
     };
-    "/profile": {
-      id: "/profile";
-      path: "/profile";
-      fullPath: "/profile";
-      preLoaderRoute: typeof ProfileRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/signin": {
-      id: "/signin";
-      path: "/signin";
-      fullPath: "/signin";
-      preLoaderRoute: typeof SigninRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
     "/signout": {
       id: "/signout";
       path: "/signout";
       fullPath: "/signout";
       preLoaderRoute: typeof SignoutRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/signup": {
-      id: "/signup";
-      path: "/signup";
-      fullPath: "/signup";
-      preLoaderRoute: typeof SignupRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/tasks": {
-      id: "/tasks";
-      path: "/tasks";
-      fullPath: "/tasks";
-      preLoaderRoute: typeof TasksRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/terms": {
@@ -400,89 +402,75 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof TermsRouteImport;
       parentRoute: typeof rootRouteImport;
     };
-    "/admin/": {
-      id: "/admin/";
-      path: "/";
-      fullPath: "/admin/";
-      preLoaderRoute: typeof AdminIndexRouteImport;
-      parentRoute: typeof AdminRoute;
+    "/_authed/_admin": {
+      id: "/_authed/_admin";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof AuthedAdminRouteRouteImport;
+      parentRoute: typeof AuthedRouteRoute;
     };
-    "/debug/monitoring": {
-      id: "/debug/monitoring";
-      path: "/debug/monitoring";
-      fullPath: "/debug/monitoring";
-      preLoaderRoute: typeof DebugMonitoringRouteImport;
-      parentRoute: typeof rootRouteImport;
+    "/_authed/profile": {
+      id: "/_authed/profile";
+      path: "/profile";
+      fullPath: "/profile";
+      preLoaderRoute: typeof AuthedProfileRouteImport;
+      parentRoute: typeof AuthedRouteRoute;
     };
-    "/debug/streaming-sse": {
-      id: "/debug/streaming-sse";
+    "/_authed/tasks": {
+      id: "/_authed/tasks";
+      path: "/tasks";
+      fullPath: "/tasks";
+      preLoaderRoute: typeof AuthedTasksRouteRouteImport;
+      parentRoute: typeof AuthedRouteRoute;
+    };
+    "/_guest/signin": {
+      id: "/_guest/signin";
+      path: "/signin";
+      fullPath: "/signin";
+      preLoaderRoute: typeof GuestSigninRouteImport;
+      parentRoute: typeof GuestRouteRoute;
+    };
+    "/_guest/signup": {
+      id: "/_guest/signup";
+      path: "/signup";
+      fullPath: "/signup";
+      preLoaderRoute: typeof GuestSignupRouteImport;
+      parentRoute: typeof GuestRouteRoute;
+    };
+    "/_authed/_admin/admin": {
+      id: "/_authed/_admin/admin";
+      path: "/admin";
+      fullPath: "/admin";
+      preLoaderRoute: typeof AuthedAdminAdminRouteRouteImport;
+      parentRoute: typeof AuthedAdminRouteRoute;
+    };
+    "/_authed/debug/streaming-sse": {
+      id: "/_authed/debug/streaming-sse";
       path: "/debug/streaming-sse";
       fullPath: "/debug/streaming-sse";
-      preLoaderRoute: typeof DebugStreamingSseRouteImport;
-      parentRoute: typeof rootRouteImport;
+      preLoaderRoute: typeof AuthedDebugStreamingSseRouteImport;
+      parentRoute: typeof AuthedRouteRoute;
     };
-    "/tasks/": {
-      id: "/tasks/";
+    "/_authed/tasks/": {
+      id: "/_authed/tasks/";
       path: "/";
       fullPath: "/tasks/";
-      preLoaderRoute: typeof TasksIndexRouteImport;
-      parentRoute: typeof TasksRoute;
+      preLoaderRoute: typeof AuthedTasksIndexRouteImport;
+      parentRoute: typeof AuthedTasksRouteRoute;
     };
-    "/tasks/$taskId": {
-      id: "/tasks/$taskId";
+    "/_authed/tasks/$taskId": {
+      id: "/_authed/tasks/$taskId";
       path: "/$taskId";
       fullPath: "/tasks/$taskId";
-      preLoaderRoute: typeof TasksTaskIdRouteImport;
-      parentRoute: typeof TasksRoute;
+      preLoaderRoute: typeof AuthedTasksTaskIdRouteImport;
+      parentRoute: typeof AuthedTasksRouteRoute;
     };
-    "/tasks/new": {
-      id: "/tasks/new";
+    "/_authed/tasks/new": {
+      id: "/_authed/tasks/new";
       path: "/new";
       fullPath: "/tasks/new";
-      preLoaderRoute: typeof TasksNewRouteImport;
-      parentRoute: typeof TasksRoute;
-    };
-    "/admin/emails/welcome": {
-      id: "/admin/emails/welcome";
-      path: "/emails/welcome";
-      fullPath: "/admin/emails/welcome";
-      preLoaderRoute: typeof AdminEmailsWelcomeRouteImport;
-      parentRoute: typeof AdminRoute;
-    };
-    "/admin/tasks/": {
-      id: "/admin/tasks/";
-      path: "/tasks";
-      fullPath: "/admin/tasks/";
-      preLoaderRoute: typeof AdminTasksIndexRouteImport;
-      parentRoute: typeof AdminRoute;
-    };
-    "/admin/tasks/$taskId": {
-      id: "/admin/tasks/$taskId";
-      path: "/tasks/$taskId";
-      fullPath: "/admin/tasks/$taskId";
-      preLoaderRoute: typeof AdminTasksTaskIdRouteImport;
-      parentRoute: typeof AdminRoute;
-    };
-    "/admin/tasks/new": {
-      id: "/admin/tasks/new";
-      path: "/tasks/new";
-      fullPath: "/admin/tasks/new";
-      preLoaderRoute: typeof AdminTasksNewRouteImport;
-      parentRoute: typeof AdminRoute;
-    };
-    "/admin/users/": {
-      id: "/admin/users/";
-      path: "/users";
-      fullPath: "/admin/users/";
-      preLoaderRoute: typeof AdminUsersIndexRouteImport;
-      parentRoute: typeof AdminRoute;
-    };
-    "/admin/users/$userId": {
-      id: "/admin/users/$userId";
-      path: "/users/$userId";
-      fullPath: "/admin/users/$userId";
-      preLoaderRoute: typeof AdminUsersUserIdRouteImport;
-      parentRoute: typeof AdminRoute;
+      preLoaderRoute: typeof AuthedTasksNewRouteImport;
+      parentRoute: typeof AuthedTasksRouteRoute;
     };
     "/api/auth/$": {
       id: "/api/auth/$";
@@ -498,58 +486,158 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ApiSseNotificationsRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/_authed/_admin/admin/": {
+      id: "/_authed/_admin/admin/";
+      path: "/";
+      fullPath: "/admin/";
+      preLoaderRoute: typeof AuthedAdminAdminIndexRouteImport;
+      parentRoute: typeof AuthedAdminAdminRouteRoute;
+    };
+    "/_authed/_admin/debug/monitoring": {
+      id: "/_authed/_admin/debug/monitoring";
+      path: "/debug/monitoring";
+      fullPath: "/debug/monitoring";
+      preLoaderRoute: typeof AuthedAdminDebugMonitoringRouteImport;
+      parentRoute: typeof AuthedAdminRouteRoute;
+    };
+    "/_authed/_admin/admin/emails/welcome": {
+      id: "/_authed/_admin/admin/emails/welcome";
+      path: "/emails/welcome";
+      fullPath: "/admin/emails/welcome";
+      preLoaderRoute: typeof AuthedAdminAdminEmailsWelcomeRouteImport;
+      parentRoute: typeof AuthedAdminAdminRouteRoute;
+    };
+    "/_authed/_admin/admin/tasks/": {
+      id: "/_authed/_admin/admin/tasks/";
+      path: "/tasks";
+      fullPath: "/admin/tasks/";
+      preLoaderRoute: typeof AuthedAdminAdminTasksIndexRouteImport;
+      parentRoute: typeof AuthedAdminAdminRouteRoute;
+    };
+    "/_authed/_admin/admin/tasks/$taskId": {
+      id: "/_authed/_admin/admin/tasks/$taskId";
+      path: "/tasks/$taskId";
+      fullPath: "/admin/tasks/$taskId";
+      preLoaderRoute: typeof AuthedAdminAdminTasksTaskIdRouteImport;
+      parentRoute: typeof AuthedAdminAdminRouteRoute;
+    };
+    "/_authed/_admin/admin/tasks/new": {
+      id: "/_authed/_admin/admin/tasks/new";
+      path: "/tasks/new";
+      fullPath: "/admin/tasks/new";
+      preLoaderRoute: typeof AuthedAdminAdminTasksNewRouteImport;
+      parentRoute: typeof AuthedAdminAdminRouteRoute;
+    };
+    "/_authed/_admin/admin/users/": {
+      id: "/_authed/_admin/admin/users/";
+      path: "/users";
+      fullPath: "/admin/users/";
+      preLoaderRoute: typeof AuthedAdminAdminUsersIndexRouteImport;
+      parentRoute: typeof AuthedAdminAdminRouteRoute;
+    };
+    "/_authed/_admin/admin/users/$userId": {
+      id: "/_authed/_admin/admin/users/$userId";
+      path: "/users/$userId";
+      fullPath: "/admin/users/$userId";
+      preLoaderRoute: typeof AuthedAdminAdminUsersUserIdRouteImport;
+      parentRoute: typeof AuthedAdminAdminRouteRoute;
+    };
   }
 }
 
-interface AdminRouteChildren {
-  AdminIndexRoute: typeof AdminIndexRoute;
-  AdminEmailsWelcomeRoute: typeof AdminEmailsWelcomeRoute;
-  AdminTasksTaskIdRoute: typeof AdminTasksTaskIdRoute;
-  AdminTasksNewRoute: typeof AdminTasksNewRoute;
-  AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute;
-  AdminTasksIndexRoute: typeof AdminTasksIndexRoute;
-  AdminUsersIndexRoute: typeof AdminUsersIndexRoute;
+interface AuthedAdminAdminRouteRouteChildren {
+  AuthedAdminAdminIndexRoute: typeof AuthedAdminAdminIndexRoute;
+  AuthedAdminAdminEmailsWelcomeRoute: typeof AuthedAdminAdminEmailsWelcomeRoute;
+  AuthedAdminAdminTasksTaskIdRoute: typeof AuthedAdminAdminTasksTaskIdRoute;
+  AuthedAdminAdminTasksNewRoute: typeof AuthedAdminAdminTasksNewRoute;
+  AuthedAdminAdminUsersUserIdRoute: typeof AuthedAdminAdminUsersUserIdRoute;
+  AuthedAdminAdminTasksIndexRoute: typeof AuthedAdminAdminTasksIndexRoute;
+  AuthedAdminAdminUsersIndexRoute: typeof AuthedAdminAdminUsersIndexRoute;
 }
 
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminIndexRoute: AdminIndexRoute,
-  AdminEmailsWelcomeRoute: AdminEmailsWelcomeRoute,
-  AdminTasksTaskIdRoute: AdminTasksTaskIdRoute,
-  AdminTasksNewRoute: AdminTasksNewRoute,
-  AdminUsersUserIdRoute: AdminUsersUserIdRoute,
-  AdminTasksIndexRoute: AdminTasksIndexRoute,
-  AdminUsersIndexRoute: AdminUsersIndexRoute,
+const AuthedAdminAdminRouteRouteChildren: AuthedAdminAdminRouteRouteChildren = {
+  AuthedAdminAdminIndexRoute: AuthedAdminAdminIndexRoute,
+  AuthedAdminAdminEmailsWelcomeRoute: AuthedAdminAdminEmailsWelcomeRoute,
+  AuthedAdminAdminTasksTaskIdRoute: AuthedAdminAdminTasksTaskIdRoute,
+  AuthedAdminAdminTasksNewRoute: AuthedAdminAdminTasksNewRoute,
+  AuthedAdminAdminUsersUserIdRoute: AuthedAdminAdminUsersUserIdRoute,
+  AuthedAdminAdminTasksIndexRoute: AuthedAdminAdminTasksIndexRoute,
+  AuthedAdminAdminUsersIndexRoute: AuthedAdminAdminUsersIndexRoute,
 };
 
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren);
+const AuthedAdminAdminRouteRouteWithChildren =
+  AuthedAdminAdminRouteRoute._addFileChildren(
+    AuthedAdminAdminRouteRouteChildren,
+  );
 
-interface TasksRouteChildren {
-  TasksTaskIdRoute: typeof TasksTaskIdRoute;
-  TasksNewRoute: typeof TasksNewRoute;
-  TasksIndexRoute: typeof TasksIndexRoute;
+interface AuthedAdminRouteRouteChildren {
+  AuthedAdminAdminRouteRoute: typeof AuthedAdminAdminRouteRouteWithChildren;
+  AuthedAdminDebugMonitoringRoute: typeof AuthedAdminDebugMonitoringRoute;
 }
 
-const TasksRouteChildren: TasksRouteChildren = {
-  TasksTaskIdRoute: TasksTaskIdRoute,
-  TasksNewRoute: TasksNewRoute,
-  TasksIndexRoute: TasksIndexRoute,
+const AuthedAdminRouteRouteChildren: AuthedAdminRouteRouteChildren = {
+  AuthedAdminAdminRouteRoute: AuthedAdminAdminRouteRouteWithChildren,
+  AuthedAdminDebugMonitoringRoute: AuthedAdminDebugMonitoringRoute,
 };
 
-const TasksRouteWithChildren = TasksRoute._addFileChildren(TasksRouteChildren);
+const AuthedAdminRouteRouteWithChildren =
+  AuthedAdminRouteRoute._addFileChildren(AuthedAdminRouteRouteChildren);
+
+interface AuthedTasksRouteRouteChildren {
+  AuthedTasksTaskIdRoute: typeof AuthedTasksTaskIdRoute;
+  AuthedTasksNewRoute: typeof AuthedTasksNewRoute;
+  AuthedTasksIndexRoute: typeof AuthedTasksIndexRoute;
+}
+
+const AuthedTasksRouteRouteChildren: AuthedTasksRouteRouteChildren = {
+  AuthedTasksTaskIdRoute: AuthedTasksTaskIdRoute,
+  AuthedTasksNewRoute: AuthedTasksNewRoute,
+  AuthedTasksIndexRoute: AuthedTasksIndexRoute,
+};
+
+const AuthedTasksRouteRouteWithChildren =
+  AuthedTasksRouteRoute._addFileChildren(AuthedTasksRouteRouteChildren);
+
+interface AuthedRouteRouteChildren {
+  AuthedAdminRouteRoute: typeof AuthedAdminRouteRouteWithChildren;
+  AuthedTasksRouteRoute: typeof AuthedTasksRouteRouteWithChildren;
+  AuthedProfileRoute: typeof AuthedProfileRoute;
+  AuthedDebugStreamingSseRoute: typeof AuthedDebugStreamingSseRoute;
+}
+
+const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedAdminRouteRoute: AuthedAdminRouteRouteWithChildren,
+  AuthedTasksRouteRoute: AuthedTasksRouteRouteWithChildren,
+  AuthedProfileRoute: AuthedProfileRoute,
+  AuthedDebugStreamingSseRoute: AuthedDebugStreamingSseRoute,
+};
+
+const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
+  AuthedRouteRouteChildren,
+);
+
+interface GuestRouteRouteChildren {
+  GuestSigninRoute: typeof GuestSigninRoute;
+  GuestSignupRoute: typeof GuestSignupRoute;
+}
+
+const GuestRouteRouteChildren: GuestRouteRouteChildren = {
+  GuestSigninRoute: GuestSigninRoute,
+  GuestSignupRoute: GuestSignupRoute,
+};
+
+const GuestRouteRouteWithChildren = GuestRouteRoute._addFileChildren(
+  GuestRouteRouteChildren,
+);
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRouteWithChildren,
+  AuthedRouteRoute: AuthedRouteRouteWithChildren,
+  GuestRouteRoute: GuestRouteRouteWithChildren,
   HealthRoute: HealthRoute,
   PrivacyRoute: PrivacyRoute,
-  ProfileRoute: ProfileRoute,
-  SigninRoute: SigninRoute,
   SignoutRoute: SignoutRoute,
-  SignupRoute: SignupRoute,
-  TasksRoute: TasksRouteWithChildren,
   TermsRoute: TermsRoute,
-  DebugMonitoringRoute: DebugMonitoringRoute,
-  DebugStreamingSseRoute: DebugStreamingSseRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiSseNotificationsRoute: ApiSseNotificationsRoute,
 };
