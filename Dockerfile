@@ -25,7 +25,9 @@ ENV NODE_ENV=production
 # .output is self-contained: Nitro bundles every server dependency into
 # .output/server (there is no .output/server/node_modules) and copies public/
 # into .output/public, so the runner needs no node_modules, package.json or
-# public/ of its own.
+# public/ of its own. It also holds the migration runner (.output/migrate, written
+# by `build:migrate` with the SQL migrations next to it), which fly.toml's
+# release_command runs.
 COPY --from=builder /app/.output ./.output
 
 # Set the user for security

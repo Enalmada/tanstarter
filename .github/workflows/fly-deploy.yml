@@ -15,7 +15,8 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy to Fly.io
         run: |
-          # Try deployment up to 3 times to handle temporary API issues
+          # Try deployment up to 3 times to handle temporary API issues. A retry re-runs
+          # fly.toml's release_command (the migrations), which is a no-op once applied.
           for i in 1 2 3; do
             echo "Deployment attempt $i of 3"
             if flyctl deploy --app tanstarter --remote-only; then

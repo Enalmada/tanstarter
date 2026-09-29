@@ -27,6 +27,10 @@ bun run check-client-leaks  # no server-only code in the client bundle (run afte
 
 `bun run check` runs the lint, type, knip, TSS-7, story, unit, Storybook and e2e gates. The build, client-leak, i18n, doc-link and secret checks are separate (CI runs them).
 
+## Deploys
+
+A push to `main` runs [fly-deploy.yml](../.github/workflows/fly-deploy.yml): `flyctl deploy` builds the Dockerfile on Fly's remote builder, runs the migrations (`release_command`, see [Database](database.md#deploying-migrations)), then replaces the app Machines one at a time. If the migration fails, the deploy stops and the running version keeps serving. The workflow retries a failed deploy twice; that re-runs the migration, which is safe because it is transactional, locked and a no-op once applied. Preview deploys run the same release command against the PR's Neon branch, so a PR's migrations are exercised there first. Production deploys are the maintainer's call.
+
 ## Real-browser validation for bundling-shaped PRs
 
 When a PR touches any of the following, run real-browser validation **before** merging:

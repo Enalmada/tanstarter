@@ -12,6 +12,14 @@ primary_region = 'iad'
   NODE_ENV = 'production'
   PORT = '3000'
 
+[deploy]
+  # Applies pending database migrations once per deploy, in a temporary Machine
+  # running the new image with the app's secrets, before any app Machine is
+  # updated. A non-zero exit aborts the deploy and the current release keeps
+  # serving. `bun run build` writes this bundle. Strategy stays rolling (the
+  # default): bluegreen needs a health check. See .agents/database.md.
+  release_command = "bun .output/migrate/migrate.mjs"
+
 [http_service]
   internal_port = 3000
   force_https = true

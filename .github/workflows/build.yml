@@ -6,8 +6,8 @@ name: Build
 # merge. This mirrors the Dockerfile's builder stage (`NODE_ENV=production bun
 # run build`, no .env, no secrets).
 #
-# `build:prod` is intentionally NOT used: it also runs `drizzle:migrate`, which
-# needs a live database, and production (Dockerfile) only runs `bun run build`.
+# The build also bundles the migration runner that fly.toml's release_command runs
+# (`build:migrate`); the steps below apply it to an empty database.
 
 on:
   pull_request:
@@ -28,6 +28,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18.6
+        env:
+          POSTGRES_PASSWORD: postgres # betterleaks:allow
+          POSTGRES_DB: migrate_check
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -51,6 +62,19 @@ jobs:
 
       - name: Check build output
         run: test -f .output/server/index.mjs
+
+      # fly.toml's release_command runs this bundle on every deploy
+      - name: Check migration bundle
+        run: test -f .output/migrate/migrate.mjs && ls .output/migrate/migrations/*/migration.sql
+
+      # Every migration applies to an empty database, and a second run is a no-op
+      - name: Run the bundled migrator
+        run: |
+          bun .output/migrate/migrate.mjs
+          bun .output/migrate/migrate.mjs | tee /tmp/migrate-rerun.log
+          grep -q "No pending migrations" /tmp/migrate-rerun.log
+        env:
+          DATABASE_URL: "postgres://postgres:postgres@localhost:5432/migrate_check" # betterleaks:allow
 
       # No database driver, ORM or server SDK in the client bundle (server-only markers
       # fail the build on a static import; this checks the output too)

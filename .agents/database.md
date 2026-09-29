@@ -13,7 +13,7 @@ Drizzle ORM (v1 release candidate, relations-v2) on PostgreSQL. Schema files are
 
 ```bash
 bun run drizzle:generate   # after any change under src/server/db/schema/
-bun run drizzle:migrate    # apply locally (production applies them with `bun run build:prod`)
+bun run drizzle:migrate    # apply locally; deploys apply them automatically (see "Deploying migrations")
 bun run drizzle:seed       # seed development data, including the e2e users
 bun run drizzle:reseed     # wipe the local database and start over (destructive, development only)
 ```
@@ -21,6 +21,22 @@ bun run drizzle:reseed     # wipe the local database and start over (destructive
 - Review the generated SQL before committing it, and commit the migration together with the schema change. A pre-commit hook regenerates it when schema files are staged.
 - Never hand-merge `snapshot.json` or a migration. On a conflict, drop your migration, update your branch, and run `bun run drizzle:generate` again.
 - Do not edit a migration that has already been applied anywhere; add a new one.
+
+## Deploying migrations
+
+- Every Fly deploy (production on push to `main`, and `preview`-labelled PRs against their Neon branch) runs the `release_command` in [fly.toml](../fly.toml): the migrator that `bun run build` bundles into `.output/migrate/`, in a temporary Machine with the new image and the app's secrets, before any app Machine is replaced.
+- Pending migrations apply in one transaction under an advisory lock. A failure rolls everything back, exits non-zero and aborts the deploy; the running release keeps serving the old schema. The failed migration stays pending and runs first on every later deploy, so a new migration after it does not help: correct the migration itself (allowed while it has not applied anywhere) or fix the data or schema condition that made it fail.
+- The old release keeps serving against the new schema until the rollout finishes, and again if you redeploy an older image. So every migration must be backward compatible (expand, then contract):
+  - Add tables, and nullable or defaulted columns, first. Ship the code that uses them.
+  - Rename or drop a column, or make it `NOT NULL`, only in a later release, once no deployed code reads or writes the old shape. A rename is add, backfill, switch the code, then drop.
+  - Keep large backfills out of schema migrations.
+- Some statements can't run in a transaction (`CREATE INDEX CONCURRENTLY`, `VACUUM`), and a new enum value can't be used in the migration that adds it. Keep them out of generated migrations. A long `ALTER TABLE` lock blocks the app: the migrator gives up waiting for a lock after 60 seconds and cancels any statement after 240 seconds, both under Fly's 5-minute limit on the release command.
+- There are no down migrations. Redeploying an older image skips migrations it doesn't know. Images built before the migrator existed have no `.output/migrate`, so redeploy those with a config that has no `release_command`.
+- The migrator connects over TCP (postgres.js), not the app's HTTP driver, and reads only `DATABASE_URL`. A Neon `-pooler` URL is switched to the direct host automatically, because the pooler doesn't keep the session lock.
+
+### Existing databases
+
+The migrator only knows migrations that are in this repo's `src/server/db/migrations`. A database whose `drizzle.__drizzle_migrations` history doesn't match them (an earlier baseline that was regenerated, or a schema created with `drizzle-kit push`) makes the release fail: Drizzle rejects the unknown history, or the first migration tries to create tables that exist. Before the first deploy with this hook, compare the table with the folder in a read-only session (`select id, name, hash, created_at from drizzle.__drizzle_migrations`) and confirm the live schema equals what the migrations create. If the schema matches but the history doesn't, replace the history rows with the baseline migration's row by hand, once, after checking the schema. Never mark a migration applied without that check. Preview apps run on a copy of the primary Neon branch, so a `preview` deploy rehearses exactly this.
 
 ## The better-auth tables
 
