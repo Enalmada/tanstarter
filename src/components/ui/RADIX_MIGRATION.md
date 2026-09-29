@@ -7,7 +7,7 @@ This document covers the migration from Radix UI (used by shadcn/ui "new-york" s
 1. Update `components.json` to use `"style": "base-vega"`
 2. Remove all `@radix-ui/*` packages
 3. Add `@base-ui/react`
-4. Re-pull components: `bunx shadcn@latest add <component-name>`
+4. Re-pull components: `bunx shadcn@latest add <component-name>` (see "Re-pulling components later" below for the routine used once the migration is done)
 5. Update app code to use `render` prop instead of `asChild`
 
 ## Key Pattern Changes
@@ -417,6 +417,23 @@ function MyForm() {
   );
 }
 ```
+
+## Re-pulling components later
+
+Once migrated, refresh a component with `bunx shadcn@latest add <name> --diff` to preview the change, then `bunx shadcn@latest add <name> -o -y` to overwrite. The CLI needs babysitting; after every run:
+
+- Revert `package.json` and `bun.lock` (the CLI proposes dependency changes we do not want) and any CSS it proposes for `src/styles/app.css`.
+- Rewrite its `import { cn } from "cn"` to `import { cn } from "~/lib/utils"`.
+- Revert unrelated files it touches, `button.tsx` in particular, unless that is the component you pulled.
+- Re-apply local fixes: `button.tsx` sets `nativeButton={false}` when `render` is given, and error ink is `text-destructive-strong`, never `text-destructive` (`src/styles/__tests__/theme-contrast.test.ts` fails on it).
+
+Do not re-pull these; they are local or heavily adapted:
+
+- `container.tsx` and `title.tsx` are not shadcn components.
+- `tanstack-form.tsx` is adapted for Base UI (no Radix Slot) and `exactOptionalPropertyTypes`.
+- `toast.tsx` is our own wrapper over Base UI's Toast (sonner was removed).
+
+Registry versions drift from ours in class ordering, the Card `--card-spacing` model, the badge `span` and tinted destructive variants, and dialog/sheet animation. Run Storybook (`bun run test-storybook`) and look at the affected stories in light and dark before committing.
 
 ## Components Checklist
 
