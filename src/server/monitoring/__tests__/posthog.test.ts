@@ -1,13 +1,17 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NotFoundError } from "~/server/access/http-errors";
 
 const captureException = vi.hoisted(() => vi.fn());
 const PostHog = vi.hoisted(() =>
-	vi.fn(function PostHog() {
+	vi.fn(function PostHog(_key: string, _options: { before_send?: (event: unknown) => unknown }) {
 		return { captureException, shutdown: vi.fn() };
 	}),
 );
-const envMock = vi.hoisted(() => ({ shouldReportErrors: vi.fn(), getAppEnv: vi.fn() }));
+const envMock = vi.hoisted(() => ({
+	env: { PUBLIC_POSTHOG_API_KEY: undefined as string | undefined },
+	shouldReportErrors: vi.fn(),
+	getAppEnv: vi.fn(),
+}));
 
 vi.mock("posthog-node", () => ({ PostHog }));
 vi.mock("~/env", () => envMock);
@@ -22,13 +26,9 @@ async function load() {
 describe("captureServerException", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		vi.stubEnv("PUBLIC_POSTHOG_API_KEY", "phc_test");
+		envMock.env.PUBLIC_POSTHOG_API_KEY = "phc_test";
 		envMock.shouldReportErrors.mockReturnValue(true);
 		envMock.getAppEnv.mockReturnValue("staging");
-	});
-
-	afterEach(() => {
-		vi.unstubAllEnvs();
 	});
 
 	it("captures with env, release and caller properties", async () => {
@@ -65,9 +65,22 @@ describe("captureServerException", () => {
 	});
 
 	it("does nothing without an API key", async () => {
-		vi.stubEnv("PUBLIC_POSTHOG_API_KEY", "");
+		envMock.env.PUBLIC_POSTHOG_API_KEY = undefined;
 		const { captureServerException } = await load();
 		captureServerException(new Error("boom"));
 		expect(PostHog).not.toHaveBeenCalled();
+	});
+
+	it("sanitizes exception events before they are sent", async () => {
+		const { captureServerException } = await load();
+		captureServerException(new Error("boom"));
+		const beforeSend = PostHog.mock.calls[0]?.[1].before_send;
+		const event = {
+			event: "$exception",
+			properties: {
+				$exception_list: [{ type: "DrizzleQueryError", value: `Failed query: insert ...${"\n"}params: a@b.c,Title` }],
+			},
+		};
+		expect(JSON.stringify(beforeSend?.(event))).not.toContain("a@b.c");
 	});
 });

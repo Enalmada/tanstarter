@@ -10,6 +10,7 @@ import posthog from "posthog-js";
 import { env, getAppEnv, shouldReportErrors } from "~/env";
 import { type CaptureProperties, POSTHOG_HOST, toCapture } from "./capture";
 import { isExpectedError } from "./expected-errors";
+import { sanitizeExceptionEvent } from "./sanitize";
 import type { ErrorMonitor, MonitorUser } from "./types";
 
 export function initPosthog(): boolean {
@@ -27,6 +28,9 @@ export function initPosthog(): boolean {
 		// Uncaught errors and unhandled rejections. Not in development: those
 		// would land in the same project as real issues.
 		capture_exceptions: shouldReportErrors(),
+		// Strips URLs' query strings and Drizzle bound params from exception
+		// events, and drops automatically captured expected errors
+		before_send: (event) => sanitizeExceptionEvent(event),
 		// Disable features in development
 		disable_session_recording: process.env.NODE_ENV !== "production",
 		enable_heatmaps: process.env.NODE_ENV === "production",

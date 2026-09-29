@@ -10,10 +10,11 @@
  */
 
 import { PostHog } from "posthog-node";
-import { getAppEnv, shouldReportErrors } from "~/env";
+import { env, getAppEnv, shouldReportErrors } from "~/env";
 import { getRelease } from "~/lib/env/release";
 import { type CaptureProperties, POSTHOG_HOST } from "~/lib/monitoring/capture";
 import { isExpectedError } from "~/lib/monitoring/expected-errors";
+import { sanitizeExceptionEvent } from "~/lib/monitoring/sanitize";
 
 interface ServerPosthogState {
 	client: PostHog | null;
@@ -26,8 +27,10 @@ type GlobalWithState = typeof globalThis & { [STATE_KEY]?: ServerPosthogState };
 function getState(): ServerPosthogState {
 	const g = globalThis as GlobalWithState;
 	if (!g[STATE_KEY]) {
-		// The project API key is public (the browser uses the same one).
-		const key = process.env.PUBLIC_POSTHOG_API_KEY;
+		// The project API key is public (the browser uses the same one). Read from
+		// the runtime env: the Docker build has no key, it arrives as a Fly secret,
+		// so a build-time `process.env` replacement would be empty.
+		const key = env.PUBLIC_POSTHOG_API_KEY;
 		g[STATE_KEY] = {
 			client:
 				key && shouldReportErrors()
@@ -36,6 +39,8 @@ function getState(): ServerPosthogState {
 							// Exceptions are rare: send each one right away instead of batching.
 							flushAt: 1,
 							flushInterval: 0,
+							// Drizzle "Failed query" messages carry bound row values
+							before_send: (event) => sanitizeExceptionEvent(event),
 						})
 					: null,
 			captured: new WeakSet(),
@@ -72,7 +77,11 @@ export function captureServerException(error: unknown, options: ServerCaptureOpt
 	});
 }
 
-/** Flush pending events. Called from Nitro's `close` hook (SIGTERM/SIGINT). */
+/**
+ * Flush pending events. Called from Nitro's `close` hook (SIGTERM/SIGINT).
+ * Capped at 3s: Fly's default kill_timeout is 5s, and the hook runs after the
+ * server has finished closing.
+ */
 export async function shutdownServerPosthog() {
-	await (globalThis as GlobalWithState)[STATE_KEY]?.client?.shutdown(5000);
+	await (globalThis as GlobalWithState)[STATE_KEY]?.client?.shutdown(3000);
 }

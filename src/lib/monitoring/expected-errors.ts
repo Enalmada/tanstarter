@@ -13,11 +13,16 @@ import { hasHttpErrorHints } from "~/server/access/http-errors";
 // that keeps only the original name, so the client matches on it.
 const EXPECTED_ERROR_NAMES = new Set(["BadRequestError", "NotAuthorizedError", "NotFoundError", "ConflictError"]);
 
+/** For events PostHog captures itself, where only the error's name survives. */
+export function isExpectedErrorName(name: string): boolean {
+	return EXPECTED_ERROR_NAMES.has(name);
+}
+
 export function isExpectedError(error: unknown): boolean {
 	if (isRedirect(error) || isNotFound(error)) return true;
 	if (hasHttpErrorHints(error)) return error.httpStatus < 500;
 	if (!(error instanceof Error)) return false;
-	if (EXPECTED_ERROR_NAMES.has(error.name)) return true;
+	if (isExpectedErrorName(error.name)) return true;
 	// h3/Nitro HTTPError and similar carry a numeric `status`
 	const status = (error as { status?: unknown }).status;
 	return typeof status === "number" && status >= 400 && status < 500;
