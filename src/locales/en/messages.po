@@ -29,15 +29,15 @@ msgstr "Admin"
 msgid "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui components."
 msgstr "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui components."
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Continue with Google"
 msgstr "Continue with Google"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Don't have an account? Sign up"
 msgstr "Don't have an account? Sign up"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Email"
 msgstr "Email"
 
@@ -45,11 +45,11 @@ msgstr "Email"
 msgid "End-to-end type safety with TypeScript, Drizzle ORM, and Valibot validation."
 msgstr "End-to-end type safety with TypeScript, Drizzle ORM, and Valibot validation."
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Enter your email"
 msgstr "Enter your email"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Enter your password"
 msgstr "Enter your password"
 
@@ -69,11 +69,11 @@ msgstr "Get Started"
 msgid "Great DX"
 msgstr "Great DX"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Incorrect password. Please try again."
 msgstr "Incorrect password. Please try again."
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Invalid password"
 msgstr "Invalid password"
 
@@ -81,7 +81,7 @@ msgstr "Invalid password"
 msgid "Language"
 msgstr "Language"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -89,7 +89,7 @@ msgstr "Loading..."
 msgid "Modern Stack"
 msgstr "Modern Stack"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Need an account?"
 msgstr "Need an account?"
 
@@ -97,23 +97,23 @@ msgstr "Need an account?"
 msgid "New Task"
 msgstr "New Task"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "No account found with this email or password combination."
 msgstr "No account found with this email or password combination."
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Or continue with"
 msgstr "Or continue with"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Password"
 msgstr "Password"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Password must be at least 8 characters"
 msgstr "Password must be at least 8 characters"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Please enter a valid email address"
 msgstr "Please enter a valid email address"
 
@@ -122,19 +122,19 @@ msgid "Profile"
 msgstr "Profile"
 
 #: src/components/Navbar.tsx
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Sign in"
 msgstr "Sign in"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Sign in failed. Please check your credentials and try again."
 msgstr "Sign in failed. Please check your credentials and try again."
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Sign in failed. Please check your email and password."
 msgstr "Sign in failed. Please check your email and password."
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Sign in to access your tasks"
 msgstr "Sign in to access your tasks"
 
@@ -142,11 +142,11 @@ msgstr "Sign in to access your tasks"
 msgid "Sign out"
 msgstr "Sign out"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Sign up here"
 msgstr "Sign up here"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Signing in..."
 msgstr "Signing in..."
 
@@ -162,6 +162,6 @@ msgstr "Type Safety"
 msgid "View on GitHub"
 msgstr "View on GitHub"
 
-#: src/routes/signin.tsx
+#: src/routes/_guest/signin.tsx
 msgid "Welcome back!"
 msgstr "Welcome back!"
