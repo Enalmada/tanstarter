@@ -70,8 +70,8 @@ Import it dynamically from anything reachable from a client route (TSS-2).
 
 - **Development** (`APP_ENV=development`): console only. A local `.env` with an Axiom token never ships logs.
 - **Elsewhere**, with `AXIOM_TOKEN` and `AXIOM_DATASET_NAME` set: events are batched to Axiom about once a second, and info goes only there. Error lines also always go to the console, so Fly's log stream keeps them when Axiom is unreachable. Set `AXIOM_URL` for an EU-region dataset (for example `https://api.eu.axiom.co`).
-- **Failures:** Axiom's `ingest` returns nothing, so there is no promise to catch. Send failures land in the client's `onError`, which writes one `Axiom ingest failed` console line.
-- **Shutdown:** the Nitro `close` hook (`src/server/monitoring/nitro-plugin.ts`) flushes the queue and PostHog together, capped at 3 seconds so it fits inside Fly's 5 second kill timeout. `auto_stop_machines = 'suspend'` freezes the process instead, so queued events go out late, not lost.
+- **Failures:** Axiom's `ingest` returns nothing, so there is no promise to catch. Transport and HTTP errors (network failure, 401, 5xx) land in the client's `onError`, which writes one `Axiom ingest failed` console line. A successful response that rejects individual events (`failed > 0`) is not reported by the SDK's batching path, so those events are lost silently.
+- **Shutdown:** the Nitro `close` hook (`src/server/monitoring/nitro-plugin.ts`) flushes the queue and PostHog together, each capped at 3 seconds so one slow sink cannot hold the other. The hook runs after Nitro has stopped the server and drained in-flight requests, so on a slow deploy the total can still pass Fly's 5 second kill timeout and the last events may be lost. `auto_stop_machines = 'suspend'` freezes the process instead of stopping it, so queued events go out late, not lost.
 
 ## Testing
 
