@@ -54,19 +54,11 @@
 		// Baseline: dependencies that were already unused when knip was adopted.
 		// Remove each one (or start using it), then drop it from this list.
 		"@lingui/macro",
-		"@tanstack/react-table",
-		"react-email",
-		"unenv",
 		"@lingui/loader",
-		"@serwist/window",
 		"@storybook/addon-a11y",
 		"@storybook/addon-coverage",
 		"@storybook/addon-links",
-		"@storybook/addon-themes",
-		"@storybook/test-runner",
-		"@types/dotenv",
-		"autoprefixer",
-		"globals"
+		"@storybook/addon-themes"
 	],
 	// Globally installed developer tools used by package.json scripts
 	"ignoreBinaries": ["fixpack"]

@@ -22,11 +22,10 @@
     "bun.lockb": true
   },
 
-  // Type-checking runs on TS 7 (tsgo, via check-types). The `typescript` package
-  // is kept because Storybook's react-docgen-typescript hard-requires the classic
-  // compiler API. Install the "TypeScript (Native Preview)" extension
-  // (TypeScriptTeam.native-preview) so the editor's language service uses tsgo and
-  // matches CI.
+  // Type-checking runs on TypeScript 7 (`typescript@7`, native `tsc`, via
+  // check-types). Install the "TypeScript (Native Preview)" extension
+  // (TypeScriptTeam.native-preview) so the editor's language service is also TS 7
+  // and matches CI.
   "typescript.experimental.useTsgo": true,
   "typescript.validate.enable": true,
   "typescript.surveys.enabled": false,

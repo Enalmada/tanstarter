@@ -78,7 +78,7 @@ A production starter template for TanStack Start.
    bun run build
    ```
 
-3. If building for Node, you start the application via:
+3. Start the built server. The Nitro preset is `bun` ([`nitro.config.ts`](./nitro.config.ts)), and `.output` is self-contained (no `node_modules` needed at runtime):
 
    ```bash
    bun start
