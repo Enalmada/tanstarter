@@ -1,2 +1,2 @@
-# Placeholder value for booting the server in the Build workflow's header check (fixed in a later commit of #63)
-a2ec75d4fa7731a850709baaffd53342e5f46a05:.github/workflows/build.yml:generic-api-key:65
+# Placeholder DATABASE_URL in the first version of the Build workflow's header check (#63); later commits use a URL without credentials
+a2ec75d4fa7731a850709baaffd53342e5f46a05:.github/workflows/build.yml:generic-credential-uri:64

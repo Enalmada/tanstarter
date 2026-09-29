@@ -68,7 +68,7 @@ jobs:
           NODE_ENV: production
           APP_ENV: staging
           # Placeholders only: the server boots for a header check and never connects
-          DATABASE_URL: "postgres://postgres:postgres@127.0.0.1:1/none"
+          DATABASE_URL: "postgres://127.0.0.1:1/none"
           BETTER_AUTH_SECRET: "placeholder-not-a-secret" # betterleaks:allow
           GOOGLE_CLIENT_ID: placeholder
           GOOGLE_CLIENT_SECRET: placeholder # betterleaks:allow
