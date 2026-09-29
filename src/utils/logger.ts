@@ -1,3 +1,4 @@
+import "@tanstack/react-start/server-only";
 import { Axiom } from "@axiomhq/js";
 import { env } from "~/env";
 

@@ -4,9 +4,7 @@
  * Configures connection pooling and SSL settings
  */
 
-// db/index.ts
-"use server";
-
+import "@tanstack/react-start/server-only";
 import { neon, neonConfig, Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { drizzle as drizzleServerless } from "drizzle-orm/neon-serverless";

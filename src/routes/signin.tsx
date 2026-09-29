@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useRouter } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import { email, minLength, parse, pipe, string } from "valibot";
 import { Button } from "~/components/ui/button";
@@ -80,6 +80,7 @@ function SigninLayout() {
 
 function SigninForm() {
 	const { t } = useLingui();
+	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isUserNotFound, setIsUserNotFound] = useState(false);
@@ -115,7 +116,9 @@ function SigninForm() {
 					throw new Error(error.message || error.code || "Authentication failed");
 				}
 
-				// Successful sign in - loading state will be handled by redirect
+				// Success: better-auth already redirects to callbackURL for sign-in; navigating explicitly with a
+				// document load keeps this form the same as sign-up (fresh session context, caches, analytics identity)
+				await router.navigate({ to: "/tasks", reloadDocument: true });
 			} catch (err) {
 				setIsLoading(false);
 

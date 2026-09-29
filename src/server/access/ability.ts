@@ -1,3 +1,4 @@
+import "@tanstack/react-start/server-only";
 import { AbilityBuilder, createMongoAbility, type MongoAbility } from "@casl/ability";
 import { ENTITY_TYPES } from "~/lib/entity-types";
 import type { SessionUser } from "~/server/auth/auth";

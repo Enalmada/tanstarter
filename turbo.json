@@ -13,10 +13,6 @@
 		"knip": {
 			"outputs": []
 		},
-		"check-tss-2": {
-			"inputs": ["src/functions/**/*", "scripts/check-tss-2.sh"],
-			"outputs": []
-		},
 		"check-tss-7": {
 			"inputs": ["src/functions/**/*", "src/server/auth/**/*", "scripts/check-tss-7.sh"],
 			"outputs": []
@@ -63,16 +59,7 @@
 			"outputs": []
 		},
 		"check": {
-			"dependsOn": [
-				"lint",
-				"check-types",
-				"check-tss-2",
-				"check-tss-7",
-				"check-stories",
-				"test:unit",
-				"test-storybook",
-				"test:e2e"
-			]
+			"dependsOn": ["lint", "check-types", "check-tss-7", "check-stories", "test:unit", "test-storybook", "test:e2e"]
 		}
 	}
 }

@@ -2,11 +2,13 @@
  * Database seeding script (`bun run drizzle:seed`).
  *
  * Seeds the Playwright e2e users (see ~/utils/test/playwright-users). It's
- * idempotent: existing users get their role and verification re-applied.
+ * idempotent: existing users get their role and verification re-applied, and
+ * throwaway e2e/smoke users from earlier runs are removed.
  * Development databases only; this never runs as part of a deploy.
  */
 
 import { neon, neonConfig } from "@neondatabase/serverless";
+import { like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 import { dbHelpers } from "~/env";
 import { UserRole } from "~/lib/enums/user-role";
@@ -39,6 +41,12 @@ export const seedDatabase = async (): Promise<void> => {
 
 	const neonClient = neon(dbHelpers.getDatabaseUrl());
 	const db = drizzle({ client: neonClient });
+
+	// Throwaway users made by the auth e2e spec (e2e-*) and the browser smoke (smoke-*); accounts
+	// and sessions go with them (ON DELETE CASCADE)
+	await db
+		.delete(UserTable)
+		.where(or(like(UserTable.email, "e2e-%@example.test"), like(UserTable.email, "smoke-%@example.test")));
 
 	for (const [user, role] of [
 		[PLAYWRIGHT_MEMBER_USER, UserRole.MEMBER],

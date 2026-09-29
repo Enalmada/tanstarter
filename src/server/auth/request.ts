@@ -19,6 +19,8 @@
  * plugin enforces this on v1.167+.
  */
 
+import "@tanstack/react-start/server-only";
+
 export async function getSessionRequest(): Promise<Request | null> {
 	// Namespace dynamic-import (not destructured) so unit tests can
 	// `vi.spyOn(module, "getRequest")` and have the spy intercept.
