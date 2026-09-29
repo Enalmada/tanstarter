@@ -47,7 +47,6 @@
 		"src/server/db/DrizzleOrm.ts": ["exports", "types"],
 		"src/server/lib/sse-channel.ts": ["exports"],
 		"src/utils/auth-client.ts": ["types"],
-		"src/utils/logger.ts": ["exports"],
 		"src/utils/query/queries.ts": ["types"]
 	},
 	"ignoreDependencies": [

@@ -1,6 +1,6 @@
 /**
  * Nitro runtime plugin (registered in nitro.config.ts): reports errors that
- * reach Nitro to PostHog and flushes on shutdown.
+ * reach Nitro to PostHog, and flushes PostHog and the Axiom log queue on shutdown.
  *
  * Nitro's `error` hook receives unhandled request errors and process-level
  * `uncaughtException` / `unhandledRejection`, so posthog-node's own exception
@@ -11,6 +11,7 @@
 
 import { definePlugin } from "nitro";
 import { requestPath } from "~/lib/monitoring/request-path";
+import { flushLogs } from "~/utils/logger";
 import { captureServerException, shutdownServerPosthog } from "./posthog";
 
 export default definePlugin((nitroApp) => {
@@ -25,7 +26,9 @@ export default definePlugin((nitroApp) => {
 		});
 	});
 
+	// One hook for both flushes: Nitro runs close hooks one after another, so two hooks
+	// with 3s caps each could outlast Fly's 5s kill timeout.
 	nitroApp.hooks.hook("close", async () => {
-		await shutdownServerPosthog();
+		await Promise.allSettled([shutdownServerPosthog(), flushLogs()]);
 	});
 });

@@ -26,6 +26,7 @@ neonConfig
 drizzle-orm/neon
 pg-pool
 posthog-node
+api.axiom.co
 better-sse
 __vite-browser-external'
 
