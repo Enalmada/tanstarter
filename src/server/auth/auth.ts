@@ -52,19 +52,13 @@ export const auth = betterAuth({
 			joins: true,
 		},
 	},
-	// WORKAROUND: better-auth v1.3.31+ has a type incompatibility with exactOptionalPropertyTypes: true
-	// The tanstackStartCookies plugin's type definition uses `headers?: Headers` but should use
-	// `headers?: Headers | undefined` to be compatible with strict TypeScript settings.
-	// See: https://github.com/better-auth/better-auth/issues/5574
-	// biome-ignore lint/suspicious/noExplicitAny: Required workaround for better-auth type bug
-	plugins: [tanstackStartCookies() as any],
+	plugins: [tanstackStartCookies()],
 });
 
 export type Session = typeof auth.$Infer.Session;
 
-// WORKAROUND: better-auth's $Infer.Session.user doesn't properly include additionalFields
-// in version 1.3.34, so we manually extend the type with the role field.
-// This should be fixed in a future better-auth release.
+// The inferred additionalFields type is `role: string` (from `type: "string"`); narrow it to the
+// UserRole enum so role checks are exhaustive.
 export type SessionUser = typeof auth.$Infer.Session.user & {
 	role: UserRole;
 };

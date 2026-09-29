@@ -13,8 +13,6 @@ import type { UserRole } from "~/server/db/schema";
  * Production builds work fine - this is purely a development bundling issue.
  */
 const authClient = createAuthClient({
-	// The inferAdditionalFields plugin should automatically infer custom user fields
-	// from the server auth config, but it's not working correctly in better-auth v1.3.34
 	plugins: [inferAdditionalFields<typeof auth>()],
 });
 
@@ -22,9 +20,7 @@ export default authClient;
 
 export type Session = typeof authClient.$Infer.Session;
 
-// WORKAROUND: better-auth's inferAdditionalFields plugin doesn't properly type the role field
-// in version 1.3.34, so we manually extend the SessionUser type.
-// This should be fixed in a future better-auth release.
+// Narrow the inferred `role: string` to the UserRole enum (see ~/server/auth/auth.ts).
 export type SessionUser = typeof authClient.$Infer.Session.user & {
 	role: UserRole;
 };
