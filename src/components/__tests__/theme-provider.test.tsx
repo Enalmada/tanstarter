@@ -95,8 +95,16 @@ describe("getThemeScript", () => {
 		vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
 			throw new Error("blocked");
 		});
+		prefersDark = true;
 		expect(() => runThemeScript()).not.toThrow();
+		// Blocked storage still applies the default theme (system: dark here)
+		expect(root().classList.contains("dark")).toBe(true);
+		expect(root().style.colorScheme).toBe("dark");
 		vi.restoreAllMocks();
+	});
+
+	it("keeps a configured value from ending the script tag", () => {
+		expect(getThemeScript("</script><b>", "dark")).not.toContain("</script>");
 	});
 
 	it("escapes the storage key and default into the script", () => {

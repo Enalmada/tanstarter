@@ -6,11 +6,21 @@ set -uo pipefail
 BASE="${1:-http://localhost:3000}"
 fail=0
 
-header() { # <path> -> cache-control value (lowercased, CR removed), empty when absent
-	curl -s -D - -o /dev/null "$BASE$1" | tr -d '\r' | awk -F': ' 'tolower($1)=="cache-control"{print tolower($2)}'
+headers() { # <path> -> response headers, CR removed
+	curl -s -D - -o /dev/null "$BASE$1" | tr -d '\r'
+}
+
+header() { # <path> -> cache-control value (lowercased), empty when absent
+	headers "$1" | awk -F': ' 'tolower($1)=="cache-control"{print tolower($2)}'
 }
 
 expect() { # <path> <regex> <description>
+	# A 404 or fallback response must not pass just because it carries the header
+	if ! headers "$1" | head -1 | grep -q ' 200'; then
+		echo "✗ $1: not a 200 response"
+		fail=1
+		return
+	fi
 	local value
 	value="$(header "$1")"
 	if echo "$value" | grep -Eq "$2"; then

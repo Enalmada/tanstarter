@@ -72,6 +72,24 @@ test.describe("Theme", () => {
 		await expect(html(page)).toHaveClass(/\bdark\b/);
 	});
 
+	test("first paint is themed before any client script runs, even when storage is blocked", async ({ page }) => {
+		await page.emulateMedia({ colorScheme: "dark" });
+		await page.addInitScript(() => {
+			Object.defineProperty(window, "localStorage", {
+				get() {
+					throw new Error("blocked");
+				},
+			});
+		});
+		// Only the inline theme script can set the class now
+		await page.route("**/*", (route) =>
+			route.request().resourceType() === "script" ? route.abort() : route.continue(),
+		);
+		await page.goto("/");
+		await expect(html(page)).toHaveClass(/\bdark\b/);
+		await expect(html(page)).toHaveCSS("color-scheme", "dark");
+	});
+
 	test("the theme script does not trigger CSP or console errors", async ({ page }) => {
 		const problems: string[] = [];
 		page.on("console", (message) => {

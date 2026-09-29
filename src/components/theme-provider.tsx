@@ -36,10 +36,13 @@ function readStoredTheme(storageKey: string, fallback: Theme): Theme {
  * values `light` and `dark` are the ones the previous two-state toggle wrote.
  */
 export function getThemeScript(storageKey: string, defaultTheme: Theme) {
-	const key = JSON.stringify(storageKey);
-	const fallback = JSON.stringify(defaultTheme);
+	// JSON.stringify does not escape "<": keep a "</script>" in a configured value from ending the tag
+	const literal = (value: string) => JSON.stringify(value).replace(/</g, "\\u003c");
+	const key = literal(storageKey);
+	const fallback = literal(defaultTheme);
 
-	return `(function(){try{var t=localStorage.getItem(${key});if(t!=='light'&&t!=='dark'&&t!=='system'){t=${fallback}}var d=matchMedia('(prefers-color-scheme: dark)').matches;var r=t==='system'?(d?'dark':'light'):t;var e=document.documentElement;e.classList.remove('light','dark');e.classList.add(r);e.style.colorScheme=r}catch(e){}})();`;
+	// The storage read has its own try/catch: blocked storage must still apply the default theme
+	return `(function(){var t=${fallback};try{var s=localStorage.getItem(${key});if(s==='light'||s==='dark'||s==='system'){t=s}}catch(e){}try{var d=matchMedia('(prefers-color-scheme: dark)').matches;var r=t==='system'?(d?'dark':'light'):t;var e=document.documentElement;e.classList.remove('light','dark');e.classList.add(r);e.style.colorScheme=r}catch(e){}})();`;
 }
 
 const ThemeProviderContext = createContext<ThemeProviderState>({
