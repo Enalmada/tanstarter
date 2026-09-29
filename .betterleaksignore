@@ -1,3 +1,6 @@
 # Placeholder DATABASE_URL in the first version of the Build workflow's header check (#63); later commits use a URL without credentials
 a2ec75d4fa7731a850709baaffd53342e5f46a05:.github/workflows/build.yml:generic-credential-uri:64
 60d66af6c22fbe3b24e21cd45050e662f580023a:.github/workflows/build.yml:generic-credential-uri:71
+# Throwaway URLs in migrate.test.ts (layer 13); the inline betterleaks:allow marks them for later commits
+afa9d81f850eb53b56aab478f59cc99db85060cf:src/server/db/__tests__/migrate.test.ts:generic-credential-uri:9
+afa9d81f850eb53b56aab478f59cc99db85060cf:src/server/db/__tests__/migrate.test.ts:generic-credential-uri:85

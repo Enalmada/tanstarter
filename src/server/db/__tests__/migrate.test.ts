@@ -6,7 +6,7 @@ import { readMigrationFiles } from "drizzle-orm/migrator";
 import { describe, expect, it } from "vitest";
 import { defaultMigrationsFolder, readRetryConfig, resolveMigrationConnection } from "../migrate";
 
-const NEON = "postgres://app:p%40ss@ep-cool-1.us-east-2.aws.neon.tech/neondb";
+const NEON = "postgres://app:p%40ss@ep-cool-1.us-east-2.aws.neon.tech/neondb"; // betterleaks:allow
 
 describe("resolveMigrationConnection", () => {
 	it("verifies TLS for a remote host even when the URL says sslmode=require", () => {
@@ -82,7 +82,7 @@ describe("migrate CLI", () => {
 	it("exits 1 when the database is unreachable", { timeout: 30_000 }, () => {
 		const result = run({
 			...process.env,
-			DATABASE_URL: "postgres://postgres:postgres@127.0.0.1:1/none",
+			DATABASE_URL: "postgres://postgres:postgres@127.0.0.1:1/none", // betterleaks:allow
 			DB_MAX_RETRIES: "1",
 		});
 		expect(result.status).toBe(1);
