@@ -48,7 +48,7 @@ export function TaskList({ userId, tasks }: { userId: string | undefined; tasks:
 
 			<div className="flex min-h-[50px] flex-col gap-4">
 				{tasks.map((task: Task) => (
-					<Card key={task.id}>
+					<Card key={task.id} className="py-0">
 						<CardContent className="flex items-center justify-between gap-4 p-4">
 							<div className="flex flex-1 items-center gap-4 overflow-hidden">
 								<div className="flex items-center">
@@ -95,7 +95,7 @@ export function TaskList({ userId, tasks }: { userId: string | undefined; tasks:
 				))}
 
 				{tasks.length === 0 && (
-					<Card>
+					<Card className="py-0">
 						<CardContent className="p-4 text-center text-muted-foreground">
 							No tasks yet. Create one to get started!
 						</CardContent>

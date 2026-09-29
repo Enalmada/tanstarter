@@ -147,7 +147,7 @@ function Home() {
 					<h2 className="text-3xl font-bold tracking-tight text-center">Live Demos</h2>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<Card>
-							<CardContent className="flex flex-col items-center gap-4 pt-6">
+							<CardContent className="flex flex-col items-center gap-4">
 								<div className="text-center">
 									<h3 className="font-semibold text-lg mb-2">Real-time Streaming</h3>
 									<p className="text-muted-foreground text-sm mb-4">
@@ -159,7 +159,7 @@ function Home() {
 							</CardContent>
 						</Card>
 						<Card>
-							<CardContent className="flex flex-col items-center gap-4 pt-6">
+							<CardContent className="flex flex-col items-center gap-4">
 								<div className="text-center">
 									<h3 className="font-semibold text-lg mb-2">Error Monitoring</h3>
 									<p className="text-muted-foreground text-sm mb-4">

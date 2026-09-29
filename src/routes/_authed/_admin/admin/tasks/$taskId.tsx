@@ -55,7 +55,7 @@ function AdminEditTask() {
 			</div>
 
 			<Card>
-				<CardContent className="pt-6 space-y-4">
+				<CardContent className="space-y-4">
 					<AdminTaskForm
 						defaultValues={task}
 						onSubmit={(values) =>

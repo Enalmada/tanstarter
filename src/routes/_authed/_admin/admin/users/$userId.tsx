@@ -55,7 +55,7 @@ function AdminEditUser() {
 				</Button>
 			</div>
 
-			<Card className="border">
+			<Card className="border py-0">
 				<CardContent className="flex flex-col gap-4 p-6">
 					<AdminUserForm
 						defaultValues={user}
