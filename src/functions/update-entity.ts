@@ -11,9 +11,11 @@
 
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { safeParse } from "valibot";
+import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { formatIssues, validateUpdateEntity } from "~/functions/base-service";
 import type { EntityType } from "~/lib/entity-types";
 import { BadRequestError } from "~/server/access/http-errors";
+import type { SessionUser } from "~/server/auth/auth";
 
 // Columns the server owns; stripped from every client patch before writing.
 // `emailVerified` is only ever set by better-auth's verification flows.
@@ -31,14 +33,20 @@ function validateUpdateEntityInput(input: unknown): UpdateEntityInputShape {
 }
 
 export const handleUpdateEntity = createServerOnlyFn(
-	async ({ data }: { data: { subject: EntityType; id: string; data: Record<string, unknown> } }) => {
+	async ({
+		data,
+		context,
+	}: {
+		data: { subject: EntityType; id: string; data: Record<string, unknown> };
+		context: { user: SessionUser };
+	}) => {
 		const { eq } = await import("drizzle-orm");
 		const db = (await import("~/server/db")).default;
 		const { accessCheck } = await import("~/server/access/check");
 		const { logger } = await import("~/utils/logger");
-		const { getUser, loadEntityConfig } = await import("~/functions/base-service");
+		const { loadEntityConfig } = await import("~/functions/base-service");
 
-		const user = await getUser();
+		const { user } = context;
 		// Metadata only: never log client-supplied values.
 		logger.info("updateEntity", {
 			subject: data.subject,
@@ -113,5 +121,6 @@ export const handleUpdateEntity = createServerOnlyFn(
 );
 
 export const updateEntity = createServerFn({ method: "POST" })
+	.middleware([freshAuthMiddleware])
 	.validator(validateUpdateEntityInput)
 	.handler(handleUpdateEntity);

@@ -6,8 +6,10 @@
 
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { safeParse } from "valibot";
+import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { createWhereSchema, type FindEntityPayload, formatIssues, validateFindFirst } from "~/functions/base-service";
 import { BadRequestError } from "~/server/access/http-errors";
+import type { SessionUser } from "~/server/auth/auth";
 
 function validateFindFirstInput(input: unknown): FindEntityPayload {
 	const result = safeParse(validateFindFirst, input);
@@ -24,38 +26,43 @@ function validateFindFirstInput(input: unknown): FindEntityPayload {
 	return payload;
 }
 
-export const handleFindFirst = createServerOnlyFn(async ({ data }: { data: FindEntityPayload }) => {
-	const { getColumns } = await import("drizzle-orm");
-	const { logger } = await import("~/utils/logger");
-	const { buildWhereClause } = await import("~/server/db/DrizzleOrm");
-	const { getUser, loadEntityConfig } = await import("~/functions/base-service");
-	const { NotFoundError } = await import("~/server/access/http-errors");
-	const { assertSafeWhere, assertSafeWith, filterReadableRow } = await import("~/server/access/read-filter");
+export const handleFindFirst = createServerOnlyFn(
+	async ({ data, context }: { data: FindEntityPayload; context: { user: SessionUser } }) => {
+		const { getColumns } = await import("drizzle-orm");
+		const { logger } = await import("~/utils/logger");
+		const { buildWhereClause } = await import("~/server/db/DrizzleOrm");
+		const { loadEntityConfig } = await import("~/functions/base-service");
+		const { NotFoundError } = await import("~/server/access/http-errors");
+		const { assertSafeWhere, assertSafeWith, filterReadableRow } = await import("~/server/access/read-filter");
 
-	const user = await getUser();
-	// Metadata only: filter values (ids, emails) stay out of logs.
-	logger.info("findFirst", {
-		subject: data.subject,
-		where: Object.keys(data.where ?? {}),
-		with: Object.keys(data.with ?? {}),
-		userId: user.id,
-	});
+		const { user } = context;
+		// Metadata only: filter values (ids, emails) stay out of logs.
+		logger.info("findFirst", {
+			subject: data.subject,
+			where: Object.keys(data.where ?? {}),
+			with: Object.keys(data.with ?? {}),
+			userId: user.id,
+		});
 
-	const config = await loadEntityConfig();
-	const { table, query } = config[data.subject];
-	assertSafeWhere(data.where, Object.keys(getColumns(table)));
-	assertSafeWith(data.subject, data.with);
-	const whereList = buildWhereClause(table, data.where);
+		const config = await loadEntityConfig();
+		const { table, query } = config[data.subject];
+		assertSafeWhere(data.where, Object.keys(getColumns(table)));
+		assertSafeWith(data.subject, data.with);
+		const whereList = buildWhereClause(table, data.where);
 
-	const result = await query.findFirst({ where: whereList, with: data.with });
-	const readable = result ? filterReadableRow(user, data.subject, result, data.with) : null;
+		const result = await query.findFirst({ where: whereList, with: data.with });
+		const readable = result ? filterReadableRow(user, data.subject, result, data.with) : null;
 
-	// Missing and forbidden look identical, so callers can't probe which
-	// records (e.g. which emails) exist.
-	if (!readable) {
-		throw new NotFoundError(`${data.subject} ${data.where?.id ?? "record"} not found or not readable`);
-	}
-	return readable;
-});
+		// Missing and forbidden look identical, so callers can't probe which
+		// records (e.g. which emails) exist.
+		if (!readable) {
+			throw new NotFoundError(`${data.subject} ${data.where?.id ?? "record"} not found or not readable`);
+		}
+		return readable;
+	},
+);
 
-export const findFirst = createServerFn({ method: "GET" }).validator(validateFindFirstInput).handler(handleFindFirst);
+export const findFirst = createServerFn({ method: "GET" })
+	.middleware([freshAuthMiddleware])
+	.validator(validateFindFirstInput)
+	.handler(handleFindFirst);

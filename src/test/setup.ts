@@ -251,8 +251,11 @@ vi.mock("@tanstack/react-start", () => {
 		// strips its body from the client build).
 		createServerOnlyFn: <T>(fn: T) => fn,
 		createServerFn: vi.fn().mockImplementation(() => ({
-			// Middleware doesn't run here; the mock handlers below inject context.user
-			middleware: () => ({ handler: mockHandler }),
+			// Middleware doesn't run here (the handlers below inject context.user);
+			// it is unit-tested directly, see functions/__tests__/auth-middleware.test.ts
+			middleware() {
+				return this;
+			},
 			handler: mockHandler,
 			// biome-ignore lint/suspicious/noExplicitAny: Schema types are inherently any
 			validator: (schema: any) => ({
