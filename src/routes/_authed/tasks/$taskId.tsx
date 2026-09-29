@@ -69,7 +69,7 @@ function EditTask() {
 			</div>
 
 			<Card>
-				<CardContent className="pt-6 space-y-4">
+				<CardContent className="gap-0 space-y-4">
 					<TaskForm
 						defaultValues={{
 							...task,

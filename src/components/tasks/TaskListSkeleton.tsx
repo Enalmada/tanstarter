@@ -13,8 +13,8 @@ export function TaskListSkeleton() {
 				</div>
 				<div className="flex flex-col gap-4">
 					{SKELETON_ITEMS.map((key) => (
-						<Card key={key} className="shadow-xs">
-							<CardContent className="flex items-center gap-4 p-4">
+						<Card key={key} className="py-0 shadow-xs">
+							<CardContent className="flex-row items-center gap-4 p-4">
 								<Skeleton className="h-4 w-4 rounded-full" />
 								<div className="flex-1 space-y-2">
 									<Skeleton className="h-5 w-48" />

@@ -119,7 +119,7 @@ function ProfilePage() {
 						<CardTitle>User Profile</CardTitle>
 						<CardDescription>Manage your account settings and permissions</CardDescription>
 					</CardHeader>
-					<CardContent className="space-y-6">
+					<CardContent className="gap-0 space-y-6">
 						{/* User Info */}
 						<div className="flex items-center space-x-4">
 							<Avatar className="w-16 h-16">

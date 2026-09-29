@@ -73,9 +73,9 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 				return (
 					<div className="grid w-full gap-1.5">
 						{config.label && (
-							<Label htmlFor={config.key} className={cn(hasError && "text-destructive")}>
+							<Label htmlFor={config.key} className={cn(hasError && "text-destructive-strong")}>
 								{config.label}
-								{config.required && <span className="text-destructive ml-1">*</span>}
+								{config.required && <span className="text-destructive-strong ml-1">*</span>}
 							</Label>
 						)}
 						<Input
@@ -91,7 +91,7 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 						/>
 						{config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
 						{hasError && (
-							<p className="text-sm text-destructive" id={`${config.key}-error`}>
+							<p className="text-sm text-destructive-strong" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}
@@ -103,9 +103,9 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 				return (
 					<div className="grid w-full gap-1.5">
 						{config.label && (
-							<Label htmlFor={config.key} className={cn(hasError && "text-destructive")}>
+							<Label htmlFor={config.key} className={cn(hasError && "text-destructive-strong")}>
 								{config.label}
-								{config.required && <span className="text-destructive ml-1">*</span>}
+								{config.required && <span className="text-destructive-strong ml-1">*</span>}
 							</Label>
 						)}
 						<Textarea
@@ -122,7 +122,7 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 						/>
 						{config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
 						{hasError && (
-							<p className="text-sm text-destructive" id={`${config.key}-error`}>
+							<p className="text-sm text-destructive-strong" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}
@@ -134,9 +134,9 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 				return (
 					<div className="grid w-full gap-1.5">
 						{config.label && (
-							<Label htmlFor={config.key} className={cn(hasError && "text-destructive")}>
+							<Label htmlFor={config.key} className={cn(hasError && "text-destructive-strong")}>
 								{config.label}
-								{config.required && <span className="text-destructive ml-1">*</span>}
+								{config.required && <span className="text-destructive-strong ml-1">*</span>}
 							</Label>
 						)}
 						<Input
@@ -155,7 +155,7 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 						/>
 						{config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
 						{hasError && (
-							<p className="text-sm text-destructive" id={`${config.key}-error`}>
+							<p className="text-sm text-destructive-strong" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}
@@ -169,9 +169,9 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 				return (
 					<div className="grid w-full gap-1.5">
 						{config.label && (
-							<Label htmlFor={config.key} className={cn(hasError && "text-destructive")}>
+							<Label htmlFor={config.key} className={cn(hasError && "text-destructive-strong")}>
 								{config.label}
-								{config.required && <span className="text-destructive ml-1">*</span>}
+								{config.required && <span className="text-destructive-strong ml-1">*</span>}
 							</Label>
 						)}
 						<Select
@@ -205,7 +205,7 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 						</Select>
 						{config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
 						{hasError && (
-							<p className="text-sm text-destructive" id={`${config.key}-error`}>
+							<p className="text-sm text-destructive-strong" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}
@@ -233,15 +233,15 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 								htmlFor={config.key}
 								className={cn(
 									"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-									hasError && "text-destructive",
+									hasError && "text-destructive-strong",
 								)}
 							>
 								{config.label}
-								{config.required && <span className="text-destructive ml-1">*</span>}
+								{config.required && <span className="text-destructive-strong ml-1">*</span>}
 							</Label>
 						)}
 						{hasError && (
-							<p className="text-sm text-destructive" id={`${config.key}-error`}>
+							<p className="text-sm text-destructive-strong" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}
@@ -254,9 +254,9 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 				return (
 					<div className="grid w-full gap-1.5">
 						{config.label && (
-							<Label className={cn(hasError && "text-destructive")}>
+							<Label className={cn(hasError && "text-destructive-strong")}>
 								{config.label}
-								{config.required && <span className="text-destructive ml-1">*</span>}
+								{config.required && <span className="text-destructive-strong ml-1">*</span>}
 							</Label>
 						)}
 						<RadioGroup
@@ -278,7 +278,7 @@ export function FormField<TData extends Record<string, unknown>>({ field, config
 						</RadioGroup>
 						{config.description && <p className="text-sm text-muted-foreground">{config.description}</p>}
 						{hasError && (
-							<p className="text-sm text-destructive" id={`${config.key}-error`}>
+							<p className="text-sm text-destructive-strong" id={`${config.key}-error`}>
 								{errorMessage}
 							</p>
 						)}

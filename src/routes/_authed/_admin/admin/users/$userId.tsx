@@ -47,7 +47,7 @@ function AdminEditUser() {
 				</Button>
 				<Button
 					variant="ghost"
-					className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+					className="text-destructive-strong hover:bg-destructive/10 hover:text-destructive-strong"
 					onClick={() => deleteMutation.mutate({ entityId: user.id })}
 					disabled={deleteMutation.isPending}
 				>
@@ -55,7 +55,7 @@ function AdminEditUser() {
 				</Button>
 			</div>
 
-			<Card className="border">
+			<Card className="border py-0 ring-0">
 				<CardContent className="flex flex-col gap-4 p-6">
 					<AdminUserForm
 						defaultValues={user}

@@ -25,7 +25,9 @@ const columns: TableDefinition<Task> = [
 						</PopoverContent>
 					</Popover>
 				</div>
-				{row.description && <p className="text-xs text-muted-foreground line-clamp-2">{row.description}</p>}
+				{row.description && (
+					<p className="text-xs text-muted-foreground line-clamp-2 whitespace-normal">{row.description}</p>
+				)}
 			</div>
 		),
 	},

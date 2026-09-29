@@ -29,7 +29,7 @@ export function EntityList<TData extends { id: string }>({
 				<Title>{title}</Title>
 				{onAdd && <Button onClick={onAdd}>Add New</Button>}
 			</div>
-			<Card>
+			<Card className="gap-0 py-0">
 				<Table>
 					<TableHeader>
 						<TableRow>

@@ -44,7 +44,7 @@ function AdminNewTask() {
 			</div>
 
 			<Card>
-				<CardContent className="pt-6 space-y-4">
+				<CardContent className="gap-0 space-y-4">
 					<AdminTaskForm onSubmit={createMutation.mutate} isSubmitting={createMutation.isPending} />
 				</CardContent>
 			</Card>

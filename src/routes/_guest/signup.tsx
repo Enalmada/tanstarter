@@ -173,7 +173,7 @@ function SignupForm() {
 							disabled={isLoading}
 						/>
 						{field.state.meta.errors.length > 0 && (
-							<p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+							<p className="text-sm text-destructive-strong">{field.state.meta.errors[0]}</p>
 						)}
 					</div>
 				)}
@@ -206,7 +206,7 @@ function SignupForm() {
 							disabled={isLoading}
 						/>
 						{field.state.meta.errors.length > 0 && (
-							<p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+							<p className="text-sm text-destructive-strong">{field.state.meta.errors[0]}</p>
 						)}
 					</div>
 				)}
@@ -214,7 +214,7 @@ function SignupForm() {
 
 			{error && (
 				<div className="rounded-md bg-destructive/15 p-3 text-sm">
-					<p className="text-destructive">{error}</p>
+					<p className="text-destructive-strong">{error}</p>
 					{isUserExists && (
 						<p className="mt-2 text-muted-foreground">
 							Already have an account?{" "}
@@ -266,7 +266,7 @@ function AuthPage() {
 				<p className="text-sm text-muted-foreground mt-2">Just email and password - quick and simple</p>
 			</div>
 
-			<Card className="mt-8 p-6 border-0 bg-white dark:bg-gray-800 shadow-md">
+			<Card className="mt-8 gap-0 p-6 ring-0 border-0 bg-white dark:bg-gray-800 shadow-md">
 				<SignupForm />
 
 				<div className="relative my-6">
