@@ -35,3 +35,7 @@ jobs:
       # Every spec under src/e2e belongs to a Playwright project (no browsers needed)
       - name: E2E spec coverage
         run: bun run check:e2e-specs
+
+      # Lingui catalogs are extracted and every locale is translated
+      - name: i18n catalogs
+        run: bun run i18n:check
