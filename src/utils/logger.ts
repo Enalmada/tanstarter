@@ -1,17 +1,32 @@
+/**
+ * Structured logger: the console always, plus Axiom when it is configured.
+ *
+ * Axiom's `ingest` only queues the event and returns nothing, so there is nothing to
+ * await or catch. Send failures are reported through the client's `onError` option
+ * instead, and `flushLogs` drains the queue on shutdown (see the Nitro plugin).
+ *
+ * The client lives on globalThis because the Nitro plugin that flushes it and the SSR
+ * bundle that logs to it can each get their own copy of this module.
+ */
+
 import "@tanstack/react-start/server-only";
 import { Axiom } from "@axiomhq/js";
-import { env } from "~/env";
-
-// Only create Axiom client if token is available
-const axiom = env.AXIOM_TOKEN ? new Axiom({ token: env.AXIOM_TOKEN }) : null;
-
-const isDevelopment = process.env.NODE_ENV === "development";
+import { env, shouldReportErrors } from "~/env";
 
 type LogLevel = "debug" | "info" | "error";
+type LogData = Record<string, unknown>;
+
+interface AxiomSink {
+	client: Axiom;
+	dataset: string;
+}
+
+const STATE_KEY = "__tanstarterAxiom";
+type GlobalWithState = typeof globalThis & { [STATE_KEY]?: { sink: AxiomSink | null } };
 
 // The logger is the one sanctioned console sink (Biome's noConsole applies
 // everywhere else).
-const consoleLog = (level: LogLevel, message: string, data?: Record<string, unknown>) => {
+const consoleLog = (level: LogLevel, message: string, data?: LogData) => {
 	const line = `[${new Date().toISOString()}] ${level.toUpperCase()} ${message}`;
 	const args = data ? [line, data] : [line];
 
@@ -31,62 +46,72 @@ const consoleLog = (level: LogLevel, message: string, data?: Record<string, unkn
 	}
 };
 
-const logToAxiom = async (level: LogLevel, message: string, data?: Record<string, unknown>) => {
-	if (!axiom) return;
-
-	try {
-		// biome-ignore lint/style/noNonNullAssertion: AXIOM_DATASET_NAME is required in production
-		await axiom.ingest(env.AXIOM_DATASET_NAME!, [
-			{
-				_time: new Date(),
-				level,
-				message,
-				...data,
-			},
-		]);
-	} catch (error) {
-		// If Axiom logging fails, fallback to console
-		consoleLog("error", "Axiom logging failed", {
-			error: error instanceof Error ? error.message : "Unknown error",
-			originalMessage: message,
-			originalData: data,
-		});
+function getSink(): AxiomSink | null {
+	const g = globalThis as GlobalWithState;
+	if (!g[STATE_KEY]) {
+		// Development never ships logs: a local .env with a real token would otherwise
+		// write into the production dataset.
+		const enabled = env.AXIOM_TOKEN && env.AXIOM_DATASET_NAME && shouldReportErrors();
+		g[STATE_KEY] = {
+			sink: enabled
+				? {
+						client: new Axiom({
+							token: env.AXIOM_TOKEN as string,
+							...(env.AXIOM_URL ? { url: env.AXIOM_URL } : {}),
+							// Straight to the console: routing a send failure back through
+							// `logger` would loop while Axiom is down.
+							onError: (error) => consoleLog("error", "Axiom ingest failed", { error: describeError(error) }),
+						}),
+						dataset: env.AXIOM_DATASET_NAME as string,
+					}
+				: null,
+		};
 	}
-};
+	return g[STATE_KEY].sink;
+}
+
+function describeError(error: unknown) {
+	return error instanceof Error ? error.message : String(error);
+}
+
+function log(level: Exclude<LogLevel, "debug">, message: string, data?: LogData) {
+	const sink = getSink();
+
+	// Fly's log stream is the fallback when Axiom is down, so errors always reach it.
+	// Info goes to the console only when nothing else receives it.
+	if (level === "error" || !sink) {
+		consoleLog(level, message, data);
+	}
+
+	sink?.client.ingest(sink.dataset, [{ _time: new Date(), level, message, ...data }]);
+}
 
 export const logger = {
-	info: (message: string, data?: Record<string, unknown>) => {
-		if (isDevelopment || !axiom) {
-			consoleLog("info", message, data);
-		}
-		// logToAxiom catches its own failures; fire-and-forget is intended.
-		void logToAxiom("info", message, data);
-	},
-
-	error: (message: string, data?: Record<string, unknown>) => {
-		if (isDevelopment || !axiom) {
-			consoleLog("error", message, data);
-		}
-		void logToAxiom("error", message, data);
-	},
-
-	debug: (message: string, data?: Record<string, unknown>) => {
-		if (isDevelopment) {
-			consoleLog("debug", message, data);
-			void logToAxiom("debug", message, data);
-		}
+	info: (message: string, data?: LogData) => log("info", message, data),
+	error: (message: string, data?: LogData) => log("error", message, data),
+	// Development only: debug output never reaches Axiom or a production console.
+	debug: (message: string, data?: LogData) => {
+		if (!shouldReportErrors()) consoleLog("debug", message, data);
 	},
 };
 
-// Optional: Type-safe way to create structured logs
-export const createStructuredLogger = (component: string) => ({
-	info: (message: string, data?: Record<string, unknown>) => {
-		logger.info(message, { component, ...data });
-	},
-	error: (message: string, data?: Record<string, unknown>) => {
-		logger.error(message, { component, ...data });
-	},
-	debug: (message: string, data?: Record<string, unknown>) => {
-		logger.debug(message, { component, ...data });
-	},
-});
+/**
+ * Send whatever is still queued for Axiom. Never rejects (failures go to `onError`) and
+ * gives up after `timeoutMs`, so a slow Axiom cannot hold shutdown past Fly's kill timeout.
+ */
+export async function flushLogs(timeoutMs = 3000) {
+	const sink = (globalThis as GlobalWithState)[STATE_KEY]?.sink;
+	if (!sink) return;
+
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	try {
+		await Promise.race([
+			sink.client.flush(),
+			new Promise<void>((resolve) => {
+				timer = setTimeout(resolve, timeoutMs);
+			}),
+		]);
+	} finally {
+		clearTimeout(timer);
+	}
+}
