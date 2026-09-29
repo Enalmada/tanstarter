@@ -1,7 +1,14 @@
 name: Deploy PR Environment
+
+# Preview environments (Fly app + Neon branch) are opt-in: add the `preview`
+# label to a PR to create one; later pushes redeploy it while the label stays.
+# Without the gate, every restack of a stacked-PR series redeploys every layer
+# and can exhaust Neon's branch limit. Closing the PR always tears down.
+# Same-repository PRs only: `pull_request` runs from forks get no Fly/Neon
+# secrets (and must not), so a fork preview could never deploy.
 on:
   pull_request:
-    types: [opened, reopened, synchronize, closed]
+    types: [opened, reopened, synchronize, closed, labeled]
 
 permissions:
   contents: read
@@ -17,31 +24,68 @@ env:
   FLY_APP_NAME: pr-${{ github.event.number }}-tanstarter
 
 jobs:
-  # CREATE RESOURCES (when PR is opened/updated)
+  # CREATE RESOURCES (PR has the `preview` label and was opened/updated, or the
+  # label was just added)
   create_environment:
     if: |
-      github.event.action != 'closed' && 
-      github.head_ref != 'main'
+      github.head_ref != 'main' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (
+        (github.event.action == 'labeled' && github.event.label.name == 'preview') ||
+        (
+          contains(fromJSON('["opened", "reopened", "synchronize"]'), github.event.action) &&
+          contains(github.event.pull_request.labels.*.name, 'preview')
+        )
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
       api_url: ${{ steps.deploy_app.outputs.url }}
+      pr_open: ${{ steps.pr_state.outputs.open }}
+    # Shared with destroy_environment so a PR's create and destroy never overlap.
+    # `queue: max` keeps every pending job: with the default (`single`) a late
+    # create queued behind a running one would replace a pending close-destroy,
+    # and cleanup would then hinge on that create's pr_state check succeeding.
     concurrency:
-      group: pr-${{ github.event.number }}
+      group: preview-env-${{ github.event.number }}
+      cancel-in-progress: false
+      queue: max
 
     environment:
       name: pr-${{ github.event.number }}
       url: ${{ steps.deploy_app.outputs.url }}
 
     steps:
+      # GitHub can deliver a synchronize run minutes late, after the PR has
+      # merged and the closed run has already torn everything down. Check the
+      # live state (inside the concurrency group) so a late run hands off to
+      # destroy_environment instead of re-creating an orphaned Neon branch and
+      # Fly app.
+      - name: Check PR is still open
+        id: pr_state
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          state=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state --jq .state)
+          if [ "$state" = "OPEN" ]; then
+            echo "open=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "open=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::PR #$PR_NUMBER is $state; skipping preview creation and tearing down instead"
+          fi
+
       - name: Checkout code
+        if: steps.pr_state.outputs.open == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Fly CLI
+        if: steps.pr_state.outputs.open == 'true'
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Create Neon Database Branch
         id: create_db
+        if: steps.pr_state.outputs.open == 'true'
         uses: neondatabase/create-branch-action@v5
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
@@ -52,6 +96,7 @@ jobs:
 
       - name: Deploy Fly.io app
         id: deploy_app
+        if: steps.pr_state.outputs.open == 'true'
         uses: superfly/fly-pr-review-apps@1.5.0
         with:
           name: ${{ env.FLY_APP_NAME }}
@@ -68,33 +113,74 @@ jobs:
             PUBLIC_ROLLBAR_ACCESS_TOKEN=${{ vars.PUBLIC_ROLLBAR_ACCESS_TOKEN }}
             ROLLBAR_SERVER_TOKEN=${{ secrets.ROLLBAR_SERVER_TOKEN }}
 
-  # DESTROY RESOURCES (when PR is closed)
+  # DESTROY RESOURCES (PR closed, with or without the `preview` label, or a late
+  # create_environment run found it no longer open).
+  # `needs` + `!cancelled()`: create_environment is skipped on `closed`, and a
+  # skipped dependency would otherwise skip this job too.
+  # Every step is idempotent: it can run twice for the same PR, or after nothing
+  # was created (e.g. a PR that never had the label).
   destroy_environment:
+    needs: create_environment
     if: |
-      github.event.action == 'closed'
+      !cancelled() &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event.action == 'closed' || needs.create_environment.outputs.pr_open == 'false')
     runs-on: ubuntu-latest
+    concurrency:
+      group: preview-env-${{ github.event.number }}
+      cancel-in-progress: false
+      queue: max
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Setup Fly CLI
         uses: superfly/flyctl-actions/setup-flyctl@master
 
+      # Neon API directly, so a missing branch (never labeled, or already
+      # deleted) is a no-op while an auth or API failure fails the job.
       - name: Destroy Neon Database Branch
-        uses: neondatabase/delete-branch-action@v3
-        with:
-          project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: pr-${{ github.event.number }}
-          api_key: ${{ secrets.NEON_API_KEY }}
+        env:
+          BRANCH_NAME: pr-${{ github.event.number }}
+        run: |
+          api="https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches"
+          if ! branches=$(curl -fsS -G -H "Authorization: Bearer $NEON_API_KEY" \
+            --data-urlencode "search=$BRANCH_NAME" --data-urlencode "limit=10000" "$api"); then
+            echo "::error::Neon branch list failed"
+            exit 1
+          fi
+          id=$(echo "$branches" | jq -r --arg name "$BRANCH_NAME" '[.branches[] | select(.name == $name) | .id][0] // empty')
+          if [ -z "$id" ]; then
+            echo "::notice::Neon branch $BRANCH_NAME not found; nothing to destroy"
+            exit 0
+          fi
+          curl -fsS -X DELETE -H "Authorization: Bearer $NEON_API_KEY" "$api/$id" > /dev/null
 
+      # flyctl directly: fly-pr-review-apps only destroys on a `closed` event and
+      # would deploy instead when this job runs from a late synchronize run.
+      # A missing app (never labeled, or already destroyed) is fine; any other
+      # failure (auth, API) fails the step so orphans don't go unnoticed.
+      # `!cancelled()` here and below: a failed Neon delete still fails the job,
+      # but mustn't leave the Fly app running.
       - name: Destroy Fly.io app
-        uses: superfly/fly-pr-review-apps@1.5.0
-        with:
-          name: ${{ env.FLY_APP_NAME }}
-          config: fly.toml
+        if: ${{ !cancelled() }}
+        run: |
+          if ! apps=$(flyctl apps list --json); then
+            echo "::error::flyctl apps list failed"
+            exit 1
+          fi
+          # A jq error (unexpected JSON) fails the step rather than reading as "missing".
+          found=$(echo "$apps" | jq --arg name "$FLY_APP_NAME" 'any(.[]; .Name == $name)')
+          if [ "$found" != "true" ]; then
+            echo "::notice::Fly app $FLY_APP_NAME not found; nothing to destroy"
+            exit 0
+          fi
+          flyctl apps destroy "$FLY_APP_NAME" -y
 
-      - name: Clean up GitHub environment
+      - name: Clean up GitHub deployments
+        if: ${{ !cancelled() }}
         uses: strumwolf/delete-deployment-environment@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: pr-${{ github.event.number }}
+          # Deleting the environment itself needs repo-admin rights that
+          # GITHUB_TOKEN can't have, so remove the deployments and keep the
+          # (empty) environment.
+          onlyRemoveDeployments: true
