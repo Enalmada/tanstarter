@@ -285,7 +285,7 @@ function AuthPage() {
 				</p>
 			</div>
 
-			<Card className="mt-8 p-6 border-0 bg-white dark:bg-gray-800 shadow-md">
+			<Card className="mt-8 gap-0 p-6 ring-0 border-0 bg-white dark:bg-gray-800 shadow-md">
 				<SigninForm />
 
 				<div className="relative my-6">

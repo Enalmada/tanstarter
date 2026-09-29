@@ -34,7 +34,7 @@ function WelcomeEmailPreview() {
 		<div className="flex flex-col gap-8">
 			<h2 className="text-3xl font-bold tracking-tight">Welcome Email Template</h2>
 
-			<Card>
+			<Card className="gap-0 py-0">
 				<Suspense fallback={<div>Loading email preview...</div>}>
 					<EmailPreview />
 				</Suspense>

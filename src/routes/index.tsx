@@ -123,7 +123,7 @@ function Home() {
 				{/* Image Optimization Demo Section */}
 				<div className="flex flex-col gap-8">
 					<h2 className="text-3xl font-bold tracking-tight text-center">Image Optimization Demo</h2>
-					<Card className="mx-auto p-8">
+					<Card className="mx-auto gap-0 p-8 has-[>img:first-child]:pt-8">
 						<Image
 							src="https://images.unsplash.com/photo-1682687220742-aba13b6e50ba"
 							layout="constrained"

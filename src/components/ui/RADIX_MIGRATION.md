@@ -420,7 +420,7 @@ function MyForm() {
 
 ## Re-pulling components later
 
-Once migrated, refresh a component with `bunx shadcn@latest add <name> --diff` to preview the change, then `bunx shadcn@latest add <name> -o -y` to overwrite. The CLI needs babysitting; after every run:
+Once migrated, refresh a component with `bun run ui add <name> --diff` to preview the change, then `bun run ui add <name> -o -y` to overwrite (`ui` runs the CLI version pinned in `package.json`). The CLI needs babysitting; after every run:
 
 - Revert `package.json` and `bun.lock` (the CLI proposes dependency changes we do not want) and any CSS it proposes for `src/styles/app.css`.
 - Rewrite its `import { cn } from "cn"` to `import { cn } from "~/lib/utils"`.

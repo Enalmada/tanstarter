@@ -123,6 +123,10 @@ describe("destructive token contrast (WCAG AA)", () => {
 			expect(contrastRatio(strong, background)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
 		});
 
+		it("keeps the invalid-field border above the 1.4.11 non-text floor", () => {
+			expect(contrastRatio(destructive, background)).toBeGreaterThanOrEqual(AA_NON_TEXT);
+		});
+
 		it("keeps error text readable on destructive tint panels up to /30", () => {
 			// dark:bg-destructive/20 (badge) and dark:hover:bg-destructive/30 (button)
 			for (const alpha of [0.1, 0.2, 0.3]) {
@@ -138,25 +142,29 @@ describe("destructive token contrast (WCAG AA)", () => {
 		expect(css).not.toMatch(/--(?:color-)?destructive-foreground\s*:/);
 	});
 
+	it("does not soften the invalid-field border with an opacity modifier", () => {
+		const offenders = findMatches(path.resolve(here, "../.."), /aria-invalid:border-destructive\/\d+/);
+		expect(offenders, `half-opacity invalid border fails 3:1: ${offenders.join(", ")}`).toEqual([]);
+	});
+
 	it("does not use --destructive as text ink in components", () => {
-		const offenders = findLowContrastDestructiveText(path.resolve(here, "../.."));
+		const offenders = findMatches(path.resolve(here, "../.."), /text-destructive(?!-strong)|text-red-[45]00/);
 		expect(
 			offenders,
-			`low-contrast destructive ink found; use text-destructive-strong:\n${offenders.join("\n")}`,
+			`low-contrast destructive ink found; use text-destructive-strong:\n$offenders.join("\n")`,
 		).toEqual([]);
 	});
 });
 
-/** Bare `text-destructive` and the hardcoded `text-red-400`/`text-red-500` shades it replaced. */
-function findLowContrastDestructiveText(dir: string, root: string = dir): string[] {
-	const banned = /text-destructive(?!-strong)|text-red-[45]00/;
+/** `file:line` of every non-test, non-story source line matching `banned`. */
+function findMatches(dir: string, banned: RegExp, root: string = dir): string[] {
 	const hits: string[] = [];
 
 	for (const entry of readdirSync(dir)) {
 		if (entry === "node_modules" || entry === "e2e") continue;
 		const full = path.join(dir, entry);
 		if (statSync(full).isDirectory()) {
-			hits.push(...findLowContrastDestructiveText(full, root));
+			hits.push(...findMatches(full, banned, root));
 			continue;
 		}
 		if (!/\.(tsx|ts)$/.test(entry) || /\.(test|stories)\.(tsx|ts)$/.test(entry)) continue;

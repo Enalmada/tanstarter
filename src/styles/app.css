@@ -154,10 +154,11 @@
     --accent: 215 27.9% 16.9%;
     --accent-foreground: 220 13% 85%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 45%;
     /*
-     * See the :root note. Tints go to /30. Not covered by the test: border-destructive
-     * on --background is about 2:1 in dark mode, under the 3:1 non-text floor.
+     * See the :root note. Tints go to /30. border-destructive is solid in dark mode too
+     * (no dark:...border-destructive/50 override): a half-opacity border cannot reach the
+     * 3:1 non-text floor on --background at any lightness.
      */
     --destructive-strong: 0 91% 71%;
 
