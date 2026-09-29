@@ -110,18 +110,30 @@ async function main() {
 	const connection = resolveMigrationConnection(databaseUrl);
 	if (connection.switchedFromPooler) log("DATABASE_URL uses Neon's pooler; migrating through the direct host");
 
+	// The advisory lock lives in one database session. If that connection closes after the
+	// lock is taken, postgres.js would reconnect for the next query and migrate without it,
+	// so stop instead: nothing has committed that a fresh run can't redo.
+	let lockHeld = false;
 	const sql = postgres(connection.url, {
 		ssl: connection.ssl,
 		max: 1, // one connection, so the advisory lock and the migration share a session
 		connect_timeout: 10,
 		onnotice: () => undefined, // "schema already exists, skipping" on every run
-		connection: { application_name: "tanstarter-migrate" },
+		onclose: () => {
+			if (!lockHeld) return;
+			process.stderr.write("[migrate] Failed: the database connection closed while holding the migration lock\n");
+			process.exit(1);
+		},
+		// Bounded waits, so a blocked ALTER TABLE or a second migrator fails the deploy with an
+		// error instead of hanging until Fly stops the release command (5 minutes).
+		connection: { application_name: "tanstarter-migrate", lock_timeout: 60_000, statement_timeout: 240_000 },
 	});
 	try {
 		await waitForDatabase(sql, readRetryConfig(process.env));
-		// Waits while another deploy migrates. Released when the connection closes,
+		// Waits (up to lock_timeout) while another deploy migrates. Released when the connection closes,
 		// including when Fly kills the release Machine at its timeout.
 		await sql`select pg_advisory_lock(7310441)`;
+		lockHeld = true;
 		const [started] = await sql<{ started_at: string }[]>`select now()::text as started_at`;
 		if (!started) throw new Error("Could not read the database clock");
 		log(`Checking ${migrationCount} migration(s) in ${migrationsFolder}`);
@@ -139,6 +151,7 @@ async function main() {
 				: `Applied ${applied.length}: ${applied.map((row) => row.name).join(", ")}`,
 		);
 	} finally {
+		lockHeld = false;
 		await sql.end({ timeout: 5 });
 	}
 }
