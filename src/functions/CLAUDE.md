@@ -115,9 +115,12 @@ export const handleMakeUserAdmin = createServerOnlyFn(async ({ data: { userId, r
 });
 
 export const makeUserAdmin = createServerFn({ method: "POST" })
+  .middleware([freshAuthMiddleware])
   .validator(validateMakeAdmin)
   .handler(handleMakeUserAdmin);
 ```
+
+Functions that need a signed-in user use `authMiddleware` (cookie-cached session) or `freshAuthMiddleware` (role read from the DB, for authorization decisions) from [auth-middleware.ts](auth-middleware.ts) and read `context.user`; don't call `requireAuthedUser` in the handler. See the auth section of `.claude/skills/tanstack-start/SKILL.md`.
 
 ### Example 2: Complex Queries with Parallel Execution
 
