@@ -10,7 +10,7 @@ import { createRootRouteWithContext, HeadContent, Outlet, ScriptOnce, Scripts } 
 import { type ComponentType, lazy, type ReactNode, Suspense, useEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
-import { Toaster } from "~/components/ui/sonner";
+import { Toaster } from "~/components/ui/toast";
 import { env } from "~/env";
 import { sessionQueryOptions } from "~/lib/auth/session";
 import { pickPublicRuntimeEnv, serializePublicRuntimeEnv } from "~/lib/env/public-env";
@@ -218,7 +218,7 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 					)`}
 				</ScriptOnce>
 				{children}
-				<Toaster position="bottom-right" />
+				<Toaster />
 				{SHOW_DEVTOOLS && (
 					<Suspense>
 						<TanStackDevtools
