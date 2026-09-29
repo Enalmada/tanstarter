@@ -79,7 +79,7 @@
 
 import { type QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { toast } from "sonner";
+import { toast } from "~/components/ui/toast";
 import { createEntity } from "~/functions/create-entity";
 import { deleteEntity } from "~/functions/delete-entity";
 import { updateEntity } from "~/functions/update-entity";
@@ -138,7 +138,9 @@ const handleToast = (
 	entityName: string,
 	error: Error = new Error("Unknown error"),
 ) => {
-	toast[type](config[type].title, {
+	toast.add({
+		type,
+		title: config[type].title,
 		description: type === "success" ? config[type].description(entityName) : config[type].description(error),
 	});
 };

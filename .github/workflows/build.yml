@@ -56,3 +56,19 @@ jobs:
       # fail the build on a static import; this checks the output too)
       - name: Check client bundle for server code
         run: bun run check-client-leaks
+
+      # Static file cache headers: hashed assets immutable, service worker and manifest revalidated.
+      # The page renders without a database (a failed session lookup counts as signed out).
+      - name: Check cache headers of the build
+        run: |
+          PORT=3100 bun run .output/server/index.mjs > /tmp/server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:3100/ && break; sleep 1; done
+          bash scripts/check-asset-headers.sh http://localhost:3100 || { cat /tmp/server.log; exit 1; }
+        env:
+          NODE_ENV: production
+          APP_ENV: staging
+          # Placeholders only: the server boots for a header check and never connects
+          DATABASE_URL: "postgres://127.0.0.1:1/none"
+          BETTER_AUTH_SECRET: "placeholder-not-a-secret" # betterleaks:allow
+          GOOGLE_CLIENT_ID: placeholder
+          GOOGLE_CLIENT_SECRET: placeholder # betterleaks:allow

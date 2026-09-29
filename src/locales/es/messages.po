@@ -33,6 +33,10 @@ msgstr "Creada con TanStack Start, TanStack Query, TanStack Table y componentes 
 msgid "Continue with Google"
 msgstr "Continuar con Google"
 
+#: src/components/ThemeToggle.tsx
+msgid "Dark"
+msgstr "Oscuro"
+
 #: src/routes/_guest/signin.tsx
 msgid "Don't have an account? Sign up"
 msgstr "¿No tienes una cuenta? Regístrate"
@@ -80,6 +84,10 @@ msgstr "Contraseña no válida"
 #: src/components/LocaleSwitcher.tsx
 msgid "Language"
 msgstr "Idioma"
+
+#: src/components/ThemeToggle.tsx
+msgid "Light"
+msgstr "Claro"
 
 #: src/routes/_guest/signin.tsx
 msgid "Loading..."
@@ -150,9 +158,17 @@ msgstr "Regístrate aquí"
 msgid "Signing in..."
 msgstr "Iniciando sesión..."
 
+#: src/components/ThemeToggle.tsx
+msgid "System"
+msgstr "Sistema"
+
 #: src/routes/index.tsx
 msgid "TanStarter Todo"
 msgstr "TanStarter Tareas"
+
+#: src/components/ThemeToggle.tsx
+msgid "Toggle theme"
+msgstr "Cambiar tema"
 
 #: src/routes/index.tsx
 msgid "Type Safety"

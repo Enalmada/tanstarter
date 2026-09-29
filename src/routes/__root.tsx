@@ -4,13 +4,13 @@
 
 import type { I18n } from "@lingui/core";
 import { useLingui } from "@lingui/react";
-import type { TanStackDevtoolsReactInit } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, HeadContent, Outlet, ScriptOnce, Scripts } from "@tanstack/react-router";
 import { type ComponentType, lazy, type ReactNode, Suspense, useEffect } from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
-import { Toaster } from "~/components/ui/sonner";
+import { ThemeProvider } from "~/components/theme-provider";
+import { Toaster } from "~/components/ui/toast";
 import { env } from "~/env";
 import { sessionQueryOptions } from "~/lib/auth/session";
 import { pickPublicRuntimeEnv, serializePublicRuntimeEnv } from "~/lib/env/public-env";
@@ -51,17 +51,7 @@ const PUBLIC_ENV_SCRIPT = typeof window === "undefined" ? serializePublicRuntime
 const SHOW_DEVTOOLS = import.meta.env.DEV && ENABLE_DEVTOOLS;
 const NoDevtool: ComponentType = () => null;
 
-const TanStackDevtools: ComponentType<TanStackDevtoolsReactInit> = SHOW_DEVTOOLS
-	? lazy(() => import("@tanstack/react-devtools").then((res) => ({ default: res.TanStackDevtools })))
-	: NoDevtool;
-
-const ReactQueryDevtoolsPanel: ComponentType = SHOW_DEVTOOLS
-	? lazy(() => import("@tanstack/react-query-devtools").then((res) => ({ default: res.ReactQueryDevtoolsPanel })))
-	: NoDevtool;
-
-const TanStackRouterDevtoolsPanel: ComponentType = SHOW_DEVTOOLS
-	? lazy(() => import("@tanstack/router-devtools").then((res) => ({ default: res.TanStackRouterDevtoolsPanel })))
-	: NoDevtool;
+const Devtools: ComponentType = SHOW_DEVTOOLS ? lazy(() => import("~/components/Devtools")) : NoDevtool;
 
 const AnalyticsProvider = lazy(() =>
 	import("~/utils/analytics").then((mod) => ({
@@ -90,6 +80,7 @@ export const Route = createRootRouteWithContext<{
 				name: "viewport",
 				content: "width=device-width, initial-scale=1",
 			},
+			{ name: "color-scheme", content: "light dark" },
 			{ title: "TanStarter" },
 			{
 				name: "description",
@@ -211,28 +202,13 @@ function RootDocument({ children }: { readonly children: ReactNode }) {
 			<body>
 				{/* Must precede <Scripts />: env.config.ts reads it when the client entry loads. */}
 				<ScriptOnce>{PUBLIC_ENV_SCRIPT}</ScriptOnce>
-				<ScriptOnce>
-					{`document.documentElement.classList.toggle(
-						'dark',
-						localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
-					)`}
-				</ScriptOnce>
-				{children}
-				<Toaster position="bottom-right" />
+				<ThemeProvider>
+					{children}
+					<Toaster />
+				</ThemeProvider>
 				{SHOW_DEVTOOLS && (
 					<Suspense>
-						<TanStackDevtools
-							plugins={[
-								{
-									name: "TanStack Query",
-									render: <ReactQueryDevtoolsPanel />,
-								},
-								{
-									name: "TanStack Router",
-									render: <TanStackRouterDevtoolsPanel />,
-								},
-							]}
-						/>
+						<Devtools />
 					</Suspense>
 				)}
 				<Scripts />

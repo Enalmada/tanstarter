@@ -33,6 +33,10 @@ msgstr "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui
 msgid "Continue with Google"
 msgstr "Continue with Google"
 
+#: src/components/ThemeToggle.tsx
+msgid "Dark"
+msgstr "Dark"
+
 #: src/routes/_guest/signin.tsx
 msgid "Don't have an account? Sign up"
 msgstr "Don't have an account? Sign up"
@@ -80,6 +84,10 @@ msgstr "Invalid password"
 #: src/components/LocaleSwitcher.tsx
 msgid "Language"
 msgstr "Language"
+
+#: src/components/ThemeToggle.tsx
+msgid "Light"
+msgstr "Light"
 
 #: src/routes/_guest/signin.tsx
 msgid "Loading..."
@@ -150,9 +158,17 @@ msgstr "Sign up here"
 msgid "Signing in..."
 msgstr "Signing in..."
 
+#: src/components/ThemeToggle.tsx
+msgid "System"
+msgstr "System"
+
 #: src/routes/index.tsx
 msgid "TanStarter Todo"
 msgstr "TanStarter Todo"
+
+#: src/components/ThemeToggle.tsx
+msgid "Toggle theme"
+msgstr "Toggle theme"
 
 #: src/routes/index.tsx
 msgid "Type Safety"
