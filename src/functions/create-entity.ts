@@ -10,9 +10,11 @@
 
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { safeParse } from "valibot";
+import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { formatIssues, validateCreateEntity } from "~/functions/base-service";
 import type { EntityType } from "~/lib/entity-types";
 import { BadRequestError } from "~/server/access/http-errors";
+import type { SessionUser } from "~/server/auth/auth";
 
 type CreateEntityInputShape = { subject: EntityType; data: Record<string, unknown> };
 
@@ -26,13 +28,19 @@ function validateCreateEntityInput(input: unknown): CreateEntityInputShape {
 }
 
 export const handleCreateEntity = createServerOnlyFn(
-	async ({ data }: { data: { subject: EntityType; data: Record<string, unknown> } }) => {
+	async ({
+		data,
+		context,
+	}: {
+		data: { subject: EntityType; data: Record<string, unknown> };
+		context: { user: SessionUser };
+	}) => {
 		const db = (await import("~/server/db")).default;
 		const { accessCheck } = await import("~/server/access/check");
 		const { logger } = await import("~/utils/logger");
-		const { getUser, loadEntityConfig } = await import("~/functions/base-service");
+		const { loadEntityConfig } = await import("~/functions/base-service");
 
-		const user = await getUser();
+		const { user } = context;
 		// Metadata only: never log client-supplied values.
 		logger.info("createEntity", { subject: data.subject, fields: Object.keys(data.data ?? {}), userId: user.id });
 
@@ -64,5 +72,6 @@ export const handleCreateEntity = createServerOnlyFn(
 );
 
 export const createEntity = createServerFn({ method: "POST" })
+	.middleware([freshAuthMiddleware])
 	.validator(validateCreateEntityInput)
 	.handler(handleCreateEntity);

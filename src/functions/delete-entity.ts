@@ -11,9 +11,11 @@
 
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { safeParse } from "valibot";
+import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { formatIssues, validateDeleteEntity } from "~/functions/base-service";
 import type { EntityType } from "~/lib/entity-types";
 import { BadRequestError } from "~/server/access/http-errors";
+import type { SessionUser } from "~/server/auth/auth";
 
 function validateDeleteEntityInput(input: unknown) {
 	const result = safeParse(validateDeleteEntity, input);
@@ -24,14 +26,20 @@ function validateDeleteEntityInput(input: unknown) {
 }
 
 export const handleDeleteEntity = createServerOnlyFn(
-	async ({ data: { subject, id } }: { data: { subject: EntityType; id: string } }) => {
+	async ({
+		data: { subject, id },
+		context,
+	}: {
+		data: { subject: EntityType; id: string };
+		context: { user: SessionUser };
+	}) => {
 		const { eq } = await import("drizzle-orm");
 		const db = (await import("~/server/db")).default;
 		const { accessCheck } = await import("~/server/access/check");
 		const { logger } = await import("~/utils/logger");
-		const { getUser, loadEntityConfig } = await import("~/functions/base-service");
+		const { loadEntityConfig } = await import("~/functions/base-service");
 
-		const user = await getUser();
+		const { user } = context;
 		logger.info("deleteEntity", { subject, id, userId: user.id });
 
 		const config = await loadEntityConfig();
@@ -60,5 +68,6 @@ export const handleDeleteEntity = createServerOnlyFn(
 );
 
 export const deleteEntity = createServerFn({ method: "POST" })
+	.middleware([freshAuthMiddleware])
 	.validator(validateDeleteEntityInput)
 	.handler(handleDeleteEntity);

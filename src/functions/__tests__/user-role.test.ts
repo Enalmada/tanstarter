@@ -3,10 +3,7 @@ import { handleMakeUserAdmin } from "~/functions/user-role";
 import { UserRole } from "~/lib/enums/user-role";
 import { NotAuthorizedError } from "~/server/access/http-errors";
 
-const session = vi.hoisted(() => ({
-	requireAuthedUser: vi.fn(),
-	getOptionalSessionUser: vi.fn(),
-}));
+const session = vi.hoisted(() => ({ getOptionalSessionUser: vi.fn() }));
 const userDb = vi.hoisted(() => ({
 	getUserById: vi.fn(),
 	updateUserRole: vi.fn(),
@@ -20,8 +17,11 @@ vi.mock("~/server/access/role-self-service", () => selfService);
 const member = { id: "usr_member", role: UserRole.MEMBER };
 const admin = { id: "usr_admin", role: UserRole.ADMIN };
 
+// The caller freshAuthMiddleware would put on the context
+let caller: typeof member | typeof admin = member;
+
 function promote(userId: string) {
-	return handleMakeUserAdmin({ data: { userId, role: UserRole.ADMIN } });
+	return handleMakeUserAdmin({ data: { userId, role: UserRole.ADMIN }, context: { user: caller as never } });
 }
 
 describe("handleMakeUserAdmin authorization", () => {
@@ -33,21 +33,21 @@ describe("handleMakeUserAdmin authorization", () => {
 	});
 
 	it("lets an admin change another user's role", async () => {
-		session.requireAuthedUser.mockResolvedValue(admin);
+		caller = admin;
 		selfService.isRoleSelfServiceEnabled.mockReturnValue(false);
 
 		await expect(promote("usr_other")).resolves.toEqual({ id: "usr_other", role: UserRole.ADMIN });
 	});
 
 	it("lets a member promote themselves when self-service is enabled (local dev / DEMO_MODE)", async () => {
-		session.requireAuthedUser.mockResolvedValue(member);
+		caller = member;
 		selfService.isRoleSelfServiceEnabled.mockReturnValue(true);
 
 		await expect(promote(member.id)).resolves.toEqual({ id: member.id, role: UserRole.ADMIN });
 	});
 
 	it("rejects a member promoting themselves when self-service is disabled", async () => {
-		session.requireAuthedUser.mockResolvedValue(member);
+		caller = member;
 		selfService.isRoleSelfServiceEnabled.mockReturnValue(false);
 
 		await expect(promote(member.id)).rejects.toBeInstanceOf(NotAuthorizedError);
@@ -55,7 +55,7 @@ describe("handleMakeUserAdmin authorization", () => {
 	});
 
 	it("rejects a member changing another user's role even with self-service enabled", async () => {
-		session.requireAuthedUser.mockResolvedValue(member);
+		caller = member;
 		selfService.isRoleSelfServiceEnabled.mockReturnValue(true);
 
 		await expect(promote("usr_other")).rejects.toBeInstanceOf(NotAuthorizedError);

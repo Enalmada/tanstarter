@@ -6,8 +6,10 @@
 
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { safeParse } from "valibot";
+import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { createWhereSchema, type FindEntityPayload, formatIssues, validateFindMany } from "~/functions/base-service";
 import { BadRequestError } from "~/server/access/http-errors";
+import type { SessionUser } from "~/server/auth/auth";
 
 function validateFindManyInput(input: unknown): FindEntityPayload {
 	const result = safeParse(validateFindMany, input);
@@ -24,35 +26,40 @@ function validateFindManyInput(input: unknown): FindEntityPayload {
 	return payload;
 }
 
-export const handleFindMany = createServerOnlyFn(async ({ data }: { data: FindEntityPayload }) => {
-	const { getColumns } = await import("drizzle-orm");
-	const { accessCheck } = await import("~/server/access/check");
-	const { logger } = await import("~/utils/logger");
-	const { buildWhereClause } = await import("~/server/db/DrizzleOrm");
-	const { getUser, loadEntityConfig } = await import("~/functions/base-service");
-	const { assertSafeWhere, assertSafeWith, filterReadableRows } = await import("~/server/access/read-filter");
+export const handleFindMany = createServerOnlyFn(
+	async ({ data, context }: { data: FindEntityPayload; context: { user: SessionUser } }) => {
+		const { getColumns } = await import("drizzle-orm");
+		const { accessCheck } = await import("~/server/access/check");
+		const { logger } = await import("~/utils/logger");
+		const { buildWhereClause } = await import("~/server/db/DrizzleOrm");
+		const { loadEntityConfig } = await import("~/functions/base-service");
+		const { assertSafeWhere, assertSafeWith, filterReadableRows } = await import("~/server/access/read-filter");
 
-	const user = await getUser();
-	// Metadata only: filter values (ids, emails) stay out of logs.
-	logger.info("findMany", {
-		subject: data.subject,
-		where: Object.keys(data.where ?? {}),
-		with: Object.keys(data.with ?? {}),
-		userId: user.id,
-	});
+		const { user } = context;
+		// Metadata only: filter values (ids, emails) stay out of logs.
+		logger.info("findMany", {
+			subject: data.subject,
+			where: Object.keys(data.where ?? {}),
+			with: Object.keys(data.with ?? {}),
+			userId: user.id,
+		});
 
-	const config = await loadEntityConfig();
-	const { table, query } = config[data.subject];
-	assertSafeWhere(data.where, Object.keys(getColumns(table)));
-	assertSafeWith(data.subject, data.with);
-	const whereList = buildWhereClause(table, data.where);
+		const config = await loadEntityConfig();
+		const { table, query } = config[data.subject];
+		assertSafeWhere(data.where, Object.keys(getColumns(table)));
+		assertSafeWith(data.subject, data.with);
+		const whereList = buildWhereClause(table, data.where);
 
-	// Plain-equality `where` (enforced above) is what the CASL `list` rule
-	// can reason about; each returned row is still re-checked with `read`.
-	accessCheck(user, "list", data.subject, data.where);
+		// Plain-equality `where` (enforced above) is what the CASL `list` rule
+		// can reason about; each returned row is still re-checked with `read`.
+		accessCheck(user, "list", data.subject, data.where);
 
-	const rows = await query.findMany({ where: whereList, with: data.with });
-	return filterReadableRows(user, data.subject, rows, data.with);
-});
+		const rows = await query.findMany({ where: whereList, with: data.with });
+		return filterReadableRows(user, data.subject, rows, data.with);
+	},
+);
 
-export const findMany = createServerFn({ method: "GET" }).validator(validateFindManyInput).handler(handleFindMany);
+export const findMany = createServerFn({ method: "GET" })
+	.middleware([freshAuthMiddleware])
+	.validator(validateFindManyInput)
+	.handler(handleFindMany);

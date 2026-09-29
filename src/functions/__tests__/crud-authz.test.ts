@@ -12,6 +12,8 @@ import { UserRole } from "~/lib/enums/user-role";
 import { BadRequestError, ConflictError, NotAuthorizedError, NotFoundError } from "~/server/access/http-errors";
 
 const member = { id: "usr_member", role: UserRole.MEMBER };
+// What freshAuthMiddleware would put on the context (the fake session is not consulted)
+const context = { user: member } as never;
 const ownTask = { id: "tsk_own", userId: member.id, title: "mine", version: 1 };
 const otherTask = { id: "tsk_other", userId: "usr_other", title: "theirs", version: 1 };
 
@@ -78,7 +80,6 @@ vi.mock("~/functions/base-service", async (importOriginal) => {
 	const passthrough = { "~standard": { version: 1, vendor: "test", validate: (value: unknown) => ({ value }) } };
 	return {
 		...actual,
-		getUser: async () => member,
 		loadEntityConfig: async () => ({
 			Task: {
 				table: TaskTable,
@@ -116,27 +117,29 @@ beforeEach(() => {
 describe("findFirst", () => {
 	it("treats another user's task exactly like a missing one", async () => {
 		state.rows = [otherTask];
-		await expect(handleFindFirst({ data: { subject: "Task", where: { id: otherTask.id } } })).rejects.toBeInstanceOf(
-			NotFoundError,
-		);
+		await expect(
+			handleFindFirst({ context, data: { subject: "Task", where: { id: otherTask.id } } }),
+		).rejects.toBeInstanceOf(NotFoundError);
 
 		state.rows = [];
-		await expect(handleFindFirst({ data: { subject: "Task", where: { id: "nope" } } })).rejects.toBeInstanceOf(
+		await expect(handleFindFirst({ context, data: { subject: "Task", where: { id: "nope" } } })).rejects.toBeInstanceOf(
 			NotFoundError,
 		);
 	});
 
 	it("returns the caller's own task", async () => {
 		state.rows = [ownTask];
-		await expect(handleFindFirst({ data: { subject: "Task", where: { id: ownTask.id } } })).resolves.toEqual(ownTask);
+		await expect(handleFindFirst({ context, data: { subject: "Task", where: { id: ownTask.id } } })).resolves.toEqual(
+			ownTask,
+		);
 	});
 
 	it("rejects operator filters and unknown relations before querying", async () => {
 		await expect(
-			handleFindFirst({ data: { subject: "Task", where: { userId: { ne: member.id } } } }),
+			handleFindFirst({ context, data: { subject: "Task", where: { userId: { ne: member.id } } } }),
 		).rejects.toBeInstanceOf(BadRequestError);
 		await expect(
-			handleFindFirst({ data: { subject: "Task", where: { id: ownTask.id }, with: { accounts: true } } }),
+			handleFindFirst({ context, data: { subject: "Task", where: { id: ownTask.id }, with: { accounts: true } } }),
 		).rejects.toBeInstanceOf(BadRequestError);
 	});
 });
@@ -144,20 +147,22 @@ describe("findFirst", () => {
 describe("findMany", () => {
 	it("drops rows the caller cannot read", async () => {
 		state.rows = [ownTask, otherTask];
-		await expect(handleFindMany({ data: { subject: "Task", where: { userId: member.id } } })).resolves.toEqual([
-			ownTask,
-		]);
+		await expect(handleFindMany({ context, data: { subject: "Task", where: { userId: member.id } } })).resolves.toEqual(
+			[ownTask],
+		);
 	});
 
 	it("forbids listing without the caller's own userId filter", async () => {
-		await expect(handleFindMany({ data: { subject: "Task", where: {} } })).rejects.toBeInstanceOf(NotAuthorizedError);
+		await expect(handleFindMany({ context, data: { subject: "Task", where: {} } })).rejects.toBeInstanceOf(
+			NotAuthorizedError,
+		);
 	});
 });
 
 describe("deleteEntity", () => {
 	it("reports another user's task as not found and does not delete it", async () => {
 		state.selected = [otherTask];
-		await expect(handleDeleteEntity({ data: { subject: "Task", id: otherTask.id } })).rejects.toBeInstanceOf(
+		await expect(handleDeleteEntity({ context, data: { subject: "Task", id: otherTask.id } })).rejects.toBeInstanceOf(
 			NotFoundError,
 		);
 		expect(state.deleted).not.toHaveBeenCalled();
@@ -180,14 +185,14 @@ describe("write predicate", () => {
 describe("handlers write through the guard", () => {
 	it("update passes the authorized row to the write predicate", async () => {
 		state.selected = [ownTask];
-		await handleUpdateEntity({ data: { subject: "Task", id: ownTask.id, data: { version: 1, title: "x" } } });
+		await handleUpdateEntity({ context, data: { subject: "Task", id: ownTask.id, data: { version: 1, title: "x" } } });
 		expect(writeGuard.spy).toHaveBeenCalledTimes(1);
 		expect(writeGuard.spy.mock.calls[0]?.[1]).toBe(ownTask);
 	});
 
 	it("delete passes the authorized row to the write predicate", async () => {
 		state.selected = [ownTask];
-		await handleDeleteEntity({ data: { subject: "Task", id: ownTask.id } });
+		await handleDeleteEntity({ context, data: { subject: "Task", id: ownTask.id } });
 		expect(writeGuard.spy).toHaveBeenCalledTimes(1);
 		expect(writeGuard.spy.mock.calls[0]?.[1]).toBe(ownTask);
 	});
@@ -197,7 +202,7 @@ describe("deleteEntity race", () => {
 	it("reports not found when the row changed between check and delete", async () => {
 		state.selected = [ownTask];
 		state.writeReturnsNothing = true;
-		await expect(handleDeleteEntity({ data: { subject: "Task", id: ownTask.id } })).rejects.toBeInstanceOf(
+		await expect(handleDeleteEntity({ context, data: { subject: "Task", id: ownTask.id } })).rejects.toBeInstanceOf(
 			NotFoundError,
 		);
 	});
@@ -208,26 +213,27 @@ describe("updateEntity", () => {
 		state.selected = [ownTask];
 		state.writeReturnsNothing = true;
 		await expect(
-			handleUpdateEntity({ data: { subject: "Task", id: ownTask.id, data: { version: 1, title: "x" } } }),
+			handleUpdateEntity({ context, data: { subject: "Task", id: ownTask.id, data: { version: 1, title: "x" } } }),
 		).rejects.toBeInstanceOf(ConflictError);
 	});
 
 	it("reports another user's task as not found before any version check", async () => {
 		state.selected = [otherTask];
-		const stale = handleUpdateEntity({ data: { subject: "Task", id: otherTask.id, data: { version: 99 } } });
+		const stale = handleUpdateEntity({ context, data: { subject: "Task", id: otherTask.id, data: { version: 99 } } });
 		await expect(stale).rejects.toBeInstanceOf(NotFoundError);
 		expect(state.updated).not.toHaveBeenCalled();
 	});
 
 	it("returns a conflict for the caller's own stale task", async () => {
 		state.selected = [ownTask];
-		const stale = handleUpdateEntity({ data: { subject: "Task", id: ownTask.id, data: { version: 99 } } });
+		const stale = handleUpdateEntity({ context, data: { subject: "Task", id: ownTask.id, data: { version: 99 } } });
 		await expect(stale).rejects.toBeInstanceOf(ConflictError);
 	});
 
 	it("forbids moving the caller's task to another user", async () => {
 		state.selected = [ownTask];
 		const move = handleUpdateEntity({
+			context,
 			data: { subject: "Task", id: ownTask.id, data: { version: 1, userId: "usr_other" } },
 		});
 		await expect(move).rejects.toBeInstanceOf(NotAuthorizedError);
@@ -237,6 +243,7 @@ describe("updateEntity", () => {
 	it("never writes server-managed fields from the client patch", async () => {
 		state.selected = [ownTask];
 		await handleUpdateEntity({
+			context,
 			data: {
 				subject: "Task",
 				id: ownTask.id,

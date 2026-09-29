@@ -5,7 +5,8 @@
  * - the entity registry (`loadEntityConfig`) mapping `EntityType` strings to
  *   their Drizzle table, query builder, and drizzle-valibot insert/update
  *   schemas
- * - the authed-actor helper (`getUser`)
+ * - nothing about the caller: the authed user arrives on `context.user` from
+ *   `freshAuthMiddleware` (`./auth-middleware.ts`)
  * - the input validators shared across the per-handler files
  * - the validation-error formatter (`formatIssues`)
  *
@@ -23,7 +24,7 @@
  * client compile pass. After the split, `queries.ts` / `mutations.ts`
  * import the slim per-handler files. Those files still import the
  * validators from here statically, so this module IS on the client graph:
- * `getUser` / `loadEntityConfig` are wrapped in `createServerOnlyFn`, whose
+ * `loadEntityConfig` is wrapped in `createServerOnlyFn`, whose
  * body (and its dynamic imports of `~/server/*`) the Start compiler strips
  * from the client build.
  *
@@ -164,14 +165,4 @@ export const loadEntityConfig = createServerOnlyFn(async (): Promise<Record<Enti
 			schemas: { select: userSelectSchema, insert: userInsertSchema, update: userUpdateSchema },
 		},
 	};
-});
-
-export const getUser = createServerOnlyFn(async () => {
-	// All session-loading semantics (Playwright auth shortcut, getRequest
-	// try/catch, asResponse cookie forwarding, fresh-from-DB query) live in
-	// `~/server/auth/session`. This thin wrapper exists so per-handler files
-	// can `await import("~/functions/base-service")` for both the entity
-	// registry AND the authed actor in one round trip.
-	const { requireAuthedUser } = await import("~/server/auth/session");
-	return requireAuthedUser({ freshFromDb: true });
 });

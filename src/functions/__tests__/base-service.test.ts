@@ -51,6 +51,7 @@
 
 import { getRequest, setResponseStatus } from "@tanstack/react-start/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { deleteEntity } from "~/functions/delete-entity";
 import { validateId } from "~/functions/helpers";
 import { accessCheck } from "~/server/access/check";
@@ -68,6 +69,13 @@ import {
 } from "~/test/setup";
 
 const mockContext = createMockContext();
+
+// src/test/setup.ts mocks createMiddleware(...).server(fn) to return fn itself, so this
+// runs the real session lookup the way the CRUD server functions do before their handler
+const runFreshAuth = () =>
+	(freshAuthMiddleware as unknown as (opts: { next: () => Promise<unknown> }) => Promise<unknown>)({
+		next: async () => "handler ran",
+	});
 
 const mockDeleteTaskInput = {
 	data: {
@@ -293,7 +301,7 @@ describe("base-service", () => {
 				makeMockSessionResponse({ session: null, user: null }) as any,
 			);
 
-			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow("Unauthorized");
+			await expect(runFreshAuth()).rejects.toThrow("Unauthorized");
 			expect(setResponseStatus).toHaveBeenCalledWith(401);
 		});
 
@@ -305,7 +313,7 @@ describe("base-service", () => {
 		it("should throw Unauthorized when web request is not available", async () => {
 			vi.mocked(getRequest).mockReturnValueOnce(undefined);
 
-			await expect(deleteEntity(mockDeleteTaskInput)).rejects.toThrow("Unauthorized");
+			await expect(runFreshAuth()).rejects.toThrow("Unauthorized");
 			expect(setResponseStatus).toHaveBeenCalledWith(401);
 		});
 	});
