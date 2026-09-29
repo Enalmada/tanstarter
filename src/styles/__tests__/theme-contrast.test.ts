@@ -147,6 +147,16 @@ describe("destructive token contrast (WCAG AA)", () => {
 		expect(offenders, `half-opacity invalid border fails 3:1: ${offenders.join(", ")}`).toEqual([]);
 	});
 
+	it("keeps the solid invalid-field border on the form controls", () => {
+		// A shadcn re-pull can drop the class entirely; the ban above would then pass vacuously.
+		for (const file of ["input", "textarea", "select", "checkbox", "radio-group"]) {
+			const source = readFileSync(path.resolve(here, `../../components/ui/${file}.tsx`), "utf8");
+			expect(source, `${file}.tsx lost aria-invalid:border-destructive`).toMatch(
+				/aria-invalid:border-destructive(?![/-])/,
+			);
+		}
+	});
+
 	it("does not use --destructive as text ink in components", () => {
 		const offenders = findMatches(path.resolve(here, "../.."), /text-destructive(?!-strong)|text-red-[45]00/);
 		expect(
