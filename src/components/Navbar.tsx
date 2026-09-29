@@ -6,6 +6,7 @@
 
 import { Link } from "@tanstack/react-router";
 import { useId } from "react";
+import { LocaleSwitcher } from "~/components/LocaleSwitcher";
 import ThemeToggle from "~/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { buttonVariants } from "~/components/ui/button";
@@ -51,6 +52,7 @@ export function Navbar({ user }: NavbarProps) {
 			</Link>
 
 			<div className="flex items-center gap-4">
+				<LocaleSwitcher />
 				<ThemeToggle />
 
 				{user ? (

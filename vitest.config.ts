@@ -70,6 +70,8 @@ export default defineConfig({
 				optimizeDeps: {
 					include: [
 						"@storybook/react",
+						"@lingui/core",
+						"@lingui/react",
 						"react/jsx-dev-runtime",
 						"@tanstack/react-query",
 						"react",
