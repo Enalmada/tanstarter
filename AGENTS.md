@@ -55,7 +55,7 @@ Also `bun run check-tss-7` and, after `bun run build`, `bun run check-client-lea
 
 - [Data flow](.agents/data-flow.md): loaders, queries, mutations, forms, server functions
 - [Auth](.agents/auth.md): route guards, session helpers, middleware, roles
-- [Database](.agents/database.md): Drizzle conventions, migrations, the better-auth schema
+- [Database](.agents/database.md): Drizzle conventions, migrations and how deploys apply them, the better-auth schema
 - [Testing](.agents/testing.md): what to test where, commands, e2e users
 - [TypeScript](.agents/typescript.md): casting rules, inference
 - [Observability](.agents/observability.md): logging and error reporting
