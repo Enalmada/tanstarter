@@ -10,6 +10,18 @@ export const createServerFn = (_options?: any) => {
 		handler: (fn: any) => fn,
 		// biome-ignore lint/suspicious/noExplicitAny: Mock validator needs flexible typing for compatibility
 		validator: (_fn: any) => chainable,
+		// biome-ignore lint/suspicious/noExplicitAny: Mock middleware list needs flexible typing for compatibility
+		middleware: (_list: any) => chainable,
+	};
+	return chainable;
+};
+
+// Middleware never runs in Storybook; server functions only need it to exist
+// (~/functions/auth-middleware is imported by client-reachable modules)
+export const createMiddleware = (_options?: unknown) => {
+	const chainable = {
+		// biome-ignore lint/suspicious/noExplicitAny: Mock server callback needs flexible typing for compatibility
+		server: (_fn: any) => chainable,
 	};
 	return chainable;
 };
@@ -62,6 +74,7 @@ export const createStartHandler = (_options?: any) => {
 // Mock other exports that might be imported
 export default {
 	createServerFn,
+	createMiddleware,
 	createServerOnlyFn,
 	StartClient,
 	useServerFn,
