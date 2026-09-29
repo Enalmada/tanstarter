@@ -14,18 +14,21 @@ export function LocaleSwitcher() {
 	const router = useRouter();
 	const saveLocale = useServerFn(updateLocale);
 
-	// Only the latest selection wins when the user changes their mind mid-load
+	// Only the latest selection wins when the user changes their mind mid-load: stale catalog
+	// loads do not activate, and saves run one at a time so an older one cannot land last.
 	const latest = useRef(0);
+	const saves = useRef<Promise<unknown>>(Promise.resolve());
 
 	async function onChange(value: string) {
 		if (!isLocale(value)) return;
 		const request = ++latest.current;
-		const persisted = saveLocale({ data: value });
-		if (value !== i18n.locale) {
-			await dynamicActivate(i18n, value, () => request === latest.current);
-		}
-		await persisted;
-		if (request === latest.current) await router.invalidate();
+		const isLatest = () => request === latest.current;
+
+		const save = saves.current.then(() => (isLatest() ? saveLocale({ data: value }) : undefined));
+		saves.current = save.catch(() => undefined);
+
+		await Promise.all([dynamicActivate(i18n, value, isLatest), save]);
+		if (isLatest()) await router.invalidate();
 	}
 
 	return (

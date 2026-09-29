@@ -35,11 +35,6 @@ describe("i18nMiddleware", () => {
 		expect((await result).response.headers.get("set-cookie")).toBeNull();
 	});
 
-	it("remembers an explicit ?locale= choice", async () => {
-		const { result } = run({}, "https://app.test/?locale=es");
-		expect((await result).response.headers.get("set-cookie")).toMatch(/^locale=es;/);
-	});
-
 	it("varies HTML on the inputs that choose the locale", async () => {
 		const next = vi.fn(async () => ({
 			response: new Response("<html>", { headers: { "content-type": "text/html; charset=utf-8" } }),
@@ -50,8 +45,30 @@ describe("i18nMiddleware", () => {
 	});
 
 	it("keeps a response that sets the cookie out of shared caches", async () => {
-		const { result } = run({}, "https://app.test/?locale=es");
-		expect((await result).response.headers.get("cache-control")).toBe("private, no-store");
+		const next = vi.fn(async () => ({
+			response: new Response("<html>", { headers: { "content-type": "text/html" } }),
+		}));
+		const { response } = await handler({
+			request: new Request("https://app.test/?locale=es"),
+			next,
+			handlerType: "router",
+		});
+		expect(response.headers.get("cache-control")).toBe("private, no-store");
+		expect(response.headers.get("set-cookie")).toMatch(/^locale=es;/);
+	});
+
+	it("does not touch non-document responses", async () => {
+		const next = vi.fn(async () => ({
+			response: new Response("{}", { headers: { "content-type": "application/json", "cache-control": "max-age=60" } }),
+		}));
+		const { response } = await handler({
+			request: new Request("https://app.test/health?locale=es"),
+			next,
+			handlerType: "router",
+		});
+		expect(response.headers.get("set-cookie")).toBeNull();
+		expect(response.headers.get("vary")).toBeNull();
+		expect(response.headers.get("cache-control")).toBe("max-age=60");
 	});
 
 	it("leaves server functions alone", async () => {

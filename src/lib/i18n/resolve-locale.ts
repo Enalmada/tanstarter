@@ -50,7 +50,7 @@ function fromAcceptLanguage(header: string | null): Locale | undefined {
 		.split(",")
 		.map((entry) => {
 			const [tag = "", ...params] = entry.trim().split(";");
-			const q = params.map((param) => param.trim()).find((param) => param.startsWith("q="));
+			const q = params.map((param) => param.trim()).find((param) => /^q=/i.test(param));
 			const raw = q?.slice(2).trim();
 			// An invalid weight drops the entry rather than guessing
 			const weight = raw === undefined ? 1 : QVALUE.test(raw) ? Number.parseFloat(raw) : 0;

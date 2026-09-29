@@ -53,6 +53,7 @@ describe("resolveLocale", () => {
 		expect(resolve({ acceptLanguage: "es;q=2,en;q=0.5" }).locale).toBe("en");
 		expect(resolve({ acceptLanguage: "es;q=0.5garbage,en;q=0.1" }).locale).toBe("en");
 		expect(resolve({ acceptLanguage: "es;q=0.5,en;q=0.1" }).locale).toBe("es");
+		expect(resolve({ acceptLanguage: "es;Q=0,en;q=0.8" }).locale).toBe("en");
 	});
 });
 
