@@ -1,0 +1,95 @@
+name: Semgrep
+
+# Static analysis with Semgrep Community Edition. Adapted from the setup in a
+# production TanStack/Nest monorepo.
+#
+# A pull request scans only the findings its own changes add (--baseline-commit),
+# so it fails only on what that PR introduces. The weekly and manual runs scan
+# everything. Nothing is sent to Semgrep (no login, metrics off). The rulesets
+# are fetched at run time, so only the engine version is pinned.
+#
+# A reviewed false positive gets an inline `// nosemgrep: <rule id> (<reason>)`.
+# Code that is not ours goes in .semgrepignore.
+
+on:
+  pull_request:
+  schedule:
+    - cron: '41 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  semgrep:
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # The pull request scan diffs against the base commit.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.13'
+
+      - name: Install Semgrep
+        run: python -m pip install semgrep==1.181.0
+
+      - name: Scan
+        env:
+          SEMGREP_SEND_METRICS: 'off'
+          SEMGREP_ENABLE_VERSION_CHECK: '0'
+          EVENT: ${{ github.event_name }}
+        run: |
+          # The checkout of a pull request is GitHub's merge commit, so its first
+          # parent is the base branch as it is now (event.pull_request.base.sha can lag).
+          diff_args=()
+          if [ "$EVENT" = pull_request ]; then
+            diff_args=(--baseline-commit "$(git rev-parse HEAD^1)")
+          fi
+          semgrep scan \
+            --config p/default \
+            --config p/typescript \
+            --config p/owasp-top-ten \
+            --metrics off \
+            --error \
+            --json --output semgrep.json \
+            "${diff_args[@]}" \
+            src scripts Dockerfile fly.toml
+
+      - name: Summarize
+        if: always()
+        run: |
+          {
+            echo '## Semgrep'
+            if [ -f semgrep.json ]; then
+              python - <<'PY'
+          import collections, json
+          results = json.load(open("semgrep.json")).get("results", [])
+          counts = collections.Counter(r["extra"]["severity"] for r in results)
+          print(f"{len(results)} findings: " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
+          print()
+          print("| Severity | Rule | Location |")
+          print("|---|---|---|")
+          for r in sorted(results, key=lambda r: r["extra"]["severity"])[:50]:
+              print(f"| {r['extra']['severity']} | `{r['check_id']}` | `{r['path']}:{r['start']['line']}` |")
+          PY
+            else
+              echo 'No report was written. The scan did not finish.'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: semgrep-report
+          path: semgrep.json
+          if-no-files-found: ignore
+          retention-days: 90

@@ -1,0 +1,14 @@
+# Changes to CI, deploys, auth, the Dockerfile and dependencies need the maintainer.
+# GitHub only enforces this once the branch ruleset on main has "Require review
+# from Code Owners" turned on.
+/.github/ @Enalmada
+/Dockerfile @Enalmada
+/fly.toml @Enalmada
+/SECURITY.md @Enalmada
+/bunfig.toml @Enalmada
+/package.json @Enalmada
+/bun.lock @Enalmada
+/src/server/auth/ @Enalmada
+/src/server/access/ @Enalmada
+/src/start.ts @Enalmada
+/src/config/cspRules.ts @Enalmada
