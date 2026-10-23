@@ -17,6 +17,9 @@ import { getSessionRequest } from "./request";
 // `detail` is for a short fixed vocabulary (a role name), never client-supplied text.
 export type MutationTarget = { subject?: string; id?: string; detail?: string };
 
+// Ids come from the client; keep a malformed one from bloating the log line.
+const MAX_ID_LENGTH = 64;
+
 type MutationWriter = (message: string, data: Record<string, unknown>) => void;
 
 async function clientIp(): Promise<string | null> {
@@ -32,15 +35,21 @@ export async function auditMutation<T>(
 	user: { id: string },
 	run: () => Promise<T>,
 ): Promise<T> {
-	const line = async (outcome: "success" | "failure", status?: number) =>
-		write("audit.mutation", {
-			action,
-			outcome,
-			...(status ? { status } : {}),
-			...target,
-			userId: user.id,
-			ip: await clientIp(),
-		});
+	// A logging problem must neither fail a change that already happened nor
+	// replace the error that made it fail.
+	const line = async (outcome: "success" | "failure", status?: number) => {
+		try {
+			write("audit.mutation", {
+				action,
+				outcome,
+				...(status ? { status } : {}),
+				...target,
+				...(target.id ? { id: target.id.slice(0, MAX_ID_LENGTH) } : {}),
+				userId: user.id,
+				ip: await clientIp(),
+			});
+		} catch {}
+	};
 
 	try {
 		const result = await run();

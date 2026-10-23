@@ -31,7 +31,6 @@ export const handleMakeUserAdmin = createServerOnlyFn(
 	async ({ data, context }: { data: { userId: string; role: UserRoleLiteral }; context: { user: SessionUser } }) => {
 		const { userId, role } = data;
 
-		const { logger } = await import("~/utils/logger");
 		const { getUserById, updateUserRole } = await import("./user.db");
 		const { NotAuthorizedError, NotFoundError } = await import("~/server/access/http-errors");
 		const { getOptionalSessionUser } = await import("~/server/auth/session");
@@ -40,7 +39,6 @@ export const handleMakeUserAdmin = createServerOnlyFn(
 		// freshAuthMiddleware already rejected anonymous callers (401) and read the
 		// role from the DB rather than the cookie cache.
 		const currentUser = context.user;
-		logger.info("makeUserAdmin", { userId, role, currentUserId: currentUser.id });
 
 		// Admins may change anyone's role. Everyone else may only flip their OWN
 		// role, and only where self-service is enabled (local dev or DEMO_MODE) —

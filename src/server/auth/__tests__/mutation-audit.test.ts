@@ -75,6 +75,30 @@ describe("auditMutation", () => {
 		expect(logs[0]?.data).toMatchObject({ outcome: "failure", status: 500 });
 	});
 
+	it("never lets a logging failure change the outcome of the mutation", async () => {
+		const failing = () => {
+			throw new Error("log sink down");
+		};
+
+		await expect(
+			auditMutation(failing, "createEntity", { subject: "task" }, user, async () => "created"),
+		).resolves.toBe("created");
+
+		const refusal = new NotAuthorizedError("nope");
+		await expect(
+			auditMutation(failing, "createEntity", { subject: "task" }, user, async () => {
+				throw refusal;
+			}),
+		).rejects.toBe(refusal);
+	});
+
+	it("truncates an oversized id", async () => {
+		const { logs, write } = setup();
+		await auditMutation(write, "deleteEntity", { subject: "task", id: "x".repeat(500) }, user, async () => 1);
+
+		expect((logs[0]?.data.id as string).length).toBe(64);
+	});
+
 	it("logs a null IP outside a request", async () => {
 		request.current = null;
 		const { logs, write } = setup();
