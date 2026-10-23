@@ -108,6 +108,10 @@ function SignupForm() {
 				if (result && typeof result === "object" && "error" in result && result.error) {
 					// Better Auth returns errors in result.error, not as thrown exceptions
 					const error = result.error as { message?: string; code?: string };
+					// The server turns email sign-up off when it cannot send the verification link.
+					if (error.code === "EMAIL_PASSWORD_SIGN_UP_DISABLED") {
+						throw new Error("Email sign-up isn't available right now. Please continue with Google.");
+					}
 					throw new Error(error.message || error.code || "Sign up failed");
 				}
 
@@ -154,7 +158,7 @@ function SignupForm() {
 				<h2 className="text-lg font-semibold">Check your email</h2>
 				<p className="text-sm text-muted-foreground">
 					If <span className="font-medium text-foreground">{confirmationSentTo}</span> can be used for a new account, we
-					sent it a confirmation link. Open it to finish creating your account. The link works for{" "}
+					sent it a confirmation link. Open it to confirm your address, then sign in. The link works for{" "}
 					{VERIFICATION_LINK_MINUTES} minutes.
 				</p>
 				<Link

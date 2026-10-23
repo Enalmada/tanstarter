@@ -44,7 +44,8 @@ export function createAuthAuditHook(write: (message: string, data: Record<string
 			return;
 		}
 
-		const failure = failureOf(ctx.context.returned);
+		// A new session means the request succeeded, whatever `?error=` the redirect target carries.
+		const failure = ctx.context.newSession ? null : failureOf(ctx.context.returned);
 		const userId = ctx.context.newSession?.user.id ?? ctx.context.session?.user.id;
 		const ip = ctx.request ? getIP(ctx.request, ctx.context.options) : null;
 

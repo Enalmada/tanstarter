@@ -3,7 +3,7 @@ export const VERIFICATION_LINK_MINUTES = 60;
 
 /**
  * `callbackURL` for sign-up and sign-in requests, which better-auth bakes into the emailed link. The link
- * lands on the sign-in page, which sends a verified (now signed-in) visitor on to `redirectTarget` and
+ * lands on the sign-in page, which sends a signed-in visitor on to `redirectTarget` (the link verifies the address but does not sign anyone in) and
  * explains an expired or invalid link via `?error=`. Pointing it straight at the app would send a visitor
  * with a bad link through the auth guard, which drops the error.
  */

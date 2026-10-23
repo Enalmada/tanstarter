@@ -9,8 +9,11 @@ const APP_NAME = "TanStarter";
 /**
  * better-auth's `sendVerificationEmail`. Not awaited: better-auth advises
  * against it, because the time a send takes would tell a caller whether the
- * address has an account. Failures are logged instead. Without a provider
- * (local dev) the link is printed so a developer can follow it.
+ * address has an account (the extra database writes for a new address still
+ * differ). A failed send is logged and the person asks for a new link by
+ * signing in. Without a provider (local dev) the link is printed so a
+ * developer can follow it; in production auth turns email sign-up off when no
+ * provider is configured (see `emailDelivery`).
  */
 export function sendVerificationEmail({ user, url }: { user: { email: string; name?: string | null }; url: string }) {
 	void (async () => {
