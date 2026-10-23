@@ -8,6 +8,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { safeRedirect } from "~/lib/auth/guards";
 import { MIN_PASSWORD_LENGTH } from "~/lib/auth/password-policy";
+import { VERIFICATION_LINK_MINUTES, verificationCallback } from "~/lib/auth/verification-link";
 import authClient from "~/utils/auth-client";
 
 function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -100,7 +101,7 @@ function SignupForm() {
 					email: value.email,
 					password: value.password,
 					name: value.email.split("@")[0], // Use email prefix as default name
-					callbackURL: redirectTarget,
+					callbackURL: verificationCallback(redirectTarget),
 				});
 
 				// Check if the result contains an error
@@ -152,8 +153,9 @@ function SignupForm() {
 			<div className="space-y-4 text-center" role="status">
 				<h2 className="text-lg font-semibold">Check your email</h2>
 				<p className="text-sm text-muted-foreground">
-					We sent a confirmation link to <span className="font-medium text-foreground">{confirmationSentTo}</span>. Open
-					it to finish creating your account. The link works for one hour.
+					If <span className="font-medium text-foreground">{confirmationSentTo}</span> can be used for a new account, we
+					sent it a confirmation link. Open it to finish creating your account. The link works for{" "}
+					{VERIFICATION_LINK_MINUTES} minutes.
 				</p>
 				<Link
 					to="/signin"

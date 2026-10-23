@@ -12,10 +12,11 @@
  */
 
 import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "~/lib/auth/password-policy";
+import { VERIFICATION_LINK_MINUTES } from "~/lib/auth/verification-link";
 
 export const SESSION_IDLE_SECONDS = 7 * 24 * 60 * 60;
 export const SESSION_REFRESH_SECONDS = 24 * 60 * 60;
-export const VERIFICATION_LINK_SECONDS = 60 * 60;
+export const VERIFICATION_LINK_SECONDS = VERIFICATION_LINK_MINUTES * 60;
 
 export function createAuthPolicy({ requireEmailVerification }: { requireEmailVerification: boolean }) {
 	return {

@@ -66,9 +66,13 @@ const meta = {
 			control: "text",
 			description: "Link the button points to (required)",
 		},
+		linkValidMinutes: {
+			control: "number",
+			description: "How long the link works, in minutes (required)",
+		},
 		supportEmail: {
 			control: "text",
-			description: "Support email address; the contact line is omitted when empty",
+			description: "Optional support address; the footer's contact line is omitted when empty",
 		},
 	},
 } satisfies Meta<typeof EmailPreview>;

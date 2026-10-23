@@ -7,8 +7,8 @@ export interface EmailLayoutProps {
 	preview: string;
 	/** App/brand name shown in header and footer */
 	appName: string;
-	/** Support email address (required for compliance) */
-	supportEmail: string;
+	/** Support email address; the contact line is left out when absent */
+	supportEmail?: string | undefined;
 	/** Unsubscribe URL for email compliance (CAN-SPAM, GDPR) */
 	unsubscribeUrl?: string;
 }
@@ -57,11 +57,17 @@ export const EmailLayout: FC<PropsWithChildren<EmailLayoutProps>> = ({
 						<Section className="px-6 py-8 text-gray-800">{children as any}</Section>
 						<Section className="border-t border-gray-200 px-6 py-4 text-xs text-gray-500">
 							<Text className="m-0">
-								You received this email because you have an account with {appName}. If you have questions, contact us at{" "}
-								<Link href={`mailto:${supportEmail}`} className="text-gray-500 underline">
-									{supportEmail}
-								</Link>
-								.
+								You received this email because you have an account with {appName}.
+								{supportEmail ? (
+									<>
+										{" "}
+										If you have questions, contact us at{" "}
+										<Link href={`mailto:${supportEmail}`} className="text-gray-500 underline">
+											{supportEmail}
+										</Link>
+										.
+									</>
+								) : null}
 							</Text>
 							{unsubscribeUrl && (
 								<Text className="m-0 mt-2">

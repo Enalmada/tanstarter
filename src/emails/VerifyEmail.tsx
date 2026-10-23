@@ -1,19 +1,22 @@
-import { Button, Heading, Link, Section, Text } from "@react-email/components";
+import { Button, Heading, Section, Text } from "@react-email/components";
 import type { FC } from "react";
 import { EmailLayout } from "./components/EmailLayout";
 
 export interface VerifyEmailProps {
 	appName: string;
 	verificationUrl: string;
-	supportEmail: string;
+	/** How long the link works, in minutes */
+	linkValidMinutes: number;
+	supportEmail?: string | undefined;
 }
 
-export const VerifyEmail: FC<VerifyEmailProps> = ({ appName, verificationUrl, supportEmail }) => (
+export const VerifyEmail: FC<VerifyEmailProps> = ({ appName, verificationUrl, linkValidMinutes, supportEmail }) => (
 	<EmailLayout preview={`Confirm your email address for ${appName}.`} appName={appName} supportEmail={supportEmail}>
 		<Heading className="mb-4 text-2xl font-semibold text-gray-900">Confirm your email</Heading>
 
 		<Text className="text-base leading-relaxed text-gray-700">
-			Use the button below to confirm this address and finish creating your account. The link works for one hour.
+			Use the button below to confirm this address and finish creating your account. The link works for{" "}
+			{linkValidMinutes} minutes.
 		</Text>
 
 		<Section className="my-8">
@@ -30,17 +33,6 @@ export const VerifyEmail: FC<VerifyEmailProps> = ({ appName, verificationUrl, su
 		</Text>
 		<Text className="text-sm text-gray-600">{verificationUrl}</Text>
 
-		<Text className="mt-6 text-xs text-gray-500">
-			If you didn't create an account, you can ignore this email.
-			{supportEmail ? (
-				<>
-					{" "}
-					Questions? Contact{" "}
-					<Link href={`mailto:${supportEmail}`} className="text-brand no-underline">
-						{supportEmail}
-					</Link>
-				</>
-			) : null}
-		</Text>
+		<Text className="mt-6 text-xs text-gray-500">If you didn't create an account, you can ignore this email.</Text>
 	</EmailLayout>
 );

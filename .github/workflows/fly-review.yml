@@ -111,6 +111,7 @@ jobs:
             GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             NODE_ENV=production
+            PUBLIC_APP_URL=https://${{ env.FLY_APP_NAME }}.fly.dev
             RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
 
   # DESTROY RESOURCES (PR closed, with or without the `preview` label, or a late

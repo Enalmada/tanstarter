@@ -122,10 +122,6 @@ msgid "Password"
 msgstr "Contraseña"
 
 #: src/routes/_guest/signin.tsx
-msgid "Password must be at least 8 characters"
-msgstr "La contraseña debe tener al menos 8 caracteres"
-
-#: src/routes/_guest/signin.tsx
 msgid "Please enter a valid email address"
 msgstr "Introduce un correo electrónico válido"
 
@@ -169,6 +165,10 @@ msgstr "Sistema"
 #: src/routes/index.tsx
 msgid "TanStarter Todo"
 msgstr "TanStarter Tareas"
+
+#: src/routes/_guest/signin.tsx
+msgid "This confirmation link has expired or is no longer valid. Sign in and we'll send you a new one."
+msgstr "Este enlace de confirmación ha caducado o ya no es válido. Inicia sesión y te enviaremos uno nuevo."
 
 #: src/components/ThemeToggle.tsx
 msgid "Toggle theme"

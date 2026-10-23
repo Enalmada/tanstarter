@@ -8,6 +8,7 @@ import { Card } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { safeRedirect } from "~/lib/auth/guards";
+import { verificationCallback } from "~/lib/auth/verification-link";
 import authClient from "~/utils/auth-client";
 
 function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -84,6 +85,10 @@ function SigninForm() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isUserNotFound, setIsUserNotFound] = useState(false);
+	const linkProblem =
+		search.error === "TOKEN_EXPIRED" || search.error === "INVALID_TOKEN"
+			? t`This confirmation link has expired or is no longer valid. Sign in and we'll send you a new one.`
+			: null;
 
 	const form = useForm({
 		defaultValues: {
@@ -104,7 +109,7 @@ function SigninForm() {
 				const authPromise = authClient.signIn.email({
 					email: value.email,
 					password: value.password,
-					callbackURL: redirectTarget,
+					callbackURL: verificationCallback(redirectTarget),
 				});
 
 				const result = await Promise.race([authPromise, timeoutPromise]);
@@ -199,7 +204,7 @@ function SigninForm() {
 				validators={{
 					onChange: ({ value }) => {
 						try {
-							parse(pipe(string(), minLength(8, t`Password must be at least 8 characters`)), value);
+							parse(pipe(string(), minLength(1, t`Enter your password`)), value);
 							return undefined;
 						} catch (err) {
 							return err instanceof Error ? err.message : t`Invalid password`;
@@ -228,6 +233,12 @@ function SigninForm() {
 					</div>
 				)}
 			</form.Field>
+
+			{linkProblem && !error && (
+				<div role="alert" className="rounded-md bg-destructive/15 p-3 text-sm">
+					<p className="text-destructive-strong">{linkProblem}</p>
+				</div>
+			)}
 
 			{error && (
 				<div className="rounded-md bg-destructive/15 p-3 text-sm">

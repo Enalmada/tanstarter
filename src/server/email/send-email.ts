@@ -5,10 +5,9 @@ import { env } from "~/env";
 
 /**
  * Sends one transactional email through Resend's HTTP API. Returns `false` when
- * no provider is configured outside production (local dev, tests), so callers
- * can print what they would have sent. In production a missing key or a
- * rejected message throws, because a silently dropped verification email
- * locks the user out.
+ * no provider is configured in local development or tests, so callers can print
+ * what they would have sent. Anywhere else a missing key or a rejected message
+ * throws, because a silently dropped verification email locks the user out.
  */
 export async function sendEmail({
 	to,
@@ -21,10 +20,14 @@ export async function sendEmail({
 }): Promise<boolean> {
 	const { RESEND_API_KEY: apiKey, EMAIL_FROM: from } = env;
 	if (!apiKey || !from) {
-		if (env.NODE_ENV === "production") {
-			throw new Error("Email is not configured: set RESEND_API_KEY and EMAIL_FROM");
+		// Fail closed: only an explicit development or test runtime may skip sending.
+		// `process.env.NODE_ENV` rather than `env.NODE_ENV`, which envin defaults to
+		// "development" when unset, so a misconfigured deploy would skip silently.
+		const nodeEnv = process.env.NODE_ENV;
+		if (nodeEnv === "development" || nodeEnv === "test") {
+			return false;
 		}
-		return false;
+		throw new Error("Email is not configured: set RESEND_API_KEY and EMAIL_FROM");
 	}
 
 	const response = await fetch("https://api.resend.com/emails", {

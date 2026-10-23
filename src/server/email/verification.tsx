@@ -1,6 +1,6 @@
 import "@tanstack/react-start/server-only";
 import { VerifyEmail } from "~/emails";
-import { env } from "~/env";
+import { VERIFICATION_LINK_MINUTES } from "~/lib/auth/verification-link";
 import { logger } from "~/utils/logger";
 import { sendEmail } from "./send-email";
 
@@ -18,7 +18,7 @@ export function sendVerificationEmail({ user, url }: { user: { email: string; na
 			const sent = await sendEmail({
 				to: user.email,
 				subject: `Verify your email for ${APP_NAME}`,
-				react: <VerifyEmail appName={APP_NAME} verificationUrl={url} supportEmail={env.EMAIL_FROM ?? ""} />,
+				react: <VerifyEmail appName={APP_NAME} verificationUrl={url} linkValidMinutes={VERIFICATION_LINK_MINUTES} />,
 			});
 			if (!sent) {
 				logger.info("Verification email not sent: no email provider configured", { verificationUrl: url });

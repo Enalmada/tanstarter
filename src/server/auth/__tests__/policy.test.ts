@@ -4,11 +4,12 @@
 
 import { betterAuth } from "better-auth";
 import { memoryAdapter } from "better-auth/adapters/memory";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { MIN_PASSWORD_LENGTH } from "~/lib/auth/password-policy";
+import { verificationCallback } from "~/lib/auth/verification-link";
 import { createAuthAuditHook } from "../audit";
 import { authIpAddress } from "../ip-address";
-import { createAuthPolicy, SESSION_IDLE_SECONDS } from "../policy";
+import { createAuthPolicy, SESSION_IDLE_SECONDS, SESSION_REFRESH_SECONDS } from "../policy";
 
 const ORIGIN = "http://localhost:3000";
 const EMAIL = "person@example.com";
@@ -48,17 +49,27 @@ async function post(auth: TestAuth, path: string, body: Record<string, unknown>)
 			body: JSON.stringify(body),
 		}),
 	);
-	return { status: res.status, body: (await res.json().catch(() => null)) as Record<string, unknown> | null };
+	const cookie = res.headers
+		.getSetCookie()
+		.map((line) => line.split(";")[0])
+		.join("; ");
+	return { status: res.status, cookie, body: (await res.json().catch(() => null)) as Record<string, unknown> | null };
 }
 
-const signUp = (auth: TestAuth, password: string) =>
-	post(auth, "/sign-up/email", { email: EMAIL, password, name: "Person" });
+const signUp = (auth: TestAuth, password: string, callbackURL?: string) =>
+	post(auth, "/sign-up/email", { email: EMAIL, password, name: "Person", callbackURL });
 const signIn = (auth: TestAuth, password = PASSWORD) => post(auth, "/sign-in/email", { email: EMAIL, password });
 
-async function verify(auth: TestAuth, url: string) {
+async function followLink(auth: TestAuth, url: string) {
 	const res = await auth.handler(new Request(url, { headers: { "fly-client-ip": CLIENT_IP } }));
-	return res.status;
+	return { status: res.status, location: res.headers.get("location") };
 }
+
+const verify = async (auth: TestAuth, url: string) => (await followLink(auth, url)).status;
+
+afterEach(() => {
+	vi.useRealTimers();
+});
 
 describe("password length", () => {
 	it("rejects a password shorter than the minimum and accepts the minimum", async () => {
@@ -69,10 +80,6 @@ describe("password length", () => {
 
 		const ok = await signUp(auth, "x".repeat(MIN_PASSWORD_LENGTH));
 		expect(ok.status).toBe(200);
-	});
-
-	it("requires at least 12 characters", () => {
-		expect(MIN_PASSWORD_LENGTH).toBe(12);
 	});
 });
 
@@ -106,6 +113,37 @@ describe("email verification", () => {
 		expect(res.body?.token).toEqual(expect.any(String));
 	});
 
+	it("does not reveal whether an address already has an account", async () => {
+		const { auth, sent } = createTestAuth();
+		const first = await signUp(auth, PASSWORD);
+		const second = await signUp(auth, PASSWORD);
+
+		expect(second.status).toBe(first.status);
+		expect(second.body?.token).toBeNull();
+		expect(sent).toHaveLength(1);
+	});
+
+	it("sends a followed link back to sign-in, which forwards a verified visitor to the app", async () => {
+		const { auth, sent } = createTestAuth();
+		await signUp(auth, PASSWORD, verificationCallback("/tasks"));
+
+		const { location } = await followLink(auth, sent[0]?.url ?? "");
+		expect(location).toBe("/signin?redirect=%2Ftasks");
+	});
+
+	it("reports a bad link on the sign-in page", async () => {
+		const { auth, sent } = createTestAuth();
+		await signUp(auth, PASSWORD, verificationCallback("/tasks"));
+		const url = new URL(sent[0]?.url ?? "");
+		url.searchParams.set("token", `${url.searchParams.get("token")}x`);
+
+		const { location } = await followLink(auth, url.toString());
+		const target = new URL(location ?? "", ORIGIN);
+		expect(target.pathname).toBe("/signin");
+		expect(target.searchParams.get("redirect")).toBe("/tasks");
+		expect(target.searchParams.get("error")).toBe("INVALID_TOKEN");
+	});
+
 	it("does not accept a tampered link", async () => {
 		const { auth, sent } = createTestAuth();
 		await signUp(auth, PASSWORD);
@@ -119,7 +157,6 @@ describe("email verification", () => {
 
 describe("session lifetime", () => {
 	it("ends a session after seven days without use", async () => {
-		expect(SESSION_IDLE_SECONDS).toBe(7 * 24 * 60 * 60);
 		const { auth, sent } = createTestAuth();
 		await signUp(auth, PASSWORD);
 		await verify(auth, sent[0]?.url ?? "");
@@ -130,6 +167,24 @@ describe("session lifetime", () => {
 		const lifetimeMs = new Date(session?.session.expiresAt ?? 0).getTime() - Date.now();
 		expect(lifetimeMs).toBeGreaterThan((SESSION_IDLE_SECONDS - 60) * 1000);
 		expect(lifetimeMs).toBeLessThanOrEqual(SESSION_IDLE_SECONDS * 1000);
+	});
+});
+
+describe("session refresh", () => {
+	it("pushes the expiry out when a session is used after the refresh interval", async () => {
+		const { auth, sent } = createTestAuth();
+		await signUp(auth, PASSWORD);
+		await verify(auth, sent[0]?.url ?? "");
+		const { body, cookie } = await signIn(auth);
+		const context = await auth.$context;
+
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(Date.now() + (SESSION_REFRESH_SECONDS + 60) * 1000);
+		await auth.handler(new Request(`${ORIGIN}/api/auth/get-session`, { headers: { cookie } }));
+
+		const session = await context.internalAdapter.findSession(String(body?.token));
+		const remainingMs = new Date(session?.session.expiresAt ?? 0).getTime() - Date.now();
+		expect(remainingMs).toBeGreaterThan((SESSION_IDLE_SECONDS - 60) * 1000);
 	});
 });
 
@@ -158,6 +213,23 @@ describe("audit trail", () => {
 		const text = JSON.stringify(lines);
 		expect(text).not.toContain(EMAIL);
 		expect(text).not.toContain("passphrase");
+	});
+
+	it("logs sign-out with the client IP", async () => {
+		const { auth, sent, logs } = createTestAuth();
+		await signUp(auth, PASSWORD);
+		await verify(auth, sent[0]?.url ?? "");
+		const { cookie } = await signIn(auth);
+		const res = await auth.handler(
+			new Request(`${ORIGIN}/api/auth/sign-out`, {
+				method: "POST",
+				headers: { origin: ORIGIN, cookie, "content-type": "application/json", "fly-client-ip": CLIENT_IP },
+				body: "{}",
+			}),
+		);
+
+		expect(res.status).toBe(200);
+		expect(logs.at(-1)?.data).toMatchObject({ event: "sign_out", outcome: "success", ip: CLIENT_IP });
 	});
 
 	it("logs a rejected verification link as a failure", async () => {

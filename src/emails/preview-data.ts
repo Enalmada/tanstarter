@@ -1,3 +1,4 @@
+import { VERIFICATION_LINK_MINUTES } from "~/lib/auth/verification-link";
 import type { VerifyEmailProps } from "./VerifyEmail";
 import type { WelcomeEmailProps } from "./WelcomeEmail";
 
@@ -14,5 +15,6 @@ export const welcomeEmailPreview = {
 export const verifyEmailPreview = {
 	appName: "TanStarter",
 	verificationUrl: "https://app.tanstarter.dev/api/auth/verify-email?token=preview&callbackURL=%2Ftasks",
+	linkValidMinutes: VERIFICATION_LINK_MINUTES,
 	supportEmail: "support@tanstarter.dev",
 } as const satisfies VerifyEmailProps;
