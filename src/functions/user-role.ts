@@ -34,6 +34,7 @@ export const handleMakeUserAdmin = createServerOnlyFn(
 		const { getUserById, updateUserRole } = await import("./user.db");
 		const { NotAuthorizedError, NotFoundError } = await import("~/server/access/http-errors");
 		const { getOptionalSessionUser } = await import("~/server/auth/session");
+		const { logger } = await import("~/utils/logger");
 		const { isRoleSelfServiceEnabled } = await import("~/server/access/role-self-service");
 
 		// freshAuthMiddleware already rejected anonymous callers (401) and read the
@@ -57,13 +58,21 @@ export const handleMakeUserAdmin = createServerOnlyFn(
 
 		// Update the user's role
 		const [updatedUser] = await updateUserRole(userId, role as UserRole, currentUser.id);
+		if (!updatedUser) {
+			throw new NotFoundError(`User ${userId} not found`);
+		}
 
 		// Refresh the session cookie cache so a hard refresh observes the new role.
 		// Best-effort: `getOptionalSessionUser({ freshFromDb: true })` re-queries the
 		// DB AND forwards the Set-Cookie headers via the helper. If the
 		// AsyncLocalStorage context isn't active for some reason, the helper
-		// returns null and we just skip silently.
-		await getOptionalSessionUser({ freshFromDb: true });
+		// returns null and we just skip silently. A failure here must not fail the
+		// call: the role is already changed, and the audit line records the outcome.
+		try {
+			await getOptionalSessionUser({ freshFromDb: true });
+		} catch {
+			logger.error("makeUserAdmin session refresh failed", { userId });
+		}
 
 		return updatedUser;
 	},

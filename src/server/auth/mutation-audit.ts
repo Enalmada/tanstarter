@@ -36,15 +36,18 @@ export async function auditMutation<T>(
 	run: () => Promise<T>,
 ): Promise<T> {
 	// A logging problem must neither fail a change that already happened nor
-	// replace the error that made it fail.
-	const line = async (outcome: "success" | "failure", status?: number) => {
+	// replace the error that made it fail. Fields are listed one by one so a
+	// descriptor that returns more than a target cannot put it in the log.
+	const line = async (outcome: "success" | "failure", status?: number, createdId?: string) => {
 		try {
+			const id = target.id ?? createdId;
 			write("audit.mutation", {
 				action,
 				outcome,
 				...(status ? { status } : {}),
-				...target,
-				...(target.id ? { id: target.id.slice(0, MAX_ID_LENGTH) } : {}),
+				...(target.subject ? { subject: target.subject } : {}),
+				...(id ? { id: id.slice(0, MAX_ID_LENGTH) } : {}),
+				...(target.detail ? { detail: target.detail } : {}),
 				userId: user.id,
 				ip: await clientIp(),
 			});
@@ -53,7 +56,9 @@ export async function auditMutation<T>(
 
 	try {
 		const result = await run();
-		await line("success");
+		// A create has no id until it runs: take only the id, never the row.
+		const created = typeof result === "object" && result !== null && "id" in result ? result.id : undefined;
+		await line("success", undefined, typeof created === "string" ? created : undefined);
 		return result;
 	} catch (error) {
 		await line("failure", hasHttpErrorHints(error) ? error.httpStatus : 500);

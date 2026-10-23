@@ -92,6 +92,27 @@ describe("auditMutation", () => {
 		).rejects.toBe(refusal);
 	});
 
+	it("logs only the listed target fields and never the rest of a descriptor's return value", async () => {
+		const { logs, write } = setup();
+		const target = { subject: "task", id: "tsk_1", data: { title: "secret-title" }, outcome: "forged" } as never;
+		await auditMutation(write, "updateEntity", target, user, async () => 1);
+
+		expect(logs[0]?.data).toMatchObject({ outcome: "success", subject: "task", id: "tsk_1" });
+		expect(JSON.stringify(logs)).not.toContain("secret-title");
+		expect(logs[0]?.data).not.toHaveProperty("data");
+	});
+
+	it("takes the id of a created row from the result, and nothing else from it", async () => {
+		const { logs, write } = setup();
+		await auditMutation(write, "createEntity", { subject: "task" }, user, async () => ({
+			id: "tsk_new",
+			title: "secret-title",
+		}));
+
+		expect(logs[0]?.data).toMatchObject({ outcome: "success", subject: "task", id: "tsk_new" });
+		expect(JSON.stringify(logs)).not.toContain("secret-title");
+	});
+
 	it("truncates an oversized id", async () => {
 		const { logs, write } = setup();
 		await auditMutation(write, "deleteEntity", { subject: "task", id: "x".repeat(500) }, user, async () => 1);
@@ -106,5 +127,32 @@ describe("auditMutation", () => {
 
 		expect(logs[0]?.data).toMatchObject({ outcome: "success", ip: null });
 		expect(logs[0]?.data).not.toHaveProperty("id");
+	});
+});
+
+describe("audited", () => {
+	it("wires the handler, the described target and the signed-in user into one audit line", async () => {
+		const info = vi.fn();
+		vi.doMock("~/utils/logger", () => ({ logger: { info } }));
+		const { audited } = await import("~/functions/audited");
+
+		const result = await audited(
+			"deleteEntity",
+			({ id }: { id: string }) => ({ subject: "task", id }),
+			async () => "gone",
+		)({ data: { id: "tsk_7" }, context: { user: user as never } });
+
+		expect(result).toBe("gone");
+		expect(info).toHaveBeenCalledWith(
+			"audit.mutation",
+			expect.objectContaining({
+				action: "deleteEntity",
+				outcome: "success",
+				subject: "task",
+				id: "tsk_7",
+				userId: "usr_1",
+			}),
+		);
+		vi.doUnmock("~/utils/logger");
 	});
 });

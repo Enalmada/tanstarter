@@ -85,8 +85,24 @@ describe("server function auth wiring", () => {
 		}
 	});
 
+	it("declares a literal method on every server function", () => {
+		for (const fn of declared) {
+			expect(
+				/createServerFn\(\{[^}]*\bmethod:\s*["'](?:GET|POST)["']/.test(fn.chain),
+				`${fn.file}: ${fn.name} needs createServerFn({ method: "GET" | "POST" }) so the audit check can classify it`,
+			).toBe(true);
+		}
+	});
+
+	const posts = declared.filter((fn) => /\bmethod:\s*["']POST["']/.test(fn.chain));
+
+	it("finds the POST server functions", () => {
+		// An empty it.each registers no tests, so guard against the filter matching nothing.
+		expect(posts.length).toBeGreaterThanOrEqual(8);
+	});
+
 	it.each(
-		declared.filter((fn) => /createServerFn\(\{\s*method:\s*"POST"/.test(fn.chain)).map((fn) => [fn.name, fn] as const),
+		posts.map((fn) => [fn.name, fn] as const),
 	)("%s writes an audit line or is listed as not storing data", (name, fn) => {
 		const audited = /^\.handler\(\s*audited\(/.test(fn.handler);
 		if (NOT_AUDITED_SERVER_FUNCTIONS.has(name)) {
