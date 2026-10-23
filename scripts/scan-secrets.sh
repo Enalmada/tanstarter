@@ -6,6 +6,8 @@
 #   bun run scan:secrets --pre-commit staged changes, skipped with a warning if betterleaks is missing (lefthook)
 #   bun run scan:secrets <from>..<to> a commit range (CI)
 #
+# BETTERLEAKS_EXIT_CODE sets the exit status for a found leak (CI uses it to tell a leak from a crash).
+#
 # False positives: add a `betterleaks:allow` comment on the line, or add the finding's
 # fingerprint to a .betterleaksignore file at the repo root (one per line).
 set -euo pipefail
@@ -23,7 +25,7 @@ if ! command -v betterleaks >/dev/null 2>&1; then
 	exit 2
 fi
 
-scan() { betterleaks git --no-banner --redact "$@" .; }
+scan() { betterleaks git --no-banner --redact ${BETTERLEAKS_EXIT_CODE:+--exit-code "$BETTERLEAKS_EXIT_CODE"} "$@" .; }
 
 case "${1:-}" in
 --staged | --pre-commit)

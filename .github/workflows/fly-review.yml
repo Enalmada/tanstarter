@@ -10,10 +10,10 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, closed, labeled]
 
+# A job's own `permissions` replace this map rather than add to it, so each job
+# lists every scope it needs.
 permissions:
   contents: read
-  deployments: write
-  pull-requests: write
 
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
@@ -39,6 +39,10 @@ jobs:
       )
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: read
     outputs:
       api_url: ${{ steps.deploy_app.outputs.url }}
       pr_open: ${{ steps.pr_state.outputs.open }}
@@ -82,7 +86,12 @@ jobs:
       - name: Setup Fly CLI
         if: steps.pr_state.outputs.open == 'true'
         uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # 1.6
+        with:
+          version: 0.4.119 # an action input, so Dependabot does not bump it: update by hand
 
+      # These two actions still fetch tooling when they run (setup-node and
+      # neonctl@2; an alpine base image and fly.io/install.sh), so the SHA pin
+      # does not freeze everything they execute.
       - name: Create Neon Database Branch
         id: create_db
         if: steps.pr_state.outputs.open == 'true'
@@ -124,6 +133,8 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       (github.event.action == 'closed' || needs.create_environment.outputs.pr_open == 'false')
     runs-on: ubuntu-latest
+    permissions:
+      deployments: write
     concurrency:
       group: preview-env-${{ github.event.number }}
       cancel-in-progress: false
@@ -131,6 +142,8 @@ jobs:
     steps:
       - name: Setup Fly CLI
         uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # 1.6
+        with:
+          version: 0.4.119 # an action input, so Dependabot does not bump it: update by hand
 
       # Neon API directly, so a missing branch (never labeled, or already
       # deleted) is a no-op while an auth or API failure fails the job.

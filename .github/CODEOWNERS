@@ -1,4 +1,5 @@
-# Changes to CI, deploys, auth, the Dockerfile and dependencies need the maintainer.
+# Changes to CI, deploys, auth, the Dockerfile, dependencies, scanner config and
+# the client env allowlist need the maintainer.
 # GitHub only enforces this once the branch ruleset on main has "Require review
 # from Code Owners" turned on. GitHub does not count an author's own approval,
 # so the maintainer's own pull requests on these paths need a second owner or a
@@ -14,3 +15,12 @@
 /src/server/access/ @Enalmada
 /src/start.ts @Enalmada
 /src/config/cspRules.ts @Enalmada
+/.semgrepignore @Enalmada
+/.betterleaksignore @Enalmada
+/scripts/ @Enalmada
+/env.config.ts @Enalmada
+/src/lib/env/ @Enalmada
+/src/lib/auth/ @Enalmada
+/src/functions/auth-middleware.ts @Enalmada
+/src/functions/__tests__/auth-wiring.test.ts @Enalmada
+/src/routes/api/auth/ @Enalmada

@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Please report vulnerabilities privately through GitHub: open the repository's **Security** tab and choose **Report a vulnerability**. Do not open a public issue or pull request for a security problem.
+Please report vulnerabilities privately through GitHub: open the repository's **Security** tab and choose **Report a vulnerability**. Do not open a public issue or pull request for a security problem. If you do not see **Report a vulnerability**, open an issue asking for a private contact and leave the details out.
 
 Include what you found, how to reproduce it, and the version or commit. You can expect an acknowledgement within a few business days. This is a starter template maintained on a best-effort basis, so there is no fixed fix timeline, but confirmed issues are fixed on `main` and noted in the commit message.
 
