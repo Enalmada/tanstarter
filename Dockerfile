@@ -22,6 +22,12 @@ RUN bun run build
 
 # Final production image
 FROM base AS runner
+# Pull in Debian security fixes published after the pinned base image was built
+# (container-scan.yml fails on a fixable CRITICAL). Drop this once a base-image
+# bump from Dependabot carries them.
+RUN apt-get update \
+	&& apt-get upgrade --yes --no-install-recommends \
+	&& rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 # .output is self-contained: Nitro bundles every server dependency into
 # .output/server (there is no .output/server/node_modules) and copies public/
