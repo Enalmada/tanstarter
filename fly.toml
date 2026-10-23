@@ -28,6 +28,15 @@ primary_region = 'iad'
   min_machines_running = 0
   processes = ['app']
 
+  # Fly routes traffic and finishes a deploy only to Machines that answer here.
+  # /health does not touch the database.
+  [[http_service.checks]]
+    method = 'GET'
+    path = '/health'
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '15s'
+
 [[vm]]
   memory = '512mb'
   cpu_kind = 'shared'
