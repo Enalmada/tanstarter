@@ -36,8 +36,11 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           # Storybook's builder loads the root Vite config (plugins, aliases, define)
-          pattern='^(src/|\.storybook/|vitest\.config\.ts$|vite\.config\.ts$|scripts/vite-service-worker\.ts$|package\.json$|bun\.lock$|\.github/workflows/storybook-tests\.yml$)'
-          if git diff --name-only "origin/$BASE_REF...HEAD" | grep -Eq "$pattern"; then
+          pattern='^(src/|\.storybook/|vitest\.config\.ts$|vite\.config\.ts$|tsconfig\.json$|lingui\.config\.js$|scripts/vite-service-worker\.ts$|package\.json$|bun\.lock$|\.github/workflows/storybook-tests\.yml$)'
+          # Into a variable first: with pipefail, grep -q exiting early can SIGPIPE
+          # git diff and make a match look like no match.
+          changed=$(git diff --name-only "origin/$BASE_REF...HEAD")
+          if grep -Eq "$pattern" <<< "$changed"; then
             echo "storybook=true" >> "$GITHUB_OUTPUT"
           else
             echo "storybook=false" >> "$GITHUB_OUTPUT"

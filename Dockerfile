@@ -1,5 +1,5 @@
-# Keep the version in sync with packageManager in package.json. The digest pins the
-# exact image; Dependabot (docker ecosystem) raises the update that moves both.
+# Keep the version in sync with packageManager in package.json (by hand: Dependabot
+# moves this tag and digest, not packageManager). The digest pins the exact image.
 FROM oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895 AS base
 WORKDIR /app
 
@@ -23,8 +23,9 @@ RUN bun run build
 # Final production image
 FROM base AS runner
 # Pull in Debian security fixes published after the pinned base image was built
-# (container-scan.yml fails on a fixable CRITICAL). Drop this once a base-image
-# bump from Dependabot carries them.
+# (container-scan.yml fails on a fixable CRITICAL). This trades bit-for-bit
+# reproducible builds for those fixes; the digest still fixes the base. Drop it
+# once a base-image bump from Dependabot carries them.
 RUN apt-get update \
 	&& apt-get upgrade --yes --no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
