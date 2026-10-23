@@ -30,6 +30,10 @@ msgid "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui 
 msgstr "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui components."
 
 #: src/routes/_guest/signin.tsx
+msgid "Confirm your email address first. We sent you a new link."
+msgstr "Confirm your email address first. We sent you a new link."
+
+#: src/routes/_guest/signin.tsx
 msgid "Continue with Google"
 msgstr "Continue with Google"
 

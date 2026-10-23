@@ -7,6 +7,7 @@ import { Card } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { safeRedirect } from "~/lib/auth/guards";
+import { MIN_PASSWORD_LENGTH } from "~/lib/auth/password-policy";
 import authClient from "~/utils/auth-client";
 
 function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -82,6 +83,7 @@ function SignupForm() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isUserExists, setIsUserExists] = useState(false);
+	const [confirmationSentTo, setConfirmationSentTo] = useState<string | null>(null);
 
 	const form = useForm({
 		defaultValues: {
@@ -106,6 +108,14 @@ function SignupForm() {
 					// Better Auth returns errors in result.error, not as thrown exceptions
 					const error = result.error as { message?: string; code?: string };
 					throw new Error(error.message || error.code || "Sign up failed");
+				}
+
+				// Email sign-ups must confirm their address first: no session is created yet, and a
+				// link is on its way.
+				if (!result.data?.token) {
+					setIsLoading(false);
+					setConfirmationSentTo(value.email);
+					return;
 				}
 
 				// Success: better-auth sets the session cookie but does not redirect after email sign-up, so go to the
@@ -136,6 +146,25 @@ function SignupForm() {
 			}
 		},
 	});
+
+	if (confirmationSentTo) {
+		return (
+			<div className="space-y-4 text-center" role="status">
+				<h2 className="text-lg font-semibold">Check your email</h2>
+				<p className="text-sm text-muted-foreground">
+					We sent a confirmation link to <span className="font-medium text-foreground">{confirmationSentTo}</span>. Open
+					it to finish creating your account. The link works for one hour.
+				</p>
+				<Link
+					to="/signin"
+					search={{ redirect: search.redirect }}
+					className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+				>
+					Back to sign in
+				</Link>
+			</div>
+		);
+	}
 
 	return (
 		<form
@@ -184,7 +213,13 @@ function SignupForm() {
 				validators={{
 					onChange: ({ value }) => {
 						try {
-							parse(pipe(string(), minLength(8, "Password must be at least 8 characters")), value);
+							parse(
+								pipe(
+									string(),
+									minLength(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`),
+								),
+								value,
+							);
 							return undefined;
 						} catch (err) {
 							return err instanceof Error ? err.message : "Invalid password";
@@ -202,7 +237,7 @@ function SignupForm() {
 							value={field.state.value}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
-							placeholder="Enter your password (8+ characters)"
+							placeholder={`Choose a password (${MIN_PASSWORD_LENGTH}+ characters)`}
 							disabled={isLoading}
 						/>
 						{field.state.meta.errors.length > 0 && (

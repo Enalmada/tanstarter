@@ -28,6 +28,15 @@ Put a protected page in the matching folder; do not write per-route `beforeLoad`
 - Roles are `MEMBER` and `ADMIN` (`UserRole`). Sign-ups are members. An email listed in `ADMIN_EMAILS` is promoted to admin only when its user row is first created by a verified provider sign-in (OAuth), never by an email/password sign-up, sign-in or account link (`src/server/auth/admin-emails.ts` explains the squatting risk).
 - The Profile page's "Make Admin / Remove Admin" toggle exists only for local development (`APP_ENV=development` and a non-production runtime) or when `DEMO_MODE=true` (`src/server/access/role-self-service.ts`).
 
+## Sign-in policy
+
+Defined once in `src/server/auth/policy.ts` and unit-tested in `__tests__/policy.test.ts`.
+
+- **Email verification.** Email/password sign-ups get no session until they follow the emailed link (valid one hour; it then signs them in). Signing in early re-sends the link. Google sign-ins arrive verified. Mail goes through Resend (`src/server/email/`): set `RESEND_API_KEY` and `EMAIL_FROM` in production, otherwise sign-ups cannot verify and the send throws. Locally with neither set, the link is printed to the server log. The Playwright dev server (`isPlaywrightServer`) skips verification because the e2e run has no inbox.
+- **Passwords.** At least 12 characters, at most 128, no composition rules (`src/lib/auth/password-policy.ts`, shared with the sign-up form). The minimum applies when a password is set; existing shorter passwords still sign in.
+- **Sessions.** Sliding: a session ends after 7 days without use and is extended at most once a day while in use. There is no absolute lifetime cap and no 2FA yet.
+- **Audit trail.** `src/server/auth/audit.ts` logs one `audit.auth` line per sign-up, sign-in, sign-out, email verification and OAuth callback, with the outcome, the error code and the client IP (same `fly-client-ip` header as the rate limiter). It records the user id, never the email or password. Lines reach Axiom when it is configured. Mutations made through server functions are not logged yet.
+
 ## better-auth invariants
 
 - The user table's `role` and other server-owned fields are not settable from sign-up input (`input: false` in `src/server/auth/user-fields.ts`). Keep it that way when adding fields.

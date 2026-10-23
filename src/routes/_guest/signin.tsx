@@ -136,6 +136,8 @@ function SigninForm() {
 					) {
 						setError(t`No account found with this email or password combination.`);
 						setIsUserNotFound(true);
+					} else if (errorMessage.includes("email not verified")) {
+						setError(t`Confirm your email address first. We sent you a new link.`);
 					} else if (errorMessage.includes("invalid password") || errorMessage.includes("incorrect password")) {
 						setError(t`Incorrect password. Please try again.`);
 					} else {

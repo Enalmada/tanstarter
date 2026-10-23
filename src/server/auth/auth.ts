@@ -5,17 +5,31 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { env } from "~/env";
 import db from "~/server/db";
 import { nanoString, type UserRole } from "~/server/db/schema";
+import { logger } from "~/utils/logger";
+import { isPlaywrightServer } from "~/utils/test/playwright";
 import { authAdapterSchema } from "./adapter-schema";
+import { createAuthAuditHook } from "./audit";
 import { authIpAddress } from "./ip-address";
+import { createAuthPolicy } from "./policy";
 import { authDisabledPaths, userAdditionalFields, userDatabaseHooks } from "./user-fields";
+
+// The Playwright dev server has no inbox, so it skips verification; see ./policy.
+const policy = createAuthPolicy({ requireEmailVerification: !isPlaywrightServer() });
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema: authAdapterSchema,
 	}),
-	emailAndPassword: {
-		enabled: true,
+	emailAndPassword: policy.emailAndPassword,
+	emailVerification: {
+		...policy.emailVerification,
+		// Imported on use: ~/env is not available to the client-side type inference of this file
+		// (see the Google credentials note below).
+		sendVerificationEmail: async (data) => {
+			const { sendVerificationEmail } = await import("~/server/email/verification");
+			sendVerificationEmail(data);
+		},
 	},
 	socialProviders: {
 		google: {
@@ -37,7 +51,9 @@ export const auth = betterAuth({
 	},
 	databaseHooks: userDatabaseHooks,
 	disabledPaths: authDisabledPaths,
+	hooks: { after: createAuthAuditHook(logger.info) },
 	session: {
+		...policy.session,
 		cookieCache: {
 			enabled: true, // avoid hitting db
 			maxAge: 5 * 60, // 5m cache duration
