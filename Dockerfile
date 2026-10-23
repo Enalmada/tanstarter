@@ -22,6 +22,9 @@ RUN bun run build
 
 # Final production image
 FROM base AS runner
+# A new value on every deploy (fly-deploy.yml) forces a fresh upgrade, so the
+# builder's layer cache never serves stale packages. Unset in scans and local builds.
+ARG APT_UPGRADE_CACHE_BUST
 # Pull in Debian security fixes published after the pinned base image was built
 # (container-scan.yml fails on a fixable CRITICAL). This trades bit-for-bit
 # reproducible builds for those fixes; the digest still fixes the base. Drop it

@@ -17,7 +17,7 @@ primary_region = 'iad'
   # running the new image with the app's secrets, before any app Machine is
   # updated. A non-zero exit aborts the deploy and the current release keeps
   # serving. `bun run build` writes this bundle. Strategy stays rolling (the
-  # default): bluegreen needs a health check. See .agents/database.md.
+  # default). See .agents/database.md.
   release_command = "bun .output/migrate/migrate.mjs"
 
 [http_service]

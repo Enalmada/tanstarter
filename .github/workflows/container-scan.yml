@@ -5,9 +5,9 @@ name: Container Scan
 # dependency-audit.yml; the runner stage ships only the bundled .output.
 #
 # No `paths:` filter: a path-filtered workflow cannot be a required check (see
-# .agents/security.md), and the weekly run catches advisories published after
-# the image was last built. To accept a reviewed finding, add its ID to
-# .trivyignore with a reason and an expiry date.
+# .agents/security.md), and the weekly run builds a fresh image, so it shows what
+# the next deploy would ship (redeploy to pick up OS fixes). To accept a reviewed
+# finding, add its ID to .trivyignore with a reason and an expiry date.
 on:
   pull_request:
   schedule:
