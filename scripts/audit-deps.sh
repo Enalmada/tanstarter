@@ -1,5 +1,5 @@
 #!/bin/sh
-# Dependency audit (UseFrank/frank#41): fail on high/critical advisories in
+# Dependency audit: fail on high/critical advisories in
 # production dependencies, or critical ones anywhere. Both checks always run,
 # so one failing doesn't hide the other's report.
 bun audit --prod --audit-level=high

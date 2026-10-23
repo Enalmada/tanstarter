@@ -1,6 +1,8 @@
 # Changes to CI, deploys, auth, the Dockerfile and dependencies need the maintainer.
 # GitHub only enforces this once the branch ruleset on main has "Require review
-# from Code Owners" turned on.
+# from Code Owners" turned on. GitHub does not count an author's own approval,
+# so the maintainer's own pull requests on these paths need a second owner or a
+# ruleset bypass. Replace @Enalmada with your own handle or team after a fork.
 /.github/ @Enalmada
 /Dockerfile @Enalmada
 /fly.toml @Enalmada

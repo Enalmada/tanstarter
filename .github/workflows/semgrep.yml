@@ -1,7 +1,6 @@
 name: Semgrep
 
-# Static analysis with Semgrep Community Edition. Adapted from the setup in a
-# production TanStack/Nest monorepo.
+# Static analysis with Semgrep Community Edition.
 #
 # A pull request scans only the findings its own changes add (--baseline-commit),
 # so it fails only on what that PR introduces. The weekly and manual runs scan

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Scan git changes for committed secrets with Betterleaks (https://github.com/betterleaks/betterleaks).
-# Ported from UseFrank/frank#41.
 #
 #   bun run scan:secrets              commits on this branch that aren't on origin/main, plus staged changes
 #   bun run scan:secrets --staged     staged changes only
