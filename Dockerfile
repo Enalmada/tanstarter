@@ -1,5 +1,6 @@
-# Keep in sync with packageManager in package.json
-FROM oven/bun:1.4.2 AS base
+# Keep the version in sync with packageManager in package.json. The digest pins the
+# exact image; Dependabot (docker ecosystem) raises the update that moves both.
+FROM oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895 AS base
 WORKDIR /app
 
 # Install dependencies into a separate stage for better layer caching

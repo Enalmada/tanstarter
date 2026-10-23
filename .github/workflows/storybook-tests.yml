@@ -1,17 +1,11 @@
 name: 'Storybook Tests'
 
+# The path filter lives in the `changes` job, not on the trigger: a workflow
+# skipped by `paths:` reports no check at all, so it could never be a required
+# check. A job skipped by `if:` reports as skipped, which branch protection
+# accepts.
 on:
   pull_request:
-    paths:
-      - 'src/**'
-      - '.storybook/**'
-      - 'vitest.config.ts'
-      # Storybook's builder loads the root Vite config (plugins, aliases, define)
-      - 'vite.config.ts'
-      - 'scripts/vite-service-worker.ts'
-      - 'package.json'
-      - 'bun.lock'
-      - '.github/workflows/storybook-tests.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -26,7 +20,33 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      storybook: ${{ steps.filter.outputs.storybook }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes that affect Storybook
+        id: filter
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          # Storybook's builder loads the root Vite config (plugins, aliases, define)
+          pattern='^(src/|\.storybook/|vitest\.config\.ts$|vite\.config\.ts$|scripts/vite-service-worker\.ts$|package\.json$|bun\.lock$|\.github/workflows/storybook-tests\.yml$)'
+          if git diff --name-only "origin/$BASE_REF...HEAD" | grep -Eq "$pattern"; then
+            echo "storybook=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "storybook=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No Storybook-relevant files changed; skipping"
+          fi
+
   test:
+    needs: changes
+    if: needs.changes.outputs.storybook == 'true'
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:

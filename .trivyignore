@@ -1,0 +1,6 @@
+# Reviewed container findings that container-scan.yml should not fail on.
+# One ID per line. Put the reason and an expiry date on the line above it, and
+# remove the entry once the base image carries the fix:
+#
+# # Not reachable: the image runs no <component>. Review again by 2026-12-01.
+# CVE-2026-00000
