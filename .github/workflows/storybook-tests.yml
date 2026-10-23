@@ -3,7 +3,9 @@ name: 'Storybook Tests'
 # The path filter lives in the `changes` job, not on the trigger: a workflow
 # skipped by `paths:` reports no check at all, so it could never be a required
 # check. A job skipped by `if:` reports as skipped, which branch protection
-# accepts.
+# accepts, and so does a job skipped because the job it needs failed. Require
+# the `storybook` job, not `changes` or `test`: it fails when the filter
+# fails, and passes when the filter skips the tests on purpose.
 on:
   pull_request:
 
@@ -36,7 +38,7 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           # Storybook's builder loads the root Vite config (plugins, aliases, define)
-          pattern='^(src/|\.storybook/|vitest\.config\.ts$|vite\.config\.ts$|tsconfig\.json$|lingui\.config\.js$|scripts/vite-service-worker\.ts$|package\.json$|bun\.lock$|\.github/workflows/storybook-tests\.yml$)'
+          pattern='^(src/|\.storybook/|vitest\.config\.ts$|vite\.config\.ts$|tsconfig\.json$|lingui\.config\.js$|scripts/vite-service-worker\.ts$|postcss\.config\.ts$|bunfig\.toml$|\.nvmrc$|package\.json$|bun\.lock$|\.github/workflows/storybook-tests\.yml$)'
           # Into a variable first: with pipefail, grep -q exiting early can SIGPIPE
           # git diff and make a match look like no match.
           changed=$(git diff --name-only "origin/$BASE_REF...HEAD")
@@ -90,3 +92,22 @@ jobs:
         run: bunx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
           "bun storybook --ci --quiet" \
           "bunx wait-on http://localhost:6006/iframe.html && bun test-storybook"
+
+  storybook:
+    needs: [changes, test]
+    # always(), not !cancelled(): a cancelled run must fail this check, not skip it.
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require a working filter, and passing tests when it asked for them
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          WANTED: ${{ needs.changes.outputs.storybook }}
+          TEST: ${{ needs.test.result }}
+        run: |
+          [ "$CHANGES" = success ] || { echo "::error::changes job: $CHANGES"; exit 1; }
+          if [ "$WANTED" = true ] && [ "$TEST" != success ]; then
+            echo "::error::test job: $TEST"
+            exit 1
+          fi
