@@ -1,5 +1,6 @@
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { object, picklist, safeParse, string } from "valibot";
+import { audited } from "~/functions/audited";
 import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { BadRequestError } from "~/server/access/http-errors";
 import type { SessionUser } from "~/server/auth/auth";
@@ -73,7 +74,13 @@ export const handleMakeUserAdmin = createServerOnlyFn(
 export const makeUserAdmin = createServerFn({ method: "POST" })
 	.middleware([freshAuthMiddleware])
 	.validator(validateMakeAdmin)
-	.handler(handleMakeUserAdmin);
+	.handler(
+		audited(
+			"makeUserAdmin",
+			({ userId, role }) => ({ subject: "user", id: userId, detail: role }),
+			handleMakeUserAdmin,
+		),
+	);
 
 export const handleGetRoleSelfService = createServerOnlyFn(async () => {
 	const { isRoleSelfServiceEnabled } = await import("~/server/access/role-self-service");
