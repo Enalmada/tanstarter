@@ -15,8 +15,7 @@ export const VerifyEmail: FC<VerifyEmailProps> = ({ appName, verificationUrl, li
 		<Heading className="mb-4 text-2xl font-semibold text-gray-900">Confirm your email</Heading>
 
 		<Text className="text-base leading-relaxed text-gray-700">
-			Use the button below to confirm this address and finish creating your account. The link works for{" "}
-			{linkValidMinutes} minutes.
+			Use the button below to confirm this address, then sign in. The link works for {linkValidMinutes} minutes.
 		</Text>
 
 		<Section className="my-8">

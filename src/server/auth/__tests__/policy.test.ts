@@ -17,15 +17,30 @@ const PASSWORD = "a-long-enough-passphrase"; // betterleaks:allow
 const CLIENT_IP = "203.0.113.9";
 
 // Same policy, IP header and audit hook as src/server/auth/auth.ts, on an in-memory database.
-function createTestAuth() {
+function createTestAuth({ canSendEmail = true } = {}) {
 	const sent: { email: string; url: string }[] = [];
 	const logs: { message: string; data: Record<string, unknown> }[] = [];
-	const policy = createAuthPolicy({ requireEmailVerification: true });
+	const policy = createAuthPolicy({ requireEmailVerification: true, canSendEmail });
 	const auth = betterAuth({
 		database: memoryAdapter({ user: [], session: [], account: [], verification: [] }),
 		secret: "test-secret-that-is-at-least-32-characters", // betterleaks:allow
 		baseURL: ORIGIN,
 		emailAndPassword: policy.emailAndPassword,
+		account: policy.account,
+		socialProviders: {
+			google: {
+				clientId: "test-client-id",
+				clientSecret: "test-client-secret", // betterleaks:allow
+				verifyIdToken: async () => true,
+				// The provider reports the address as verified, as Google does.
+				// (Cast: the full Google profile type has fields the flow never reads.)
+				getUserInfo: async () =>
+					({
+						user: { id: "google-sub-1", email: EMAIL, name: "Person", emailVerified: true },
+						data: { sub: "google-sub-1", email: EMAIL, email_verified: true },
+					}) as never,
+			},
+		},
 		emailVerification: {
 			...policy.emailVerification,
 			sendVerificationEmail: async ({ user, url }) => {
@@ -41,6 +56,12 @@ function createTestAuth() {
 
 type TestAuth = ReturnType<typeof createTestAuth>["auth"];
 
+const cookieHeader = (res: Response) =>
+	res.headers
+		.getSetCookie()
+		.map((line) => line.split(";")[0])
+		.join("; ");
+
 async function post(auth: TestAuth, path: string, body: Record<string, unknown>) {
 	const res = await auth.handler(
 		new Request(`${ORIGIN}/api/auth${path}`, {
@@ -49,10 +70,7 @@ async function post(auth: TestAuth, path: string, body: Record<string, unknown>)
 			body: JSON.stringify(body),
 		}),
 	);
-	const cookie = res.headers
-		.getSetCookie()
-		.map((line) => line.split(";")[0])
-		.join("; ");
+	const cookie = cookieHeader(res);
 	return { status: res.status, cookie, body: (await res.json().catch(() => null)) as Record<string, unknown> | null };
 }
 
@@ -62,13 +80,14 @@ const signIn = (auth: TestAuth, password = PASSWORD) => post(auth, "/sign-in/ema
 
 async function followLink(auth: TestAuth, url: string) {
 	const res = await auth.handler(new Request(url, { headers: { "fly-client-ip": CLIENT_IP } }));
-	return { status: res.status, location: res.headers.get("location") };
+	return { status: res.status, location: res.headers.get("location"), cookie: cookieHeader(res) };
 }
 
 const verify = async (auth: TestAuth, url: string) => (await followLink(auth, url)).status;
 
 afterEach(() => {
 	vi.useRealTimers();
+	vi.unstubAllGlobals();
 });
 
 describe("password length", () => {
@@ -103,10 +122,17 @@ describe("email verification", () => {
 		expect(sent).toHaveLength(2);
 	});
 
-	it("signs in after the link is followed", async () => {
+	it("verifies the address without signing anyone in, so the person signs in with their own password", async () => {
 		const { auth, sent } = createTestAuth();
 		await signUp(auth, PASSWORD);
-		expect([200, 302]).toContain(await verify(auth, sent[0]?.url ?? ""));
+		const link = await followLink(auth, sent[0]?.url ?? "");
+		expect([200, 302]).toContain(link.status);
+		// The link only proves control of the mailbox, not who chose the password.
+		expect(link.cookie).not.toContain("session_token");
+		const session = await auth.handler(
+			new Request(`${ORIGIN}/api/auth/get-session`, { headers: { cookie: link.cookie } }),
+		);
+		expect(await session.json()).toBeNull();
 
 		const res = await signIn(auth);
 		expect(res.status).toBe(200);
@@ -116,14 +142,28 @@ describe("email verification", () => {
 	it("does not reveal whether an address already has an account", async () => {
 		const { auth, sent } = createTestAuth();
 		const first = await signUp(auth, PASSWORD);
-		const second = await signUp(auth, PASSWORD);
+		const second = await signUp(auth, "another-long-enough-passphrase"); // betterleaks:allow
 
 		expect(second.status).toBe(first.status);
 		expect(second.body?.token).toBeNull();
+		expect(first.cookie).toBe("");
+		expect(second.cookie).toBe("");
+		// The new user's fields are all present in the answer for an existing one (the in-memory
+		// adapter leaves out null columns the real database returns).
+		const firstUser = (first.body?.user ?? {}) as Record<string, unknown>;
+		const secondUser = (second.body?.user ?? {}) as Record<string, unknown>;
+		for (const key of Object.keys(firstUser)) {
+			expect(secondUser, key).toHaveProperty(key);
+		}
 		expect(sent).toHaveLength(1);
+
+		// The second sign-up must not have changed the password.
+		await verify(auth, sent[0]?.url ?? "");
+		expect((await signIn(auth)).status).toBe(200);
+		expect((await signIn(auth, "another-long-enough-passphrase")).status).toBe(401); // betterleaks:allow
 	});
 
-	it("sends a followed link back to sign-in, which forwards a verified visitor to the app", async () => {
+	it("sends a followed link to sign-in, keeping the destination", async () => {
 		const { auth, sent } = createTestAuth();
 		await signUp(auth, PASSWORD, verificationCallback("/tasks"));
 
@@ -152,6 +192,47 @@ describe("email verification", () => {
 		await verify(auth, url.toString());
 
 		expect((await signIn(auth)).status).toBe(403);
+	});
+});
+
+describe("Google linking", () => {
+	async function signInWithGoogle(auth: TestAuth) {
+		return post(auth, "/sign-in/social", { provider: "google", idToken: { token: "test-token" } });
+	}
+
+	it("does not merge into an email/password account, even a verified one", async () => {
+		const { auth, sent } = createTestAuth();
+		await signUp(auth, PASSWORD); // someone registers an address with their own password
+		await verify(auth, sent[0]?.url ?? ""); // and the owner (or a link scanner) follows the link
+
+		const google = await signInWithGoogle(auth);
+		expect(google.status).toBe(401);
+		expect(google.body?.code).toBe("OAUTH_LINK_ERROR");
+	});
+
+	it("still signs in an address that has no account yet", async () => {
+		const { auth } = createTestAuth();
+		const google = await signInWithGoogle(auth);
+		expect(google.status).toBe(200);
+		expect(google.body?.token).toEqual(expect.any(String));
+	});
+});
+
+describe("when email cannot be sent", () => {
+	it("turns email sign-up off for every address alike and sends nothing", async () => {
+		const { auth, sent } = createTestAuth({ canSendEmail: false });
+		const first = await signUp(auth, PASSWORD);
+		const second = await post(auth, "/sign-up/email", {
+			email: "other@example.com",
+			password: PASSWORD,
+			name: "Other",
+		});
+
+		expect(first.status).toBe(400);
+		expect(first.body?.code).toBe("EMAIL_PASSWORD_SIGN_UP_DISABLED");
+		expect(second.status).toBe(first.status);
+		expect(second.body?.code).toBe(first.body?.code);
+		expect(sent).toHaveLength(0);
 	});
 });
 
@@ -240,6 +321,37 @@ describe("audit trail", () => {
 		await verify(auth, url.toString());
 
 		expect(logs.at(-1)?.data).toMatchObject({ event: "email_verified", outcome: "failure", code: "INVALID_TOKEN" });
+	});
+
+	it("logs a successful OAuth sign-in as a success even if the destination carries ?error=", async () => {
+		const realFetch = globalThis.fetch;
+		vi.stubGlobal("fetch", async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) =>
+			String(input instanceof Request ? input.url : input).startsWith("https://oauth2.googleapis.com/token")
+				? Response.json({ access_token: "at", id_token: "x.y.z", token_type: "Bearer", expires_in: 3600 })
+				: realFetch(input, init),
+		);
+		const { auth, logs } = createTestAuth();
+
+		const start = await auth.handler(
+			new Request(`${ORIGIN}/api/auth/sign-in/social`, {
+				method: "POST",
+				headers: { origin: ORIGIN, "content-type": "application/json", "fly-client-ip": CLIENT_IP },
+				body: JSON.stringify({ provider: "google", callbackURL: "/tasks?error=anything" }),
+			}),
+		);
+		const state = new URL(((await start.json()) as { url: string }).url).searchParams.get("state");
+		const callback = await auth.handler(
+			new Request(`${ORIGIN}/api/auth/callback/google?code=c&state=${state}`, {
+				headers: { cookie: cookieHeader(start), "fly-client-ip": CLIENT_IP },
+			}),
+		);
+
+		expect(callback.headers.get("location")).toBe("/tasks?error=anything");
+		expect(logs.at(-1)?.data).toMatchObject({
+			event: "sign_in_oauth",
+			outcome: "success",
+			userId: expect.any(String),
+		});
 	});
 
 	it("ignores paths it does not audit", async () => {

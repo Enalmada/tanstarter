@@ -38,4 +38,6 @@ export const userDatabaseHooks = {
 
 // The app never calls /update-user; leaving it mounted lets clients write raw
 // `name`/`image` (and any future additionalField) past app validation.
-export const authDisabledPaths = ["/update-user"];
+// The app also never calls /send-verification-email (sign-in re-sends the link itself);
+// mounted, it would let anyone trigger mail to any unverified address.
+export const authDisabledPaths = ["/update-user", "/send-verification-email"];
