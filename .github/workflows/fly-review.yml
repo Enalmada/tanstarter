@@ -107,9 +107,11 @@ jobs:
             AXIOM_TOKEN=${{ secrets.AXIOM_TOKEN }}
             BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
             DATABASE_URL=${{ steps.create_db.outputs.db_url }}
+            EMAIL_FROM=${{ vars.EMAIL_FROM }}
             GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             NODE_ENV=production
+            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
 
   # DESTROY RESOURCES (PR closed, with or without the `preview` label, or a late
   # create_environment run found it no longer open).
