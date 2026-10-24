@@ -12,7 +12,7 @@ import { PLAYWRIGHT_ADMIN_USER, PLAYWRIGHT_MEMBER_USER } from "./playwright-user
  * falls through to the real session lookup.
  */
 export const checkPlaywrightTestAuth = async (): Promise<SessionUser | null> => {
-	if (process.env.NODE_ENV !== "development" || process.env.PLAYWRIGHT !== "true") {
+	if (!isPlaywrightServer()) {
 		return null;
 	}
 
@@ -52,3 +52,11 @@ export const checkPlaywrightTestAuth = async (): Promise<SessionUser | null> => 
 		updatedAt: user.updatedAt,
 	} as SessionUser;
 };
+
+/**
+ * True only on the dev server Playwright started (see the note above). Used to
+ * relax checks the e2e run cannot satisfy, such as email verification, which
+ * needs an inbox.
+ */
+export const isPlaywrightServer = (): boolean =>
+	process.env.NODE_ENV === "development" && process.env.PLAYWRIGHT === "true";

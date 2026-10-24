@@ -92,6 +92,19 @@ describe("better-auth user-field policy", () => {
 		expect(findUser(user.id)?.name).toBe("Member");
 	});
 
+	it("disables /send-verification-email so nobody can trigger mail to an address", async () => {
+		const { auth } = createTestAuth();
+		const res = await call(auth, "/send-verification-email", { email: "someone@example.com" });
+		expect(res.status).toBe(404);
+	});
+
+	it("disables /link-social, which disableImplicitLinking does not cover", async () => {
+		const { auth } = createTestAuth();
+		const { token } = (await signUp(auth)).json as { token: string };
+		const res = await call(auth, "/link-social", { provider: "google" }, token);
+		expect(res.status).toBe(404);
+	});
+
 	it("keeps change-email and delete-user inert (not enabled in config)", async () => {
 		const { auth } = createTestAuth();
 		const { token } = (await signUp(auth)).json as { token: string };

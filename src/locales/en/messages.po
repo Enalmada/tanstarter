@@ -30,6 +30,10 @@ msgid "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui 
 msgstr "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui components."
 
 #: src/routes/_guest/signin.tsx
+msgid "Confirm your email address first. We sent you a new link."
+msgstr "Confirm your email address first. We sent you a new link."
+
+#: src/routes/_guest/signin.tsx
 msgid "Continue with Google"
 msgstr "Continue with Google"
 
@@ -118,10 +122,6 @@ msgid "Password"
 msgstr "Password"
 
 #: src/routes/_guest/signin.tsx
-msgid "Password must be at least 8 characters"
-msgstr "Password must be at least 8 characters"
-
-#: src/routes/_guest/signin.tsx
 msgid "Please enter a valid email address"
 msgstr "Please enter a valid email address"
 
@@ -165,6 +165,10 @@ msgstr "System"
 #: src/routes/index.tsx
 msgid "TanStarter Todo"
 msgstr "TanStarter Todo"
+
+#: src/routes/_guest/signin.tsx
+msgid "This confirmation link has expired or is no longer valid. Sign in and we'll send you a new one."
+msgstr "This confirmation link has expired or is no longer valid. Sign in and we'll send you a new one."
 
 #: src/components/ThemeToggle.tsx
 msgid "Toggle theme"
