@@ -11,9 +11,11 @@
  *   controls the mailbox, not who chose the password: with auto sign-in, an
  *   attacker who registered a victim's address with their own password would
  *   get the victim to sign the attacker's account in.
- * - Google never links into an existing account (`disableImplicitLinking`). A
- *   verified email/password row could otherwise be taken over the same way: the
- *   squatter's row becomes verified when the owner clicks the link, then the
+ * - Google never links into an existing account. `disableImplicitLinking` stops
+ *   the sign-in path, and the explicit `/link-social` endpoint (which governs
+ *   nothing else and which the app never calls) is disabled in `user-fields`.
+ *   A verified email/password row could otherwise be taken over the same way:
+ *   the squatter's row becomes verified when the owner clicks the link, then the
  *   owner's Google sign-in merges into it while the squatter's password works.
  * - With no way to send mail (see `emailDelivery`), email sign-up is off instead
  *   of creating accounts nobody can verify. Every address gets the same refusal.

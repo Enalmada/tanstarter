@@ -98,6 +98,13 @@ describe("better-auth user-field policy", () => {
 		expect(res.status).toBe(404);
 	});
 
+	it("disables /link-social, which disableImplicitLinking does not cover", async () => {
+		const { auth } = createTestAuth();
+		const { token } = (await signUp(auth)).json as { token: string };
+		const res = await call(auth, "/link-social", { provider: "google" }, token);
+		expect(res.status).toBe(404);
+	});
+
 	it("keeps change-email and delete-user inert (not enabled in config)", async () => {
 		const { auth } = createTestAuth();
 		const { token } = (await signUp(auth)).json as { token: string };
