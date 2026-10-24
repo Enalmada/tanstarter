@@ -25,7 +25,7 @@ jobs:
           # fly.toml's release_command (the migrations), which is a no-op once applied.
           for i in 1 2 3; do
             echo "Deployment attempt $i of 3"
-            if flyctl deploy --app tanstarter --remote-only; then
+            if flyctl deploy --app tanstarter --remote-only --build-arg APT_UPGRADE_CACHE_BUST="$GITHUB_RUN_ID"; then
               echo "Deployment successful!"
               exit 0
             fi
