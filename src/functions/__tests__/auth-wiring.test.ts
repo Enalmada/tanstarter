@@ -22,6 +22,14 @@ const PUBLIC_SERVER_FUNCTIONS = new Set([
 	"updateLocale", // sets the language cookie, also for signed-out visitors
 ]);
 
+// POST functions that change no stored data, so they leave no `audit.mutation` line.
+const NOT_AUDITED_SERVER_FUNCTIONS = new Set([
+	"updateLocale", // language cookie
+	"triggerSSENotification", // in-memory demo broadcast
+	"throwUnexpectedServerError", // monitoring demos
+	"throwExpectedServerError",
+]);
+
 const SKIPPED_DIRS = new Set(["__tests__", "e2e", "storybook", "node_modules"]);
 
 function sourceFiles(dir: string): string[] {
@@ -38,7 +46,7 @@ function stripComments(source: string) {
 }
 
 function scan() {
-	const declared: { file: string; name: string; chain: string }[] = [];
+	const declared: { file: string; name: string; chain: string; handler: string }[] = [];
 	let calls = 0;
 	for (const file of sourceFiles(srcDir)) {
 		const source = stripComments(readFileSync(file, "utf8"));
@@ -46,7 +54,12 @@ function scan() {
 		for (const match of source.matchAll(/export const (\w+) = createServerFn\(/g)) {
 			const start = match.index ?? 0;
 			const end = source.indexOf(".handler(", start);
-			declared.push({ file: path.relative(srcDir, file), name: match[1] ?? "", chain: source.slice(start, end) });
+			declared.push({
+				file: path.relative(srcDir, file),
+				name: match[1] ?? "",
+				chain: source.slice(start, end),
+				handler: source.slice(end, end + 40),
+			});
 		}
 	}
 	return { declared, calls };
@@ -69,6 +82,33 @@ describe("server function auth wiring", () => {
 			expect(authed, `${name} is on the public allowlist but has auth middleware; drop it from the list`).toBe(false);
 		} else {
 			expect(authed, `${fn.file}: ${name} needs .middleware([authMiddleware | freshAuthMiddleware])`).toBe(true);
+		}
+	});
+
+	it("declares a literal method on every server function", () => {
+		for (const fn of declared) {
+			expect(
+				/createServerFn\(\{[^}]*\bmethod:\s*["'](?:GET|POST)["']/.test(fn.chain),
+				`${fn.file}: ${fn.name} needs createServerFn({ method: "GET" | "POST" }) so the audit check can classify it`,
+			).toBe(true);
+		}
+	});
+
+	const posts = declared.filter((fn) => /\bmethod:\s*["']POST["']/.test(fn.chain));
+
+	it("finds the POST server functions", () => {
+		// An empty it.each registers no tests, so guard against the filter matching nothing.
+		expect(posts.length).toBeGreaterThanOrEqual(8);
+	});
+
+	it.each(
+		posts.map((fn) => [fn.name, fn] as const),
+	)("%s writes an audit line or is listed as not storing data", (name, fn) => {
+		const audited = /^\.handler\(\s*audited\(/.test(fn.handler);
+		if (NOT_AUDITED_SERVER_FUNCTIONS.has(name)) {
+			expect(audited, `${name} is audited; drop it from NOT_AUDITED_SERVER_FUNCTIONS`).toBe(false);
+		} else {
+			expect(audited, `${fn.file}: ${name} changes data, so wrap its handler: .handler(audited(...))`).toBe(true);
 		}
 	});
 });

@@ -1,5 +1,6 @@
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { object, picklist, safeParse, string } from "valibot";
+import { audited } from "~/functions/audited";
 import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { BadRequestError } from "~/server/access/http-errors";
 import type { SessionUser } from "~/server/auth/auth";
@@ -30,16 +31,15 @@ export const handleMakeUserAdmin = createServerOnlyFn(
 	async ({ data, context }: { data: { userId: string; role: UserRoleLiteral }; context: { user: SessionUser } }) => {
 		const { userId, role } = data;
 
-		const { logger } = await import("~/utils/logger");
 		const { getUserById, updateUserRole } = await import("./user.db");
 		const { NotAuthorizedError, NotFoundError } = await import("~/server/access/http-errors");
 		const { getOptionalSessionUser } = await import("~/server/auth/session");
+		const { logger } = await import("~/utils/logger");
 		const { isRoleSelfServiceEnabled } = await import("~/server/access/role-self-service");
 
 		// freshAuthMiddleware already rejected anonymous callers (401) and read the
 		// role from the DB rather than the cookie cache.
 		const currentUser = context.user;
-		logger.info("makeUserAdmin", { userId, role, currentUserId: currentUser.id });
 
 		// Admins may change anyone's role. Everyone else may only flip their OWN
 		// role, and only where self-service is enabled (local dev or DEMO_MODE) —
@@ -58,13 +58,21 @@ export const handleMakeUserAdmin = createServerOnlyFn(
 
 		// Update the user's role
 		const [updatedUser] = await updateUserRole(userId, role as UserRole, currentUser.id);
+		if (!updatedUser) {
+			throw new NotFoundError(`User ${userId} not found`);
+		}
 
 		// Refresh the session cookie cache so a hard refresh observes the new role.
 		// Best-effort: `getOptionalSessionUser({ freshFromDb: true })` re-queries the
 		// DB AND forwards the Set-Cookie headers via the helper. If the
 		// AsyncLocalStorage context isn't active for some reason, the helper
-		// returns null and we just skip silently.
-		await getOptionalSessionUser({ freshFromDb: true });
+		// returns null and we just skip silently. A failure here must not fail the
+		// call: the role is already changed, and the audit line records the outcome.
+		try {
+			await getOptionalSessionUser({ freshFromDb: true });
+		} catch {
+			logger.error("makeUserAdmin session refresh failed", { userId });
+		}
 
 		return updatedUser;
 	},
@@ -73,7 +81,13 @@ export const handleMakeUserAdmin = createServerOnlyFn(
 export const makeUserAdmin = createServerFn({ method: "POST" })
 	.middleware([freshAuthMiddleware])
 	.validator(validateMakeAdmin)
-	.handler(handleMakeUserAdmin);
+	.handler(
+		audited(
+			"makeUserAdmin",
+			({ userId, role }) => ({ subject: "user", id: userId, detail: role }),
+			handleMakeUserAdmin,
+		),
+	);
 
 export const handleGetRoleSelfService = createServerOnlyFn(async () => {
 	const { isRoleSelfServiceEnabled } = await import("~/server/access/role-self-service");
