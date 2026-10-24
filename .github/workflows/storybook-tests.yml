@@ -39,8 +39,9 @@ jobs:
         run: |
           # Storybook's builder loads the root Vite config (plugins, aliases, define)
           pattern='^(src/|\.storybook/|vitest\.config\.ts$|vite\.config\.ts$|tsconfig\.json$|lingui\.config\.js$|scripts/vite-service-worker\.ts$|postcss\.config\.ts$|bunfig\.toml$|\.nvmrc$|package\.json$|bun\.lock$|\.github/workflows/storybook-tests\.yml$)'
-          # Into a variable first: with pipefail, grep -q exiting early can SIGPIPE
-          # git diff and make a match look like no match.
+          # Into a variable first, not a pipe into grep: a failing git diff then fails
+          # this step (bash -e) instead of reading as "no changes", and grep -q
+          # exiting early cannot SIGPIPE it.
           changed=$(git diff --name-only "origin/$BASE_REF...HEAD")
           if grep -Eq "$pattern" <<< "$changed"; then
             echo "storybook=true" >> "$GITHUB_OUTPUT"
