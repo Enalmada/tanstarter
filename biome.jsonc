@@ -62,7 +62,7 @@
 		"rules": {
 			"preset": "recommended",
 			"nursery": {
-				// Type-aware rules (Biome's own type inference; ported from UseFrank/frank#41).
+				// Type-aware rules (Biome's own type inference).
 				// fix: none, because the pre-commit `--unsafe` fix would pick await/void
 				// or add empty switch cases for you.
 				"noFloatingPromises": { "level": "error", "fix": "none" },
