@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
@@ -60,7 +60,7 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
+			"preset": "recommended",
 			"nursery": {
 				// Type-aware rules (Biome's own type inference; ported from UseFrank/frank#41).
 				// fix: none, because the pre-commit `--unsafe` fix would pick await/void
@@ -69,13 +69,15 @@
 				"noMisusedPromises": { "level": "error", "fix": "none" },
 				"useAwaitThenable": "error",
 				"useExhaustiveSwitchCases": { "level": "error", "fix": "none" },
-				"useArraySortCompare": "error",
 				"noUnsafePlusOperands": "error",
 				"noImpliedEval": "error"
 			},
 			"suspicious": {
 				"noConsole": { "level": "error", "fix": "safe" },
-				"noDebugger": "error"
+				"noDebugger": "error",
+				"useArraySortCompare": "error",
+				// A Turborepo rule: env vars are declared and validated in env.config.ts, not in turbo.json.
+				"noUndeclaredEnvVars": "off"
 			},
 			"correctness": {
 				"noUnusedImports": "error",
@@ -105,6 +107,14 @@
 			}
 		}
 	},
+	"overrides": [
+		{
+			// Biome resolves `act(async () => ...)` to React's first, synchronous overload (returns void)
+			// and flags the `await`. TypeScript resolves it to Promise<void>, and tests must await it.
+			"includes": ["src/**/__tests__/**"],
+			"linter": { "rules": { "nursery": { "useAwaitThenable": "off" } } }
+		}
+	],
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double",
