@@ -7,6 +7,8 @@ import { Card } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { safeRedirect } from "~/lib/auth/guards";
+import { MIN_PASSWORD_LENGTH } from "~/lib/auth/password-policy";
+import { VERIFICATION_LINK_MINUTES, verificationCallback } from "~/lib/auth/verification-link";
 import authClient from "~/utils/auth-client";
 
 function GoogleIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -82,6 +84,7 @@ function SignupForm() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isUserExists, setIsUserExists] = useState(false);
+	const [confirmationSentTo, setConfirmationSentTo] = useState<string | null>(null);
 
 	const form = useForm({
 		defaultValues: {
@@ -98,14 +101,26 @@ function SignupForm() {
 					email: value.email,
 					password: value.password,
 					name: value.email.split("@")[0], // Use email prefix as default name
-					callbackURL: redirectTarget,
+					callbackURL: verificationCallback(redirectTarget),
 				});
 
 				// Check if the result contains an error
 				if (result && typeof result === "object" && "error" in result && result.error) {
 					// Better Auth returns errors in result.error, not as thrown exceptions
 					const error = result.error as { message?: string; code?: string };
+					// The server turns email sign-up off when it cannot send the verification link.
+					if (error.code === "EMAIL_PASSWORD_SIGN_UP_DISABLED") {
+						throw new Error("Email sign-up isn't available right now. Please continue with Google.");
+					}
 					throw new Error(error.message || error.code || "Sign up failed");
+				}
+
+				// Email sign-ups must confirm their address first: no session is created yet, and a
+				// link is on its way.
+				if (!result.data?.token) {
+					setIsLoading(false);
+					setConfirmationSentTo(value.email);
+					return;
 				}
 
 				// Success: better-auth sets the session cookie but does not redirect after email sign-up, so go to the
@@ -136,6 +151,26 @@ function SignupForm() {
 			}
 		},
 	});
+
+	if (confirmationSentTo) {
+		return (
+			<div className="space-y-4 text-center" role="status">
+				<h2 className="text-lg font-semibold">Check your email</h2>
+				<p className="text-sm text-muted-foreground">
+					If <span className="font-medium text-foreground">{confirmationSentTo}</span> can be used for a new account, we
+					sent it a confirmation link. Open it to confirm your address, then sign in. The link works for{" "}
+					{VERIFICATION_LINK_MINUTES} minutes.
+				</p>
+				<Link
+					to="/signin"
+					search={{ redirect: search.redirect }}
+					className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+				>
+					Back to sign in
+				</Link>
+			</div>
+		);
+	}
 
 	return (
 		<form
@@ -184,7 +219,13 @@ function SignupForm() {
 				validators={{
 					onChange: ({ value }) => {
 						try {
-							parse(pipe(string(), minLength(8, "Password must be at least 8 characters")), value);
+							parse(
+								pipe(
+									string(),
+									minLength(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`),
+								),
+								value,
+							);
 							return undefined;
 						} catch (err) {
 							return err instanceof Error ? err.message : "Invalid password";
@@ -202,7 +243,7 @@ function SignupForm() {
 							value={field.state.value}
 							onBlur={field.handleBlur}
 							onChange={(e) => field.handleChange(e.target.value)}
-							placeholder="Enter your password (8+ characters)"
+							placeholder={`Choose a password (${MIN_PASSWORD_LENGTH}+ characters)`}
 							disabled={isLoading}
 						/>
 						{field.state.meta.errors.length > 0 && (

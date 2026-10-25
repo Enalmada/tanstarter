@@ -6,4 +6,5 @@
 // biome-ignore lint/performance/noBarrelFile: Intentional barrel for email template exports
 export * from "./components/EmailLayout";
 export * from "./preview-data";
+export * from "./VerifyEmail";
 export * from "./WelcomeEmail";
