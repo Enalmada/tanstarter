@@ -10,6 +10,7 @@
 
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { safeParse } from "valibot";
+import { audited } from "~/functions/audited";
 import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { formatIssues, validateCreateEntity } from "~/functions/base-service";
 import type { EntityType } from "~/lib/entity-types";
@@ -74,4 +75,4 @@ export const handleCreateEntity = createServerOnlyFn(
 export const createEntity = createServerFn({ method: "POST" })
 	.middleware([freshAuthMiddleware])
 	.validator(validateCreateEntityInput)
-	.handler(handleCreateEntity);
+	.handler(audited("createEntity", ({ subject }) => ({ subject }), handleCreateEntity));
