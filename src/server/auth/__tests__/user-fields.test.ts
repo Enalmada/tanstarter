@@ -23,6 +23,10 @@ function createTestAuth() {
 		secret: "test-secret-that-is-at-least-32-characters",
 		baseURL: ORIGIN,
 		emailAndPassword: { enabled: true },
+		// Configured so a disabled endpoint is told apart from one that is mounted but would
+		// answer 404 anyway (no provider, no sender).
+		socialProviders: { google: { clientId: "test-client-id", clientSecret: "test-client-secret" } }, // betterleaks:allow
+		emailVerification: { sendVerificationEmail: async () => {} },
 		user: { additionalFields: userAdditionalFields },
 		databaseHooks: userDatabaseHooks,
 		disabledPaths: authDisabledPaths,
