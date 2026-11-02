@@ -81,7 +81,7 @@ jobs:
 
       - name: Checkout code
         if: steps.pr_state.outputs.open == 'true'
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Fly CLI
         if: steps.pr_state.outputs.open == 'true'
@@ -95,7 +95,7 @@ jobs:
       - name: Create Neon Database Branch
         id: create_db
         if: steps.pr_state.outputs.open == 'true'
-        uses: neondatabase/create-branch-action@ad7325f8b2fe61e29689926c29d153e8c98b7336 # v5.2.0
+        uses: neondatabase/create-branch-action@72ed4f69a12b6be9c16aebfad893f6a21e9aba8b # v6.4.0
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch_name: pr-${{ github.event.number }}
@@ -106,7 +106,7 @@ jobs:
       - name: Deploy Fly.io app
         id: deploy_app
         if: steps.pr_state.outputs.open == 'true'
-        uses: superfly/fly-pr-review-apps@f5d85309215d5700e7a42faf9aa5e9a718aaef7c # 1.5.0
+        uses: superfly/fly-pr-review-apps@5d9f067254bebd0aaa77d908d6337b63f4d4f019 # 1.6.0
         with:
           name: ${{ env.FLY_APP_NAME }}
           config: fly.toml
@@ -190,7 +190,7 @@ jobs:
 
       - name: Clean up GitHub deployments
         if: ${{ !cancelled() }}
-        uses: strumwolf/delete-deployment-environment@195215d2c5602aee6fb4b9cf0853970decca9e7a # v2.3.0
+        uses: strumwolf/delete-deployment-environment@035f6d27c8b8951729f4d71b2d3d6a7975139476 # v4.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: pr-${{ github.event.number }}
