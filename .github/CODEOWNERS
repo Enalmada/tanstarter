@@ -1,0 +1,26 @@
+# Changes to CI, deploys, auth, the Dockerfile, dependencies, scanner config and
+# the client env allowlist need the maintainer.
+# GitHub only enforces this once the branch ruleset on main has "Require review
+# from Code Owners" turned on. GitHub does not count an author's own approval,
+# so the maintainer's own pull requests on these paths need a second owner or a
+# ruleset bypass. Replace @Enalmada with your own handle or team after a fork.
+/.github/ @Enalmada
+/Dockerfile @Enalmada
+/fly.toml @Enalmada
+/SECURITY.md @Enalmada
+/bunfig.toml @Enalmada
+/package.json @Enalmada
+/bun.lock @Enalmada
+/src/server/auth/ @Enalmada
+/src/server/access/ @Enalmada
+/src/start.ts @Enalmada
+/src/config/cspRules.ts @Enalmada
+/.semgrepignore @Enalmada
+/.betterleaksignore @Enalmada
+/scripts/ @Enalmada
+/env.config.ts @Enalmada
+/src/lib/env/ @Enalmada
+/src/lib/auth/ @Enalmada
+/src/functions/auth-middleware.ts @Enalmada
+/src/functions/__tests__/auth-wiring.test.ts @Enalmada
+/src/routes/api/auth/ @Enalmada

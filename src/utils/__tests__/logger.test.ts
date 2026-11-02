@@ -24,7 +24,7 @@ let error: ReturnType<typeof vi.spyOn>;
 
 /** The NDJSON payload of a fetch call; Axiom gzips it when CompressionStream exists. */
 async function requestEvents(call: number): Promise<Array<Record<string, unknown>>> {
-	const { body, headers } = fetchMock.mock.calls[call]?.[1] as {
+	const { body, headers } = (fetchMock.mock.calls[call] as unknown[])[1] as {
 		body: string | Uint8Array;
 		headers: Record<string, string>;
 	};

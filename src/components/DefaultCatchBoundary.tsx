@@ -29,7 +29,7 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
 			<div className="flex gap-4">
 				<Button
 					onClick={() => {
-						router.invalidate();
+						void router.invalidate();
 					}}
 				>
 					Try Again

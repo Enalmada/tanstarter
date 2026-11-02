@@ -1,5 +1,5 @@
-// Safety net for the Vitest 4 browser-mode + Playwright teardown hang
-// (ported from UseFrank/frank#12). Browser mode occasionally leaves a
+// Safety net for the Vitest 4 browser-mode + Playwright teardown hang.
+// Browser mode occasionally leaves a
 // Playwright CDP handle holding the event loop open after every test has
 // passed, so CI idles until the job timeout.
 //

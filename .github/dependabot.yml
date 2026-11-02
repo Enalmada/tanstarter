@@ -1,0 +1,22 @@
+# Keeps the SHA-pinned GitHub Actions and the Docker base image current.
+# npm packages are updated by hand with `bun run deps` (taze, 3-day maturity),
+# so they are not listed here. Security advisories for them come from the
+# weekly Dependency Audit workflow and Dependabot alerts.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
