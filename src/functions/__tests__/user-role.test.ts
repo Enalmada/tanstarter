@@ -1,18 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handleMakeUserAdmin } from "~/functions/user-role";
 import { UserRole } from "~/lib/enums/user-role";
-import { NotAuthorizedError } from "~/server/access/http-errors";
+import { NotAuthorizedError, NotFoundError } from "~/server/access/http-errors";
 
 const session = vi.hoisted(() => ({ getOptionalSessionUser: vi.fn() }));
 const userDb = vi.hoisted(() => ({
 	getUserById: vi.fn(),
 	updateUserRole: vi.fn(),
 }));
+const log = vi.hoisted(() => ({ error: vi.fn() }));
 const selfService = vi.hoisted(() => ({ isRoleSelfServiceEnabled: vi.fn() }));
 
 vi.mock("~/server/auth/session", () => session);
 vi.mock("~/functions/user.db", () => userDb);
 vi.mock("~/server/access/role-self-service", () => selfService);
+vi.mock("~/utils/logger", () => ({ logger: log }));
 
 const member = { id: "usr_member", role: UserRole.MEMBER };
 const admin = { id: "usr_admin", role: UserRole.ADMIN };
@@ -44,6 +46,23 @@ describe("handleMakeUserAdmin authorization", () => {
 		selfService.isRoleSelfServiceEnabled.mockReturnValue(true);
 
 		await expect(promote(member.id)).resolves.toEqual({ id: member.id, role: UserRole.ADMIN });
+	});
+
+	it("still succeeds when refreshing the session cookie fails, so the audit line matches the database", async () => {
+		caller = admin;
+		selfService.isRoleSelfServiceEnabled.mockReturnValue(false);
+		session.getOptionalSessionUser.mockRejectedValue(new Error("session lookup failed"));
+
+		await expect(promote("usr_other")).resolves.toEqual({ id: "usr_other", role: UserRole.ADMIN });
+		expect(log.error).toHaveBeenCalledOnce();
+	});
+
+	it("reports a user deleted between the lookup and the update as not found", async () => {
+		caller = admin;
+		selfService.isRoleSelfServiceEnabled.mockReturnValue(false);
+		userDb.updateUserRole.mockResolvedValue([]);
+
+		await expect(promote("usr_other")).rejects.toBeInstanceOf(NotFoundError);
 	});
 
 	it("rejects a member promoting themselves when self-service is disabled", async () => {

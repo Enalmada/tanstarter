@@ -6,8 +6,8 @@
  * ./ip-address), so it is the real client and not a proxy. Lines carry the user
  * id when there is one and never the email address or password: a failed
  * attempt is identified by IP and error code. They go through the logger, so
- * they reach Axiom when it is configured. Authenticated server-function
- * mutations are not logged here.
+ * they reach Axiom when it is configured. Server-function mutations are
+ * logged by ./mutation-audit.
  */
 
 import { createAuthMiddleware, getIP, isAPIError } from "better-auth/api";

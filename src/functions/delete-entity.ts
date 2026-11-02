@@ -11,6 +11,7 @@
 
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { safeParse } from "valibot";
+import { audited } from "~/functions/audited";
 import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { formatIssues, validateDeleteEntity } from "~/functions/base-service";
 import type { EntityType } from "~/lib/entity-types";
@@ -70,4 +71,4 @@ export const handleDeleteEntity = createServerOnlyFn(
 export const deleteEntity = createServerFn({ method: "POST" })
 	.middleware([freshAuthMiddleware])
 	.validator(validateDeleteEntityInput)
-	.handler(handleDeleteEntity);
+	.handler(audited("deleteEntity", ({ subject, id }) => ({ subject, id }), handleDeleteEntity));

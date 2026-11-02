@@ -11,6 +11,7 @@
 
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { safeParse } from "valibot";
+import { audited } from "~/functions/audited";
 import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { formatIssues, validateUpdateEntity } from "~/functions/base-service";
 import type { EntityType } from "~/lib/entity-types";
@@ -123,4 +124,4 @@ export const handleUpdateEntity = createServerOnlyFn(
 export const updateEntity = createServerFn({ method: "POST" })
 	.middleware([freshAuthMiddleware])
 	.validator(validateUpdateEntityInput)
-	.handler(handleUpdateEntity);
+	.handler(audited("updateEntity", ({ subject, id }) => ({ subject, id }), handleUpdateEntity));
