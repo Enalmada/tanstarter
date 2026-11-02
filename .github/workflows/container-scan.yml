@@ -1,0 +1,43 @@
+name: Container Scan
+
+# Builds the production image and fails on a fixable CRITICAL vulnerability in
+# the base image or the OS packages. Application dependencies are covered by
+# dependency-audit.yml; the runner stage ships only the bundled .output.
+#
+# No `paths:` filter: a path-filtered workflow cannot be a required check (see
+# .agents/security.md), and the weekly run builds a fresh image, so it shows what
+# the next deploy would ship (redeploy to pick up OS fixes). To accept a reviewed
+# finding, add its ID to .trivyignore with a reason and an expiry date.
+on:
+  pull_request:
+  schedule:
+    - cron: '17 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Build image
+        run: docker build --tag tanstarter:scan .
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: tanstarter:scan
+          severity: CRITICAL
+          # Only what a rebuild or a base-image bump can fix; nothing else is actionable.
+          ignore-unfixed: true
+          exit-code: '1'
+          trivyignores: .trivyignore
+          format: table

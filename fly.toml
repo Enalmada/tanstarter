@@ -17,7 +17,7 @@ primary_region = 'iad'
   # running the new image with the app's secrets, before any app Machine is
   # updated. A non-zero exit aborts the deploy and the current release keeps
   # serving. `bun run build` writes this bundle. Strategy stays rolling (the
-  # default): bluegreen needs a health check. See .agents/database.md.
+  # default). See .agents/database.md.
   release_command = "bun .output/migrate/migrate.mjs"
 
 [http_service]
@@ -27,6 +27,15 @@ primary_region = 'iad'
   auto_start_machines = true
   min_machines_running = 0
   processes = ['app']
+
+  # Fly routes traffic and finishes a deploy only to Machines that answer here.
+  # /health does not touch the database.
+  [[http_service.checks]]
+    method = 'GET'
+    path = '/health'
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '15s'
 
 [[vm]]
   memory = '512mb'
