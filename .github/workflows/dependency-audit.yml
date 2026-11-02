@@ -4,11 +4,11 @@ name: Dependency Audit
 # in any dependency (bun audit reads bun.lock; no install needed). Ported from
 # UseFrank/frank#41.
 #
-# Report-only for now: weekly + manual, not on pull requests. The current lock
-# has a backlog (mostly transitive vite 7 / ws / picomatch copies) that the
-# dependency-upgrade layers of the Sept 2026 update clear; add the
-# `pull_request` trigger (paths: package.json, bun.lock) once it is green.
+# Runs on every pull request (the audit takes seconds, and a workflow-level
+# `paths:` filter would stop it being a required check; see .agents/security.md)
+# and weekly, to catch advisories published after a dependency was merged.
 on:
+  pull_request:
   schedule:
     - cron: '0 14 * * 1'
   workflow_dispatch:
@@ -25,9 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           # Single source of truth: packageManager in package.json
           bun-version-file: package.json

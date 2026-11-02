@@ -101,14 +101,15 @@ describe("server function auth wiring", () => {
 		expect(posts.length).toBeGreaterThanOrEqual(8);
 	});
 
-	it.each(
-		posts.map((fn) => [fn.name, fn] as const),
-	)("%s writes an audit line or is listed as not storing data", (name, fn) => {
-		const audited = /^\.handler\(\s*audited\(/.test(fn.handler);
-		if (NOT_AUDITED_SERVER_FUNCTIONS.has(name)) {
-			expect(audited, `${name} is audited; drop it from NOT_AUDITED_SERVER_FUNCTIONS`).toBe(false);
-		} else {
-			expect(audited, `${fn.file}: ${name} changes data, so wrap its handler: .handler(audited(...))`).toBe(true);
-		}
-	});
+	it.each(posts.map((fn) => [fn.name, fn] as const))(
+		"%s writes an audit line or is listed as not storing data",
+		(name, fn) => {
+			const audited = /^\.handler\(\s*audited\(/.test(fn.handler);
+			if (NOT_AUDITED_SERVER_FUNCTIONS.has(name)) {
+				expect(audited, `${name} is audited; drop it from NOT_AUDITED_SERVER_FUNCTIONS`).toBe(false);
+			} else {
+				expect(audited, `${fn.file}: ${name} changes data, so wrap its handler: .handler(audited(...))`).toBe(true);
+			}
+		},
+	);
 });

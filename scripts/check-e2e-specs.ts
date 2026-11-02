@@ -13,6 +13,7 @@ const E2E_DIR = "src/e2e";
 
 type Suite = { file: string; suites?: Suite[] };
 
+// nosemgrep: javascript.lang.security.audit.spawn-shell-true.spawn-shell-true (fixed argument list; Windows needs the shell to resolve bunx.cmd)
 const list = spawnSync("bunx", ["playwright", "test", "--list", "--reporter=json"], {
 	encoding: "utf8",
 	stdio: ["ignore", "pipe", "inherit"],

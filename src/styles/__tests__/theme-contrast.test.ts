@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 /**
- * Guards WCAG 2.1 AA contrast for the destructive palette (ported from UseFrank/frank#43).
+ * Guards WCAG 2.1 AA contrast for the destructive palette.
  *
  * `--destructive` is the brand red used for borders, rings and tinted fills. It is too
  * light to carry text in light mode. `--destructive-strong` is the ink behind

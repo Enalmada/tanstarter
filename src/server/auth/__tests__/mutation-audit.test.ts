@@ -117,7 +117,7 @@ describe("auditMutation", () => {
 		const { logs, write } = setup();
 		await auditMutation(write, "deleteEntity", { subject: "task", id: "x".repeat(500) }, user, async () => 1);
 
-		expect((logs[0]?.data.id as string).length).toBe(64);
+		expect(String(logs[0]?.data.id)).toHaveLength(64);
 	});
 
 	it("logs a null IP outside a request", async () => {

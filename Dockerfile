@@ -1,5 +1,6 @@
-# Keep in sync with packageManager in package.json
-FROM oven/bun:1.4.2 AS base
+# Keep the version in sync with packageManager in package.json (by hand: Dependabot
+# moves this tag and digest, not packageManager). The digest pins the exact image.
+FROM oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895 AS base
 WORKDIR /app
 
 # Install dependencies into a separate stage for better layer caching
@@ -21,6 +22,16 @@ RUN bun run build
 
 # Final production image
 FROM base AS runner
+# A new value on every deploy (fly-deploy.yml) forces a fresh upgrade, so the
+# builder's layer cache never serves stale packages. Unset in scans and local builds.
+ARG APT_UPGRADE_CACHE_BUST
+# Pull in Debian security fixes published after the pinned base image was built
+# (container-scan.yml fails on a fixable CRITICAL). This trades bit-for-bit
+# reproducible builds for those fixes; the digest still fixes the base. Drop it
+# once a base-image bump from Dependabot carries them.
+RUN apt-get update \
+	&& apt-get upgrade --yes --no-install-recommends \
+	&& rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 # .output is self-contained: Nitro bundles every server dependency into
 # .output/server (there is no .output/server/node_modules) and copies public/
