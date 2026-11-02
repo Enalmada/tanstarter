@@ -1,0 +1,15 @@
+# Not shipped code or not ours.
+node_modules/
+.output/
+dist/
+*.gen.ts
+**/__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.stories.tsx
+src/e2e/
+src/server/db/migrations/
+.storybook/
+.claude/
+.agents/
+.plan/

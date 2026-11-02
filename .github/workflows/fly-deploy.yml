@@ -5,14 +5,20 @@ on:
   push:
     branches:
       - main
+
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy app
     runs-on: ubuntu-latest
     concurrency: deploy-group
     steps:
-      - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # 1.6
+        with:
+          version: 0.4.119 # an action input, so Dependabot does not bump it: update by hand
       - name: Deploy to Fly.io
         run: |
           # Try deployment up to 3 times to handle temporary API issues. A retry re-runs

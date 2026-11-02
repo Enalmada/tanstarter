@@ -10,10 +10,10 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, closed, labeled]
 
+# A job's own `permissions` replace this map rather than add to it, so each job
+# lists every scope it needs.
 permissions:
   contents: read
-  deployments: write
-  pull-requests: write
 
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
@@ -39,6 +39,10 @@ jobs:
       )
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: read
     outputs:
       api_url: ${{ steps.deploy_app.outputs.url }}
       pr_open: ${{ steps.pr_state.outputs.open }}
@@ -77,16 +81,21 @@ jobs:
 
       - name: Checkout code
         if: steps.pr_state.outputs.open == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Setup Fly CLI
         if: steps.pr_state.outputs.open == 'true'
-        uses: superfly/flyctl-actions/setup-flyctl@master
+        uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # 1.6
+        with:
+          version: 0.4.119 # an action input, so Dependabot does not bump it: update by hand
 
+      # These two actions still fetch tooling when they run (setup-node and
+      # neonctl@2; an alpine base image and fly.io/install.sh), so the SHA pin
+      # does not freeze everything they execute.
       - name: Create Neon Database Branch
         id: create_db
         if: steps.pr_state.outputs.open == 'true'
-        uses: neondatabase/create-branch-action@v5
+        uses: neondatabase/create-branch-action@ad7325f8b2fe61e29689926c29d153e8c98b7336 # v5.2.0
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch_name: pr-${{ github.event.number }}
@@ -97,7 +106,7 @@ jobs:
       - name: Deploy Fly.io app
         id: deploy_app
         if: steps.pr_state.outputs.open == 'true'
-        uses: superfly/fly-pr-review-apps@1.5.0
+        uses: superfly/fly-pr-review-apps@f5d85309215d5700e7a42faf9aa5e9a718aaef7c # 1.5.0
         with:
           name: ${{ env.FLY_APP_NAME }}
           config: fly.toml
@@ -124,13 +133,17 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       (github.event.action == 'closed' || needs.create_environment.outputs.pr_open == 'false')
     runs-on: ubuntu-latest
+    permissions:
+      deployments: write
     concurrency:
       group: preview-env-${{ github.event.number }}
       cancel-in-progress: false
       queue: max
     steps:
       - name: Setup Fly CLI
-        uses: superfly/flyctl-actions/setup-flyctl@master
+        uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # 1.6
+        with:
+          version: 0.4.119 # an action input, so Dependabot does not bump it: update by hand
 
       # Neon API directly, so a missing branch (never labeled, or already
       # deleted) is a no-op while an auth or API failure fails the job.
@@ -174,7 +187,7 @@ jobs:
 
       - name: Clean up GitHub deployments
         if: ${{ !cancelled() }}
-        uses: strumwolf/delete-deployment-environment@v2
+        uses: strumwolf/delete-deployment-environment@195215d2c5602aee6fb4b9cf0853970decca9e7a # v2.3.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: pr-${{ github.event.number }}
