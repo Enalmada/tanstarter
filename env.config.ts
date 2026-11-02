@@ -54,6 +54,14 @@ export default defineEnv({
 		AXIOM_TOKEN: v.optional(v.string()),
 		// Axiom API base URL, for an EU-region dataset (https://api.eu.axiom.co) or a local stub
 		AXIOM_URL: v.optional(v.string()),
+		// Resend API key and the verified sender address ("App <no-reply@example.com>") for
+		// the sign-up verification email. Both are required in production: without them
+		// email sign-up is switched off (Google sign-in still works). Unset locally, the
+		// link is printed to the log.
+		// An empty value counts as unset: fly-review.yml passes both even when the repository
+		// has neither configured.
+		RESEND_API_KEY: v.optional(v.string()),
+		EMAIL_FROM: v.optional(v.string()),
 		// Comma-separated emails promoted to ADMIN when their account is first
 		// created by a verified (OAuth) sign-in. See src/server/auth/admin-emails.ts.
 		ADMIN_EMAILS: v.optional(v.string()),

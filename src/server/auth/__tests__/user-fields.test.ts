@@ -23,6 +23,10 @@ function createTestAuth() {
 		secret: "test-secret-that-is-at-least-32-characters",
 		baseURL: ORIGIN,
 		emailAndPassword: { enabled: true },
+		// Configured so a disabled endpoint is told apart from one that is mounted but would
+		// answer 404 anyway (no provider, no sender).
+		socialProviders: { google: { clientId: "test-client-id", clientSecret: "test-client-secret" } }, // betterleaks:allow
+		emailVerification: { sendVerificationEmail: async () => {} },
 		user: { additionalFields: userAdditionalFields },
 		databaseHooks: userDatabaseHooks,
 		disabledPaths: authDisabledPaths,
@@ -90,6 +94,19 @@ describe("better-auth user-field policy", () => {
 		expect(update.status).toBe(404);
 		expect(findUser(user.id)?.role).toBe(UserRole.MEMBER);
 		expect(findUser(user.id)?.name).toBe("Member");
+	});
+
+	it("disables /send-verification-email so nobody can trigger mail to an address", async () => {
+		const { auth } = createTestAuth();
+		const res = await call(auth, "/send-verification-email", { email: "someone@example.com" });
+		expect(res.status).toBe(404);
+	});
+
+	it("disables /link-social, which disableImplicitLinking does not cover", async () => {
+		const { auth } = createTestAuth();
+		const { token } = (await signUp(auth)).json as { token: string };
+		const res = await call(auth, "/link-social", { provider: "google" }, token);
+		expect(res.status).toBe(404);
 	});
 
 	it("keeps change-email and delete-user inert (not enabled in config)", async () => {
