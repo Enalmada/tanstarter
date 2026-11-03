@@ -110,7 +110,11 @@ jobs:
         run: |
           set -euo pipefail
           api="https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID"
-          auth="Authorization: Bearer $NEON_API_KEY"
+          # The credential goes to curl from a private file (-H @file), not the
+          # command line, so it never shows up in the process list.
+          auth_file=$(mktemp)
+          trap 'rm -f "$auth_file"' EXIT
+          printf 'Authorization: Bearer %s\n' "$NEON_API_KEY" > "$auth_file"
 
           # curl with the Neon credential. Retries the answers neonctl retried:
           # 423 (the project is locked by another running operation, e.g. a
@@ -120,7 +124,7 @@ jobs:
             local body status attempt
             body=$(mktemp)
             for attempt in 1 2 3 4 5 6; do
-              status=$(curl -sS -o "$body" -w '%{http_code}' -H "$auth" "$@")
+              status=$(curl -sS -o "$body" -w '%{http_code}' -H "@$auth_file" "$@")
               case "$status" in
                 2??)
                   cat "$body"
@@ -133,7 +137,7 @@ jobs:
               [ "$attempt" -lt 6 ] && sleep $((attempt * 5))
             done
             # Neon's error body is a code and a message, never a credential.
-            echo "::error::Neon API request failed with status $status: $(jq -r '.message // empty' "$body" 2>/dev/null | head -c 300)" >&2
+            echo "::error::Neon API request failed with status $status: $(jq -r '.message // empty' "$body" 2>/dev/null | tr -d '\r\n' | head -c 300)" >&2
             rm -f "$body"
             return 1
           }
@@ -260,8 +264,12 @@ jobs:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           BRANCH_NAME: pr-${{ github.event.number }}
         run: |
+          # The credential goes to curl from a private file, not the command line.
+          auth_file=$(mktemp)
+          trap 'rm -f "$auth_file"' EXIT
+          printf 'Authorization: Bearer %s\n' "$NEON_API_KEY" > "$auth_file"
           api="https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches"
-          if ! branches=$(curl -fsS -G -H "Authorization: Bearer $NEON_API_KEY" \
+          if ! branches=$(curl -fsS -G -H "@$auth_file" \
             --data-urlencode "search=$BRANCH_NAME" --data-urlencode "limit=10000" "$api"); then
             echo "::error::Neon branch list failed"
             exit 1
@@ -271,7 +279,7 @@ jobs:
             echo "::notice::Neon branch $BRANCH_NAME not found; nothing to destroy"
             exit 0
           fi
-          curl -fsS -X DELETE -H "Authorization: Bearer $NEON_API_KEY" "$api/$id" > /dev/null
+          curl -fsS -X DELETE -H "@$auth_file" "$api/$id" > /dev/null
 
       # A missing app (never labeled, or already destroyed) is fine; any other
       # failure (auth, API) fails the step so orphans don't go unnoticed.
