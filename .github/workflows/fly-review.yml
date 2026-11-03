@@ -130,10 +130,11 @@ jobs:
                 423 | 429 | 5??) echo "Neon API answered $status; retrying (attempt $attempt of 6)" >&2 ;;
                 *) break ;;
               esac
-              sleep $((attempt * 5))
+              [ "$attempt" -lt 6 ] && sleep $((attempt * 5))
             done
+            # Neon's error body is a code and a message, never a credential.
+            echo "::error::Neon API request failed with status $status: $(jq -r '.message // empty' "$body" 2>/dev/null | head -c 300)" >&2
             rm -f "$body"
-            echo "::error::Neon API request failed with status $status" >&2
             return 1
           }
 
