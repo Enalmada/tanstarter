@@ -112,7 +112,32 @@ jobs:
           api="https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID"
           auth="Authorization: Bearer $NEON_API_KEY"
 
-          branches=$(curl -fsS -G -H "$auth" --data-urlencode "search=$BRANCH_NAME" \
+          # curl with the Neon credential. Retries the answers neonctl retried:
+          # 423 (the project is locked by another running operation, e.g. a
+          # preview for a different PR), 429 and 5xx. Prints the body on success,
+          # only the status on failure.
+          neon() {
+            local body status attempt
+            body=$(mktemp)
+            for attempt in 1 2 3 4 5 6; do
+              status=$(curl -sS -o "$body" -w '%{http_code}' -H "$auth" "$@")
+              case "$status" in
+                2??)
+                  cat "$body"
+                  rm -f "$body"
+                  return 0
+                  ;;
+                423 | 429 | 5??) echo "Neon API answered $status; retrying (attempt $attempt of 6)" >&2 ;;
+                *) break ;;
+              esac
+              sleep $((attempt * 5))
+            done
+            rm -f "$body"
+            echo "::error::Neon API request failed with status $status" >&2
+            return 1
+          }
+
+          branches=$(neon -G --data-urlencode "search=$BRANCH_NAME" \
             --data-urlencode "limit=10000" "$api/branches")
           branch_id=$(echo "$branches" | jq -r --arg name "$BRANCH_NAME" '[.branches[] | select(.name == $name) | .id][0] // empty')
 
@@ -120,9 +145,8 @@ jobs:
             echo "Neon branch $BRANCH_NAME already exists ($branch_id); reusing it"
           else
             # The response carries the new role's connection URIs, so never print it.
-            created=$(jq -n --arg name "$BRANCH_NAME" \
-              '{branch: {name: $name}, endpoints: [{type: "read_write"}]}' |
-              curl -fsS -X POST -H "$auth" -H "Content-Type: application/json" -d @- "$api/branches")
+            payload=$(jq -nc --arg name "$BRANCH_NAME" '{branch: {name: $name}, endpoints: [{type: "read_write"}]}')
+            created=$(neon -X POST -H "Content-Type: application/json" -d "$payload" "$api/branches")
             branch_id=$(echo "$created" | jq -er '.branch.id')
 
             # Wait for the branch and compute to be ready before the app starts
@@ -130,7 +154,7 @@ jobs:
             for op in $(echo "$created" | jq -r '.operations[].id'); do
               status=""
               for _ in $(seq 1 90); do
-                status=$(curl -fsS -H "$auth" "$api/operations/$op" | jq -r '.operation.status')
+                status=$(neon "$api/operations/$op" | jq -r '.operation.status')
                 case "$status" in
                   finished | skipped) break ;;
                   failed | error | cancelling | cancelled)
@@ -147,7 +171,7 @@ jobs:
             done
           fi
 
-          uri=$(curl -fsS -G -H "$auth" --data-urlencode "branch_id=$branch_id" \
+          uri=$(neon -G --data-urlencode "branch_id=$branch_id" \
             --data-urlencode "role_name=$DATABASE_OWNER" --data-urlencode "database_name=$DATABASE_NAME" \
             --data-urlencode "pooled=false" "$api/connection_uri" | jq -er '.uri')
           password=$(echo "$uri" | sed -E 's#^[a-z]+://[^:/@]+:([^@]+)@.*$#\1#')
