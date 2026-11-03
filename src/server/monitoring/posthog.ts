@@ -15,7 +15,7 @@ import { env, getAppEnv, shouldReportErrors } from "~/env";
 import { getRelease } from "~/lib/env/release";
 import { type CaptureProperties, POSTHOG_HOST } from "~/lib/monitoring/capture";
 import { isExpectedError } from "~/lib/monitoring/expected-errors";
-import { sanitizeExceptionEvent } from "~/lib/monitoring/sanitize";
+import { sanitizeEvent } from "~/lib/monitoring/sanitize";
 
 interface ServerPosthogState {
 	client: PostHog | null;
@@ -41,7 +41,7 @@ function getState(): ServerPosthogState {
 							flushAt: 1,
 							flushInterval: 0,
 							// Drizzle "Failed query" messages carry bound row values
-							before_send: (event) => sanitizeExceptionEvent(event),
+							before_send: (event) => sanitizeEvent(event),
 						})
 					: null,
 			captured: new WeakSet(),

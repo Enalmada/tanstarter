@@ -1,6 +1,6 @@
 /**
  * Audit trail for sign-in activity: one structured line per sign-up, sign-in,
- * sign-out and email verification, with the outcome and the client IP.
+ * sign-out, email verification and password reset step, with the outcome and the client IP.
  *
  * The IP comes from the same `fly-client-ip` header the rate limiter uses (see
  * ./ip-address), so it is the real client and not a proxy. Lines carry the user
@@ -17,6 +17,11 @@ const AUDITED_PATHS = {
 	"/sign-in/email": "sign_in",
 	"/sign-out": "sign_out",
 	"/verify-email": "email_verified",
+	// A request is logged whether or not the address has an account: the line carries no email and the answer is the same
+	"/request-password-reset": "password_reset_requested",
+	// The emailed link; a stale or forged token redirects with ?error=INVALID_TOKEN, which counts as a failure
+	"/reset-password/:token": "password_reset_link",
+	"/reset-password": "password_reset", // betterleaks:allow (an event name, not a credential)
 	// Google (and any other OAuth provider) completes sign-in here
 	"/callback/:id": "sign_in_oauth",
 } as const;

@@ -25,9 +25,33 @@ msgstr "A modern, type-safe todo application built with TanStack Start."
 msgid "Admin"
 msgstr "Admin"
 
+#: src/routes/_guest/forgot-password.tsx
+msgid "Back to sign in"
+msgstr "Back to sign in"
+
 #: src/routes/index.tsx
 msgid "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui components."
 msgstr "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui components."
+
+#: src/routes/reset-password.tsx
+msgid "Change password"
+msgstr "Change password"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "Check your email"
+msgstr "Check your email"
+
+#: src/routes/reset-password.tsx
+msgid "Choose a new password"
+msgstr "Choose a new password"
+
+#: src/routes/reset-password.tsx
+msgid "Choose a password ({MIN_PASSWORD_LENGTH}+ characters)"
+msgstr "Choose a password ({MIN_PASSWORD_LENGTH}+ characters)"
+
+#: src/routes/reset-password.tsx
+msgid "Confirm new password"
+msgstr "Confirm new password"
 
 #: src/routes/_guest/signin.tsx
 msgid "Confirm your email address first. We sent you a new link."
@@ -45,6 +69,7 @@ msgstr "Dark"
 msgid "Don't have an account? Sign up"
 msgstr "Don't have an account? Sign up"
 
+#: src/routes/_guest/forgot-password.tsx
 #: src/routes/_guest/signin.tsx
 msgid "Email"
 msgstr "Email"
@@ -53,6 +78,7 @@ msgstr "Email"
 msgid "End-to-end type safety with TypeScript, Drizzle ORM, and Valibot validation."
 msgstr "End-to-end type safety with TypeScript, Drizzle ORM, and Valibot validation."
 
+#: src/routes/_guest/forgot-password.tsx
 #: src/routes/_guest/signin.tsx
 msgid "Enter your email"
 msgstr "Enter your email"
@@ -69,19 +95,32 @@ msgstr "Fast refresh, automatic type generation, and error handling."
 msgid "Features"
 msgstr "Features"
 
+#: src/routes/_guest/signin.tsx
+msgid "Forgot password?"
+msgstr "Forgot password?"
+
 #: src/routes/index.tsx
 msgid "Get Started"
 msgstr "Get Started"
 
+#: src/routes/reset-password.tsx
+msgid "Go to sign in"
+msgstr "Go to sign in"
+
 #: src/routes/index.tsx
 msgid "Great DX"
 msgstr "Great DX"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "If <0>{requestedFor}</0> has an account, we sent it a link to choose a new password. The link works once, for {PASSWORD_RESET_LINK_MINUTES} minutes."
+msgstr "If <0>{requestedFor}</0> has an account, we sent it a link to choose a new password. The link works once, for {PASSWORD_RESET_LINK_MINUTES} minutes."
 
 #: src/routes/_guest/signin.tsx
 msgid "Incorrect password. Please try again."
 msgstr "Incorrect password. Please try again."
 
 #: src/routes/_guest/signin.tsx
+#: src/routes/reset-password.tsx
 msgid "Invalid password"
 msgstr "Invalid password"
 
@@ -105,6 +144,10 @@ msgstr "Modern Stack"
 msgid "Need an account?"
 msgstr "Need an account?"
 
+#: src/routes/reset-password.tsx
+msgid "New password"
+msgstr "New password"
+
 #: src/components/Navbar.tsx
 msgid "New Task"
 msgstr "New Task"
@@ -121,6 +164,19 @@ msgstr "Or continue with"
 msgid "Password"
 msgstr "Password"
 
+#: src/routes/reset-password.tsx
+msgid "Password must be at least {MIN_PASSWORD_LENGTH} characters"
+msgstr "Password must be at least {MIN_PASSWORD_LENGTH} characters"
+
+#: src/routes/reset-password.tsx
+msgid "Password must be at most {MAX_PASSWORD_LENGTH} characters"
+msgstr "Password must be at most {MAX_PASSWORD_LENGTH} characters"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "Password reset isn't available right now. Please continue with Google."
+msgstr "Password reset isn't available right now. Please continue with Google."
+
+#: src/routes/_guest/forgot-password.tsx
 #: src/routes/_guest/signin.tsx
 msgid "Please enter a valid email address"
 msgstr "Please enter a valid email address"
@@ -128,6 +184,26 @@ msgstr "Please enter a valid email address"
 #: src/components/Navbar.tsx
 msgid "Profile"
 msgstr "Profile"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "Reset your password"
+msgstr "Reset your password"
+
+#: src/routes/reset-password.tsx
+msgid "Saving..."
+msgstr "Saving..."
+
+#: src/routes/reset-password.tsx
+msgid "Send a new link"
+msgstr "Send a new link"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "Send reset link"
+msgstr "Send reset link"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "Sending..."
+msgstr "Sending..."
 
 #: src/components/Navbar.tsx
 #: src/routes/_guest/signin.tsx
@@ -166,22 +242,54 @@ msgstr "System"
 msgid "TanStarter Todo"
 msgstr "TanStarter Todo"
 
+#: src/routes/reset-password.tsx
+msgid "The passwords don't match"
+msgstr "The passwords don't match"
+
 #: src/routes/_guest/signin.tsx
 msgid "This confirmation link has expired or is no longer valid. Sign in and we'll send you a new one."
 msgstr "This confirmation link has expired or is no longer valid. Sign in and we'll send you a new one."
+
+#: src/routes/reset-password.tsx
+msgid "This link has expired or is no longer valid."
+msgstr "This link has expired or is no longer valid."
 
 #: src/components/ThemeToggle.tsx
 msgid "Toggle theme"
 msgstr "Toggle theme"
 
+#: src/routes/_guest/forgot-password.tsx
+msgid "Too many requests. Please wait a minute and try again."
+msgstr "Too many requests. Please wait a minute and try again."
+
 #: src/routes/index.tsx
 msgid "Type Safety"
 msgstr "Type Safety"
+
+#: src/routes/reset-password.tsx
+msgid "Use between {MIN_PASSWORD_LENGTH} and {MAX_PASSWORD_LENGTH} characters."
+msgstr "Use between {MIN_PASSWORD_LENGTH} and {MAX_PASSWORD_LENGTH} characters."
 
 #: src/routes/index.tsx
 msgid "View on GitHub"
 msgstr "View on GitHub"
 
+#: src/routes/reset-password.tsx
+msgid "We couldn't change your password. Please try again."
+msgstr "We couldn't change your password. Please try again."
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "We couldn't send the link. Please try again."
+msgstr "We couldn't send the link. Please try again."
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "We'll email you a link to choose a new one"
+msgstr "We'll email you a link to choose a new one"
+
 #: src/routes/_guest/signin.tsx
 msgid "Welcome back!"
 msgstr "Welcome back!"
+
+#: src/routes/reset-password.tsx
+msgid "Your password has been changed and you were signed out everywhere. Sign in with the new one."
+msgstr "Your password has been changed and you were signed out everywhere. Sign in with the new one."

@@ -14,9 +14,12 @@
  * - Unhandled rejections of expected errors (which bypass `isExpectedError`
  *   because PostHog captures them itself) are dropped by error name.
  *
- * Only `$exception` events are touched: analytics events keep their URLs.
+ * Analytics events keep their URLs, except the password-reset page's, whose
+ * `?token=` is a live credential: the automatic pageview would otherwise send it
+ * to anyone who can read analytics.
  */
 
+import type { CapturedNetworkRequest } from "posthog-js";
 import { isExpectedErrorName } from "./expected-errors";
 
 interface ExceptionEntry {
@@ -57,17 +60,61 @@ export function redactExceptionMessage(message: string): string {
 	return index === -1 ? message : `${message.slice(0, index)}\nparams: [redacted]`;
 }
 
-function stripUrls(bag: Record<string, unknown> | undefined) {
+// A password-reset page URL carries a live credential (`?token=`, or the token as the last path segment)
+const RESET_PASSWORD_URL = /\/reset-password(?:[/?#]|$)/;
+
+/** Drops the token from a password-reset page URL; any other URL is returned unchanged. */
+export function stripResetToken(url: string): string {
+	if (!RESET_PASSWORD_URL.test(url)) return url;
+	return stripUrlDetails(url).replace(/(\/reset-password)\/[^/]+$/, "$1");
+}
+
+// String fields of a network entry that are safe to keep (everything else string-valued is a URL or a body)
+const KEPT_NETWORK_STRING_FIELDS = new Set(["entryType", "initiatorType", "method", "nextHopProtocol", "type"]);
+
+/**
+ * For session replay's network entries (`maskCapturedNetworkRequestFn`). A custom callback replaces
+ * PostHog's default scrubbing, and an entry is a serialized browser `PerformanceEntry` that can carry
+ * further URLs (Chromium's `notRestoredReasons.url`). Keep the numbers, booleans and a short list of
+ * strings (timing, sizes, status), give the entry's own URL a reset token's removal, and drop
+ * everything else: headers, bodies, nested objects.
+ */
+export function maskNetworkRequest(request: CapturedNetworkRequest): CapturedNetworkRequest {
+	const kept = Object.entries(request).filter(
+		([key, value]) =>
+			typeof value === "number" ||
+			typeof value === "boolean" ||
+			(typeof value === "string" && KEPT_NETWORK_STRING_FIELDS.has(key)),
+	);
+	return {
+		...Object.fromEntries(kept),
+		name: stripResetToken(request.name ?? ""),
+		entryType: request.entryType,
+		startTime: request.startTime,
+		duration: request.duration,
+	};
+}
+
+function stripUrls(bag: Record<string, unknown> | undefined, strip: (url: string) => string) {
 	if (!bag) return;
 	for (const key of URL_PROPERTIES) {
 		const value = bag[key];
-		if (typeof value === "string") bag[key] = stripUrlDetails(value);
+		if (typeof value === "string") bag[key] = strip(value);
 	}
 }
 
 /** Returns the sanitized event, or null to drop it. Mutates and returns `event`. */
-export function sanitizeExceptionEvent<T extends EventLike>(event: T | null): T | null {
-	if (event?.event !== "$exception") return event;
+export function sanitizeEvent<T extends EventLike>(event: T | null): T | null {
+	if (!event) return event;
+	if (event.event !== "$exception") {
+		// Analytics events keep their URLs, except the one that holds a reset token
+		stripUrls(event.properties, stripResetToken);
+		stripUrls(event.$set, stripResetToken);
+		stripUrls(event.$set_once, stripResetToken);
+		stripUrls(event.properties?.$set as Record<string, unknown> | undefined, stripResetToken);
+		stripUrls(event.properties?.$set_once as Record<string, unknown> | undefined, stripResetToken);
+		return event;
+	}
 
 	const properties = event.properties;
 	const list = properties?.$exception_list;
@@ -88,10 +135,10 @@ export function sanitizeExceptionEvent<T extends EventLike>(event: T | null): T 
 		}
 	}
 
-	stripUrls(properties);
-	stripUrls(event.$set);
-	stripUrls(event.$set_once);
-	stripUrls(properties?.$set as Record<string, unknown> | undefined);
-	stripUrls(properties?.$set_once as Record<string, unknown> | undefined);
+	stripUrls(properties, stripUrlDetails);
+	stripUrls(event.$set, stripUrlDetails);
+	stripUrls(event.$set_once, stripUrlDetails);
+	stripUrls(properties?.$set as Record<string, unknown> | undefined, stripUrlDetails);
+	stripUrls(properties?.$set_once as Record<string, unknown> | undefined, stripUrlDetails);
 	return event;
 }

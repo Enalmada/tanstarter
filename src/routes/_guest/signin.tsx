@@ -214,9 +214,18 @@ function SigninForm() {
 			>
 				{(field) => (
 					<div className="space-y-2">
-						<Label htmlFor={field.name}>
-							<Trans>Password</Trans>
-						</Label>
+						<div className="flex items-center justify-between">
+							<Label htmlFor={field.name}>
+								<Trans>Password</Trans>
+							</Label>
+							<Link
+								to="/forgot-password"
+								search={{ redirect: search.redirect }}
+								className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+							>
+								<Trans>Forgot password?</Trans>
+							</Link>
+						</div>
 						<Input
 							id={field.name}
 							name={field.name}

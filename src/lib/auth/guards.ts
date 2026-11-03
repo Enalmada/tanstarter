@@ -13,7 +13,7 @@ import { UserRole } from "~/lib/enums/user-role";
 export const DEFAULT_REDIRECT = "/tasks";
 
 // Sending someone back to a sign-in or sign-out page would loop or sign them out.
-const AUTH_PAGES = /^\/(?:signin|signup|signout)(?:\/|$)/;
+const AUTH_PAGES = /^\/(?:signin|signup|signout|forgot-password|reset-password)(?:\/|$)/;
 
 // The path the router would match: dot segments resolved (URL parsing), percent
 // escapes decoded (repeatedly, so %2573 cannot hide an "s"), case folded.

@@ -5,11 +5,13 @@
 import { betterAuth } from "better-auth";
 import { memoryAdapter } from "better-auth/adapters/memory";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { MIN_PASSWORD_LENGTH } from "~/lib/auth/password-policy";
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "~/lib/auth/password-policy";
+import { PASSWORD_RESET_LINK_MINUTES, RESET_PASSWORD_PATH } from "~/lib/auth/password-reset";
 import { verificationCallback } from "~/lib/auth/verification-link";
 import { createAuthAuditHook } from "../audit";
 import { authIpAddress } from "../ip-address";
 import { createAuthPolicy, SESSION_IDLE_SECONDS, SESSION_REFRESH_SECONDS } from "../policy";
+import { authDisabledPaths } from "../user-fields";
 
 const ORIGIN = "http://localhost:3000";
 const EMAIL = "person@example.com";
@@ -19,8 +21,19 @@ const CLIENT_IP = "203.0.113.9";
 // Same policy, IP header and audit hook as src/server/auth/auth.ts, on an in-memory database.
 function createTestAuth({ canSendEmail = true } = {}) {
 	const sent: { email: string; url: string }[] = [];
+	const resets: { email: string; url: string }[] = [];
+	const existing: string[] = [];
 	const logs: { message: string; data: Record<string, unknown> }[] = [];
-	const policy = createAuthPolicy({ requireEmailVerification: true, canSendEmail });
+	const policy = createAuthPolicy({
+		requireEmailVerification: true,
+		canSendEmail,
+		sendResetPassword: async ({ user, url }) => {
+			resets.push({ email: user.email, url });
+		},
+		onExistingUserSignUp: async ({ user }) => {
+			existing.push(user.email);
+		},
+	});
 	const auth = betterAuth({
 		database: memoryAdapter({ user: [], session: [], account: [], verification: [] }),
 		secret: "test-secret-that-is-at-least-32-characters", // betterleaks:allow
@@ -48,10 +61,11 @@ function createTestAuth({ canSendEmail = true } = {}) {
 			},
 		},
 		session: policy.session,
+		disabledPaths: authDisabledPaths,
 		advanced: { ipAddress: authIpAddress },
 		hooks: { after: createAuthAuditHook((message, data) => logs.push({ message, data })) },
 	});
-	return { auth, sent, logs };
+	return { auth, sent, resets, existing, logs };
 }
 
 type TestAuth = ReturnType<typeof createTestAuth>["auth"];
@@ -84,6 +98,23 @@ async function followLink(auth: TestAuth, url: string) {
 }
 
 const verify = async (auth: TestAuth, url: string) => (await followLink(auth, url)).status;
+
+const requestReset = (auth: TestAuth, email = EMAIL) =>
+	post(auth, "/request-password-reset", { email, redirectTo: RESET_PASSWORD_PATH });
+const resetPassword = (auth: TestAuth, token: string, newPassword: string) =>
+	post(auth, "/reset-password", { token, newPassword });
+
+// Follows the emailed link the way a browser does and returns what the reset page would be given.
+async function openResetLink(auth: TestAuth, url: string) {
+	const { location } = await followLink(auth, url);
+	const target = new URL(location ?? "", ORIGIN);
+	return { path: target.pathname, token: target.searchParams.get("token"), error: target.searchParams.get("error") };
+}
+
+async function getSession(auth: TestAuth, cookie: string) {
+	const res = await auth.handler(new Request(`${ORIGIN}/api/auth/get-session`, { headers: { cookie } }));
+	return res.json();
+}
 
 afterEach(() => {
 	vi.useRealTimers();
@@ -236,6 +267,160 @@ describe("when email cannot be sent", () => {
 	});
 });
 
+describe("password reset", () => {
+	const SQUATTER_PASSWORD = "the-squatters-own-passphrase"; // betterleaks:allow
+	const NEW_PASSWORD = "a-brand-new-passphrase-for-the-owner"; // betterleaks:allow
+
+	// The squatter registered the owner's address; the owner then followed the emailed link, which verified the row.
+	async function squattedAddress() {
+		const test = createTestAuth();
+		await signUp(test.auth, SQUATTER_PASSWORD);
+		await verify(test.auth, test.sent[0]?.url ?? "");
+		const squatter = await signIn(test.auth, SQUATTER_PASSWORD);
+		return { ...test, squatterCookie: squatter.cookie };
+	}
+
+	async function resetToken(auth: TestAuth, resets: { url: string }[]) {
+		await requestReset(auth);
+		const link = await openResetLink(auth, resets.at(-1)?.url ?? "");
+		expect(link).toMatchObject({ path: RESET_PASSWORD_PATH, error: null });
+		return link.token ?? "";
+	}
+
+	it("lets the owner of a squatted address take it back and ends the squatter's sessions", async () => {
+		const { auth, resets, squatterCookie } = await squattedAddress();
+		expect(await getSession(auth, squatterCookie)).not.toBeNull();
+
+		const token = await resetToken(auth, resets);
+		expect((await resetPassword(auth, token, NEW_PASSWORD)).status).toBe(200);
+
+		expect(await getSession(auth, squatterCookie)).toBeNull();
+		expect((await signIn(auth, SQUATTER_PASSWORD)).status).toBe(401);
+		const owner = await signIn(auth, NEW_PASSWORD);
+		expect(owner.status).toBe(200);
+		expect(await getSession(auth, owner.cookie)).not.toBeNull();
+	});
+
+	it("builds the link on the auth endpoint and expires it after the configured time", async () => {
+		const { auth, resets } = await squattedAddress();
+		await requestReset(auth);
+		expect(resets[0]?.url.startsWith(`${ORIGIN}/api/auth/reset-password/`)).toBe(true);
+		const token = (await openResetLink(auth, resets[0]?.url ?? "")).token ?? "";
+
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(Date.now() + (PASSWORD_RESET_LINK_MINUTES + 1) * 60 * 1000);
+
+		const late = await resetPassword(auth, token, NEW_PASSWORD);
+		expect(late.status).toBe(400);
+		expect(late.body?.code).toBe("INVALID_TOKEN");
+		expect(await openResetLink(auth, resets[0]?.url ?? "")).toMatchObject({ error: "INVALID_TOKEN", token: null });
+	});
+
+	it("works once", async () => {
+		const { auth, resets } = await squattedAddress();
+		const token = await resetToken(auth, resets);
+		expect((await resetPassword(auth, token, NEW_PASSWORD)).status).toBe(200);
+
+		const again = await resetPassword(auth, token, "yet-another-long-passphrase"); // betterleaks:allow
+		expect(again.status).toBe(400);
+		expect(again.body?.code).toBe("INVALID_TOKEN");
+		expect((await signIn(auth, NEW_PASSWORD)).status).toBe(200);
+	});
+
+	it("sends a bad token to the reset page with an error", async () => {
+		const { auth, resets } = await squattedAddress();
+		await requestReset(auth);
+		const url = new URL(resets[0]?.url ?? "");
+		url.pathname = `${url.pathname}x`;
+
+		expect(await openResetLink(auth, url.toString())).toMatchObject({
+			path: RESET_PASSWORD_PATH,
+			error: "INVALID_TOKEN",
+			token: null,
+		});
+		expect((await resetPassword(auth, "not-a-token", NEW_PASSWORD)).body?.code).toBe("INVALID_TOKEN");
+	});
+
+	it("holds the new password to the shared length and keeps the link usable after a refusal", async () => {
+		const { auth, resets } = await squattedAddress();
+		const token = await resetToken(auth, resets);
+
+		const tooShort = await resetPassword(auth, token, "x".repeat(MIN_PASSWORD_LENGTH - 1));
+		expect(tooShort.status).toBe(400);
+		expect(tooShort.body?.code).toBe("PASSWORD_TOO_SHORT");
+		const tooLong = await resetPassword(auth, token, "x".repeat(MAX_PASSWORD_LENGTH + 1));
+		expect(tooLong.status).toBe(400);
+		expect(tooLong.body?.code).toBe("PASSWORD_TOO_LONG");
+
+		expect((await resetPassword(auth, token, "x".repeat(MIN_PASSWORD_LENGTH))).status).toBe(200);
+	});
+
+	it("does not mark an unverified address as verified", async () => {
+		const { auth, sent, resets } = createTestAuth();
+		await signUp(auth, SQUATTER_PASSWORD); // never verified
+		const token = await resetToken(auth, resets);
+		expect((await resetPassword(auth, token, NEW_PASSWORD)).status).toBe(200);
+
+		// The reset proved nothing better-auth records: the address still needs its own verification link.
+		const blocked = await signIn(auth, NEW_PASSWORD);
+		expect(blocked.status).toBe(403);
+		expect(blocked.body?.code).toBe("EMAIL_NOT_VERIFIED");
+
+		await verify(auth, sent.at(-1)?.url ?? "");
+		expect((await signIn(auth, NEW_PASSWORD)).status).toBe(200);
+	});
+
+	it("answers the same whether or not the address has an account, and mails only the one that does", async () => {
+		const { auth, resets } = await squattedAddress();
+		const known = await requestReset(auth);
+		const unknown = await requestReset(auth, "nobody@example.com");
+
+		expect(known.status).toBe(200);
+		expect(unknown.status).toBe(known.status);
+		expect(unknown.body).toEqual(known.body);
+		expect(unknown.cookie).toBe(known.cookie);
+		expect(resets.map((mail) => mail.email)).toEqual([EMAIL]);
+	});
+
+	it("is off for every address alike when mail cannot be sent", async () => {
+		const { auth, resets } = createTestAuth({ canSendEmail: false });
+		// Sign-up is off in this mode, so seed the account the way an earlier deploy would have left it
+		const context = await auth.$context;
+		await context.internalAdapter.createUser(
+			{ email: EMAIL, name: "Person", emailVerified: true },
+			{ method: "email-password" },
+		);
+
+		const known = await requestReset(auth);
+		const unknown = await requestReset(auth, "nobody@example.com");
+
+		expect(known.status).toBe(400);
+		expect(known.body?.code).toBe("RESET_PASSWORD_DISABLED");
+		expect(unknown.status).toBe(known.status);
+		expect(unknown.body).toEqual(known.body);
+		expect(resets).toHaveLength(0);
+	});
+
+	it("tells the owner when someone signs up with their address, without changing the answer", async () => {
+		const { auth, sent, existing } = createTestAuth();
+		const first = await signUp(auth, PASSWORD);
+		expect(existing).toHaveLength(0);
+
+		const second = await signUp(auth, "another-long-enough-passphrase"); // betterleaks:allow
+		expect(second.status).toBe(first.status);
+		// Same body too: an "already exists" field or a different value would answer the enumeration question.
+		// The id and timestamps are fresh per call; the in-memory adapter omits an unset `image` where a
+		// database row returns null.
+		const comparable = (body: Record<string, unknown> | null) => {
+			const { id, createdAt, updatedAt, image, ...user } = (body?.user ?? {}) as Record<string, unknown>;
+			return { ...body, user };
+		};
+		expect(comparable(second.body)).toEqual(comparable(first.body));
+		expect(existing).toEqual([EMAIL]);
+		expect(sent).toHaveLength(1);
+	});
+});
+
 describe("session lifetime", () => {
 	it("ends a session after seven days without use", async () => {
 		const { auth, sent } = createTestAuth();
@@ -352,6 +537,35 @@ describe("audit trail", () => {
 			outcome: "success",
 			userId: expect.any(String),
 		});
+	});
+
+	it("logs each password reset step, whether or not the address has an account", async () => {
+		const { auth, sent, resets, logs } = createTestAuth();
+		await signUp(auth, PASSWORD);
+		await verify(auth, sent[0]?.url ?? "");
+		logs.length = 0;
+
+		await requestReset(auth);
+		await requestReset(auth, "nobody@example.com");
+		const token = (await openResetLink(auth, resets[0]?.url ?? "")).token ?? "";
+		const stale = new URL(resets[0]?.url ?? "");
+		stale.pathname = `${stale.pathname}x`;
+		await openResetLink(auth, stale.toString());
+		await resetPassword(auth, token, "x".repeat(MIN_PASSWORD_LENGTH - 1));
+		await resetPassword(auth, token, "a-brand-new-passphrase"); // betterleaks:allow
+
+		expect(logs.map(({ data }) => [data.event, data.outcome, data.code])).toEqual([
+			["password_reset_requested", "success", undefined],
+			["password_reset_requested", "success", undefined],
+			["password_reset_link", "success", undefined],
+			["password_reset_link", "failure", "INVALID_TOKEN"],
+			["password_reset", "failure", "PASSWORD_TOO_SHORT"],
+			["password_reset", "success", undefined],
+		]);
+		const text = JSON.stringify(logs);
+		expect(text).not.toContain(EMAIL);
+		expect(text).not.toContain(token);
+		expect(text).not.toContain("passphrase");
 	});
 
 	it("ignores paths it does not audit", async () => {

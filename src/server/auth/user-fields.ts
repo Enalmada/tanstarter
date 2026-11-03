@@ -41,4 +41,6 @@ export const userDatabaseHooks = {
 // The app also never calls /send-verification-email (sign-in re-sends the link itself);
 // mounted, it would let anyone trigger mail to any unverified address. /link-social is
 // unused too, and `disableImplicitLinking` (see ./policy) does not cover it.
+// The password-reset endpoints (/request-password-reset, /reset-password and its /:token link) are
+// deliberately NOT listed: the reset flow in ./policy needs them, and ./audit logs them.
 export const authDisabledPaths = ["/update-user", "/send-verification-email", "/link-social"];

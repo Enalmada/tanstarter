@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { redactExceptionMessage, sanitizeExceptionEvent, stripUrlDetails } from "~/lib/monitoring/sanitize";
+import { maskNetworkRequest, redactExceptionMessage, sanitizeEvent, stripUrlDetails } from "~/lib/monitoring/sanitize";
 
 function exceptionEvent(overrides: Record<string, unknown> = {}) {
 	return {
@@ -22,6 +22,45 @@ describe("stripUrlDetails", () => {
 	});
 });
 
+describe("maskNetworkRequest", () => {
+	const entry = {
+		name: "https://x.test/reset-password?token=live-secret",
+		entryType: "navigation",
+		startTime: 1,
+		duration: 5,
+		initiatorType: "navigation" as const,
+		status: 200,
+		isInitial: true,
+		requestHeaders: { authorization: "Bearer live-secret" }, // betterleaks:allow
+		requestBody: JSON.stringify({ token: "live-secret", newPassword: "hunter2hunter2" }), // betterleaks:allow
+		responseHeaders: { "set-cookie": "session=live-secret" }, // betterleaks:allow
+		responseBody: '{"session":"live-secret"}',
+		// Chromium adds further URLs to a serialized navigation entry
+		notRestoredReasons: { url: "https://x.test/reset-password?token=live-secret", children: [] },
+	};
+
+	it("keeps timing, sizes and status, with the URL stripped of a reset token", () => {
+		// The browser adds fields the SDK's type does not list
+		const browserEntry = { ...entry, responseStatus: 200, transferSize: 512, nextHopProtocol: "h2" };
+		expect(maskNetworkRequest(browserEntry)).toEqual({
+			name: "https://x.test/reset-password",
+			entryType: "navigation",
+			startTime: 1,
+			duration: 5,
+			initiatorType: "navigation",
+			status: 200,
+			isInitial: true,
+			responseStatus: 200,
+			transferSize: 512,
+			nextHopProtocol: "h2",
+		});
+	});
+
+	it("drops headers, bodies and every field it does not know", () => {
+		expect(JSON.stringify(maskNetworkRequest(entry))).not.toContain("live-secret");
+	});
+});
+
 describe("redactExceptionMessage", () => {
 	it("drops Drizzle's bound params", () => {
 		const message = "Failed query: insert into task (title) values ($1)\nparams: Secret title,person@example.com";
@@ -35,16 +74,16 @@ describe("redactExceptionMessage", () => {
 	});
 });
 
-describe("sanitizeExceptionEvent", () => {
+describe("sanitizeEvent", () => {
 	it("strips URL details from properties and $set_once", () => {
-		const event = sanitizeExceptionEvent(exceptionEvent());
+		const event = sanitizeEvent(exceptionEvent());
 		expect(event?.properties?.$current_url).toBe("https://app.example.com/reset");
 		expect(event?.properties?.$referrer).toBe("https://mail.example.com/");
 		expect(event?.$set_once?.$initial_current_url).toBe("https://app.example.com/a");
 	});
 
 	it("redacts every entry of the exception list, causes included", () => {
-		const event = sanitizeExceptionEvent(
+		const event = sanitizeEvent(
 			exceptionEvent({
 				$exception_list: [
 					{ type: "DrizzleQueryError", value: "Failed query: q\nparams: a@b.c" },
@@ -56,7 +95,7 @@ describe("sanitizeExceptionEvent", () => {
 	});
 
 	it("replaces the message of a database driver error, which can echo a rejected value", () => {
-		const event = sanitizeExceptionEvent(
+		const event = sanitizeEvent(
 			exceptionEvent({
 				$exception_list: [
 					{ type: "NeonDbError", value: 'invalid input syntax for type integer: "a@b.c"' },
@@ -82,7 +121,7 @@ describe("sanitizeExceptionEvent", () => {
 			pre_context: ["a"],
 			post_context: ["b"],
 		};
-		const event = sanitizeExceptionEvent(
+		const event = sanitizeEvent(
 			exceptionEvent({ $exception_list: [{ type: "Error", value: "x", stacktrace: { frames: [frame] } }] }),
 		);
 		const list = event?.properties?.$exception_list as unknown as Array<{
@@ -92,7 +131,7 @@ describe("sanitizeExceptionEvent", () => {
 	});
 
 	it("strips query strings from stack frame filenames", () => {
-		const event = sanitizeExceptionEvent(
+		const event = sanitizeEvent(
 			exceptionEvent({
 				$exception_list: [
 					{ type: "Error", value: "x", stacktrace: { frames: [{ filename: "https://x.test/a.js?v=tok" }] } },
@@ -106,17 +145,40 @@ describe("sanitizeExceptionEvent", () => {
 	});
 
 	it("drops automatically captured expected errors", () => {
-		expect(
-			sanitizeExceptionEvent(exceptionEvent({ $exception_list: [{ type: "NotFoundError", value: "x" }] })),
-		).toBeNull();
+		expect(sanitizeEvent(exceptionEvent({ $exception_list: [{ type: "NotFoundError", value: "x" }] }))).toBeNull();
 	});
 
 	it("leaves other events, and their URLs, alone", () => {
 		const pageview = { event: "$pageview", properties: { $current_url: "https://x.test/a?utm_source=news" } };
-		expect(sanitizeExceptionEvent(pageview)).toEqual({
+		expect(sanitizeEvent(pageview)).toEqual({
 			event: "$pageview",
 			properties: { $current_url: "https://x.test/a?utm_source=news" },
 		});
-		expect(sanitizeExceptionEvent(null)).toBeNull();
+		expect(sanitizeEvent(null)).toBeNull();
+	});
+
+	it("removes the password-reset token from any event's page URL", () => {
+		const pageview = {
+			event: "$pageview",
+			properties: {
+				$current_url: "https://x.test/reset-password?token=live-secret",
+				$referrer: "https://x.test/api/auth/reset-password/live-secret?callbackURL=%2Freset-password",
+				$set: { $current_url: "https://x.test/reset-password?token=live-secret#f" },
+			},
+			$set_once: { $initial_current_url: "https://x.test/reset-password?token=live-secret" },
+		};
+		const event = sanitizeEvent(pageview);
+		expect(event?.properties?.$current_url).toBe("https://x.test/reset-password");
+		expect(event?.properties?.$referrer).toBe("https://x.test/api/auth/reset-password");
+		expect(event?.$set_once?.$initial_current_url).toBe("https://x.test/reset-password");
+		expect(JSON.stringify(event)).not.toContain("live-secret");
+	});
+
+	it("keeps the query string of a URL that merely resembles the reset page", () => {
+		const pageview = {
+			event: "$pageview",
+			properties: { $current_url: "https://x.test/reset-passwords?utm_source=news" },
+		};
+		expect(sanitizeEvent(pageview)?.properties?.$current_url).toBe("https://x.test/reset-passwords?utm_source=news");
 	});
 });

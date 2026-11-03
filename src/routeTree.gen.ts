@@ -14,11 +14,13 @@ import { Route as AuthedRouteRouteImport } from "./routes/_authed/route";
 import { Route as GuestRouteRouteImport } from "./routes/_guest/route";
 import { Route as HealthRouteImport } from "./routes/health";
 import { Route as PrivacyRouteImport } from "./routes/privacy";
+import { Route as ResetPasswordRouteImport } from "./routes/reset-password";
 import { Route as SignoutRouteImport } from "./routes/signout";
 import { Route as TermsRouteImport } from "./routes/terms";
 import { Route as AuthedAdminRouteRouteImport } from "./routes/_authed/_admin/route";
 import { Route as AuthedProfileRouteImport } from "./routes/_authed/profile";
 import { Route as AuthedTasksRouteRouteImport } from "./routes/_authed/tasks/route";
+import { Route as GuestForgotPasswordRouteImport } from "./routes/_guest/forgot-password";
 import { Route as GuestSigninRouteImport } from "./routes/_guest/signin";
 import { Route as GuestSignupRouteImport } from "./routes/_guest/signup";
 import { Route as AuthedAdminAdminRouteRouteImport } from "./routes/_authed/_admin/admin/route";
@@ -60,6 +62,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: "/privacy",
   getParentRoute: () => rootRouteImport,
 } as any);
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: "/reset-password",
+  path: "/reset-password",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const SignoutRoute = SignoutRouteImport.update({
   id: "/signout",
   path: "/signout",
@@ -83,6 +90,11 @@ const AuthedTasksRouteRoute = AuthedTasksRouteRouteImport.update({
   id: "/tasks",
   path: "/tasks",
   getParentRoute: () => AuthedRouteRoute,
+} as any);
+const GuestForgotPasswordRoute = GuestForgotPasswordRouteImport.update({
+  id: "/forgot-password",
+  path: "/forgot-password",
+  getParentRoute: () => GuestRouteRoute,
 } as any);
 const GuestSigninRoute = GuestSigninRouteImport.update({
   id: "/signin",
@@ -181,10 +193,12 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
+  "/reset-password": typeof ResetPasswordRoute;
   "/signout": typeof SignoutRoute;
   "/terms": typeof TermsRoute;
   "/tasks": typeof AuthedTasksRouteRouteWithChildren;
   "/profile": typeof AuthedProfileRoute;
+  "/forgot-password": typeof GuestForgotPasswordRoute;
   "/signin": typeof GuestSigninRoute;
   "/signup": typeof GuestSignupRoute;
   "/admin": typeof AuthedAdminAdminRouteRouteWithChildren;
@@ -207,9 +221,11 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
+  "/reset-password": typeof ResetPasswordRoute;
   "/signout": typeof SignoutRoute;
   "/terms": typeof TermsRoute;
   "/profile": typeof AuthedProfileRoute;
+  "/forgot-password": typeof GuestForgotPasswordRoute;
   "/signin": typeof GuestSigninRoute;
   "/signup": typeof GuestSignupRoute;
   "/debug/streaming-sse": typeof AuthedDebugStreamingSseRoute;
@@ -234,11 +250,13 @@ export interface FileRoutesById {
   "/_guest": typeof GuestRouteRouteWithChildren;
   "/health": typeof HealthRoute;
   "/privacy": typeof PrivacyRoute;
+  "/reset-password": typeof ResetPasswordRoute;
   "/signout": typeof SignoutRoute;
   "/terms": typeof TermsRoute;
   "/_authed/_admin": typeof AuthedAdminRouteRouteWithChildren;
   "/_authed/tasks": typeof AuthedTasksRouteRouteWithChildren;
   "/_authed/profile": typeof AuthedProfileRoute;
+  "/_guest/forgot-password": typeof GuestForgotPasswordRoute;
   "/_guest/signin": typeof GuestSigninRoute;
   "/_guest/signup": typeof GuestSignupRoute;
   "/_authed/_admin/admin": typeof AuthedAdminAdminRouteRouteWithChildren;
@@ -263,10 +281,12 @@ export interface FileRouteTypes {
     | "/"
     | "/health"
     | "/privacy"
+    | "/reset-password"
     | "/signout"
     | "/terms"
     | "/tasks"
     | "/profile"
+    | "/forgot-password"
     | "/signin"
     | "/signup"
     | "/admin"
@@ -289,9 +309,11 @@ export interface FileRouteTypes {
     | "/"
     | "/health"
     | "/privacy"
+    | "/reset-password"
     | "/signout"
     | "/terms"
     | "/profile"
+    | "/forgot-password"
     | "/signin"
     | "/signup"
     | "/debug/streaming-sse"
@@ -315,11 +337,13 @@ export interface FileRouteTypes {
     | "/_guest"
     | "/health"
     | "/privacy"
+    | "/reset-password"
     | "/signout"
     | "/terms"
     | "/_authed/_admin"
     | "/_authed/tasks"
     | "/_authed/profile"
+    | "/_guest/forgot-password"
     | "/_guest/signin"
     | "/_guest/signup"
     | "/_authed/_admin/admin"
@@ -345,6 +369,7 @@ export interface RootRouteChildren {
   GuestRouteRoute: typeof GuestRouteRouteWithChildren;
   HealthRoute: typeof HealthRoute;
   PrivacyRoute: typeof PrivacyRoute;
+  ResetPasswordRoute: typeof ResetPasswordRoute;
   SignoutRoute: typeof SignoutRoute;
   TermsRoute: typeof TermsRoute;
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
@@ -388,6 +413,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PrivacyRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/reset-password": {
+      id: "/reset-password";
+      path: "/reset-password";
+      fullPath: "/reset-password";
+      preLoaderRoute: typeof ResetPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/signout": {
       id: "/signout";
       path: "/signout";
@@ -422,6 +454,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/tasks";
       preLoaderRoute: typeof AuthedTasksRouteRouteImport;
       parentRoute: typeof AuthedRouteRoute;
+    };
+    "/_guest/forgot-password": {
+      id: "/_guest/forgot-password";
+      path: "/forgot-password";
+      fullPath: "/forgot-password";
+      preLoaderRoute: typeof GuestForgotPasswordRouteImport;
+      parentRoute: typeof GuestRouteRoute;
     };
     "/_guest/signin": {
       id: "/_guest/signin";
@@ -617,11 +656,13 @@ const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
 );
 
 interface GuestRouteRouteChildren {
+  GuestForgotPasswordRoute: typeof GuestForgotPasswordRoute;
   GuestSigninRoute: typeof GuestSigninRoute;
   GuestSignupRoute: typeof GuestSignupRoute;
 }
 
 const GuestRouteRouteChildren: GuestRouteRouteChildren = {
+  GuestForgotPasswordRoute: GuestForgotPasswordRoute,
   GuestSigninRoute: GuestSigninRoute,
   GuestSignupRoute: GuestSignupRoute,
 };
@@ -636,6 +677,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuestRouteRoute: GuestRouteRouteWithChildren,
   HealthRoute: HealthRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignoutRoute: SignoutRoute,
   TermsRoute: TermsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

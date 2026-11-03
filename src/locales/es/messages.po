@@ -25,9 +25,33 @@ msgstr "Una aplicación de tareas moderna y con tipado seguro, creada con TanSta
 msgid "Admin"
 msgstr "Administración"
 
+#: src/routes/_guest/forgot-password.tsx
+msgid "Back to sign in"
+msgstr "Volver a iniciar sesión"
+
 #: src/routes/index.tsx
 msgid "Built with TanStack Start, TanStack Query, TanStack Table, and shadcn/ui components."
 msgstr "Creada con TanStack Start, TanStack Query, TanStack Table y componentes de shadcn/ui."
+
+#: src/routes/reset-password.tsx
+msgid "Change password"
+msgstr "Cambiar contraseña"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "Check your email"
+msgstr "Revisa tu correo"
+
+#: src/routes/reset-password.tsx
+msgid "Choose a new password"
+msgstr "Elige una nueva contraseña"
+
+#: src/routes/reset-password.tsx
+msgid "Choose a password ({MIN_PASSWORD_LENGTH}+ characters)"
+msgstr "Elige una contraseña ({MIN_PASSWORD_LENGTH}+ caracteres)"
+
+#: src/routes/reset-password.tsx
+msgid "Confirm new password"
+msgstr "Confirma la nueva contraseña"
 
 #: src/routes/_guest/signin.tsx
 msgid "Confirm your email address first. We sent you a new link."
@@ -45,6 +69,7 @@ msgstr "Oscuro"
 msgid "Don't have an account? Sign up"
 msgstr "¿No tienes una cuenta? Regístrate"
 
+#: src/routes/_guest/forgot-password.tsx
 #: src/routes/_guest/signin.tsx
 msgid "Email"
 msgstr "Correo electrónico"
@@ -53,6 +78,7 @@ msgstr "Correo electrónico"
 msgid "End-to-end type safety with TypeScript, Drizzle ORM, and Valibot validation."
 msgstr "Tipado seguro de extremo a extremo con TypeScript, Drizzle ORM y validación con Valibot."
 
+#: src/routes/_guest/forgot-password.tsx
 #: src/routes/_guest/signin.tsx
 msgid "Enter your email"
 msgstr "Introduce tu correo electrónico"
@@ -69,19 +95,32 @@ msgstr "Recarga rápida, generación automática de tipos y manejo de errores."
 msgid "Features"
 msgstr "Características"
 
+#: src/routes/_guest/signin.tsx
+msgid "Forgot password?"
+msgstr "¿Olvidaste tu contraseña?"
+
 #: src/routes/index.tsx
 msgid "Get Started"
 msgstr "Empezar"
 
+#: src/routes/reset-password.tsx
+msgid "Go to sign in"
+msgstr "Ir a iniciar sesión"
+
 #: src/routes/index.tsx
 msgid "Great DX"
 msgstr "Gran experiencia de desarrollo"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "If <0>{requestedFor}</0> has an account, we sent it a link to choose a new password. The link works once, for {PASSWORD_RESET_LINK_MINUTES} minutes."
+msgstr "Si <0>{requestedFor}</0> tiene una cuenta, le enviamos un enlace para elegir una nueva contraseña. El enlace funciona una sola vez, durante {PASSWORD_RESET_LINK_MINUTES} minutos."
 
 #: src/routes/_guest/signin.tsx
 msgid "Incorrect password. Please try again."
 msgstr "Contraseña incorrecta. Inténtalo de nuevo."
 
 #: src/routes/_guest/signin.tsx
+#: src/routes/reset-password.tsx
 msgid "Invalid password"
 msgstr "Contraseña no válida"
 
@@ -105,6 +144,10 @@ msgstr "Stack moderno"
 msgid "Need an account?"
 msgstr "¿Necesitas una cuenta?"
 
+#: src/routes/reset-password.tsx
+msgid "New password"
+msgstr "Nueva contraseña"
+
 #: src/components/Navbar.tsx
 msgid "New Task"
 msgstr "Nueva tarea"
@@ -121,6 +164,19 @@ msgstr "O continúa con"
 msgid "Password"
 msgstr "Contraseña"
 
+#: src/routes/reset-password.tsx
+msgid "Password must be at least {MIN_PASSWORD_LENGTH} characters"
+msgstr "La contraseña debe tener al menos {MIN_PASSWORD_LENGTH} caracteres"
+
+#: src/routes/reset-password.tsx
+msgid "Password must be at most {MAX_PASSWORD_LENGTH} characters"
+msgstr "La contraseña debe tener como máximo {MAX_PASSWORD_LENGTH} caracteres"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "Password reset isn't available right now. Please continue with Google."
+msgstr "El restablecimiento de contraseña no está disponible en este momento. Continúa con Google."
+
+#: src/routes/_guest/forgot-password.tsx
 #: src/routes/_guest/signin.tsx
 msgid "Please enter a valid email address"
 msgstr "Introduce un correo electrónico válido"
@@ -128,6 +184,26 @@ msgstr "Introduce un correo electrónico válido"
 #: src/components/Navbar.tsx
 msgid "Profile"
 msgstr "Perfil"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "Reset your password"
+msgstr "Restablece tu contraseña"
+
+#: src/routes/reset-password.tsx
+msgid "Saving..."
+msgstr "Guardando..."
+
+#: src/routes/reset-password.tsx
+msgid "Send a new link"
+msgstr "Enviar un enlace nuevo"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "Send reset link"
+msgstr "Enviar enlace de restablecimiento"
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "Sending..."
+msgstr "Enviando..."
 
 #: src/components/Navbar.tsx
 #: src/routes/_guest/signin.tsx
@@ -166,22 +242,54 @@ msgstr "Sistema"
 msgid "TanStarter Todo"
 msgstr "TanStarter Tareas"
 
+#: src/routes/reset-password.tsx
+msgid "The passwords don't match"
+msgstr "Las contraseñas no coinciden"
+
 #: src/routes/_guest/signin.tsx
 msgid "This confirmation link has expired or is no longer valid. Sign in and we'll send you a new one."
 msgstr "Este enlace de confirmación ha caducado o ya no es válido. Inicia sesión y te enviaremos uno nuevo."
+
+#: src/routes/reset-password.tsx
+msgid "This link has expired or is no longer valid."
+msgstr "Este enlace ha caducado o ya no es válido."
 
 #: src/components/ThemeToggle.tsx
 msgid "Toggle theme"
 msgstr "Cambiar tema"
 
+#: src/routes/_guest/forgot-password.tsx
+msgid "Too many requests. Please wait a minute and try again."
+msgstr "Demasiadas solicitudes. Espera un minuto e inténtalo de nuevo."
+
 #: src/routes/index.tsx
 msgid "Type Safety"
 msgstr "Tipado seguro"
+
+#: src/routes/reset-password.tsx
+msgid "Use between {MIN_PASSWORD_LENGTH} and {MAX_PASSWORD_LENGTH} characters."
+msgstr "Usa entre {MIN_PASSWORD_LENGTH} y {MAX_PASSWORD_LENGTH} caracteres."
 
 #: src/routes/index.tsx
 msgid "View on GitHub"
 msgstr "Ver en GitHub"
 
+#: src/routes/reset-password.tsx
+msgid "We couldn't change your password. Please try again."
+msgstr "No pudimos cambiar tu contraseña. Inténtalo de nuevo."
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "We couldn't send the link. Please try again."
+msgstr "No pudimos enviar el enlace. Inténtalo de nuevo."
+
+#: src/routes/_guest/forgot-password.tsx
+msgid "We'll email you a link to choose a new one"
+msgstr "Te enviaremos por correo un enlace para elegir una nueva"
+
 #: src/routes/_guest/signin.tsx
 msgid "Welcome back!"
 msgstr "¡Bienvenido de nuevo!"
+
+#: src/routes/reset-password.tsx
+msgid "Your password has been changed and you were signed out everywhere. Sign in with the new one."
+msgstr "Tu contraseña ha cambiado y se cerró tu sesión en todas partes. Inicia sesión con la nueva."

@@ -17,8 +17,22 @@ import { authDisabledPaths, userAdditionalFields, userDatabaseHooks } from "./us
 // The Playwright dev server has no inbox, so it skips verification; see ./policy.
 // Read from process.env, like the Google credentials below: ~/env is not available to the
 // client-side type inference of this file.
+// The mail modules are imported on use (~/env, see the Google credentials note below) and the send is not
+// awaited, so the answer does not depend on whether the address has an account.
+function inBackground(task: Promise<unknown>) {
+	task.catch((error) =>
+		logger.error("Auth email handler failed", { error: error instanceof Error ? error.message : String(error) }),
+	);
+}
+
 const policy = createAuthPolicy({
 	requireEmailVerification: !isPlaywrightServer(),
+	sendResetPassword: async (data) => {
+		inBackground(import("~/server/email/password-reset").then((mail) => mail.sendResetPasswordEmail(data)));
+	},
+	onExistingUserSignUp: async (data) => {
+		inBackground(import("~/server/email/password-reset").then((mail) => mail.sendAccountExistsEmail(data)));
+	},
 	canSendEmail:
 		emailDelivery({
 			RESEND_API_KEY: process.env.RESEND_API_KEY,
