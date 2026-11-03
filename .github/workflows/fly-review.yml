@@ -118,63 +118,85 @@ jobs:
 
           # curl with the Neon credential. Retries the answers neonctl retried:
           # 423 (the project is locked by another running operation, e.g. a
-          # preview for a different PR), 429 and 5xx. Prints the body on success,
-          # only the status on failure.
+          # preview for a different PR), 429 and 5xx, plus a transport failure
+          # (status 000). Prints the body on success, only the status and
+          # Neon's message on failure.
           neon() {
-            local body status attempt
+            local body status attempt message
             body=$(mktemp)
             for attempt in 1 2 3 4 5 6; do
-              status=$(curl -sS -o "$body" -w '%{http_code}' -H "@$auth_file" "$@")
+              status=$(curl -sS -o "$body" -w '%{http_code}' -H "@$auth_file" "$@") || status=000
               case "$status" in
                 2??)
                   cat "$body"
                   rm -f "$body"
                   return 0
                   ;;
-                423 | 429 | 5??) echo "Neon API answered $status; retrying (attempt $attempt of 6)" >&2 ;;
+                000 | 423 | 429 | 5??) echo "Neon API answered $status; retrying (attempt $attempt of 6)" >&2 ;;
                 *) break ;;
               esac
               [ "$attempt" -lt 6 ] && sleep $((attempt * 5))
             done
             # Neon's error body is a code and a message, never a credential.
-            echo "::error::Neon API request failed with status $status: $(jq -r '.message // empty' "$body" 2>/dev/null | tr -d '\r\n' | head -c 300)" >&2
+            message=$({ jq -r '.message // empty' "$body" | tr -d '\r\n' | head -c 300; } 2>/dev/null || true)
+            echo "::error::Neon API request failed with status $status: $message" >&2
             rm -f "$body"
             return 1
           }
 
-          branches=$(neon -G --data-urlencode "search=$BRANCH_NAME" \
-            --data-urlencode "limit=10000" "$api/branches")
-          branch_id=$(echo "$branches" | jq -r --arg name "$BRANCH_NAME" '[.branches[] | select(.name == $name) | .id][0] // empty')
+          find_branch() {
+            neon -G --data-urlencode "search=$BRANCH_NAME" --data-urlencode "limit=10000" "$api/branches" |
+              jq -r --arg name "$BRANCH_NAME" '[.branches[] | select(.name == $name) | .id][0] // empty'
+          }
 
+          branch_id=$(find_branch)
+          created='{}'
           if [ -n "$branch_id" ]; then
             echo "Neon branch $BRANCH_NAME already exists ($branch_id); reusing it"
           else
             # The response carries the new role's connection URIs, so never print it.
             payload=$(jq -nc --arg name "$BRANCH_NAME" '{branch: {name: $name}, endpoints: [{type: "read_write"}]}')
-            created=$(neon -X POST -H "Content-Type: application/json" -d "$payload" "$api/branches")
-            branch_id=$(echo "$created" | jq -er '.branch.id')
-
-            # Wait for the branch and compute to be ready before the app starts
-            # (its release_command runs migrations against this database).
-            for op in $(echo "$created" | jq -r '.operations[].id'); do
-              status=""
-              for _ in $(seq 1 90); do
-                status=$(neon "$api/operations/$op" | jq -r '.operation.status')
-                case "$status" in
-                  finished | skipped) break ;;
-                  failed | error | cancelling | cancelled)
-                    echo "::error::Neon operation $op ended as $status"
-                    exit 1
-                    ;;
-                esac
-                sleep 2
-              done
-              if [ "$status" != "finished" ] && [ "$status" != "skipped" ]; then
-                echo "::error::Neon operation $op still $status after 3 minutes"
+            if created=$(neon -X POST -H "Content-Type: application/json" -d "$payload" "$api/branches"); then
+              branch_id=$(echo "$created" | jq -er '.branch.id')
+            else
+              # Neon may have created the branch even though the call failed (a
+              # lost response, or a retry that then met a 409), so look again.
+              created='{}'
+              branch_id=$(find_branch)
+              if [ -z "$branch_id" ]; then
+                echo "::error::Neon branch $BRANCH_NAME was not created"
                 exit 1
               fi
-            done
+              echo "::warning::Neon branch create reported a failure, but $BRANCH_NAME exists ($branch_id); continuing"
+            fi
           fi
+
+          # Wait for the branch's in-flight operations (the new branch and compute,
+          # or whatever a run that died part-way left running) before the app
+          # starts: its release_command runs migrations against this database.
+          pending=$({
+            echo "$created" | jq -r '.operations[]?.id'
+            neon -G --data-urlencode "limit=100" "$api/operations" |
+              jq -r --arg b "$branch_id" '.operations[] | select(.branch_id == $b and (.status == "scheduling" or .status == "running")) | .id'
+          } | sort -u)
+          for op in $pending; do
+            status=""
+            for _ in $(seq 1 90); do
+              status=$(neon "$api/operations/$op" | jq -r '.operation.status')
+              case "$status" in
+                finished | skipped) break ;;
+                failed | error | cancelling | cancelled)
+                  echo "::error::Neon operation $op ended as $status"
+                  exit 1
+                  ;;
+              esac
+              sleep 2
+            done
+            if [ "$status" != "finished" ] && [ "$status" != "skipped" ]; then
+              echo "::error::Neon operation $op still $status after 3 minutes"
+              exit 1
+            fi
+          done
 
           uri=$(neon -G --data-urlencode "branch_id=$branch_id" \
             --data-urlencode "role_name=$DATABASE_OWNER" --data-urlencode "database_name=$DATABASE_NAME" \
