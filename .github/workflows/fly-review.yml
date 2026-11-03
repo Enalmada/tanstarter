@@ -15,11 +15,11 @@ on:
 permissions:
   contents: read
 
+# Only non-secret values live here. Each step that needs FLY_API_TOKEN or
+# NEON_API_KEY sets it itself, so no other step or action sees them.
 env:
-  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
   FLY_REGION: iad
   FLY_ORG: personal
-  NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
   NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
   FLY_APP_NAME: pr-${{ github.event.number }}-tanstarter
 
@@ -89,39 +89,119 @@ jobs:
         with:
           version: 0.4.119 # an action input, so Dependabot does not bump it: update by hand
 
-      # These two actions still fetch tooling when they run (setup-node and
-      # neonctl@2; an alpine base image and fly.io/install.sh), so the SHA pin
-      # does not freeze everything they execute.
+      # Inline steps instead of the Neon and Fly review-app actions: both are
+      # SHA-pinned upstream but fetch floating tooling when they run (setup-node
+      # and `npm i -g neonctl@2`; an unpinned alpine image and `curl
+      # fly.io/install.sh | sh`, which also ignores the flyctl pin above), and
+      # they would hold the Neon and Fly credentials. Here the only code that
+      # sees them is curl/jq on the runner and the pinned flyctl.
+      #
+      # Neon REST API, as the destroy job does. Branches from the project's
+      # default branch with a read-write compute, and reuses an existing branch
+      # of the same name (a redeploy).
       - name: Create Neon Database Branch
         id: create_db
         if: steps.pr_state.outputs.open == 'true'
-        uses: neondatabase/create-branch-action@ad7325f8b2fe61e29689926c29d153e8c98b7336 # v5.2.0
-        with:
-          project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch_name: pr-${{ github.event.number }}
-          api_key: ${{ secrets.NEON_API_KEY }}
-          username: ${{ vars.DATABASE_OWNER}}
-          database: ${{ vars.DATABASE_NAME}}
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          BRANCH_NAME: pr-${{ github.event.number }}
+          DATABASE_OWNER: ${{ vars.DATABASE_OWNER }}
+          DATABASE_NAME: ${{ vars.DATABASE_NAME || 'neondb' }}
+        run: |
+          set -euo pipefail
+          api="https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID"
+          auth="Authorization: Bearer $NEON_API_KEY"
 
+          branches=$(curl -fsS -G -H "$auth" --data-urlencode "search=$BRANCH_NAME" \
+            --data-urlencode "limit=10000" "$api/branches")
+          branch_id=$(echo "$branches" | jq -r --arg name "$BRANCH_NAME" '[.branches[] | select(.name == $name) | .id][0] // empty')
+
+          if [ -n "$branch_id" ]; then
+            echo "Neon branch $BRANCH_NAME already exists ($branch_id); reusing it"
+          else
+            # The response carries the new role's connection URIs, so never print it.
+            created=$(jq -n --arg name "$BRANCH_NAME" \
+              '{branch: {name: $name}, endpoints: [{type: "read_write"}]}' |
+              curl -fsS -X POST -H "$auth" -H "Content-Type: application/json" -d @- "$api/branches")
+            branch_id=$(echo "$created" | jq -er '.branch.id')
+
+            # Wait for the branch and compute to be ready before the app starts
+            # (its release_command runs migrations against this database).
+            for op in $(echo "$created" | jq -r '.operations[].id'); do
+              status=""
+              for _ in $(seq 1 90); do
+                status=$(curl -fsS -H "$auth" "$api/operations/$op" | jq -r '.operation.status')
+                case "$status" in
+                  finished | skipped) break ;;
+                  failed | error | cancelling | cancelled)
+                    echo "::error::Neon operation $op ended as $status"
+                    exit 1
+                    ;;
+                esac
+                sleep 2
+              done
+              if [ "$status" != "finished" ] && [ "$status" != "skipped" ]; then
+                echo "::error::Neon operation $op still $status after 3 minutes"
+                exit 1
+              fi
+            done
+          fi
+
+          uri=$(curl -fsS -G -H "$auth" --data-urlencode "branch_id=$branch_id" \
+            --data-urlencode "role_name=$DATABASE_OWNER" --data-urlencode "database_name=$DATABASE_NAME" \
+            --data-urlencode "pooled=false" "$api/connection_uri" | jq -er '.uri')
+          password=$(echo "$uri" | sed -E 's#^[a-z]+://[^:/@]+:([^@]+)@.*$#\1#')
+          echo "::add-mask::$password"
+          case "$uri" in
+            *sslmode=*) ;;
+            *\?*) uri="$uri&sslmode=require" ;;
+            *) uri="$uri?sslmode=require" ;;
+          esac
+          echo "::add-mask::$uri"
+          echo "db_url=$uri" >> "$GITHUB_OUTPUT"
+
+      # flyctl directly (the pinned one from the setup step). Previews run a
+      # smaller Machine than fly.toml's [[vm]] (256 MB, as the review-app action
+      # defaulted) and skip high availability. The app's runtime configuration
+      # goes in as Fly secrets, read from the environment so values never touch
+      # the command line.
       - name: Deploy Fly.io app
         id: deploy_app
         if: steps.pr_state.outputs.open == 'true'
-        uses: superfly/fly-pr-review-apps@f5d85309215d5700e7a42faf9aa5e9a718aaef7c # 1.5.0
-        with:
-          name: ${{ env.FLY_APP_NAME }}
-          config: fly.toml
-          secrets: |
-            APP_ENV=${{ vars.APP_ENV }}
-            AXIOM_DATASET_NAME=${{ vars.AXIOM_DATASET_NAME }}
-            AXIOM_TOKEN=${{ secrets.AXIOM_TOKEN }}
-            BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
-            DATABASE_URL=${{ steps.create_db.outputs.db_url }}
-            EMAIL_FROM=${{ vars.EMAIL_FROM }}
-            GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
-            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-            NODE_ENV=production
-            PUBLIC_APP_URL=https://${{ env.FLY_APP_NAME }}.fly.dev
-            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          APP_ENV: ${{ vars.APP_ENV }}
+          AXIOM_DATASET_NAME: ${{ vars.AXIOM_DATASET_NAME }}
+          AXIOM_TOKEN: ${{ secrets.AXIOM_TOKEN }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          DATABASE_URL: ${{ steps.create_db.outputs.db_url }}
+          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          NODE_ENV: production
+          PUBLIC_APP_URL: https://${{ env.FLY_APP_NAME }}.fly.dev
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          set -euo pipefail
+          # `apps list` rather than `status`, so an auth or API failure fails
+          # the step instead of reading as "no such app".
+          apps=$(flyctl apps list --json)
+          if [ "$(echo "$apps" | jq --arg name "$FLY_APP_NAME" 'any(.[]; .Name == $name)')" != "true" ]; then
+            flyctl apps create "$FLY_APP_NAME" --org "$FLY_ORG"
+          fi
+
+          for name in APP_ENV AXIOM_DATASET_NAME AXIOM_TOKEN BETTER_AUTH_SECRET DATABASE_URL \
+            EMAIL_FROM GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET NODE_ENV PUBLIC_APP_URL RESEND_API_KEY; do
+            printf '%s=%s\n' "$name" "${!name}"
+          done | flyctl secrets import --app "$FLY_APP_NAME"
+
+          flyctl deploy --app "$FLY_APP_NAME" --config fly.toml --regions "$FLY_REGION" \
+            --remote-only --strategy immediate --ha=false \
+            --vm-cpu-kind shared --vm-cpus 1 --vm-memory 256 \
+            --build-arg APT_UPGRADE_CACHE_BUST="$GITHUB_RUN_ID"
+
+          hostname=$(flyctl status --app "$FLY_APP_NAME" --json | jq -er '.Hostname')
+          echo "url=https://$hostname" >> "$GITHUB_OUTPUT"
 
   # DESTROY RESOURCES (PR closed, with or without the `preview` label, or a late
   # create_environment run found it no longer open).
@@ -152,6 +232,7 @@ jobs:
       # deleted) is a no-op while an auth or API failure fails the job.
       - name: Destroy Neon Database Branch
         env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           BRANCH_NAME: pr-${{ github.event.number }}
         run: |
           api="https://console.neon.tech/api/v2/projects/$NEON_PROJECT_ID/branches"
@@ -167,14 +248,14 @@ jobs:
           fi
           curl -fsS -X DELETE -H "Authorization: Bearer $NEON_API_KEY" "$api/$id" > /dev/null
 
-      # flyctl directly: fly-pr-review-apps only destroys on a `closed` event and
-      # would deploy instead when this job runs from a late synchronize run.
       # A missing app (never labeled, or already destroyed) is fine; any other
       # failure (auth, API) fails the step so orphans don't go unnoticed.
       # `!cancelled()` here and below: a failed Neon delete still fails the job,
       # but mustn't leave the Fly app running.
       - name: Destroy Fly.io app
         if: ${{ !cancelled() }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: |
           if ! apps=$(flyctl apps list --json); then
             echo "::error::flyctl apps list failed"
