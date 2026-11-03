@@ -174,11 +174,18 @@ jobs:
           # Wait for the branch's in-flight operations (the new branch and compute,
           # or whatever a run that died part-way left running) before the app
           # starts: its release_command runs migrations against this database.
-          pending=$({
-            echo "$created" | jq -r '.operations[]?.id'
-            neon -G --data-urlencode "limit=100" "$api/operations" |
-              jq -r --arg b "$branch_id" '.operations[] | select(.branch_id == $b and (.status == "scheduling" or .status == "running")) | .id'
-          } | sort -u)
+          # The project-wide list is newest first and paged; an operation still
+          # running is recent, so five pages of 100 are plenty.
+          pending=$(echo "$created" | jq -r '.operations[]?.id')
+          cursor=""
+          for _ in 1 2 3 4 5; do
+            page=$(neon -G --data-urlencode "limit=100" ${cursor:+--data-urlencode "cursor=$cursor"} "$api/operations")
+            pending+=$'\n'$(echo "$page" | jq -r --arg b "$branch_id" '.operations[] | select(.branch_id == $b and (.status == "scheduling" or .status == "running")) | .id')
+            [ "$(echo "$page" | jq '.operations | length')" -ge 100 ] || break
+            cursor=$(echo "$page" | jq -r '.pagination.cursor // empty')
+            [ -n "$cursor" ] || break
+          done
+          pending=$(echo "$pending" | sort -u)
           for op in $pending; do
             status=""
             for _ in $(seq 1 90); do
