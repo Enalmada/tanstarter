@@ -37,7 +37,12 @@ export function initPosthog(): boolean {
 		mask_personal_data_properties: true,
 		custom_personal_data_properties: ["token"],
 		session_recording: {
-			maskCapturedNetworkRequestFn: (request) => ({ ...request, name: stripResetToken(request.name ?? "") }),
+			// A custom callback replaces PostHog's default scrubbing of credential-like
+			// headers and bodies, so drop them here instead of passing them through
+			maskCapturedNetworkRequestFn: (request) => {
+				const { requestHeaders, requestBody, responseHeaders, responseBody, ...rest } = request;
+				return { ...rest, name: stripResetToken(request.name ?? "") };
+			},
 		},
 		// Disable features in development
 		disable_session_recording: process.env.NODE_ENV !== "production",
