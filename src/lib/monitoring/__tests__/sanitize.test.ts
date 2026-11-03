@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { redactExceptionMessage, sanitizeEvent, stripUrlDetails } from "~/lib/monitoring/sanitize";
+import { maskNetworkRequest, redactExceptionMessage, sanitizeEvent, stripUrlDetails } from "~/lib/monitoring/sanitize";
 
 function exceptionEvent(overrides: Record<string, unknown> = {}) {
 	return {
@@ -19,6 +19,45 @@ describe("stripUrlDetails", () => {
 		expect(stripUrlDetails("https://x.test/a/b?token=1#h")).toBe("https://x.test/a/b");
 		expect(stripUrlDetails("https://x.test/a#h?x")).toBe("https://x.test/a");
 		expect(stripUrlDetails("https://x.test/a")).toBe("https://x.test/a");
+	});
+});
+
+describe("maskNetworkRequest", () => {
+	const entry = {
+		name: "https://x.test/reset-password?token=live-secret",
+		entryType: "navigation",
+		startTime: 1,
+		duration: 5,
+		initiatorType: "navigation" as const,
+		status: 200,
+		isInitial: true,
+		requestHeaders: { authorization: "Bearer live-secret" }, // betterleaks:allow
+		requestBody: JSON.stringify({ token: "live-secret", newPassword: "hunter2hunter2" }), // betterleaks:allow
+		responseHeaders: { "set-cookie": "session=live-secret" }, // betterleaks:allow
+		responseBody: '{"session":"live-secret"}',
+		// Chromium adds further URLs to a serialized navigation entry
+		notRestoredReasons: { url: "https://x.test/reset-password?token=live-secret", children: [] },
+	};
+
+	it("keeps timing, sizes and status, with the URL stripped of a reset token", () => {
+		// The browser adds fields the SDK's type does not list
+		const browserEntry = { ...entry, responseStatus: 200, transferSize: 512, nextHopProtocol: "h2" };
+		expect(maskNetworkRequest(browserEntry)).toEqual({
+			name: "https://x.test/reset-password",
+			entryType: "navigation",
+			startTime: 1,
+			duration: 5,
+			initiatorType: "navigation",
+			status: 200,
+			isInitial: true,
+			responseStatus: 200,
+			transferSize: 512,
+			nextHopProtocol: "h2",
+		});
+	});
+
+	it("drops headers, bodies and every field it does not know", () => {
+		expect(JSON.stringify(maskNetworkRequest(entry))).not.toContain("live-secret");
 	});
 });
 

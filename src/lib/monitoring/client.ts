@@ -10,7 +10,7 @@ import posthog from "posthog-js";
 import { env, getAppEnv, shouldReportErrors } from "~/env";
 import { type CaptureProperties, POSTHOG_HOST, toCapture } from "./capture";
 import { isExpectedError } from "./expected-errors";
-import { sanitizeEvent, stripResetToken } from "./sanitize";
+import { maskNetworkRequest, sanitizeEvent } from "./sanitize";
 import type { ErrorMonitor, MonitorUser } from "./types";
 
 export function initPosthog(): boolean {
@@ -38,11 +38,8 @@ export function initPosthog(): boolean {
 		custom_personal_data_properties: ["token"],
 		session_recording: {
 			// A custom callback replaces PostHog's default scrubbing of credential-like
-			// headers and bodies, so drop them here instead of passing them through
-			maskCapturedNetworkRequestFn: (request) => {
-				const { requestHeaders, requestBody, responseHeaders, responseBody, ...rest } = request;
-				return { ...rest, name: stripResetToken(request.name ?? "") };
-			},
+			// headers and bodies, so keep only timing and status (see maskNetworkRequest)
+			maskCapturedNetworkRequestFn: maskNetworkRequest,
 		},
 		// Disable features in development
 		disable_session_recording: process.env.NODE_ENV !== "production",

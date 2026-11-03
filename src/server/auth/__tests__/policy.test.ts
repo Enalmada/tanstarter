@@ -384,6 +384,13 @@ describe("password reset", () => {
 
 	it("is off for every address alike when mail cannot be sent", async () => {
 		const { auth, resets } = createTestAuth({ canSendEmail: false });
+		// Sign-up is off in this mode, so seed the account the way an earlier deploy would have left it
+		const context = await auth.$context;
+		await context.internalAdapter.createUser(
+			{ email: EMAIL, name: "Person", emailVerified: true },
+			{ method: "email-password" },
+		);
+
 		const known = await requestReset(auth);
 		const unknown = await requestReset(auth, "nobody@example.com");
 
@@ -401,6 +408,14 @@ describe("password reset", () => {
 
 		const second = await signUp(auth, "another-long-enough-passphrase"); // betterleaks:allow
 		expect(second.status).toBe(first.status);
+		// Same body too: an "already exists" field or a different value would answer the enumeration question.
+		// The id and timestamps are fresh per call; the in-memory adapter omits an unset `image` where a
+		// database row returns null.
+		const comparable = (body: Record<string, unknown> | null) => {
+			const { id, createdAt, updatedAt, image, ...user } = (body?.user ?? {}) as Record<string, unknown>;
+			return { ...body, user };
+		};
+		expect(comparable(second.body)).toEqual(comparable(first.body));
 		expect(existing).toEqual([EMAIL]);
 		expect(sent).toHaveLength(1);
 	});

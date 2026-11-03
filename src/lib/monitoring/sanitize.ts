@@ -19,6 +19,7 @@
  * to anyone who can read analytics.
  */
 
+import type { CapturedNetworkRequest } from "posthog-js";
 import { isExpectedErrorName } from "./expected-errors";
 
 interface ExceptionEntry {
@@ -66,6 +67,32 @@ const RESET_PASSWORD_URL = /\/reset-password(?:[/?#]|$)/;
 export function stripResetToken(url: string): string {
 	if (!RESET_PASSWORD_URL.test(url)) return url;
 	return stripUrlDetails(url).replace(/(\/reset-password)\/[^/]+$/, "$1");
+}
+
+// String fields of a network entry that are safe to keep (everything else string-valued is a URL or a body)
+const KEPT_NETWORK_STRING_FIELDS = new Set(["entryType", "initiatorType", "method", "nextHopProtocol", "type"]);
+
+/**
+ * For session replay's network entries (`maskCapturedNetworkRequestFn`). A custom callback replaces
+ * PostHog's default scrubbing, and an entry is a serialized browser `PerformanceEntry` that can carry
+ * further URLs (Chromium's `notRestoredReasons.url`). Keep the numbers, booleans and a short list of
+ * strings (timing, sizes, status), give the entry's own URL a reset token's removal, and drop
+ * everything else: headers, bodies, nested objects.
+ */
+export function maskNetworkRequest(request: CapturedNetworkRequest): CapturedNetworkRequest {
+	const kept = Object.entries(request).filter(
+		([key, value]) =>
+			typeof value === "number" ||
+			typeof value === "boolean" ||
+			(typeof value === "string" && KEPT_NETWORK_STRING_FIELDS.has(key)),
+	);
+	return {
+		...Object.fromEntries(kept),
+		name: stripResetToken(request.name ?? ""),
+		entryType: request.entryType,
+		startTime: request.startTime,
+		duration: request.duration,
+	};
 }
 
 function stripUrls(bag: Record<string, unknown> | undefined, strip: (url: string) => string) {
