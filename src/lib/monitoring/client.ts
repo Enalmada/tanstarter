@@ -10,7 +10,7 @@ import posthog from "posthog-js";
 import { env, getAppEnv, shouldReportErrors } from "~/env";
 import { type CaptureProperties, POSTHOG_HOST, toCapture } from "./capture";
 import { isExpectedError } from "./expected-errors";
-import { sanitizeExceptionEvent } from "./sanitize";
+import { sanitizeEvent, stripResetToken } from "./sanitize";
 import type { ErrorMonitor, MonitorUser } from "./types";
 
 export function initPosthog(): boolean {
@@ -29,8 +29,16 @@ export function initPosthog(): boolean {
 		// would land in the same project as real issues.
 		capture_exceptions: shouldReportErrors(),
 		// Strips URLs' query strings and Drizzle bound params from exception
-		// events, and drops automatically captured expected errors
-		before_send: (event) => sanitizeExceptionEvent(event),
+		// events, drops automatically captured expected errors, and removes the
+		// password-reset token from every event's page URL
+		before_send: (event) => sanitizeEvent(event),
+		// `before_send` sees events only. Heatmaps, web vitals and session replay
+		// carry the page URL in their own payloads, so mask the reset token there too
+		mask_personal_data_properties: true,
+		custom_personal_data_properties: ["token"],
+		session_recording: {
+			maskCapturedNetworkRequestFn: (request) => ({ ...request, name: stripResetToken(request.name ?? "") }),
+		},
 		// Disable features in development
 		disable_session_recording: process.env.NODE_ENV !== "production",
 		enable_heatmaps: process.env.NODE_ENV === "production",
