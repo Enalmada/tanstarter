@@ -5,9 +5,9 @@
  *   - `getOptionalSessionUser()` — returns the user or `null`. Use when
  *     the anonymous path is valid (e.g. session probes for marketing
  *     pages, public-route loaders).
- *   - `requireAuthedUser()` — returns the user or throws `401
- *     Unauthorized`. Use in createServerFn handlers that already
- *     require a session.
+ *   - `requireAuthedUser()` — returns the user or throws
+ *     `UnauthenticatedError` (401). Use in createServerFn handlers that
+ *     already require a session.
  *
  * Both:
  *   - Honor the Playwright test-token shortcut (seeded users, dev server
@@ -15,10 +15,13 @@
  *   - Resolve the per-request `Request` via `getSessionRequest()` —
  *     handles the `getRequest()` v1.134+ throw-on-missing-context
  *     in ONE place.
- *   - Call `auth.api.getSession({ asResponse: true })` and forward any
- *     `Set-Cookie` headers from session refresh — so authed handlers
- *     get cookie rotation for free, matching what `session.ts` used to
- *     do inline.
+ *   - Call `auth.api.getSession()` without `asResponse`. better-auth's
+ *     `tanstackStartCookies()` plugin (registered in `./auth`) applies any
+ *     `Set-Cookie` from session refresh or expiry to Start's response
+ *     through `setCookie`, which merges with cookies set elsewhere in the
+ *     request. Forwarding them again by hand with `setResponseHeader`
+ *     would replace those other cookies, and `.json()` on a Response
+ *     would turn the user's Dates into strings.
  *   - Accept `{ freshFromDb: true }` to bypass better-auth's cookie
  *     cache and re-query the DB. Use for authed actions that need to
  *     observe a role/permission change written earlier in the same
@@ -49,21 +52,15 @@ export async function getOptionalSessionUser(opts?: { freshFromDb?: boolean }): 
 	if (!request) return null;
 
 	const authModule = await import("./auth");
+	// No `asResponse`: tanstackStartCookies() (see ./auth) already applies any
+	// Set-Cookie from this call to Start's response, merged with the other cookies.
 	const session = await authModule.auth.api.getSession({
 		headers: request.headers,
-		asResponse: true,
 		...(opts?.freshFromDb ? { query: { disableCookieCache: true } } : {}),
 	});
 
-	// Forward any Set-Cookie headers (session refresh, expiry rotation).
-	const cookies = session.headers?.getSetCookie();
-	if (cookies?.length) {
-		const serverModule = await import("@tanstack/react-start/server");
-		serverModule.setResponseHeader("Set-Cookie", cookies);
-	}
-
-	const data = await session.json();
-	return (data?.user as SessionUser) ?? null;
+	// Cast: the inferred role is `string`; SessionUser narrows it to UserRole.
+	return (session?.user as SessionUser | undefined) ?? null;
 }
 
 export async function requireAuthedUser(opts?: { freshFromDb?: boolean }): Promise<SessionUser> {

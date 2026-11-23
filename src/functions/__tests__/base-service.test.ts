@@ -59,15 +59,7 @@ import { UnauthenticatedError } from "~/server/access/http-errors";
 import { auth } from "~/server/auth/auth";
 import DB from "~/server/db";
 import { UserRole } from "~/server/db/schema";
-import {
-	createMockContext,
-	fixedDate,
-	makeMockSessionResponse,
-	mockTask,
-	mockUser,
-	mockUserId,
-	setupDBMocks,
-} from "~/test/setup";
+import { createMockContext, fixedDate, mockTask, mockUser, mockUserId, setupDBMocks } from "~/test/setup";
 
 const mockContext = createMockContext();
 
@@ -171,9 +163,7 @@ describe("base-service", () => {
 			} as Request);
 
 			// ~/server/auth/session.getOptionalSessionUser calls auth.api.getSession
-			// with `asResponse: true`. Use the centralized duck-typed factory so
-			// Date instances survive (a `new Response(JSON.stringify(...))` wrapper
-			// would round-trip them to ISO strings — see makeMockSessionResponse).
+			// without `asResponse`, so it gets this object back as is, Dates included.
 			const mockSessionPayload = {
 				session: {
 					id: "sess_123",
@@ -196,8 +186,7 @@ describe("base-service", () => {
 					image: null,
 				},
 			};
-			// biome-ignore lint/suspicious/noExplicitAny: duck-typed Response stand-in
-			vi.mocked(auth.api.getSession).mockResolvedValue(makeMockSessionResponse(mockSessionPayload) as any);
+			vi.mocked(auth.api.getSession).mockResolvedValue(mockSessionPayload);
 
 			// Reset access check mock
 			vi.mocked(accessCheck).mockReset();
@@ -296,11 +285,8 @@ describe("base-service", () => {
 
 		// Add test for auth failure
 		it("should throw error when user is not authenticated", async () => {
-			// Mock auth to return a Response with a null user payload.
-			vi.mocked(auth.api.getSession).mockResolvedValueOnce(
-				// biome-ignore lint/suspicious/noExplicitAny: duck-typed Response stand-in
-				makeMockSessionResponse({ session: null, user: null }) as any,
-			);
+			// better-auth resolves getSession to null for an anonymous request
+			vi.mocked(auth.api.getSession).mockResolvedValueOnce(null);
 
 			await expect(runFreshAuth()).rejects.toBeInstanceOf(UnauthenticatedError);
 			// authErrorTranslator sets the 401 from the error's hints, not the helper

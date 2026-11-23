@@ -64,7 +64,7 @@ export const handleMakeUserAdmin = createServerOnlyFn(
 
 		// Refresh the session cookie cache so a hard refresh observes the new role.
 		// Best-effort: `getOptionalSessionUser({ freshFromDb: true })` re-queries the
-		// DB AND forwards the Set-Cookie headers via the helper. If the
+		// DB, and better-auth's tanstackStartCookies plugin sets the refreshed cookie. If the
 		// AsyncLocalStorage context isn't active for some reason, the helper
 		// returns null and we just skip silently. A failure here must not fail the
 		// call: the role is already changed, and the audit line records the outcome.
