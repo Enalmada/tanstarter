@@ -9,6 +9,7 @@ import { emailDelivery } from "~/server/email/availability";
 import { logger } from "~/utils/logger";
 import { isPlaywrightServer } from "~/utils/test/playwright";
 import { authAdapterSchema } from "./adapter-schema";
+import { createAuthApiErrorHandler } from "./api-error";
 import { createAuthAuditHook } from "./audit";
 import { authIpAddress } from "./ip-address";
 import { createAuthPolicy } from "./policy";
@@ -78,6 +79,13 @@ export const auth = betterAuth({
 	databaseHooks: userDatabaseHooks,
 	disabledPaths: authDisabledPaths,
 	hooks: { after: createAuthAuditHook(logger.info) },
+	// Unexpected failures better-auth answers with a 500 itself: see ./api-error. Leave `throw` unset.
+	onAPIError: {
+		onError: createAuthApiErrorHandler(logger.error, async (error, properties) => {
+			const { captureServerException } = await import("~/server/monitoring/posthog");
+			captureServerException(error, { properties });
+		}),
+	},
 	session: {
 		...policy.session,
 		cookieCache: {

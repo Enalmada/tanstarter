@@ -21,6 +21,7 @@ Errors are reported only when `APP_ENV` isn't `development`, so local dev doesn'
 | Browser: manual | `useMonitor().error()` / `.warn()` | `hooks.ts`, `client.ts` |
 | Server functions | global function middleware, with the signed-in user's id | `src/server/monitoring/middleware.ts` |
 | Server routes (`/api/*`, `/health`) | global request middleware, with the signed-in user's id when there is one | `src/server/monitoring/middleware.ts` |
+| Better Auth (`/api/auth/*`) failures it answers with a 500 itself | `onAPIError.onError` in the auth config; 4xx API errors are skipped | `src/server/auth/api-error.ts` |
 | Everything else on the server (`uncaughtException`, `unhandledRejection`, errors outside the handlers above) | Nitro `error` hook; flushed on the `close` hook (SIGTERM) | `src/server/monitoring/nitro-plugin.ts` |
 
 **Not captured (expected errors):** router `redirect()`/`notFound()`, 4xx domain errors (`BadRequestError`, `UnauthenticatedError`, `NotAuthorizedError`, `NotFoundError`, `ConflictError`, anything with `HttpErrorHints` below 500). See `expected-errors.ts`. The response status is not consulted: it is shared by the whole request, so an earlier 4xx would hide a later unexpected error. Throw a typed error for an expected 4xx instead of setting the status and throwing a plain `Error`.
