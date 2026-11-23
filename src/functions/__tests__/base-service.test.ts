@@ -55,6 +55,7 @@ import { freshAuthMiddleware } from "~/functions/auth-middleware";
 import { deleteEntity } from "~/functions/delete-entity";
 import { validateId } from "~/functions/helpers";
 import { accessCheck } from "~/server/access/check";
+import { UnauthenticatedError } from "~/server/access/http-errors";
 import { auth } from "~/server/auth/auth";
 import DB from "~/server/db";
 import { UserRole } from "~/server/db/schema";
@@ -301,8 +302,9 @@ describe("base-service", () => {
 				makeMockSessionResponse({ session: null, user: null }) as any,
 			);
 
-			await expect(runFreshAuth()).rejects.toThrow("Unauthorized");
-			expect(setResponseStatus).toHaveBeenCalledWith(401);
+			await expect(runFreshAuth()).rejects.toBeInstanceOf(UnauthenticatedError);
+			// authErrorTranslator sets the 401 from the error's hints, not the helper
+			expect(setResponseStatus).not.toHaveBeenCalled();
 		});
 
 		// `getSessionRequest()` returns null when getRequest() throws OR returns
@@ -313,8 +315,8 @@ describe("base-service", () => {
 		it("should throw Unauthorized when web request is not available", async () => {
 			vi.mocked(getRequest).mockReturnValueOnce(undefined);
 
-			await expect(runFreshAuth()).rejects.toThrow("Unauthorized");
-			expect(setResponseStatus).toHaveBeenCalledWith(401);
+			await expect(runFreshAuth()).rejects.toBeInstanceOf(UnauthenticatedError);
+			expect(setResponseStatus).not.toHaveBeenCalled();
 		});
 	});
 });

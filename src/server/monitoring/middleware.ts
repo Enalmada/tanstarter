@@ -48,14 +48,11 @@ export const requestErrorReporter = createMiddleware({ type: "request" }).server
 	},
 );
 
+// No response-status check here: the status is shared by the whole request, so
+// an earlier 4xx would hide a later unexpected error. Expected errors are typed
+// instead (isExpectedError), including requireAuthedUser's UnauthenticatedError.
 async function reportServerError(err: unknown, properties: CaptureProperties) {
 	try {
-		const serverModule = await import("@tanstack/react-start/server");
-		// A handler that set a 4xx status and threw a plain Error (e.g.
-		// requireAuthedUser's 401) is expected too.
-		const status = serverModule.getResponseStatus();
-		if (status >= 400 && status < 500) return;
-
 		// Nothing to report to: skip the session lookup, a second database round trip on the failure path.
 		const { env, shouldReportErrors } = await import("~/env");
 		if (!env.PUBLIC_POSTHOG_API_KEY || !shouldReportErrors()) return;

@@ -1,7 +1,13 @@
 import { notFound, redirect } from "@tanstack/react-router";
 import { describe, expect, it } from "vitest";
 import { isExpectedError } from "~/lib/monitoring/expected-errors";
-import { BadRequestError, ConflictError, NotAuthorizedError, NotFoundError } from "~/server/access/http-errors";
+import {
+	BadRequestError,
+	ConflictError,
+	NotAuthorizedError,
+	NotFoundError,
+	UnauthenticatedError,
+} from "~/server/access/http-errors";
 
 function withStatus(status: number) {
 	return Object.assign(new Error("http"), { status });
@@ -21,6 +27,7 @@ describe("isExpectedError", () => {
 
 	it("treats 4xx domain errors as expected", () => {
 		expect(isExpectedError(new BadRequestError("bad"))).toBe(true);
+		expect(isExpectedError(new UnauthenticatedError())).toBe(true);
 		expect(isExpectedError(new NotAuthorizedError("no"))).toBe(true);
 		expect(isExpectedError(new NotFoundError("missing"))).toBe(true);
 		expect(isExpectedError(new ConflictError("taken"))).toBe(true);
@@ -28,6 +35,7 @@ describe("isExpectedError", () => {
 
 	it("matches domain errors by name after authErrorTranslator sanitizes them", () => {
 		expect(isExpectedError(named("NotFoundError"))).toBe(true);
+		expect(isExpectedError(named("UnauthenticatedError"))).toBe(true);
 		expect(isExpectedError(named("TypeError"))).toBe(false);
 	});
 

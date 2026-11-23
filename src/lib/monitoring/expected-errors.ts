@@ -11,7 +11,13 @@ import { hasHttpErrorHints } from "~/server/access/http-errors";
 
 // authErrorTranslator rethrows domain errors to the client as a plain Error
 // that keeps only the original name, so the client matches on it.
-const EXPECTED_ERROR_NAMES = new Set(["BadRequestError", "NotAuthorizedError", "NotFoundError", "ConflictError"]);
+const EXPECTED_ERROR_NAMES = new Set([
+	"BadRequestError",
+	"UnauthenticatedError",
+	"NotAuthorizedError",
+	"NotFoundError",
+	"ConflictError",
+]);
 
 /** For events PostHog captures itself, where only the error's name survives. */
 export function isExpectedErrorName(name: string): boolean {

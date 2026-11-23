@@ -69,9 +69,9 @@ export async function getOptionalSessionUser(opts?: { freshFromDb?: boolean }): 
 export async function requireAuthedUser(opts?: { freshFromDb?: boolean }): Promise<SessionUser> {
 	const user = await getOptionalSessionUser(opts);
 	if (!user) {
-		const serverModule = await import("@tanstack/react-start/server");
-		serverModule.setResponseStatus(401);
-		throw new Error("Unauthorized");
+		// authErrorTranslator sets the 401 and sends only the safe message.
+		const { UnauthenticatedError } = await import("~/server/access/http-errors");
+		throw new UnauthenticatedError();
 	}
 	return user;
 }

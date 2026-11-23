@@ -59,11 +59,12 @@ Handlers throw typed domain errors from [src/server/access/http-errors.ts](../..
 | Class | HTTP | Default `safeMessage` | When to throw |
 |---|---|---|---|
 | `BadRequestError` | 400 | the message | Input-validation failures from `validator` |
+| `UnauthenticatedError` | 401 | `"Unauthorized"` | No valid session (thrown by `requireAuthedUser`) |
 | `NotAuthorizedError` | 403 | `"Forbidden"` | Self-actor authorization denial (Pattern A) |
 | `NotFoundError` | 404 | `"Not found"` | Row missing, or info-hiding recast (Pattern B) |
 | `ConflictError` | 409 | the message | Unique-constraint violations, optimistic-concurrency mismatches |
 
-All four implement the structural `HttpErrorHints` interface (`httpStatus` + `safeMessage`). The middleware dispatches on `hasHttpErrorHints(err)`, so future domain error types get translation for free.
+All five implement the structural `HttpErrorHints` interface (`httpStatus` + `safeMessage`). The middleware dispatches on `hasHttpErrorHints(err)`, so future domain error types get translation for free.
 
 ### Wire-payload safety
 

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { NotFoundError } from "~/server/access/http-errors";
+import { NotFoundError, UnauthenticatedError } from "~/server/access/http-errors";
 import { errorReporter, requestErrorReporter } from "~/server/monitoring/middleware";
 
 const server = vi.hoisted(() => ({ getResponseStatus: vi.fn() }));
@@ -50,11 +50,18 @@ describe("errorReporter", () => {
 		expect(posthog.captureServerException).not.toHaveBeenCalled();
 	});
 
-	it("skips errors thrown after a 4xx status was set", async () => {
-		server.getResponseStatus.mockReturnValue(401);
-		const error = new Error("Unauthorized");
+	it("skips a 401 from requireAuthedUser", async () => {
+		const error = new UnauthenticatedError();
 		await expect(call(error)).rejects.toBe(error);
 		expect(posthog.captureServerException).not.toHaveBeenCalled();
+	});
+
+	it("still reports a real failure when an earlier call in the same response set a 4xx", async () => {
+		server.getResponseStatus.mockReturnValue(404);
+		const error = new Error("db down");
+		await expect(call(error)).rejects.toBe(error);
+		expect(posthog.captureServerException).toHaveBeenCalledOnce();
+		expect(posthog.captureServerException).toHaveBeenCalledWith(error, expect.anything());
 	});
 
 	it("skips the session lookup when there is no PostHog key or reporting is off", async () => {
