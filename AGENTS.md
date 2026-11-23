@@ -63,5 +63,6 @@ Also `bun run check-tss-7` and, after `bun run build`, `bun run check-client-lea
 - [UI](.agents/ui.md): shadcn re-pulls, theme, destructive colors
 - [i18n](.agents/i18n.md): Lingui workflow
 - [Workflow](.agents/workflow.md): quality gates in detail, real-browser validation, previews, toolchain
+- [Template sync](.agents/template-sync.md): reviewing the upstream template (mugnavo/cove), how products sync from tanstarter, provenance
 
 Project skills live in `.claude/skills/` (`tanstack-start` for server functions and TSS rules, `agent-browser` for browser automation).

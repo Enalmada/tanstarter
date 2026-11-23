@@ -1,0 +1,42 @@
+{
+	// Provenance for upstream template reviews. How to use it: template-sync.md next to this file.
+	// "reviewedThrough" is how far a review has looked; "reconciledRevision" is how far every upstream
+	// change has been adopted, adapted or recorded as skipped AND validated. Advance reconciledRevision
+	// only then, to a full SHA verified against the source, never from a timestamp or a dependency version.
+	"upstreams": [
+		{
+			"name": "cove",
+			"source": "https://github.com/mugnavo/cove",
+			"sharedHistory": false,
+			// Abbreviated SHA from the review's local log (commit dated 2026-11-22); resolve the full SHA on the next review
+			"reviewedThrough": "ba6642f",
+			"reviewedAt": "2026-11-22",
+			"reconciledRevision": null,
+			"reviews": [
+				{
+					"date": "2026-11-22",
+					// Upstream commits whose diffs were read: f81ea32 (evlog, Better Auth onAPIError),
+					// ada18a4 (Set-Cookie append), 8a5a200 (sync-template skill), 3661143 (.cove.jsonc)
+					"adopted": [
+						"Bound the error reporter's session lookup (1s) and skip it when reporting is off",
+						"Typed 401 (UnauthenticatedError) and no shared response-status check in the error reporter",
+						"Better Auth onAPIError.onError reports 5xx failures (fixed log message, numeric status)",
+						"Session cookies forwarded by tanstackStartCookies only (no asResponse, no manual Set-Cookie)",
+						"Provenance record and template-sync guide (a short record instead of Cove's sync skill)",
+					],
+					"skipped": [
+						"varlock (env.config.ts with envin stays)",
+						"Vite+ (Biome, lefthook and turbo stay)",
+						"evlog (logger and Axiom stay)",
+						"#/ import aliases (~/ stays)",
+						"Toolchain changes",
+					],
+					"deferred": [
+						"React Compiler lint rules (optional)",
+						"Guideline docs on third-party sandbox testing and mutation cache writes (optional)",
+					],
+				},
+			],
+		},
+	],
+}
