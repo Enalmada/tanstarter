@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authMiddleware, freshAuthMiddleware } from "~/functions/auth-middleware";
 import { UserRole } from "~/lib/enums/user-role";
+import { UnauthenticatedError } from "~/server/access/http-errors";
 
 const session = vi.hoisted(() => ({ requireAuthedUser: vi.fn() }));
 vi.mock("~/server/auth/session", () => session);
@@ -30,9 +31,10 @@ describe.each([
 	});
 
 	it("rejects an anonymous caller before the handler runs", async () => {
-		session.requireAuthedUser.mockRejectedValue(new Error("Unauthorized"));
+		const error = new UnauthenticatedError();
+		session.requireAuthedUser.mockRejectedValue(error);
 
-		await expect(run(middleware)({ next })).rejects.toThrow("Unauthorized");
+		await expect(run(middleware)({ next })).rejects.toBe(error);
 		expect(next).not.toHaveBeenCalled();
 	});
 });

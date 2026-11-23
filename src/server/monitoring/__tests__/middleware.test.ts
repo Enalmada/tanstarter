@@ -1,14 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { NotFoundError } from "~/server/access/http-errors";
+import { NotFoundError, UnauthenticatedError } from "~/server/access/http-errors";
 import { errorReporter, requestErrorReporter } from "~/server/monitoring/middleware";
 
 const server = vi.hoisted(() => ({ getResponseStatus: vi.fn() }));
 const session = vi.hoisted(() => ({ getOptionalSessionUser: vi.fn() }));
 const posthog = vi.hoisted(() => ({ captureServerException: vi.fn() }));
+const appEnv = vi.hoisted(() => ({
+	env: { PUBLIC_POSTHOG_API_KEY: "phc_test" as string | undefined },
+	reporting: true,
+}));
 
 vi.mock("@tanstack/react-start/server", () => server);
 vi.mock("~/server/auth/session", () => session);
 vi.mock("~/server/monitoring/posthog", () => posthog);
+vi.mock("~/env", () => ({ env: appEnv.env, shouldReportErrors: () => appEnv.reporting }));
 
 type ServerFn = (ctx: { next: () => Promise<unknown>; serverFnMeta: { name: string } }) => Promise<unknown>;
 // src/test/setup.ts mocks createMiddleware(...).server(fn) to return fn itself
@@ -24,6 +29,8 @@ function call(error: unknown) {
 describe("errorReporter", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		appEnv.env.PUBLIC_POSTHOG_API_KEY = "phc_test";
+		appEnv.reporting = true;
 		server.getResponseStatus.mockReturnValue(200);
 		session.getOptionalSessionUser.mockResolvedValue({ id: "usr_1" });
 	});
@@ -43,11 +50,61 @@ describe("errorReporter", () => {
 		expect(posthog.captureServerException).not.toHaveBeenCalled();
 	});
 
-	it("skips errors thrown after a 4xx status was set", async () => {
-		server.getResponseStatus.mockReturnValue(401);
-		const error = new Error("Unauthorized");
+	it("skips a 401 from requireAuthedUser", async () => {
+		const error = new UnauthenticatedError();
 		await expect(call(error)).rejects.toBe(error);
 		expect(posthog.captureServerException).not.toHaveBeenCalled();
+	});
+
+	it("still reports a real failure when an earlier call in the same response set a 4xx", async () => {
+		server.getResponseStatus.mockReturnValue(404);
+		const error = new Error("db down");
+		await expect(call(error)).rejects.toBe(error);
+		expect(posthog.captureServerException).toHaveBeenCalledOnce();
+		expect(posthog.captureServerException).toHaveBeenCalledWith(error, expect.anything());
+	});
+
+	it("skips the session lookup when there is no PostHog key or reporting is off", async () => {
+		appEnv.env.PUBLIC_POSTHOG_API_KEY = undefined;
+		await expect(call(new Error("boom"))).rejects.toThrow("boom");
+		appEnv.env.PUBLIC_POSTHOG_API_KEY = "phc_test";
+		appEnv.reporting = false;
+		await expect(call(new Error("boom"))).rejects.toThrow("boom");
+		expect(session.getOptionalSessionUser).not.toHaveBeenCalled();
+		expect(posthog.captureServerException).not.toHaveBeenCalled();
+	});
+
+	it("reports without a user when the session lookup outlasts the deadline", async () => {
+		vi.useFakeTimers();
+		try {
+			session.getOptionalSessionUser.mockReturnValue(new Promise(() => undefined));
+			const error = new Error("boom");
+			const pending = expect(call(error)).rejects.toBe(error);
+			await vi.advanceTimersByTimeAsync(999);
+			expect(posthog.captureServerException).not.toHaveBeenCalled();
+			await vi.advanceTimersByTimeAsync(1);
+			await pending;
+			expect(posthog.captureServerException).toHaveBeenCalledWith(
+				error,
+				expect.objectContaining({ distinctId: undefined }),
+			);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("clears the deadline timer when the session lookup settles first", async () => {
+		vi.useFakeTimers();
+		try {
+			await expect(call(new Error("boom"))).rejects.toThrow("boom");
+			expect(vi.getTimerCount()).toBe(0);
+			expect(posthog.captureServerException).toHaveBeenCalledWith(
+				expect.any(Error),
+				expect.objectContaining({ distinctId: "usr_1" }),
+			);
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 
 	it("reports without a user when the session lookup fails", async () => {
@@ -91,6 +148,8 @@ function callRequest(error: unknown, handlerType: "serverFn" | "router" = "route
 describe("requestErrorReporter", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		appEnv.env.PUBLIC_POSTHOG_API_KEY = "phc_test";
+		appEnv.reporting = true;
 		server.getResponseStatus.mockReturnValue(200);
 		session.getOptionalSessionUser.mockResolvedValue({ id: "usr_1" });
 	});

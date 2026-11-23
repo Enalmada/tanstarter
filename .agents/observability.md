@@ -11,7 +11,7 @@ Two separate channels: **logs** (Axiom plus the console, `src/utils/logger.ts`) 
 
 ## Errors
 
-- Unexpected server errors are reported to PostHog by the server-function middleware (`src/server/monitoring/middleware.ts`), the request reporter for server routes and the Nitro plugin. Expected errors (redirects, 4xx domain errors) are skipped. Do not report the same error twice.
+- Unexpected server errors are reported to PostHog by the server-function middleware (`src/server/monitoring/middleware.ts`), the request reporter for server routes and the Nitro plugin. Better Auth turns its own failures into responses, so `/api/auth/*` 5xx failures are reported from its `onAPIError` hook (`src/server/auth/api-error.ts`). Expected errors (redirects, 4xx domain errors) are skipped. Do not report the same error twice.
 - Browser errors go through the monitor in `src/lib/monitoring/`. Use `reportError` from `~/lib/monitoring/report` for errors you catch and still want to know about.
 - Typed domain errors (`src/server/access/http-errors.ts`) carry a safe message for the client; nothing else about the failure reaches the wire.
 

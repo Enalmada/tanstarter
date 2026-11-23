@@ -287,33 +287,9 @@ vi.mock("@tanstack/react-start", () => {
 	};
 });
 
-/**
- * Build a duck-typed Response stand-in for `auth.api.getSession({ asResponse: true })`.
- *
- * The helper at `~/server/auth/session.ts` uses `asResponse: true`, which makes
- * `auth.api.getSession` return a `Response` (cookie-forwarding shape) instead of
- * the plain `{ session, user }` object.
- *
- * Why duck-typed instead of `new Response(JSON.stringify(data))`:
- * `JSON.stringify` round-trips Date instances to ISO strings, so tests that
- * assert `accessCheck` was called with the full user object — including
- * `createdAt: fixedDate` — fail because the parsed user has
- * `createdAt: "2023-08-28T..."` (a string). The duck-typed `json()` returns the
- * ORIGINAL object reference, preserving Date fidelity.
- *
- * Centralizing this factory means individual tests can override the payload
- * without re-discovering the shape.
- */
-export function makeMockSessionResponse(sessionData: unknown): {
-	headers: { getSetCookie: () => string[] };
-	json: () => Promise<unknown>;
-} {
-	return {
-		headers: { getSetCookie: () => [] },
-		json: async () => sessionData ?? {},
-	};
-}
-
+// What `auth.api.getSession()` resolves to (no `asResponse`): the `{ session, user }`
+// object itself, Dates intact, or null when anonymous. Cookie refresh is
+// better-auth's tanstackStartCookies plugin's job, so nothing here models it.
 const defaultSessionPayload = {
 	session: {
 		id: "sess_123",
@@ -337,26 +313,19 @@ const defaultSessionPayload = {
 	},
 };
 
-// Add auth mock near the other global mocks.
-// Default returns the duck-typed Response — matches the `asResponse: true`
-// shape that `~/server/auth/session.ts` actually calls with.
 vi.mock("~/server/auth/auth", () => ({
 	auth: {
 		api: {
-			// biome-ignore lint/suspicious/noExplicitAny: duck-typed Response stand-in
-			getSession: vi.fn().mockResolvedValue(makeMockSessionResponse(defaultSessionPayload) as any),
+			getSession: vi.fn().mockResolvedValue(defaultSessionPayload),
 		},
 	},
 }));
 
-// Add web request mock — include setResponseHeader because `getOptionalSessionUser`
-// calls it when forwarding `Set-Cookie` headers from session refresh.
 vi.mock("@tanstack/react-start/server", () => ({
 	getRequest: vi.fn().mockReturnValue({
 		headers: new Headers(),
 	}),
 	setResponseStatus: vi.fn(),
-	setResponseHeader: vi.fn(),
 }));
 
 // ==================

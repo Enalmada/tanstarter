@@ -35,6 +35,16 @@ export class BadRequestError extends Error implements HttpErrorHints {
 	}
 }
 
+/** No valid session (401). `NotAuthorizedError` is the signed-in-but-forbidden case (403). */
+export class UnauthenticatedError extends Error implements HttpErrorHints {
+	readonly httpStatus = 401;
+	readonly safeMessage = "Unauthorized";
+	constructor(message = "Unauthorized", options?: { cause?: unknown }) {
+		super(message, options?.cause ? { cause: options.cause } : undefined);
+		this.name = "UnauthenticatedError";
+	}
+}
+
 export class NotAuthorizedError extends Error implements HttpErrorHints {
 	readonly httpStatus = 403;
 	readonly safeMessage: string;

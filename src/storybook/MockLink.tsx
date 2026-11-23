@@ -95,6 +95,10 @@ export const createFileRoute = (path: string) => () => ({
 });
 
 export const Link$ = Link;
+// Type guards used by src/lib/monitoring/expected-errors.ts, which Storybook's bundle reaches
+// through the dynamic PostHog import in the auth config. Nothing in a story throws a redirect or not-found.
+export const isRedirect = (_value: unknown): boolean => false;
+export const isNotFound = (_value: unknown): boolean => false;
 export const useNavigate = () => () => {};
 export const useParams = () => ({});
 export const useSearch = () => ({});

@@ -59,11 +59,12 @@ Handlers throw typed domain errors from [src/server/access/http-errors.ts](../..
 | Class | HTTP | Default `safeMessage` | When to throw |
 |---|---|---|---|
 | `BadRequestError` | 400 | the message | Input-validation failures from `validator` |
+| `UnauthenticatedError` | 401 | `"Unauthorized"` | No valid session (thrown by `requireAuthedUser`) |
 | `NotAuthorizedError` | 403 | `"Forbidden"` | Self-actor authorization denial (Pattern A) |
 | `NotFoundError` | 404 | `"Not found"` | Row missing, or info-hiding recast (Pattern B) |
 | `ConflictError` | 409 | the message | Unique-constraint violations, optimistic-concurrency mismatches |
 
-All four implement the structural `HttpErrorHints` interface (`httpStatus` + `safeMessage`). The middleware dispatches on `hasHttpErrorHints(err)`, so future domain error types get translation for free.
+All five implement the structural `HttpErrorHints` interface (`httpStatus` + `safeMessage`). The middleware dispatches on `hasHttpErrorHints(err)`, so future domain error types get translation for free.
 
 ### Wire-payload safety
 
@@ -146,7 +147,7 @@ Route loaders read the session from the router context set by the layout guards 
 Both `getOptionalSessionUser` and `requireAuthedUser` automatically:
 - Honor the Playwright test-auth header shortcut.
 - Wrap `getRequest()` in the defensive try/catch (no caller-visible throw on missing AsyncLocalStorage context).
-- Call `auth.api.getSession({ asResponse: true })` and forward `Set-Cookie` headers from session refresh.
+- Call `auth.api.getSession()` without `asResponse`. better-auth's `tanstackStartCookies()` plugin (registered in `~/server/auth/auth`) applies any `Set-Cookie` from session refresh to Start's response through `setCookie`, merged with cookies set elsewhere in the request. Do not forward them again with `setResponseHeader("Set-Cookie", …)`: that replaces every other cookie on the response. `src/server/auth/__tests__/start-cookies.test.ts` pins this.
 - Accept `{ freshFromDb: true }` to bypass better-auth's cookie cache when the caller needs to observe a role/permission change written earlier in the same session.
 
 ## Routes and guards
@@ -169,7 +170,7 @@ Pages are grouped by who may see them, using pathless layout routes (the folder 
 
 ### Failure mode that this design prevents
 
-`getRequest()` from `@tanstack/react-start/server` resolves the per-request `Request` from TanStack Start's AsyncLocalStorage context. Since v1.134+ the call **throws** (not returns `undefined`) when the context isn't active — which happens routinely during SSR query prefetch / dehydration. An unhandled throw poisons the React Query cache (`fetchFailureReason: TypeError`) on every SSR page render, breaks `setResponseHeader("Set-Cookie", …)` calls that depend on getting `request` first, and noisily alerts error tracking (PostHog) and Axiom.
+`getRequest()` from `@tanstack/react-start/server` resolves the per-request `Request` from TanStack Start's AsyncLocalStorage context. Since v1.134+ the call **throws** (not returns `undefined`) when the context isn't active — which happens routinely during SSR query prefetch / dehydration. An unhandled throw poisons the React Query cache (`fetchFailureReason: TypeError`) on every SSR page render, breaks session refresh, and noisily alerts error tracking (PostHog) and Axiom.
 
 Before the helpers landed, the defensive try/catch lived inline in five separate call sites and getting one of them wrong (which this PR's earlier commits did, twice) broke session refresh + SSR-time error monitoring. **The whole point of routing through the helpers is that the rule can't be forgotten.** If TanStack Start changes the semantics again (it has, twice — 1.134 and 1.167), one edit in `~/server/auth/request.ts` propagates everywhere.
 
@@ -206,20 +207,13 @@ Before the helpers landed, the defensive try/catch lived inline in five separate
    vi.spyOn(requestModule, "getSessionRequest").mockResolvedValueOnce(null);
    ```
 
-### Test mock shape — duck-typed `Response`, NOT `new Response(JSON.stringify(...))`
+### Test mock shape — the session object itself
 
-`auth.api.getSession({ asResponse: true })` returns a `Response`. The obvious "wrap in `new Response(JSON.stringify(payload))`" approach round-trips Dates to ISO strings, breaking any test that asserts a full user object including `createdAt: fixedDate` (a Date instance) against `accessCheck` calls.
-
-The codebase exports `makeMockSessionResponse(payload)` from [src/test/setup.ts](../../../src/test/setup.ts) — use it instead of constructing the shape inline:
+`auth.api.getSession()` resolves to the `{ session, user }` object (Dates intact) or `null`, and the global mock in [src/test/setup.ts](../../../src/test/setup.ts) returns the same shape. Override it with the object directly:
 
 ```typescript
-// ✅ Preserves Date instances — `json()` returns the original reference
-vi.mocked(auth.api.getSession).mockResolvedValueOnce(
-  makeMockSessionResponse({ session: null, user: null }) as any
-);
+vi.mocked(auth.api.getSession).mockResolvedValueOnce(null); // anonymous
 ```
-
-The global default mock in `src/test/setup.ts` also returns this duck-typed shape, so tests that don't override it still match production's `asResponse: true` call.
 
 ## Enforcing TSS-2
 
