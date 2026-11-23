@@ -20,6 +20,8 @@ import type { CaptureProperties } from "~/lib/monitoring/capture";
 import { isExpectedError } from "~/lib/monitoring/expected-errors";
 import { requestPath } from "~/lib/monitoring/request-path";
 
+const SESSION_LOOKUP_TIMEOUT_MS = 1000;
+
 export const errorReporter = createMiddleware({ type: "function" }).server(async ({ next, serverFnMeta }) => {
 	try {
 		return await next();
@@ -54,8 +56,12 @@ async function reportServerError(err: unknown, properties: CaptureProperties) {
 		const status = serverModule.getResponseStatus();
 		if (status >= 400 && status < 500) return;
 
+		// Nothing to report to: skip the session lookup, a second database round trip on the failure path.
+		const { env, shouldReportErrors } = await import("~/env");
+		if (!env.PUBLIC_POSTHOG_API_KEY || !shouldReportErrors()) return;
+
 		const sessionModule = await import("~/server/auth/session");
-		const user = await sessionModule.getOptionalSessionUser().catch(() => null);
+		const user = await lookupUserWithin(() => sessionModule.getOptionalSessionUser(), SESSION_LOOKUP_TIMEOUT_MS);
 
 		const posthogModule = await import("./posthog");
 		posthogModule.captureServerException(err, {
@@ -64,5 +70,20 @@ async function reportServerError(err: unknown, properties: CaptureProperties) {
 		});
 	} catch {
 		// Reporting must never change the error the caller sees
+	}
+}
+
+// Bounded: during a database outage the original error is usually the session
+// lookup failing, and the caller must not wait out a connection timeout again
+// just to attach a user id. The lookup itself keeps running; only the wait ends.
+async function lookupUserWithin(lookup: () => Promise<{ id: string } | null>, ms: number) {
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const deadline = new Promise<null>((resolve) => {
+		timer = setTimeout(() => resolve(null), ms);
+	});
+	try {
+		return await Promise.race([lookup().catch(() => null), deadline]);
+	} finally {
+		clearTimeout(timer);
 	}
 }
