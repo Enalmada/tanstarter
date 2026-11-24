@@ -9,7 +9,7 @@
         "@base-ui/react": "1.9.0",
         "@better-auth/drizzle-adapter": "1.7.12",
         "@casl/ability": "7.0.2",
-        "@enalmada/start-secure": "1.0.2",
+        "@enalmada/start-secure": "1.1.0",
         "@enalmada/start-streaming": "2.0.0",
         "@lingui/core": "6.10.0",
         "@lingui/react": "6.10.0",
@@ -210,7 +210,7 @@
 
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@1.2.2", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-c95qOXkHdydNKhscBTebqEC1CVAZpyqOfVfBzQ1qgzyl3gfeldUjIggDbIZgDKsHLgnsM+igH7TJ/eAasaVuMA=="],
 
-    "@enalmada/start-secure": ["@enalmada/start-secure@1.0.2", "", { "peerDependencies": { "@tanstack/react-start": ">=1.0.0", "@tanstack/start-storage-context": ">=1.0.0" } }, "sha512-6Sy5CcI8tkONtKfuiGsIWu7ocmX6OJmfnqTCBRdqAaJR+HVlUiun9n0mttLHu2sI++oeADXsT2jXuiyIxpEc9w=="],
+    "@enalmada/start-secure": ["@enalmada/start-secure@1.1.0", "", { "peerDependencies": { "@tanstack/react-start": ">=1.132.0" } }, "sha512-byu8Mc2cq6e7Zc0w1VZRZIzEcvhISBe2uh6A2qq9j13DlEw0Tg4yfy1ILJvfB41PdRkdTrux5/gkbjPJkj4UwA=="],
 
     "@enalmada/start-streaming": ["@enalmada/start-streaming@2.0.0", "", { "peerDependencies": { "@tanstack/react-query": "^5.0.0", "@tanstack/react-router": "^1.0.0", "@tanstack/react-start": "^1.0.0", "better-sse": "^0.15.1", "react": "^18.0.0 || ^19.0.0" }, "optionalPeers": ["@tanstack/react-query"] }, "sha512-gGnOtg1zc4D93PBsm4RRz657oajN9UM6BvqeXiqWYEym9aKChd6SGvjNPSildE9kd5huJua7CE5FE3Zb3rHLZQ=="],
 
