@@ -22,6 +22,7 @@ Test the behavior that would hurt if it broke, at the cheapest level that can sh
 - Projects: `public` (signed out), `member` and `admin` (stored auth state from `src/e2e/auth/*.setup.ts`, seeded users `member@playwright.local` and `admin@playwright.local` from `bun run drizzle:seed`). Put a spec in the folder for the audience it exercises.
 - The dev server must run with `PLAYWRIGHT=true`, `NODE_ENV=development` and a seeded database; Playwright's config starts it for you.
 - `bun run check:e2e-specs` fails when a spec sits outside every project and would silently never run.
+- CI needs no repository secrets: [playwright.yml](../.github/workflows/playwright.yml) sets fake values for the required auth variables. A run Dependabot triggers gets no Actions secrets, so a gate that reads one fails every dependency pull request. Give a new required variable a placeholder there.
 - Wait for hydration before interacting: a click that lands before the page hydrates is lost. Prefer retrying assertions over fixed sleeps.
 
 ## Real-browser checks
